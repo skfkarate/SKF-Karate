@@ -1,0 +1,120 @@
+.grading__intro {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.grading__intro .section-subtitle {
+    margin: 0 auto;
+}
+
+.belt-chart {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.belt-row {
+    display: flex;
+    align-items: center;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    transition: var(--transition);
+}
+
+.belt-row:hover {
+    transform: translateX(8px);
+    border-color: var(--border-active);
+}
+
+.belt-row__color {
+    min-width: 120px;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: var(--font-heading);
+    color: white;
+}
+
+.belt-row__info {
+    padding: 1rem 1.5rem;
+}
+
+.belt-row__info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.belt-row__info p {
+    color: var(--text-light);
+    font-size: 0.88rem;
+}
+
+/* Dan Section */
+.dan__glow {
+    width: 400px;
+    height: 400px;
+    right: -5%;
+    top: 20%;
+    opacity: 0.15;
+}
+
+.dan__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dan__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.dan-card {
+    padding: 2rem;
+    text-align: center;
+}
+
+.dan-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--gold);
+}
+
+.dan-card__years {
+    display: inline-block;
+    background: rgba(255, 183, 3, 0.08);
+    border: 1px solid rgba(255, 183, 3, 0.15);
+    color: var(--text-light);
+    padding: 0.25rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
+}
+
+.dan-card p {
+    color: var(--text-light);
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+.grading-cta__inner {
+    text-align: center;
+    padding: 5rem 3rem;
+}
+
+@media (max-width: 600px) {
+    .belt-row__color {
+        min-width: 80px;
+        font-size: 0.65rem;
+    }
+}

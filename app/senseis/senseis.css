@@ -1,0 +1,107 @@
+.senseis__intro {
+    margin-bottom: 4rem;
+}
+
+.senseis__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.sensei-card {
+    padding: 2.5rem 2rem;
+    text-align: center;
+}
+
+.sensei-card__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--gold);
+    background: rgba(255, 183, 3, 0.08);
+    border: 2px solid rgba(255, 183, 3, 0.2);
+}
+
+.sensei-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+}
+
+.sensei-card__dan {
+    display: block;
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.3rem;
+}
+
+.sensei-card__role {
+    display: inline-block;
+    background: rgba(214, 40, 40, 0.08);
+    color: var(--crimson-light);
+    border: 1px solid rgba(214, 40, 40, 0.15);
+    padding: 0.25rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+}
+
+.sensei-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+    text-align: left;
+}
+
+.sensei-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sensei-detail strong {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sensei-detail span {
+    color: var(--text-light);
+    text-align: right;
+    max-width: 55%;
+}
+
+.sensei-card__achievements {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-style: italic;
+    line-height: 1.6;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 1rem;
+}
+
+@media (max-width: 992px) {
+    .senseis__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .senseis__grid {
+        grid-template-columns: 1fr;
+    }
+}

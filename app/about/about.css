@@ -1,0 +1,402 @@
+/* ===== PAGE HERO (shared pattern) ===== */
+.page-hero {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4rem;
+    overflow: hidden;
+}
+
+.page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(170deg, var(--navy-deep) 0%, var(--bg-body) 100%);
+}
+
+.page-hero__glow-1 {
+    width: 400px;
+    height: 400px;
+    top: 0;
+    right: 10%;
+    opacity: 0.25;
+}
+
+.page-hero__glow-2 {
+    width: 350px;
+    height: 350px;
+    bottom: 0;
+    left: 5%;
+    opacity: 0.3;
+}
+
+.page-hero__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.page-hero__title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    margin-bottom: 0.5rem;
+}
+
+.page-hero__subtitle {
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+/* ===== PHILOSOPHY ===== */
+.philosophy__grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 5rem;
+    align-items: center;
+}
+
+.philosophy__text-secondary {
+    color: var(--text-light);
+    margin-top: 1.5rem;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.philosophy__cta {
+    margin-top: 2.5rem;
+}
+
+.philosophy__card {
+    padding: 3rem;
+    text-align: center;
+}
+
+.philosophy__icon {
+    font-size: 4rem;
+    color: var(--crimson);
+    margin-bottom: 1.5rem;
+}
+
+.philosophy__card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--gold);
+}
+
+.philosophy__card p {
+    color: var(--text-light);
+    line-height: 1.7;
+}
+
+/* ===== VALUES ===== */
+.values {
+    overflow: hidden;
+}
+
+.values__glow {
+    width: 400px;
+    height: 400px;
+    right: -5%;
+    top: 20%;
+    opacity: 0.15;
+}
+
+.values__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.values__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.value-card {
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.value-card__icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.6rem;
+    color: var(--gold);
+    background: rgba(255, 183, 3, 0.08);
+    border: 1px solid rgba(255, 183, 3, 0.15);
+    transition: var(--transition);
+}
+
+.value-card:hover .value-card__icon {
+    transform: scale(1.15) rotate(5deg);
+    background: rgba(255, 183, 3, 0.15);
+}
+
+.value-card--accent .value-card__icon {
+    color: var(--crimson);
+    background: rgba(214, 40, 40, 0.08);
+    border-color: rgba(214, 40, 40, 0.2);
+}
+
+.value-card--accent:hover .value-card__icon {
+    background: rgba(214, 40, 40, 0.15);
+}
+
+.value-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.value-card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+/* ===== TIMELINE ===== */
+.timeline__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-left: 40px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--crimson), var(--gold), transparent);
+}
+
+.timeline__item {
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.timeline__marker {
+    position: absolute;
+    left: -33px;
+    top: 2rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--bg-body);
+    box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.timeline__card {
+    padding: 2rem;
+}
+
+.timeline__year {
+    display: inline-block;
+    background: rgba(255, 183, 3, 0.1);
+    color: var(--gold);
+    border: 1px solid rgba(255, 183, 3, 0.2);
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+}
+
+.timeline__card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.timeline__card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+/* ===== ABOUT CTA ===== */
+.about-cta__inner {
+    text-align: center;
+    background: linear-gradient(135deg, rgba(20, 33, 61, 0.4), rgba(20, 33, 61, 0.15));
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    padding: 5rem 3rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .philosophy__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .philosophy__card {
+        order: -1;
+    }
+
+    .values__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .leadership__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .affiliations__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .assoc-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .assoc-stats__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== ASSOCIATION STATS ===== */
+.assoc-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.assoc-stat {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.assoc-stat__number {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.3rem;
+}
+
+.assoc-stat__label {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== LEADERSHIP ===== */
+.leadership__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.leadership__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.leader-card {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.leader-card__avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto 1.2rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--gold);
+    background: rgba(255, 183, 3, 0.08);
+    border: 2px solid rgba(255, 183, 3, 0.2);
+}
+
+.leader-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.leader-card__role {
+    display: block;
+    color: var(--crimson-light);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.3rem;
+}
+
+.leader-card__dan {
+    display: inline-block;
+    background: rgba(255, 183, 3, 0.08);
+    border: 1px solid rgba(255, 183, 3, 0.15);
+    color: var(--gold);
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.leader-card p {
+    color: var(--text-light);
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+/* ===== AFFILIATIONS ===== */
+.affiliations__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.affiliations__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.affiliation-card {
+    padding: 2.5rem;
+    text-align: center;
+}
+
+.affiliation-card__icon {
+    font-size: 2.5rem;
+    color: var(--gold);
+    margin-bottom: 1.2rem;
+}
+
+.affiliation-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.affiliation-card p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}

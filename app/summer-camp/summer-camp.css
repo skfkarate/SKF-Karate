@@ -1,0 +1,280 @@
+/* ===== CAMP HERO ===== */
+.camp-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* ===== PROGRAMS ===== */
+.programs__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.programs__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    align-items: stretch;
+}
+
+.program-card {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.program-card__badge {
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 5px 40px;
+    transform: rotate(45deg);
+    z-index: 2;
+}
+
+.program-card__header {
+    padding: 2.5rem 2rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.program-card__icon {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.6rem;
+    color: var(--gold);
+    background: rgba(255, 183, 3, 0.08);
+    border: 1px solid rgba(255, 183, 3, 0.15);
+    margin: 0 auto 1.5rem auto;
+    transition: var(--transition);
+}
+
+.program-card:hover .program-card__icon {
+    transform: scale(1.1);
+    background: rgba(255, 183, 3, 0.15);
+}
+
+.program-card__header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.program-card__level {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+.program-card__features {
+    padding: 2rem;
+    flex: 1;
+}
+
+.program-card__features li {
+    padding: 0.6rem 0;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.program-card__features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.program-card__btn {
+    margin: 0 2rem 2rem 2rem;
+    text-align: center;
+}
+
+/* Featured card */
+.program-card--featured {
+    border-color: rgba(255, 183, 3, 0.25);
+    transform: scale(1.03);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.program-card--featured:hover {
+    transform: scale(1.03) translateY(-8px);
+}
+
+.program-card--featured .program-card__icon {
+    color: var(--crimson);
+    background: rgba(214, 40, 40, 0.1);
+    border-color: rgba(214, 40, 40, 0.2);
+}
+
+/* ===== SCHEDULE ===== */
+.schedule {
+    overflow: hidden;
+}
+
+.schedule__glow {
+    width: 400px;
+    height: 400px;
+    left: -10%;
+    top: 0;
+    opacity: 0.3;
+}
+
+.schedule__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.schedule__table {
+    max-width: 700px;
+    margin: 0 auto;
+    overflow: hidden;
+    padding: 0;
+}
+
+.schedule__row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.2s ease;
+}
+
+.schedule__row:last-child {
+    border-bottom: none;
+}
+
+.schedule__row:hover {
+    background: rgba(255, 183, 3, 0.03);
+}
+
+.schedule__row--header {
+    background: rgba(20, 33, 61, 0.5);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: var(--gold);
+}
+
+.schedule__row--header span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.schedule__time {
+    color: var(--gold);
+    font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.testimonials__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.testimonial-card {
+    padding: 2.5rem 2rem;
+    position: relative;
+}
+
+.testimonial-card__quote {
+    color: var(--gold);
+    font-size: 1.5rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+.testimonial-card p {
+    color: var(--text-light);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-card__author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.testimonial-card__avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.testimonial-card__author strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.testimonial-card__author span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ===== CAMP BOTTOM CTA ===== */
+.camp-bottom-cta__inner {
+    text-align: center;
+    padding: 5rem 3rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .programs__grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .program-card--featured {
+        transform: scale(1);
+    }
+
+    .program-card--featured:hover {
+        transform: translateY(-8px);
+    }
+
+    .testimonials__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule__row {
+        grid-template-columns: 100px 1fr;
+        padding: 1rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}

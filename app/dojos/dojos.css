@@ -1,0 +1,99 @@
+.dojos__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.dojo-card {
+    padding: 2rem;
+    position: relative;
+}
+
+.dojo-card--featured {
+    border-color: rgba(255, 183, 3, 0.3);
+}
+
+.dojo-card__badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 183, 3, 0.12);
+    color: var(--gold);
+    border: 1px solid rgba(255, 183, 3, 0.2);
+    padding: 0.25rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dojo-card h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.3rem;
+}
+
+.dojo-card__sensei {
+    color: var(--gold);
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 1.5rem;
+}
+
+.dojo-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.dojo-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-light);
+    font-size: 0.88rem;
+}
+
+.dojo-detail svg {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.dojo-card__ages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.age-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(20, 33, 61, 0.6);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+}
+
+.dojo-card__cta {
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    .dojos__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .dojos__grid {
+        grid-template-columns: 1fr;
+    }
+}
