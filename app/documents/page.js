@@ -1,12 +1,7 @@
 import { FaFileAlt, FaDownload, FaBook, FaClipboardList, FaShieldAlt } from 'react-icons/fa'
 import './documents.css'
 
-export const metadata = {
-    title: 'Rules & Documents — Downloads, Forms & Regulations',
-    description: 'Download official SKF Karate documents — WKF competition rules, belt grading requirements, membership forms, Dojo Kun code of conduct, and event entry forms.',
-    openGraph: { title: 'SKF Karate Rules & Documents', description: 'Official documents, competition rules, grading forms, and code of conduct.' },
-    alternates: { canonical: 'https://skfkarate.org/documents' },
-}
+
 
 const docCategories = [
     {

@@ -141,15 +141,33 @@
 }
 
 @media (max-width: 600px) {
-    .milestones__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .champions__grid {
-        grid-template-columns: 1fr;
-    }
-
+    .milestones__grid,
+    .champions__grid,
     .awards__grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .milestone-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .milestone-card__icon {
+        font-size: 1.8rem;
+    }
+
+    .champion-card {
+        padding: 1.5rem;
+    }
+
+    .champion-card__badge {
+        position: static;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .award-card {
+        padding: 1.5rem;
     }
 }

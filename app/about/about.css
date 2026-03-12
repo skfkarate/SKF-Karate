@@ -400,3 +400,47 @@
     color: var(--text-light);
     font-size: 0.9rem;
 }
+
+@media (max-width: 480px) {
+    .philosophy__card {
+        padding: 2rem 1.5rem;
+    }
+
+    .philosophy__icon {
+        font-size: 3rem;
+    }
+
+    .assoc-stat {
+        padding: 1.5rem 1rem;
+    }
+
+    .assoc-stat__number {
+        font-size: 2rem;
+    }
+
+    .value-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .timeline {
+        padding-left: 25px;
+    }
+
+    .timeline::before {
+        left: 8px;
+    }
+
+    .timeline__marker {
+        left: -22px;
+        width: 12px;
+        height: 12px;
+    }
+
+    .timeline__card {
+        padding: 1.5rem;
+    }
+
+    .about-cta__inner {
+        padding: 3rem 1.5rem;
+    }
+}

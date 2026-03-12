@@ -3,12 +3,7 @@ import { FaShieldAlt, FaBolt, FaArrowRight, FaMedal, FaUsers, FaGraduationCap, F
 import { GiBlackBelt, GiMeditation, GiPunch } from 'react-icons/gi'
 import './about.css'
 
-export const metadata = {
-    title: 'About SKF Karate — Our Legacy, Values & Leadership',
-    description: 'Discover the legacy of SKF Karate — Sports Karate-do Fitness & Self Defence Association®. Our mission, leadership team, three pillars of training (Discipline, Strength, Respect), and affiliations with WKF and national federations.',
-    openGraph: { title: 'About SKF Karate — Our Legacy & Values', description: 'Discover the philosophy, leadership, and values behind SKF Karate.' },
-    alternates: { canonical: 'https://skfkarate.org/about' },
-}
+
 
 const leadership = [
     { name: 'Shihan Takeshi', role: 'President & Founder', dan: '7th Dan', desc: 'Visionary behind SKF Karate with 30+ years of international Karate-Do experience.' },

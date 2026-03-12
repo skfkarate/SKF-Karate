@@ -149,3 +149,23 @@
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 480px) {
+    .event-card {
+        padding: 1.5rem;
+    }
+
+    .event-card__top h3 {
+        font-size: 1.15rem;
+    }
+
+    .event-card__meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .past-card {
+        padding: 1.5rem;
+    }
+}

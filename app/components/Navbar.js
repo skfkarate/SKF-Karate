@@ -13,7 +13,7 @@ const navStructure = [
         children: [
             { label: 'Our Legacy', href: '/about' },
             { label: 'Our Senseis', href: '/senseis' },
-            { label: 'Dojo Directory', href: '/dojos' },
+            { label: 'Dojo Directory', href: '/dojos', disabled: true },
         ],
     },
     {
@@ -21,16 +21,16 @@ const navStructure = [
         children: [
             { label: 'Kyu & Dan System', href: '/grading' },
             { label: 'Summer Camp 2026', href: '/summer-camp' },
-            { label: 'Rules & Documents', href: '/documents' },
+            { label: 'Rules & Documents', href: '/documents', disabled: true },
         ],
     },
     {
         label: 'Community',
         children: [
             { label: 'Events & Calendar', href: '/events' },
-            { label: 'News & Updates', href: '/news' },
+            { label: 'News & Updates', href: '/news', disabled: true },
             { label: 'Gallery', href: '/gallery' },
-            { label: 'Honours Board', href: '/honours' },
+            { label: 'Honours Board', href: '/honours', disabled: true },
         ],
     },
     { label: 'Contact', href: '/contact' },
@@ -68,16 +68,27 @@ function DropdownItem({ item, pathname, onNavigate }) {
                 {item.label} <FaChevronDown className="nav__chevron" />
             </button>
             <div className="nav__dropdown-menu">
-                {item.children.map((child) => (
-                    <Link
-                        key={child.href}
-                        href={child.href}
-                        className={`nav__dropdown-link ${pathname === child.href ? 'nav__dropdown-link--active' : ''}`}
-                        onClick={() => { setOpen(false); onNavigate?.() }}
-                    >
-                        {child.label}
-                    </Link>
-                ))}
+                {item.children.map((child) =>
+                    child.disabled ? (
+                        <span
+                            key={child.href}
+                            className="nav__dropdown-link nav__dropdown-link--disabled"
+                            title="Coming Soon"
+                        >
+                            {child.label}
+                            <span className="nav__coming-soon">Soon</span>
+                        </span>
+                    ) : (
+                        <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`nav__dropdown-link ${pathname === child.href ? 'nav__dropdown-link--active' : ''}`}
+                            onClick={() => { setOpen(false); onNavigate?.() }}
+                        >
+                            {child.label}
+                        </Link>
+                    )
+                )}
             </div>
         </div>
     )
@@ -133,16 +144,26 @@ export default function Navbar() {
                                 </button>
                                 {mobileDropdown === item.label && (
                                     <div className="nav__mobile-sub">
-                                        {item.children.map((child) => (
-                                            <Link
-                                                key={child.href}
-                                                href={child.href}
-                                                className={`nav__mobile-sub-link ${pathname === child.href ? 'nav__dropdown-link--active' : ''}`}
-                                                onClick={() => setMenuOpen(false)}
-                                            >
-                                                {child.label}
-                                            </Link>
-                                        ))}
+                                        {item.children.map((child) =>
+                                            child.disabled ? (
+                                                <span
+                                                    key={child.href}
+                                                    className="nav__mobile-sub-link nav__mobile-sub-link--disabled"
+                                                >
+                                                    {child.label}
+                                                    <span className="nav__coming-soon">Soon</span>
+                                                </span>
+                                            ) : (
+                                                <Link
+                                                    key={child.href}
+                                                    href={child.href}
+                                                    className={`nav__mobile-sub-link ${pathname === child.href ? 'nav__dropdown-link--active' : ''}`}
+                                                    onClick={() => setMenuOpen(false)}
+                                                >
+                                                    {child.label}
+                                                </Link>
+                                            )
+                                        )}
                                     </div>
                                 )}
                             </div>

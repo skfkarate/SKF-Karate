@@ -2,12 +2,7 @@ import { FaTrophy, FaMedal, FaStar, FaAward } from 'react-icons/fa'
 import { GiBlackBelt, GiPodium, GiLaurelsTrophy } from 'react-icons/gi'
 import './honours.css'
 
-export const metadata = {
-    title: 'Honours Board — Champions, Awards & Achievements',
-    description: 'SKF Karate Honours Board — celebrating our state and national karate champions, year-end award winners, and association milestones. Kata and kumite achievers recognized.',
-    openGraph: { title: 'SKF Karate Honours Board', description: 'Celebrating our champions and award winners.' },
-    alternates: { canonical: 'https://skfkarate.org/honours' },
-}
+
 
 const champions = [
     { name: 'Arun Kumar', achievement: 'National Kumite Champion — Senior', year: '2025', cat: 'kumite' },

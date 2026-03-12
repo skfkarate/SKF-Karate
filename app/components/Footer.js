@@ -1,58 +1,66 @@
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaEnvelope, FaPhoneAlt } from 'react-icons/fa'
 import './Footer.css'
 
 export default function Footer() {
     return (
         <footer className="footer">
             <div className="container">
-                <div className="footer__grid">
+                {/* Main Footer */}
+                <div className="footer__main">
+                    {/* Brand + Contact */}
                     <div className="footer__brand">
                         <Link href="/" className="footer__logo">
-                            <span>SKF</span><span className="text-gradient">KARATE</span>
+                            <img src="/logo/SKF logo.png" alt="SKF Karate" className="footer__logo-img" />
+                            <div className="footer__logo-text">
+                                <span>SKF</span> <span className="text-gradient">KARATE</span>
+                            </div>
                         </Link>
-                        <p className="footer__tagline">Sports Karate-do Fitness & Self Defence Association®</p>
-                        <p className="footer__motto">Nothing is Impossible</p>
+                        <p className="footer__tagline">Sports Karate-do Fitness &amp; Self Defence Association®</p>
+                        <p className="footer__motto">&ldquo;Nothing is Impossible&rdquo;</p>
                     </div>
 
-                    <div className="footer__col">
-                        <h4>About</h4>
-                        <ul>
-                            <li><Link href="/about">Our Legacy</Link></li>
-                            <li><Link href="/senseis">Our Senseis</Link></li>
-                            <li><Link href="/dojos">Dojo Directory</Link></li>
-                            <li><Link href="/honours">Honours Board</Link></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer__col">
-                        <h4>Training</h4>
-                        <ul>
-                            <li><Link href="/grading">Kyu & Dan System</Link></li>
-                            <li><Link href="/summer-camp">Summer Camp 2026</Link></li>
-                            <li><Link href="/events">Events & Calendar</Link></li>
-                            <li><Link href="/documents">Rules & Documents</Link></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer__col">
-                        <h4>Community</h4>
-                        <ul>
-                            <li><Link href="/news">News & Updates</Link></li>
-                            <li><Link href="/gallery">Gallery</Link></li>
-                            <li><Link href="/contact">Contact Us</Link></li>
-                        </ul>
-                        <div className="footer__social-icons">
-                            <a href="#" className="footer__social-icon" aria-label="Facebook"><FaFacebookF /></a>
-                            <a href="#" className="footer__social-icon" aria-label="Instagram"><FaInstagram /></a>
-                            <a href="#" className="footer__social-icon" aria-label="YouTube"><FaYoutube /></a>
-                            <a href="#" className="footer__social-icon" aria-label="WhatsApp"><FaWhatsapp /></a>
+                    {/* Contact */}
+                    <div className="footer__section">
+                        <h4 className="footer__heading">Contact Us</h4>
+                        <div className="footer__contact-list">
+                            <a href="tel:+919019971769" className="footer__contact-item">
+                                <FaPhoneAlt className="footer__contact-icon" />
+                                <span>+91 90199 71769</span>
+                            </a>
+                            <a href="mailto:contact@skfkarate.org" className="footer__contact-item">
+                                <FaEnvelope className="footer__contact-icon" />
+                                <span>contact@skfkarate.org</span>
+                            </a>
                         </div>
+                    </div>
+
+                    {/* Follow + CTA */}
+                    <div className="footer__section">
+                        <h4 className="footer__heading">Follow Us</h4>
+                        <div className="footer__social">
+                            <a href="https://wa.me/919019971769" className="footer__social-icon footer__social-icon--wa" aria-label="WhatsApp"><FaWhatsapp /></a>
+                            <a href="#" className="footer__social-icon footer__social-icon--ig" aria-label="Instagram"><FaInstagram /></a>
+                            <a href="#" className="footer__social-icon footer__social-icon--fb" aria-label="Facebook"><FaFacebookF /></a>
+                            <a href="#" className="footer__social-icon footer__social-icon--yt" aria-label="YouTube"><FaYoutube /></a>
+                        </div>
+                        <Link href="/summer-camp" className="btn btn-primary footer__cta-btn">
+                            Join Summer Camp 2026
+                        </Link>
                     </div>
                 </div>
 
+                {/* Divider */}
+                <div className="footer__divider"></div>
+
+                {/* Bottom Bar */}
                 <div className="footer__bottom">
-                    <p>&copy; {new Date().getFullYear()} SKF Karate. All Rights Reserved.</p>
+                    <p className="footer__copyright">
+                        &copy; {new Date().getFullYear()} Sports Karate-do Fitness &amp; Self Defence Association®. All rights reserved.
+                    </p>
+                    <p className="footer__credit">
+                        Designed &amp; developed with ❤️ for the karate community
+                    </p>
                 </div>
             </div>
         </footer>

@@ -2,6 +2,7 @@
 .hero {
     position: relative;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -108,8 +109,8 @@
 /* ===== STATS ===== */
 .stats {
     position: relative;
-    z-index: 5;
-    margin-top: -3rem;
+    z-index: 10;
+    margin-top: -3.5rem;
     padding: 0 2rem;
 }
 
@@ -335,10 +336,20 @@
     opacity: 0.8;
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===================================================================
+   RESPONSIVE — 4-breakpoint system
+   992px → tablet landscape
+   768px → tablet portrait
+   480px → mobile standard
+   360px → small phones
+   =================================================================== */
+
+/* ───── TABLET LANDSCAPE ───── */
 @media (max-width: 992px) {
     .features__grid {
         grid-template-columns: 1fr;
+        max-width: 520px;
+        margin: 0 auto;
     }
 
     .camp-cta__inner {
@@ -359,23 +370,326 @@
     .camp-cta__belt-icon {
         font-size: 3.5rem;
     }
+
+    .camp-cta__actions {
+        display: flex;
+        justify-content: center;
+    }
 }
 
+/* ───── TABLET PORTRAIT ───── */
 @media (max-width: 768px) {
+    .hero {
+        min-height: 90vh;
+    }
+
+    .hero__content {
+        padding-top: 5rem;
+        padding-bottom: 3rem;
+    }
+
+    .hero__badge {
+        padding: 0.5rem 1.2rem;
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+        margin-bottom: 2rem;
+    }
+
+    .hero__subtitle {
+        font-size: 0.9rem;
+        letter-spacing: 2.5px;
+    }
+
+    .hero__desc {
+        font-size: 1rem;
+        margin-bottom: 2.5rem;
+        max-width: 500px;
+    }
+
     .hero__actions {
         flex-direction: column;
         width: 100%;
         max-width: 300px;
     }
 
+    /* Stats — 2x2 grid on tablet */
     .stats__grid {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 2rem;
-        padding: 2.5rem 1.5rem;
+        padding: 2rem 1.5rem;
     }
 
     .stats__divider {
-        width: 60px;
-        height: 1px;
+        display: none;
+    }
+
+    .stat__number {
+        font-size: 2.5rem;
+    }
+
+    .stat__label {
+        font-size: 0.72rem;
+        letter-spacing: 1.5px;
+    }
+
+    /* Features */
+    .features__header {
+        margin-bottom: 2.5rem;
+    }
+
+    .feature-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .feature-card__icon {
+        width: 52px;
+        height: 52px;
+        font-size: 1.3rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.15rem;
+    }
+
+    .feature-card p {
+        font-size: 0.9rem;
+    }
+
+    /* Camp CTA */
+    .camp-cta__inner {
+        padding: 2.5rem 1.5rem;
+    }
+
+    .camp-cta__ring {
+        width: 130px;
+        height: 130px;
+    }
+
+    .camp-cta__belt-icon {
+        font-size: 3rem;
+    }
+
+    /* Reduce glow sizes on smaller screens */
+    .hero__glow-1 {
+        width: 300px;
+        height: 300px;
+    }
+
+    .hero__glow-2 {
+        width: 250px;
+        height: 250px;
+    }
+
+    .hero__glow-3 {
+        width: 350px;
+        height: 350px;
+    }
+}
+
+/* ───── MOBILE STANDARD ───── */
+@media (max-width: 480px) {
+    .hero {
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .hero__content {
+        padding-top: 4.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .hero__badge {
+        padding: 0.45rem 1rem;
+        font-size: 0.65rem;
+        letter-spacing: 1.5px;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero__title {
+        font-size: clamp(2.5rem, 14vw, 3.5rem);
+        letter-spacing: -1px;
+    }
+
+    .hero__subtitle {
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        margin-bottom: 1rem;
+    }
+
+    .hero__desc {
+        font-size: 0.9rem;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        max-width: 100%;
+    }
+
+    .hero__actions {
+        max-width: 100%;
+        gap: 0.75rem;
+    }
+
+    .hero__actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Stats */
+    .stats {
+        padding: 0 1rem;
+    }
+
+    .stats__grid {
+        padding: 1.5rem 1rem;
+        gap: 1.5rem;
+        border-radius: 18px;
+    }
+
+    .stat__number {
+        font-size: 2rem;
+    }
+
+    .stat__label {
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+        margin-top: 0.3rem;
+    }
+
+    /* Features */
+    .features__header {
+        margin-bottom: 2rem;
+    }
+
+    .features__header .section-title {
+        font-size: 1.8rem;
+    }
+
+    .features__grid {
+        max-width: 100%;
+        gap: 1.25rem;
+    }
+
+    .feature-card {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .feature-card__icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .feature-card p {
+        font-size: 0.85rem;
+        line-height: 1.65;
+    }
+
+    .feature-card__arrow {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+    }
+
+    /* Camp CTA */
+    .camp-cta__inner {
+        padding: 2rem 1.25rem;
+        border-radius: 18px;
+    }
+
+    .camp-cta__ring {
+        width: 100px;
+        height: 100px;
+    }
+
+    .camp-cta__belt-icon {
+        font-size: 2.2rem;
+    }
+
+    .camp-cta__actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Glows — minimize to reduce paint cost */
+    .hero__glow-1 {
+        width: 200px;
+        height: 200px;
+        opacity: 0.3;
+    }
+
+    .hero__glow-2 {
+        width: 180px;
+        height: 180px;
+        opacity: 0.2;
+    }
+
+    .hero__glow-3 {
+        display: none;
+    }
+
+    .features__glow {
+        display: none;
+    }
+}
+
+/* ───── SMALL PHONES ───── */
+@media (max-width: 360px) {
+    .hero__title {
+        font-size: 2.2rem;
+    }
+
+    .hero__subtitle {
+        font-size: 0.72rem;
+        letter-spacing: 1.5px;
+    }
+
+    .hero__desc {
+        font-size: 0.85rem;
+    }
+
+    .hero__badge {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+        padding: 0.4rem 0.85rem;
+    }
+
+    .stat__number {
+        font-size: 1.7rem;
+    }
+
+    .stat__label {
+        font-size: 0.6rem;
+    }
+
+    .feature-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1rem;
+    }
+
+    .feature-card p {
+        font-size: 0.82rem;
+    }
+
+    .camp-cta__inner {
+        padding: 1.75rem 1rem;
+    }
+
+    .camp-cta__ring {
+        width: 85px;
+        height: 85px;
+    }
+
+    .camp-cta__belt-icon {
+        font-size: 1.8rem;
     }
 }

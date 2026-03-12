@@ -97,3 +97,27 @@
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 480px) {
+    .dojo-card {
+        padding: 1.5rem;
+    }
+
+    .dojo-card__badge {
+        position: static;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .dojo-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .dojo-card__sensei {
+        font-size: 0.75rem;
+    }
+
+    .dojo-detail {
+        font-size: 0.82rem;
+    }
+}

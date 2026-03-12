@@ -1,18 +1,18 @@
 import Link from 'next/link'
-import { FaFire, FaBrain, FaCalendarAlt, FaClock, FaArrowRight, FaQuoteLeft, FaStar } from 'react-icons/fa'
-import { GiBlackBelt } from 'react-icons/gi'
+import { FaFire, FaCalendarAlt, FaArrowRight, FaQuoteLeft, FaStar, FaShieldAlt, FaMapMarkerAlt, FaClock, FaUsers, FaWhatsapp, FaPhoneAlt, FaQuestion } from 'react-icons/fa'
+import { GiBlackBelt, GiNunchaku } from 'react-icons/gi'
+import ScrollVideo from '../components/ScrollVideo'
+import ScheduleLightbox from '../components/ScheduleLightbox'
+import CountdownTimer from '../components/CountdownTimer'
+import FAQSection from '../components/FAQSection'
 import './summer-camp.css'
 
-export const metadata = {
-    title: 'Summer Camp 2026 — Karate Training Camp for All Levels',
-    description: 'SKF Karate Summer Camp 2026 — intensive karate training camp for beginners to advanced. Foundation, Advanced & Elite programs. Kata, kumite, fitness, self-defence. Limited slots available!',
-    openGraph: { title: 'SKF Karate Summer Camp 2026', description: 'Intensive karate training camp — Foundation, Advanced & Elite programs. Limited slots!' },
-    alternates: { canonical: 'https://skfkarate.org/summer-camp' },
-}
+
 
 export default function SummerCampPage() {
     return (
         <div className="camp-page">
+            {/* ===== HERO ===== */}
             <section className="page-hero camp-hero">
                 <div className="page-hero__bg">
                     <div className="glow glow-red page-hero__glow-1"></div>
@@ -21,142 +21,292 @@ export default function SummerCampPage() {
                 <div className="container page-hero__content">
                     <span className="section-label camp-pulse"><FaFire /> Limited Slots Available</span>
                     <h1 className="page-hero__title">Summer Camp <span className="text-gradient">2026</span></h1>
-                    <p className="page-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
+                    <p className="page-hero__subtitle">
+                        Transform their summer with focus and real-world self-defense.
+                    </p>
+                    <CountdownTimer targetDate="2026-04-01T06:00:00+05:30" />
                 </div>
             </section>
 
-            <section className="section programs">
+            {/* ===== WHY CHOOSE US (DUAL APPEAL) ===== */}
+            <section className="section benefits">
+                <div className="container">
+                    <div className="benefits__grid">
+                        <div className="glass-card benefit-card">
+                            <div className="benefit-card__icon text-gold"><FaShieldAlt /></div>
+                            <h4>Screen-Free Growth</h4>
+                            <p>
+                                Swap smartphones for smart moves. We build focus, respect, and physical fitness in a highly disciplined environment.
+                            </p>
+                        </div>
+                        <div className="glass-card benefit-card benefit-card--highlight">
+                            <div className="benefit-card__icon benefit-card__icon--lg text-crimson"><GiNunchaku /></div>
+                            <h4>Real Ninja Skills</h4>
+                            <p>
+                                Master the Nunchaku, learn cool self-defense strikes, and earn your certified summer camp belt!
+                            </p>
+                        </div>
+                        <div className="glass-card benefit-card">
+                            <div className="benefit-card__icon text-gold"><FaUsers /></div>
+                            <h4>Safe &amp; Supervised</h4>
+                            <p>
+                                10+ years experienced Senseis ensuring a 100% safe, injury-free, and encouraging mat experience.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ===== PRICING / PROGRAMS ===== */}
+            <section className="section programs" id="pricing">
                 <div className="container">
                     <div className="programs__header">
-                        <span className="section-label"><GiBlackBelt /> Training Programs</span>
-                        <h2 className="section-title">Choose Your <span className="text-gradient">Path</span></h2>
-                        <p className="section-subtitle" style={{ margin: '0 auto' }}>
-                            Three intensive programs designed for every level — from first-timers to aspiring black belts.
+                        <span className="section-label"><GiBlackBelt /> Camp Structure</span>
+                        <h2 className="section-title">Training Plans &amp; <span className="text-gradient">Pricing</span></h2>
+                        <p className="section-subtitle programs__subtitle">
+                            Choose a single month of specialized training or get the ultimate experience by enrolling for both.
                         </p>
+                    </div>
+
+                    {/* ===== EARLY BIRD OFFER BANNER ===== */}
+                    <div className="offer-banner glass-card">
+                        <div className="offer-banner__glow"></div>
+                        <div className="offer-banner__content">
+                            <div className="offer-banner__badge">1+1 Free Offer</div>
+                            <h3><FaFire className="offer-banner__icon" /> First 10 Enrollments Special</h3>
+                            <p>
+                                Enroll for the Full Camp and get <strong>1 Month FREE!</strong><br />
+                                Pay only <strong className="text-gold">₹1,500</strong> instead of <span className="price-strike">₹2,500</span>.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="programs__grid">
                         <div className="glass-card program-card">
                             <div className="program-card__header">
-                                <div className="program-card__icon"><FaFire /></div>
-                                <h3>Foundation</h3>
-                                <p className="program-card__level">Beginner</p>
+                                <div className="program-card__icon"><FaShieldAlt /></div>
+                                <h3>Month 1</h3>
+                                <p className="program-card__level">Self Defense Training</p>
+                                <div className="program-card__price">₹1,500<span>/mo</span></div>
                             </div>
                             <ul className="program-card__features">
-                                <li>Basic kata & stance training</li>
-                                <li>Physical conditioning</li>
-                                <li>Self-defense fundamentals</li>
-                                <li>Discipline & dojo etiquette</li>
-                                <li>White to Orange belt prep</li>
+                                <li><strong>For kids:</strong> Cool reflex & evasion games</li>
+                                <li><strong>For parents:</strong> Screen-free discipline building</li>
+                                <li>Practical self-defense techniques</li>
+                                <li>Situational awareness / Bully prevention</li>
+                                <li>Certified completion certificate</li>
                             </ul>
-                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Now</Link>
+                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Month 1</Link>
                         </div>
 
-                        <div className="glass-card program-card program-card--featured">
-                            <div className="program-card__badge">Most Popular</div>
+                        <div className="glass-card program-card program-card--featured program-card--offer">
+                            <div className="program-card__badge">First 10 Slots</div>
                             <div className="program-card__header">
                                 <div className="program-card__icon"><GiBlackBelt /></div>
-                                <h3>Advanced</h3>
-                                <p className="program-card__level">Intermediate</p>
+                                <h3>Full Camp</h3>
+                                <p className="program-card__level">Both Months (1 Month Free!)</p>
+                                <div className="program-card__price">
+                                    <span className="program-card__price-old">₹2,500</span>
+                                    ₹1,500<span>/total</span>
+                                </div>
                             </div>
                             <ul className="program-card__features">
-                                <li>Advanced kata sequences</li>
-                                <li>Controlled sparring</li>
-                                <li>Competition preparation</li>
-                                <li>Mental fortitude training</li>
-                                <li>Green to Brown belt prep</li>
+                                <li>Month 1: Self Defense (Discipline & Focus)</li>
+                                <li>Month 2: Nunchaku (Coordination & Agility)</li>
+                                <li>Comprehensive fitness & stamina building</li>
+                                <li>Mastery of a predefined Nunchaku sequence</li>
+                                <li>Certified completion certificate</li>
                             </ul>
-                            <Link href="/contact" className="btn btn-primary program-card__btn">Enroll Now <FaArrowRight /></Link>
+                            <Link href="/contact" className="btn btn-primary program-card__btn">Enroll Full Camp <FaArrowRight /></Link>
                         </div>
 
                         <div className="glass-card program-card">
                             <div className="program-card__header">
-                                <div className="program-card__icon"><FaBrain /></div>
-                                <h3>Elite</h3>
-                                <p className="program-card__level">Advanced</p>
+                                <div className="program-card__icon"><GiNunchaku /></div>
+                                <h3>Month 2</h3>
+                                <p className="program-card__level">Nunchaku Weapon Training</p>
+                                <div className="program-card__price">₹1,500<span>/mo</span></div>
                             </div>
                             <ul className="program-card__features">
-                                <li>Black belt preparation</li>
-                                <li>Tournament fighting</li>
-                                <li>Advanced pressure drills</li>
-                                <li>Leadership & teaching skills</li>
-                                <li>Master-level mentorship</li>
+                                <li><strong>For kids:</strong> Learn movie-style strikes</li>
+                                <li><strong>For parents:</strong> Safe, foam training weapons</li>
+                                <li>Nunchaku basics, grips, and safety</li>
+                                <li>Hand-eye coordination drills</li>
+                                <li>Certified completion certificate</li>
                             </ul>
-                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Now</Link>
+                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Month 2</Link>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section className="section schedule">
-                <div className="glow glow-blue schedule__glow"></div>
+            {/* ===== INSTRUCTOR / SENSEI ===== */}
+            <section className="section sensei">
+                <div className="glow glow-gold sensei__glow"></div>
                 <div className="container">
-                    <div className="schedule__header">
-                        <span className="section-label"><FaCalendarAlt /> Daily Schedule</span>
-                        <h2 className="section-title">A Day at <span className="text-gradient">Camp</span></h2>
+                    <div className="sensei__header">
+                        <span className="section-label"><GiBlackBelt /> Your Instructor</span>
+                        <h2 className="section-title">Meet Your <span className="text-gradient">Sensei</span></h2>
                     </div>
-                    <div className="schedule__table glass-card">
-                        <div className="schedule__row schedule__row--header">
-                            <span><FaClock /> Time</span>
-                            <span>Activity</span>
+                    <div className="sensei__content glass-card">
+                        <div className="sensei__avatar">
+                            <GiBlackBelt />
                         </div>
-                        <div className="schedule__row"><span className="schedule__time">6:00 AM</span><span>Morning Warm-up & Meditation</span></div>
-                        <div className="schedule__row"><span className="schedule__time">7:00 AM</span><span>Kata Training & Form Drills</span></div>
-                        <div className="schedule__row"><span className="schedule__time">9:00 AM</span><span>Breakfast Break</span></div>
-                        <div className="schedule__row"><span className="schedule__time">10:00 AM</span><span>Sparring & Combat Techniques</span></div>
-                        <div className="schedule__row"><span className="schedule__time">12:00 PM</span><span>Lunch & Rest</span></div>
-                        <div className="schedule__row"><span className="schedule__time">2:00 PM</span><span>Fitness Conditioning & Agility</span></div>
-                        <div className="schedule__row"><span className="schedule__time">4:00 PM</span><span>Self-Defense Scenarios & Cool Down</span></div>
+                        <div className="sensei__info">
+                            <h3>Sensei — SKF Karate</h3>
+                            <p className="sensei__title">Head Instructor, Sports Karate-do Fitness</p>
+                            <p className="sensei__bio">
+                                With years of dedicated practice and teaching, our head Sensei has trained hundreds of students
+                                from white belt to competitive karatekas. Specializing in self-defense, fitness, and Nunchaku weapon forms,
+                                the training combines traditional discipline with modern fitness techniques.
+                                Every session is designed to build not just physical strength, but mental resilience and self-confidence.
+                            </p>
+                            <div className="sensei__stats">
+                                <div className="sensei__stat">
+                                    <span className="sensei__stat-number">500+</span>
+                                    <span className="sensei__stat-label">Students Trained</span>
+                                </div>
+                                <div className="sensei__stat">
+                                    <span className="sensei__stat-number">10+</span>
+                                    <span className="sensei__stat-label">Years Experience</span>
+                                </div>
+                                <div className="sensei__stat">
+                                    <span className="sensei__stat-number">3</span>
+                                    <span className="sensei__stat-label">Dojo Branches</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
+            {/* ===== RECENT CAMP VIDEO ===== */}
+            <section className="section recent-camp">
+                <div className="container">
+                    <div className="recent-camp__header">
+                        <span className="section-label"><FaStar /> From Our Recent Camp</span>
+                        <h2 className="section-title">We Taught. They <span className="text-gradient">Learned.</span></h2>
+                        <p className="section-subtitle recent-camp__subtitle">
+                            Here&apos;s a glimpse from our recent training camp — real students, real progress.
+                        </p>
+                    </div>
+
+                    <div className="recent-camp__video-wrapper">
+                        <ScrollVideo />
+                    </div>
+                </div>
+            </section>
+
+            {/* ===== TESTIMONIALS ===== */}
             <section className="section testimonials">
                 <div className="container">
                     <div className="testimonials__header">
                         <span className="section-label"><FaStar /> Testimonials</span>
                         <h2 className="section-title">What Our <span className="text-gradient">Students Say</span></h2>
                     </div>
-                    <div className="testimonials__grid">
-                        <div className="glass-card testimonial-card">
-                            <FaQuoteLeft className="testimonial-card__quote" />
-                            <p>&quot;SKF Karate completely transformed my confidence. The discipline I learned on the mat applies to every aspect of my life.&quot;</p>
-                            <div className="testimonial-card__author">
-                                <div className="testimonial-card__avatar">S</div>
-                                <div><strong>Student</strong><span>Brown Belt</span></div>
+
+                    {/* ===== FEATURED QUOTE ===== */}
+                    <div className="featured-quote glass-card">
+                        <FaQuoteLeft className="featured-quote__icon" />
+                        <h3 className="featured-quote__text">
+                            &quot;I was worried it would be too violent, but it&apos;s actually all about <strong className="text-gold">discipline, respect, and fitness</strong>. My 8-year-old absolutely loves it and even wakes up early to practice!&quot;
+                        </h3>
+                        <div className="featured-quote__author">
+                            <div className="featured-quote__avatar">A</div>
+                            <div className="featured-quote__info">
+                                <strong>Anjali M.</strong>
+                                <span>Parent of 8-year-old</span>
                             </div>
                         </div>
-                        <div className="glass-card testimonial-card">
-                            <FaQuoteLeft className="testimonial-card__quote" />
-                            <p>&quot;My children have grown so much — not just in their karate skills but in their respect, focus, and determination.&quot;</p>
-                            <div className="testimonial-card__author">
-                                <div className="testimonial-card__avatar">P</div>
-                                <div><strong>Parent</strong><span>2 Children Enrolled</span></div>
-                            </div>
+                    </div>
+
+                    <div className="testimonials__slider">
+                        <div className="testimonials__track">
+                            {[
+                                { name: "Anjali M.", role: "Parent of 8yo", text: "My son used to be very shy, but his confidence has completely changed. He even wakes up early by himself for practice!" },
+                                { name: "Rahul S.", role: "Parent of 10yo", text: "The discipline they teach here is excellent. Along with karate, they are teaching real respect for elders and teachers." },
+                                { name: "Priya K.", role: "Parent of 6yo", text: "I was worried about screen time during holidays. This camp was the perfect mix of serious training and fun." },
+                                { name: "Vikram R.", role: "Parent of 12yo", text: "Best summer investment. He stopped playing video games all day and actually looks forward to the fitness routines." },
+                                { name: "Neha D.", role: "Parent of 9yo", text: "The self-defense techniques are so practical. As a mother, it gives me great peace of mind knowing she can protect herself." },
+                                { name: "Suresh P.", role: "Parent of 7yo", text: "Very professional and safe environment. The Senseis are strict on the mat but very encouraging with the kids." },
+                                { name: "Kavita N.", role: "Parent of 11yo", text: "We noticed an improvement in his focus, even in his studies! Karate has really taught him how to concentrate." },
+                                { name: "Arvind V.", role: "Parent of 8yo", text: "Fantastic energy. It's not just hitting and kicking; they focus heavily on warmups, stretching, and proper technique." },
+                                { name: "Meera C.", role: "Parent of 14yo", text: "Even my teenager, who argues about everything, absolutely loved the Nunchaku training. Highly recommended." },
+                                { name: "Amit B.", role: "Parent of 6yo & 9yo", text: "Both my kids come home totally exhausted and happy. It's the best way to utilize their summer break productively." }
+                            ].map((testimonial, i) => (
+                                <div key={i} className="glass-card testimonial-card">
+                                    <FaQuoteLeft className="testimonial-card__quote" />
+                                    <p>&quot;{testimonial.text}&quot;</p>
+                                    <div className="testimonial-card__author">
+                                        <div className="testimonial-card__avatar">{testimonial.name.charAt(0)}</div>
+                                        <div><strong>{testimonial.name}</strong><span>{testimonial.role}</span></div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <div className="glass-card testimonial-card">
-                            <FaQuoteLeft className="testimonial-card__quote" />
-                            <p>&quot;The Summer Camp was an unforgettable experience. I went from a beginner to earning my Orange belt in just one month!&quot;</p>
-                            <div className="testimonial-card__author">
-                                <div className="testimonial-card__avatar">K</div>
-                                <div><strong>Camp Graduate</strong><span>Orange Belt</span></div>
-                            </div>
+                        <div className="testimonials__track" aria-hidden="true">
+                            {[
+                                { name: "Anjali M.", role: "Parent of 8yo", text: "My son used to be very shy, but his confidence has completely changed. He even wakes up early by himself for practice!" },
+                                { name: "Rahul S.", role: "Parent of 10yo", text: "The discipline they teach here is excellent. Along with karate, they are teaching real respect for elders and teachers." },
+                                { name: "Priya K.", role: "Parent of 6yo", text: "I was worried about screen time during holidays. This camp was the perfect mix of serious training and fun." },
+                                { name: "Vikram R.", role: "Parent of 12yo", text: "Best summer investment. He stopped playing video games all day and actually looks forward to the fitness routines." },
+                                { name: "Neha D.", role: "Parent of 9yo", text: "The self-defense techniques are so practical. As a mother, it gives me great peace of mind knowing she can protect herself." },
+                                { name: "Suresh P.", role: "Parent of 7yo", text: "Very professional and safe environment. The Senseis are strict on the mat but very encouraging with the kids." },
+                                { name: "Kavita N.", role: "Parent of 11yo", text: "We noticed an improvement in his focus, even in his studies! Karate has really taught him how to concentrate." },
+                                { name: "Arvind V.", role: "Parent of 8yo", text: "Fantastic energy. It's not just hitting and kicking; they focus heavily on warmups, stretching, and proper technique." },
+                                { name: "Meera C.", role: "Parent of 14yo", text: "Even my teenager, who argues about everything, absolutely loved the Nunchaku training. Highly recommended." },
+                                { name: "Amit B.", role: "Parent of 6yo & 9yo", text: "Both my kids come home totally exhausted and happy. It's the best way to utilize their summer break productively." }
+                            ].map((testimonial, i) => (
+                                <div key={`dup-${i}`} className="glass-card testimonial-card">
+                                    <FaQuoteLeft className="testimonial-card__quote" />
+                                    <p>&quot;{testimonial.text}&quot;</p>
+                                    <div className="testimonial-card__author">
+                                        <div className="testimonial-card__avatar">{testimonial.name.charAt(0)}</div>
+                                        <div><strong>{testimonial.name}</strong><span>{testimonial.role}</span></div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
+            {/* ===== FAQ ===== */}
+            <section className="section faq">
+                <div className="container">
+                    <div className="faq__header">
+                        <span className="section-label"><FaQuestion /> FAQ</span>
+                        <h2 className="section-title">Frequently Asked <span className="text-gradient">Questions</span></h2>
+                        <p className="section-subtitle faq__subtitle">
+                            Everything parents need to know before enrolling.
+                        </p>
+                    </div>
+                    <FAQSection />
+                </div>
+            </section>
+
+            {/* ===== BOTTOM CTA WITH WHATSAPP ===== */}
             <section className="section camp-bottom-cta">
+                <div className="glow glow-red camp-bottom-cta__glow"></div>
                 <div className="container">
                     <div className="camp-bottom-cta__inner glass-card">
                         <h2 className="section-title">Ready to Step on the Mat?</h2>
-                        <p className="section-subtitle" style={{ margin: '0 auto 2rem auto', textAlign: 'center' }}>
+                        <p className="section-subtitle camp-bottom-cta__subtitle">
                             Enrollment is open but slots are limited. Secure your spot today.
                         </p>
-                        <Link href="/contact" className="btn btn-primary">Enroll Now <FaArrowRight /></Link>
+                        <div className="camp-bottom-cta__buttons">
+                            <Link href="/contact" className="btn btn-primary">Enroll Now <FaArrowRight /></Link>
+                            <a href="https://wa.me/910000000000?text=Hi%2C%20I%20want%20to%20claim%20the%201%2B1%20Free%20Summer%20Camp%20offer%20for%20my%20child!" target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp"><FaWhatsapp /> Claim Offer on WhatsApp</a>
+                            <a href="tel:+910000000000" className="btn btn-secondary"><FaPhoneAlt /> Call Us</a>
+                        </div>
                     </div>
                 </div>
             </section>
+
+            {/* ===== FLOATING WHATSAPP BUTTON ===== */}
+            <a href="https://wa.me/910000000000?text=Hi%2C%20I%20want%20to%20claim%20the%201%2B1%20Free%20Summer%20Camp%20offer%20for%20my%20child!" target="_blank" rel="noopener noreferrer" className="floating-whatsapp" aria-label="Chat with us on WhatsApp">
+                <FaWhatsapp />
+            </a>
         </div>
     )
 }

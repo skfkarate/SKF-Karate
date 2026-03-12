@@ -2,12 +2,7 @@ import Link from 'next/link'
 import { FaMapMarkerAlt, FaClock, FaPhoneAlt, FaArrowRight, FaChild, FaUserFriends, FaUser } from 'react-icons/fa'
 import './dojos.css'
 
-export const metadata = {
-    title: 'Dojo Directory — Find a Karate Training Centre Near You',
-    description: 'Find an SKF Karate dojo near you. 6 training centres across the city with certified Senseis, flexible timings, and programs for Junior, Cadet, and Senior age groups.',
-    openGraph: { title: 'SKF Karate Dojo Directory', description: '6 training centres with certified Senseis. Find a dojo near you.' },
-    alternates: { canonical: 'https://skfkarate.org/dojos' },
-}
+
 
 const dojos = [
     { name: 'SKF Headquarters Dojo', sensei: 'Sensei Akira', address: 'Main Road, City Center', phone: '+91 000-000-0001', timings: 'Mon-Sat: 6 AM - 8 PM', ages: ['Junior', 'Cadet', 'Senior'], featured: true },

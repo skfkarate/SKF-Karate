@@ -2,12 +2,7 @@ import Link from 'next/link'
 import { FaBullhorn, FaMedal, FaArrowRight, FaUserPlus, FaCalendarAlt } from 'react-icons/fa'
 import './news.css'
 
-export const metadata = {
-    title: 'News & Updates — Results, Promotions & Announcements',
-    description: 'Latest news from SKF Karate — competition results, belt promotion announcements, new dojo openings, national team selections, and association updates.',
-    openGraph: { title: 'SKF Karate News & Updates', description: 'Latest results, belt promotions, and announcements from SKF Karate.' },
-    alternates: { canonical: 'https://skfkarate.org/news' },
-}
+
 
 const newsItems = [
     { cat: 'Results', icon: <FaMedal />, date: 'Mar 2, 2026', title: 'SKF Dominates State Championship 2026', desc: 'Our karateka brought home 12 Gold, 8 Silver, and 5 Bronze medals, finishing as the top association in the state championship. Oss!' },

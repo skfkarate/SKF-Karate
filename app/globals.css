@@ -362,7 +362,56 @@ button {
   }
 
   .section {
-    padding: 5rem 0;
+    padding: 4rem 0;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+  }
+
+  .page-hero {
+    min-height: 40vh;
+    padding-bottom: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .page-hero {
+    min-height: 35vh;
+    padding-bottom: 2rem;
+  }
+
+  .page-hero__title {
+    font-size: 2.2rem;
+  }
+
+  .page-hero__subtitle {
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+    width: 100%;
+    justify-content: center;
   }
 }
 

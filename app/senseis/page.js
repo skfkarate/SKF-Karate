@@ -3,12 +3,7 @@ import { FaArrowRight } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 import './senseis.css'
 
-export const metadata = {
-    title: 'Our Senseis — Certified Karate Instructors & Coaches',
-    description: 'Meet the Senseis of SKF Karate — certified karate instructors with Dan grades from Nidan to Godan. Experienced in competition coaching, kata, kumite, and junior development.',
-    openGraph: { title: 'SKF Karate Senseis — Meet Our Instructors', description: 'Certified karate instructors with decades of competition experience.' },
-    alternates: { canonical: 'https://skfkarate.org/senseis' },
-}
+
 
 const senseis = [
     { name: 'Sensei Akira', dan: '5th Dan — Godan', role: 'Chief Instructor', spec: 'Kata & Kumite', dojos: 'SKF Headquarters', exp: '20+ years', achievements: 'National Champion (3x), State Kata Champion, WKF-certified Coach' },

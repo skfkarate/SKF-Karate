@@ -105,3 +105,35 @@
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 480px) {
+    .senseis__intro {
+        margin-bottom: 2.5rem;
+    }
+
+    .sensei-card {
+        padding: 2rem 1.25rem;
+    }
+
+    .sensei-card__avatar {
+        width: 65px;
+        height: 65px;
+        font-size: 1.6rem;
+    }
+
+    .sensei-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .sensei-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+
+    .sensei-detail span {
+        text-align: left;
+        max-width: 100%;
+        font-size: 0.9rem;
+    }
+}

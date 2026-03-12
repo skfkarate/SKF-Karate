@@ -6,11 +6,8 @@ const siteUrl = 'https://skfkarate.org'
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association®',
-    template: '%s | SKF Karate',
-  },
-  description: 'SKF Karate — Sports Karate-do Fitness & Self Defence Association®. Premier karate training, Summer Camp 2026, belt grading, competitive kumite & kata programs. Join 500+ karateka training under certified Senseis.',
+  title: 'SKF Karate',
+  description: 'Join SKF Karate, the premier martial arts and self-defense academy. Best local karate classes, professional dojo training, black belt grading, and Summer Camp. Start your karate journey today.',
   keywords: [
     'SKF Karate', 'SKF', 'karate', 'martial arts', 'karate training',
     'Sports Karate-do', 'self defence', 'self defense', 'karate classes',

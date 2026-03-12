@@ -1,12 +1,200 @@
 /* ===== CAMP HERO ===== */
+.camp-hero {
+    min-height: 65vh;
+}
+
 .camp-pulse {
     animation: pulse 2s infinite;
+}
+
+/* ===== COUNTDOWN TIMER ===== */
+.countdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+}
+
+.countdown__unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.countdown__number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.countdown__label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.countdown__sep {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gold);
+    opacity: 0.5;
+    margin-bottom: 1.2rem;
+}
+
+/* ===== WHY CHOOSE US (BENEFITS) ===== */
+.benefits__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.benefit-card {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    border-top: 3px solid transparent;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+    border-top-color: var(--gold);
+    box-shadow: 0 10px 30px rgba(255, 183, 3, 0.1);
+}
+
+/* ===== CAMP DETAILS (Key Info Strip) ===== */
+.camp-details {
+    padding-top: 0;
+    padding-bottom: 2rem;
+    margin-top: -2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.camp-details__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.camp-detail-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.camp-detail-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 30px rgba(255, 183, 3, 0.1);
+}
+
+.camp-detail-card__icon {
+    font-size: 2rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 8px rgba(255, 183, 3, 0.3));
+}
+
+.camp-detail-card h4 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+    color: var(--text-white);
+}
+
+.camp-detail-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
 }
 
 /* ===== PROGRAMS ===== */
 .programs__header {
     text-align: center;
+    margin-bottom: 3rem;
+}
+
+/* ===== OFFER BANNER ===== */
+.offer-banner {
+    position: relative;
+    padding: 2.5rem;
     margin-bottom: 4rem;
+    border-color: var(--crimson);
+    overflow: hidden;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(214, 40, 40, 0.15);
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+}
+
+.offer-banner__glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: var(--crimson-glow);
+    filter: blur(80px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.offer-banner__content {
+    position: relative;
+    z-index: 1;
+}
+
+.offer-banner__badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--crimson), #a51c1c);
+    color: white;
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(214, 40, 40, 0.4);
+    animation: pulse 2s infinite;
+}
+
+.offer-banner h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.offer-banner__icon {
+    color: var(--gold);
+}
+
+.offer-banner p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.price-strike {
+    text-decoration: line-through;
+    opacity: 0.5;
+    margin-left: 0.3rem;
+    color: var(--text-muted);
 }
 
 .programs__grid {
@@ -78,6 +266,34 @@
     font-weight: 600;
 }
 
+.program-card__price {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--gold);
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.2rem;
+}
+
+.program-card__price-old {
+    font-size: 1.1rem;
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: -0.2rem;
+    align-self: center;
+    margin-top: 0.5rem;
+}
+
+.program-card__price span {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: lowercase;
+}
+
 .program-card__features {
     padding: 2rem;
     flex: 1;
@@ -140,49 +356,211 @@
     margin-bottom: 3rem;
 }
 
-.schedule__table {
-    max-width: 700px;
-    margin: 0 auto;
-    overflow: hidden;
-    padding: 0;
-}
-
-.schedule__row {
+.schedule__images {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    align-items: center;
-    padding: 1.2rem 2rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.schedule__image-card {
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.schedule__image-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    background: var(--bg-card-hover);
+}
+
+.schedule__image-card h3 {
+    padding: 1.5rem 2rem;
+    font-size: 1.15rem;
+    text-align: center;
     border-bottom: 1px solid var(--border-subtle);
-    transition: background 0.2s ease;
-}
-
-.schedule__row:last-child {
-    border-bottom: none;
-}
-
-.schedule__row:hover {
-    background: rgba(255, 183, 3, 0.03);
-}
-
-.schedule__row--header {
-    background: rgba(20, 33, 61, 0.5);
-    font-weight: 700;
+    color: var(--gold);
     text-transform: uppercase;
-    font-size: 0.85rem;
     letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.schedule__image-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.schedule__image-hint {
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.schedule__image-card:hover .schedule__image-hint {
+    opacity: 1;
     color: var(--gold);
 }
 
-.schedule__row--header span {
+/* ===== LIGHTBOX ===== */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.92);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    padding: 2rem;
+    animation: lightbox-fade-in 0.25s ease;
 }
 
-.schedule__time {
+@keyframes lightbox-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2.5rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10000;
+}
+
+.lightbox-close:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.lightbox-image {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: lightbox-scale-in 0.3s ease;
+}
+
+@keyframes lightbox-scale-in {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== SENSEI / INSTRUCTOR ===== */
+.sensei {
+    overflow: hidden;
+}
+
+.sensei__glow {
+    width: 400px;
+    height: 400px;
+    right: -10%;
+    top: 0;
+    opacity: 0.25;
+}
+
+.sensei__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.sensei__content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3rem;
+    padding: 3rem;
+    align-items: center;
+}
+
+.sensei__avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 15px 40px rgba(214, 40, 40, 0.3);
+    animation: float 4s ease-in-out infinite;
+}
+
+.sensei__info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.sensei__title {
     color: var(--gold);
-    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.sensei__bio {
+    color: var(--text-light);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.sensei__stats {
+    display: flex;
+    gap: 2.5rem;
+}
+
+.sensei__stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.sensei__stat-number {
+    font-size: 2rem;
+    font-weight: 800;
     font-family: var(--font-heading);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--gold);
+}
+
+.sensei__stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 600;
 }
 
 /* ===== TESTIMONIALS ===== */
@@ -191,15 +569,50 @@
     margin-bottom: 4rem;
 }
 
-.testimonials__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.testimonials__slider {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    display: flex;
+    overflow: hidden;
+    padding: 2rem 0;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.testimonials__track {
+    display: flex;
     gap: 2rem;
+    padding-right: 2rem;
+    animation: scroll-left 60s linear infinite;
+    will-change: transform;
+}
+
+.testimonials__slider:hover .testimonials__track {
+    animation-play-state: paused;
+}
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 .testimonial-card {
     padding: 2.5rem 2rem;
     position: relative;
+    width: 350px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
 }
 
 .testimonial-card__quote {
@@ -246,14 +659,390 @@
     color: var(--text-muted);
 }
 
+/* ===== FAQ ===== */
+.faq__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.faq__list {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.faq__item {
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    border-left: 3px solid transparent;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq__item:hover {
+    border-color: rgba(255, 183, 3, 0.3);
+    border-left-color: rgba(255, 183, 3, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.faq__item--open {
+    border-color: var(--gold);
+    border-left-color: var(--gold);
+    box-shadow: 0 8px 30px rgba(255, 183, 3, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.faq__question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-white);
+    gap: 1rem;
+}
+
+.faq__q-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.faq__number {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--gold);
+    opacity: 0.5;
+    font-family: var(--font-heading);
+    min-width: 24px;
+}
+
+.faq__item--open .faq__number {
+    opacity: 1;
+}
+
+.faq__chevron {
+    font-size: 0.75rem;
+    color: var(--gold);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.faq__item--open .faq__chevron {
+    transform: rotate(180deg);
+}
+
+.faq__answer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq__item--open .faq__answer {
+    grid-template-rows: 1fr;
+}
+
+.faq__answer-inner {
+    overflow: hidden;
+}
+
+.faq__answer-inner p {
+    padding: 0 2rem 1.5rem 2rem;
+    padding-left: calc(2rem + 24px + 1rem);
+    color: var(--text-light);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 1rem;
+    margin: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.35s ease 0.1s, transform 0.35s ease 0.1s;
+}
+
+.faq__item--open .faq__answer-inner p {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.faq__answer-inner p strong {
+    color: var(--text-white);
+    font-weight: 700;
+}
+
+/* ===== FROM OUR RECENT CAMP ===== */
+.recent-camp__header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.recent-camp__video-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Scroll Video Component */
+.scroll-video-container {
+    height: 120vh;
+    width: 100%;
+    position: relative;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.scroll-video-wrapper {
+    position: sticky;
+    top: 50vh;
+    transform: translateY(-50%);
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    max-height: 85vh;
+    aspect-ratio: 542 / 720;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin: 0 auto;
+    background-color: #000;
+    will-change: transform, border-radius;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
+
+.scroll-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: auto;
+}
+
 /* ===== CAMP BOTTOM CTA ===== */
+.camp-bottom-cta {
+    overflow: hidden;
+}
+
+.camp-bottom-cta__glow {
+    width: 500px;
+    height: 500px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
+}
+
 .camp-bottom-cta__inner {
     text-align: center;
     padding: 5rem 3rem;
+    position: relative;
+    z-index: 1;
 }
 
-/* ===== RESPONSIVE ===== */
+.camp-bottom-cta__buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 2rem;
+    background: #25D366;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-whatsapp svg {
+    font-size: 1.2rem;
+}
+
+.btn-whatsapp:hover {
+    background: #1ebe57;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.35);
+}
+
+/* ===== FLOATING WHATSAPP BUTTON ===== */
+.floating-whatsapp {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: #25D366;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+    z-index: 9999;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease;
+    animation: pulse-whatsapp 2s infinite;
+}
+
+.floating-whatsapp:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 15px 40px rgba(37, 211, 102, 0.6);
+    background: #1ebe57;
+}
+
+@keyframes pulse-whatsapp {
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    }
+}
+
+/* ===== BENEFITS SECTION ===== */
+.benefits {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    position: relative;
+    z-index: 3;
+}
+
+.benefit-card__icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-card__icon--lg {
+    font-size: 2.5rem;
+}
+
+.benefit-card h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.benefit-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.7;
+}
+
+.benefit-card--highlight {
+    border-color: var(--gold);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 183, 3, 0.1);
+}
+
+.benefit-card--highlight p {
+    color: var(--text-light);
+}
+
+/* ===== SECTION SUBTITLES (moved from inline) ===== */
+.programs__subtitle,
+.recent-camp__subtitle,
+.faq__subtitle,
+.camp-bottom-cta__subtitle {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.camp-bottom-cta__subtitle {
+    margin-bottom: 2rem;
+}
+
+/* ===== FEATURED QUOTE (moved from inline) ===== */
+.featured-quote {
+    max-width: 800px;
+    margin: 0 auto 4rem auto;
+    text-align: center;
+    padding: 3rem;
+    position: relative;
+}
+
+.featured-quote__icon {
+    font-size: 3rem;
+    color: var(--gold);
+    opacity: 0.2;
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+}
+
+.featured-quote__text {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.featured-quote__author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.featured-quote__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.featured-quote__info {
+    text-align: left;
+}
+
+.featured-quote__info strong {
+    display: block;
+}
+
+.featured-quote__info span {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ===================================================================
+   RESPONSIVE — 4-breakpoint system
+   992px → tablet landscape
+   768px → tablet portrait
+   480px → mobile standard
+   360px → small phones
+   =================================================================== */
+
+/* ───── TABLET LANDSCAPE ───── */
 @media (max-width: 992px) {
+    .camp-details__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .programs__grid {
         grid-template-columns: 1fr;
         max-width: 500px;
@@ -268,13 +1057,645 @@
         transform: translateY(-8px);
     }
 
-    .testimonials__grid {
+    .schedule__images {
         grid-template-columns: 1fr;
     }
 
-    .schedule__row {
-        grid-template-columns: 100px 1fr;
-        padding: 1rem 1.5rem;
+    .benefits__grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .benefit-card--highlight {
+        transform: none;
+    }
+
+    .sensei__content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .sensei__avatar {
+        margin: 0 auto;
+    }
+
+    .sensei__stats {
+        justify-content: center;
+    }
+
+    .countdown__number {
+        font-size: 1.8rem;
+    }
+
+    .countdown__unit {
+        min-width: 55px;
+    }
+
+    .faq__question {
+        padding: 1.25rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .faq__answer-inner p {
+        padding: 0 1.5rem 1.25rem 1.5rem;
+        padding-left: calc(1.5rem + 24px + 0.5rem);
+    }
+
+    .testimonial-card {
+        width: 310px;
+    }
+
+    .featured-quote {
+        padding: 2.5rem 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .featured-quote__text {
+        font-size: 1.25rem;
+    }
+
+    .offer-banner h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* ───── TABLET PORTRAIT ───── */
+@media (max-width: 768px) {
+    .camp-hero {
+        min-height: 50vh;
+    }
+
+    .benefits {
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .benefit-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .benefit-card__icon {
+        font-size: 1.7rem;
+    }
+
+    .benefit-card__icon--lg {
+        font-size: 2rem;
+    }
+
+    .offer-banner {
+        padding: 2rem 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .offer-banner h3 {
+        font-size: 1.3rem;
+        flex-wrap: wrap;
+    }
+
+    .offer-banner p {
+        font-size: 1rem;
+    }
+
+    .program-card__header {
+        padding: 2rem 1.5rem 1.25rem;
+    }
+
+    .program-card__features {
+        padding: 1.5rem;
+    }
+
+    .program-card__btn {
+        margin: 0 1.5rem 1.5rem 1.5rem;
+    }
+
+    .program-card__price {
+        font-size: 2rem;
+    }
+
+    .sensei__content {
+        padding: 2rem;
+    }
+
+    .sensei__avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+
+    .sensei__header {
+        margin-bottom: 2.5rem;
+    }
+
+    .sensei__bio {
         font-size: 0.9rem;
+    }
+
+    .sensei__stat-number {
+        font-size: 1.6rem;
+    }
+
+    .testimonial-card {
+        width: 280px;
+        padding: 2rem 1.5rem;
+    }
+
+    .testimonial-card p {
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+
+    .featured-quote {
+        padding: 2rem 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .featured-quote__icon {
+        font-size: 2rem;
+        top: 1rem;
+        left: 1.25rem;
+    }
+
+    .featured-quote__text {
+        font-size: 1.15rem;
+        line-height: 1.55;
+    }
+
+    .featured-quote__avatar {
+        width: 42px;
+        height: 42px;
+    }
+
+    .testimonials__header {
+        margin-bottom: 2.5rem;
+    }
+
+    .faq__header {
+        margin-bottom: 2.5rem;
+    }
+
+    .faq__question {
+        padding: 1.15rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .faq__answer-inner p {
+        padding: 0 1.25rem 1.25rem 1.25rem;
+        padding-left: calc(1.25rem + 24px + 0.5rem);
+        font-size: 0.9rem;
+    }
+
+    .recent-camp__header {
+        margin-bottom: 2.5rem;
+    }
+
+    .scroll-video-container {
+        height: auto;
+        min-height: 50vh;
+    }
+
+    .scroll-video-wrapper {
+        position: relative;
+        top: auto;
+        transform: none;
+        max-width: 92%;
+        max-height: none;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .camp-bottom-cta__inner {
+        padding: 3.5rem 2rem;
+    }
+
+    .camp-bottom-cta__buttons {
+        gap: 0.75rem;
+    }
+
+    .floating-whatsapp {
+        width: 54px;
+        height: 54px;
+        font-size: 1.7rem;
+        bottom: 24px;
+        right: 24px;
+    }
+}
+
+/* ───── MOBILE STANDARD (480px) ───── */
+@media (max-width: 480px) {
+    .camp-hero {
+        min-height: 45vh;
+    }
+
+    .benefits {
+        padding-top: 1rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .benefit-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .benefit-card__icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .benefit-card__icon--lg {
+        font-size: 1.8rem;
+    }
+
+    .benefit-card h4 {
+        font-size: 1rem;
+    }
+
+    .benefit-card p {
+        font-size: 0.85rem;
+    }
+
+    .camp-details__grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Countdown */
+    .countdown {
+        gap: 0.3rem;
+    }
+
+    .countdown__number {
+        font-size: 1.5rem;
+    }
+
+    .countdown__label {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+    }
+
+    .countdown__unit {
+        min-width: 42px;
+    }
+
+    .countdown__sep {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    /* Offer Banner */
+    .offer-banner {
+        padding: 1.5rem 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .offer-banner__badge {
+        font-size: 0.7rem;
+        padding: 5px 14px;
+    }
+
+    .offer-banner h3 {
+        font-size: 1.15rem;
+        gap: 0.35rem;
+    }
+
+    .offer-banner p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    /* Programs / Pricing Cards */
+    .programs__grid {
+        max-width: 100%;
+    }
+
+    /* Reorder: Full Camp first, then Month 1, then Month 2 */
+    .programs__grid .program-card--featured {
+        order: -1;
+    }
+
+    .program-card__header {
+        padding: 1.75rem 1.25rem 1.25rem;
+    }
+
+    .program-card__icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .program-card__header h3 {
+        font-size: 1.3rem;
+    }
+
+    .program-card__level {
+        font-size: 0.75rem;
+    }
+
+    .program-card__price {
+        font-size: 1.9rem;
+        margin-top: 0.75rem;
+    }
+
+    .program-card__price-old {
+        font-size: 1rem;
+    }
+
+    .program-card__features {
+        padding: 1.25rem;
+    }
+
+    .program-card__features li {
+        font-size: 0.88rem;
+        padding: 0.5rem 0;
+        padding-left: 1.3rem;
+    }
+
+    .program-card__btn {
+        margin: 0 1.25rem 1.25rem 1.25rem;
+    }
+
+    .program-card__badge {
+        font-size: 0.6rem;
+        padding: 4px 35px;
+        top: 16px;
+        right: -32px;
+    }
+
+    /* Sensei */
+    .sensei__header {
+        margin-bottom: 2rem;
+    }
+
+    .sensei__content {
+        padding: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .sensei__avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+
+    .sensei__info h3 {
+        font-size: 1.25rem;
+    }
+
+    .sensei__title {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    .sensei__bio {
+        font-size: 0.85rem;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
+
+    .sensei__stats {
+        flex-direction: row;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .sensei__stat-number {
+        font-size: 1.5rem;
+    }
+
+    .sensei__stat-label {
+        font-size: 0.65rem;
+    }
+
+    /* Testimonials */
+    .testimonials__header {
+        margin-bottom: 2rem;
+    }
+
+    .featured-quote {
+        padding: 1.75rem 1.25rem;
+        margin-bottom: 2rem;
+        max-width: 100%;
+    }
+
+    .featured-quote__icon {
+        font-size: 1.5rem;
+        top: 0.75rem;
+        left: 1rem;
+        opacity: 0.15;
+    }
+
+    .featured-quote__text {
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+    }
+
+    .featured-quote__avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 0.85rem;
+    }
+
+    .featured-quote__info strong {
+        font-size: 0.9rem;
+    }
+
+    .featured-quote__info span {
+        font-size: 0.78rem;
+    }
+
+    .testimonial-card {
+        width: 260px;
+        padding: 1.75rem 1.25rem;
+    }
+
+    .testimonial-card__quote {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .testimonial-card p {
+        font-size: 0.85rem;
+        line-height: 1.65;
+        margin-bottom: 1rem;
+    }
+
+    .testimonial-card__avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+    }
+
+    .testimonial-card__author strong {
+        font-size: 0.88rem;
+    }
+
+    .testimonial-card__author span {
+        font-size: 0.75rem;
+    }
+
+    .testimonials__slider {
+        padding: 1rem 0;
+    }
+
+    /* FAQ */
+    .faq__header {
+        margin-bottom: 2rem;
+    }
+
+    .faq__question {
+        padding: 1rem 1rem;
+        font-size: 0.88rem;
+        gap: 0.75rem;
+    }
+
+    .faq__number {
+        font-size: 0.7rem;
+        min-width: 20px;
+    }
+
+    .faq__answer-inner p {
+        padding: 0 1rem 1rem 1rem;
+        padding-left: calc(1rem + 20px + 0.5rem);
+        font-size: 0.85rem;
+        line-height: 1.7;
+    }
+
+    /* Recent Camp / Video */
+    .recent-camp__header {
+        margin-bottom: 2rem;
+    }
+
+    .scroll-video-container {
+        height: auto;
+        min-height: auto;
+    }
+
+    .scroll-video-wrapper {
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Bottom CTA */
+    .camp-bottom-cta__inner {
+        padding: 2.5rem 1.25rem;
+    }
+
+    .camp-bottom-cta__buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.6rem;
+    }
+
+    .camp-bottom-cta__buttons .btn,
+    .camp-bottom-cta__buttons .btn-whatsapp {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-whatsapp {
+        font-size: 0.88rem;
+        padding: 0.8rem 1.5rem;
+    }
+
+    /* Floating WhatsApp */
+    .floating-whatsapp {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+        bottom: 18px;
+        right: 18px;
+    }
+}
+
+/* ───── SMALL PHONES (360px) ───── */
+@media (max-width: 360px) {
+    .camp-hero {
+        min-height: 40vh;
+    }
+
+    .countdown {
+        gap: 0.15rem;
+    }
+
+    .countdown__number {
+        font-size: 1.25rem;
+    }
+
+    .countdown__label {
+        font-size: 0.55rem;
+    }
+
+    .countdown__unit {
+        min-width: 36px;
+    }
+
+    .countdown__sep {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .offer-banner h3 {
+        font-size: 1.05rem;
+    }
+
+    .offer-banner p {
+        font-size: 0.85rem;
+    }
+
+    .program-card__header h3 {
+        font-size: 1.15rem;
+    }
+
+    .program-card__price {
+        font-size: 1.7rem;
+    }
+
+    .program-card__features li {
+        font-size: 0.82rem;
+    }
+
+    .testimonial-card {
+        width: 240px;
+    }
+
+    .featured-quote__text {
+        font-size: 0.92rem;
+    }
+
+    .sensei__stats {
+        gap: 1rem;
+    }
+
+    .sensei__stat-number {
+        font-size: 1.3rem;
+    }
+
+    .faq__question {
+        font-size: 0.82rem;
+        padding: 0.85rem 0.85rem;
+    }
+
+    .faq__answer-inner p {
+        font-size: 0.82rem;
+        padding-left: calc(0.85rem + 18px + 0.4rem);
+    }
+
+    .faq__number {
+        min-width: 18px;
+        font-size: 0.65rem;
+    }
+
+    .camp-bottom-cta__inner {
+        padding: 2rem 1rem;
+    }
+
+    .floating-whatsapp {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+        bottom: 14px;
+        right: 14px;
     }
 }

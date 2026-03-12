@@ -1,0 +1,72 @@
+'use client'
+
+import { useState } from 'react'
+import { FaChevronDown } from 'react-icons/fa'
+
+const faqs = [
+    {
+        q: "What age group is this camp for?",
+        a: <>The summer camp is open to children and teens aged <strong>5 to 18 years</strong>. No prior karate experience is required for <strong>Month 1 (Self Defence)</strong>. Month 2 (Nunchaku) is also <strong>beginner-friendly</strong>.</>
+    },
+    {
+        q: "Does my child need prior martial arts experience?",
+        a: <>Not at all. Both months are designed to welcome <strong>complete beginners</strong>. Our Senseis will guide each student from the basics, adjusting the intensity to <strong>each child's level</strong>.</>
+    },
+    {
+        q: "What should my child wear to training?",
+        a: <>For the summer camp, students should wear a <strong>comfortable, stretchable dress</strong> like track pants and a T-shirt. <strong>No karate uniform</strong> is required.</>
+    },
+    {
+        q: "Can I enroll my child for only one month?",
+        a: <>Yes! You can enroll for Month 1 or Month 2 independently at <strong>₹1,500 each</strong>. However, for our <strong>first 10 enrollments</strong>, we have a special <strong className="text-gold">1+1 Free offer</strong>—get the Full Camp (both months) for just <strong className="text-gold">₹1,500</strong> instead of ₹2,500!</>
+    },
+    {
+        q: "Will my child receive a certificate?",
+        a: <>Yes, every student who completes a month receives a <strong>certified completion certificate</strong> from SKF Karate, recognizing their training and achievements.</>
+    },
+    {
+        q: "Is the training safe for young children?",
+        a: <>Absolutely. <strong>Safety is our highest priority</strong>. All sessions are supervised by experienced Senseis, with age-appropriate drills. Nunchaku training uses <strong>foam-padded training weapons</strong> for beginners.</>
+    },
+    {
+        q: "What are the training days and timings?",
+        a: <>Camp sessions are held on <strong>Tuesdays, Wednesdays, and Fridays</strong>. Contact us via WhatsApp for the exact timings and full schedule.</>
+    },
+    {
+        q: "How do I enroll my child?",
+        a: <>You can reach us directly via <strong>WhatsApp</strong> or through our <strong>contact page</strong>. Slots are limited and filled on a <strong>first-come, first-served</strong> basis.</>
+    },
+]
+
+export default function FAQSection() {
+    const [openIndex, setOpenIndex] = useState(null)
+
+    const toggle = (i) => {
+        setOpenIndex(openIndex === i ? null : i)
+    }
+
+    return (
+        <div className="faq__list">
+            {faqs.map((faq, i) => (
+                <div
+                    key={i}
+                    className={`glass-card faq__item ${openIndex === i ? 'faq__item--open' : ''}`}
+                    onClick={() => toggle(i)}
+                >
+                    <div className="faq__question">
+                        <div className="faq__q-content">
+                            <span className="faq__number">{String(i + 1).padStart(2, '0')}</span>
+                            <span>{faq.q}</span>
+                        </div>
+                        <FaChevronDown className="faq__chevron" />
+                    </div>
+                    <div className="faq__answer">
+                        <div className="faq__answer-inner">
+                            <p>{faq.a}</p>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}

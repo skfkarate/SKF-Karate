@@ -178,6 +178,29 @@ nextjs-portal {
     background: rgba(255, 183, 3, 0.08);
 }
 
+/* Disabled nav items */
+.nav__dropdown-link--disabled,
+.nav__mobile-sub-link--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav__coming-soon {
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255, 183, 3, 0.15);
+    color: var(--gold);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}
+
 /* Right side */
 .nav__right {
     display: flex;
@@ -290,5 +313,27 @@ nextjs-portal {
 
     .nav__toggle {
         display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav__logo span {
+        font-size: 1.2rem;
+    }
+
+    .nav__links--mobile .nav__link,
+    .nav__mobile-trigger {
+        font-size: 1.1rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .nav__mobile-sub-link {
+        font-size: 0.95rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .nav__cta-mobile {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
     }
 }

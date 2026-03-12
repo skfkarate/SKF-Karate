@@ -3,17 +3,13 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaTrophy, FaArrowRight, FaUsers } from '
 import { GiBlackBelt } from 'react-icons/gi'
 import './events.css'
 
-export const metadata = {
-    title: 'Events & Calendar — Competitions, Gradings & Camps',
-    description: 'Upcoming karate competitions, belt grading examinations, training camps, and seminars by SKF Karate. View event dates, locations, and past results.',
-    openGraph: { title: 'SKF Karate Events & Calendar', description: 'Upcoming competitions, belt gradings, and training camps.' },
-    alternates: { canonical: 'https://skfkarate.org/events' },
-}
+
 
 const upcomingEvents = [
-    { date: 'Jul 15, 2026', title: 'Summer Camp 2026', location: 'SKF Headquarters', type: 'Camp', desc: 'Intensive month-long training camp for all levels — White to Black belt.', cta: '/summer-camp' },
-    { date: 'Aug 10, 2026', title: 'Kyu Grading Examination', location: 'Central Dojo', type: 'Grading', desc: 'Belt examination for all Kyu grades — White through Brown. Register before Aug 1.' },
-    { date: 'Sep 20-21, 2026', title: 'SKF Inter-Dojo Championship', location: 'City Sports Complex', type: 'Tournament', desc: 'Annual championship — Kata and Kumite categories for Junior, Cadet, and Senior divisions.' },
+    { date: 'April 01, 2026', title: 'Summer Camp 2026', location: 'M P Sports Club,', type: 'Camp', desc: 'Intensive 2 months long training camp for all levels - Beginner to Advanced', cta: '/summer-camp' },
+    { date: 'In May', title: 'Kyu Grading Examination', location: 'M P Sports Club', type: 'Grading', desc: 'Belt examination for all Kyu grades — White to Yellow.' },
+    { date: 'In May', title: 'Tournament', location: 'Herohalli', type: 'Tournament', desc: 'Tournament for all Kyu grades — White to Yellow.' },
+    { date: 'In June', title: 'Bring your Buddy', location: 'M P Sports Club', type: 'Fun Day', desc: 'Bring your friend to the dojo and show them what you love!' },
     { date: 'Oct 5, 2026', title: 'Kata Masterclass Seminar', location: 'SKF Headquarters', type: 'Seminar', desc: 'Special seminar by visiting Shihan — advanced kata techniques and bunkai analysis.' },
     { date: 'Dec 14, 2026', title: 'Dan Grading Examination', location: 'Central Dojo', type: 'Grading', desc: 'Black belt examination for Shodan, Nidan, and Sandan candidates.' },
 ]
