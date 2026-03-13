@@ -159,6 +159,33 @@ export default function SummerCampPage() {
                 </div>
             </section>
 
+            {/* ===== LOCATION / MAP ===== */}
+            <section className="section location">
+                <div className="container">
+                    <div className="location__header" style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                        <span className="section-label"><FaMapMarkerAlt /> Camp Venue</span>
+                        <h2 className="section-title">Where the <span className="text-gradient">Action Happens</span></h2>
+                        <p className="section-subtitle" style={{ margin: '0 auto' }}>
+                            MP SPORTS CLUB <br/>
+                            14/1, 2nd Main Rd, M P M Layout, Mallathahalli, Bengaluru, Karnataka 560056
+                        </p>
+                    </div>
+                    
+                    <div className="glass-card" style={{ padding: '1rem', borderRadius: '24px', overflow: 'hidden' }}>
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.243542284908!2d77.49663027581781!3d12.956277315214044!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae3dc569913063%3A0xcb13e17fedec54d0!2sMP%20SPORTS%20CLUB!5e0!3m2!1sen!2sin!4v1710323719948!5m2!1sen!2sin"
+                            width="100%" 
+                            height="450" 
+                            style={{ border: 0, borderRadius: '16px', filter: 'invert(90%) hue-rotate(180deg) contrast(85%)' }} 
+                            allowFullScreen="" 
+                            loading="lazy" 
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="SKF Karate Location"
+                        ></iframe>
+                    </div>
+                </div>
+            </section>
+
             {/* ===== INSTRUCTOR / SENSEI ===== */}
             <section className="section sensei">
                 <div className="glow glow-gold sensei__glow"></div>
