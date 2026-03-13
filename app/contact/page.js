@@ -145,12 +145,14 @@ export default function ContactPage() {
             setStatus('success')
             setFormData({ name: '', email: '', phone: '', preferredTime: '', interest: 'Summer Camp 2026', message: '' })
         } catch (err) {
-            // API failed or timed out — queue in localStorage and STILL show success
-            // The user should NEVER see an error. Data is safe in localStorage
-            // and will be retried automatically on next page visit.
+            console.error('Submission error:', err)
+            
+            // Queue in localStorage as fallback
             queueSubmission(payload)
-            setStatus('success')
-            setFormData({ name: '', email: '', phone: '', preferredTime: '', interest: 'Summer Camp 2026', message: '' })
+            
+            // Show actual error to the user
+            setStatus('error')
+            setErrorMsg(err.message || 'Something went wrong. Your request has been saved locally and will be sent automatically.')
         }
     }
 

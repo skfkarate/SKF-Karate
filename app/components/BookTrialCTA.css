@@ -1,0 +1,441 @@
+/* ===== BOOK TRIAL CTA — Premium Redesign ===== */
+.trial-cta {
+  position: relative;
+  padding: 8rem 0;
+  overflow: hidden;
+}
+
+/* === Background === */
+.trial-cta__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.trial-cta__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.trial-cta__glow--1 {
+  width: 600px;
+  height: 600px;
+  background: rgba(214, 40, 40, 0.12);
+  top: -20%;
+  left: -10%;
+  animation: ctaFloat 8s ease-in-out infinite;
+}
+
+.trial-cta__glow--2 {
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 183, 3, 0.08);
+  bottom: -25%;
+  right: -5%;
+  animation: ctaFloat 10s ease-in-out infinite reverse;
+}
+
+.trial-cta__glow--3 {
+  width: 350px;
+  height: 350px;
+  background: rgba(20, 33, 61, 0.5);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ctaPulseGlow 6s ease-in-out infinite;
+}
+
+.trial-cta__grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 183, 3, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 183, 3, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+}
+
+/* === Container layout === */
+.trial-cta__container {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 4rem;
+}
+
+/* === Content side === */
+.trial-cta__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.trial-cta__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.trial-cta__desc {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  line-height: 1.85;
+  max-width: 520px;
+  margin-bottom: 2rem;
+}
+
+/* Feature bullets */
+.trial-cta__features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.trial-cta__feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.trial-cta__feature-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+
+/* Buttons */
+.trial-cta__actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.trial-cta__btn-primary {
+  padding: 1rem 2.5rem !important;
+  font-size: 0.9rem !important;
+}
+
+.trial-cta__btn-secondary {
+  padding: 1rem 2rem !important;
+  font-size: 0.9rem !important;
+}
+
+/* === Visual side === */
+.trial-cta__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 400px;
+}
+
+/* Concentric rings */
+.trial-cta__ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+}
+
+.trial-cta__ring--outer {
+  width: 320px;
+  height: 320px;
+  border: 1px solid rgba(255, 183, 3, 0.08);
+  background: radial-gradient(circle, rgba(20, 33, 61, 0.3) 0%, transparent 70%);
+  animation: ctaRingSpin 30s linear infinite;
+}
+
+.trial-cta__ring--outer::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--crimson);
+  top: 15%;
+  right: 0;
+  box-shadow: 0 0 20px var(--crimson-glow);
+}
+
+.trial-cta__ring--outer::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  bottom: 10%;
+  left: 5%;
+  box-shadow: 0 0 15px var(--gold-glow);
+}
+
+.trial-cta__ring--middle {
+  width: 220px;
+  height: 220px;
+  border: 1px solid rgba(255, 183, 3, 0.12);
+  background: radial-gradient(circle, rgba(214, 40, 40, 0.04) 0%, transparent 70%);
+  animation: ctaRingSpin 20s linear infinite reverse;
+}
+
+.trial-cta__ring--middle::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  top: 5%;
+  left: 20%;
+  box-shadow: 0 0 15px var(--gold-glow);
+}
+
+.trial-cta__ring--inner {
+  width: 130px;
+  height: 130px;
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(255, 183, 3, 0.1));
+  border: 1px solid rgba(255, 183, 3, 0.2);
+  box-shadow:
+    0 0 40px rgba(214, 40, 40, 0.15),
+    0 0 80px rgba(255, 183, 3, 0.05),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.trial-cta__belt-icon {
+  font-size: 3.5rem;
+  color: var(--gold);
+  filter: drop-shadow(0 0 20px var(--gold-glow));
+  animation: ctaIconPulse 3s ease-in-out infinite;
+}
+
+/* Floating stat badges */
+.trial-cta__stat {
+  position: absolute;
+  background: rgba(20, 33, 61, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 183, 3, 0.15);
+  border-radius: 16px;
+  padding: 0.8rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+}
+
+.trial-cta__stat-number {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.trial-cta__stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.trial-cta__stat--1 {
+  top: 8%;
+  right: 2%;
+  animation: ctaStatFloat1 5s ease-in-out infinite;
+}
+
+.trial-cta__stat--2 {
+  bottom: 10%;
+  left: 5%;
+  animation: ctaStatFloat2 6s ease-in-out infinite;
+}
+
+/* === Animations === */
+@keyframes ctaFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+@keyframes ctaPulseGlow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes ctaRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ctaIconPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--gold-glow)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 35px var(--gold-glow)); }
+}
+
+@keyframes ctaStatFloat1 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes ctaStatFloat2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+  .trial-cta__container {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 3rem;
+  }
+
+  .trial-cta__content {
+    align-items: center;
+  }
+
+  .trial-cta__desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .trial-cta__features {
+    align-items: center;
+  }
+
+  .trial-cta__actions {
+    justify-content: center;
+  }
+
+  .trial-cta__visual {
+    min-height: 350px;
+  }
+
+  .trial-cta__ring--outer {
+    width: 280px;
+    height: 280px;
+  }
+
+  .trial-cta__ring--middle {
+    width: 190px;
+    height: 190px;
+  }
+
+  .trial-cta__ring--inner {
+    width: 110px;
+    height: 110px;
+  }
+}
+
+@media (max-width: 768px) {
+  .trial-cta {
+    padding: 5rem 0;
+  }
+
+  .trial-cta__title {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+  }
+
+  .trial-cta__desc {
+    font-size: 1rem;
+  }
+
+  .trial-cta__visual {
+    min-height: 300px;
+  }
+
+  .trial-cta__ring--outer {
+    width: 240px;
+    height: 240px;
+  }
+
+  .trial-cta__ring--middle {
+    width: 165px;
+    height: 165px;
+  }
+
+  .trial-cta__ring--inner {
+    width: 95px;
+    height: 95px;
+  }
+
+  .trial-cta__belt-icon {
+    font-size: 2.5rem;
+  }
+
+  .trial-cta__stat {
+    padding: 0.6rem 1rem;
+  }
+
+  .trial-cta__stat-number {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .trial-cta {
+    padding: 4rem 0;
+  }
+
+  .trial-cta__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .trial-cta__btn-primary,
+  .trial-cta__btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trial-cta__visual {
+    min-height: 260px;
+  }
+
+  .trial-cta__ring--outer {
+    width: 200px;
+    height: 200px;
+  }
+
+  .trial-cta__ring--middle {
+    width: 140px;
+    height: 140px;
+  }
+
+  .trial-cta__ring--inner {
+    width: 80px;
+    height: 80px;
+  }
+
+  .trial-cta__belt-icon {
+    font-size: 2rem;
+  }
+
+  .trial-cta__stat--1 {
+    right: -2%;
+    top: 3%;
+  }
+
+  .trial-cta__stat--2 {
+    left: 0;
+    bottom: 5%;
+  }
+}

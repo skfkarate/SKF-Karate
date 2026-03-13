@@ -3,6 +3,8 @@ import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt } from 'react-ico
 import { GiBlackBelt, GiPunch } from 'react-icons/gi'
 import Counter from './components/Counter'
 import HeroActions from './components/HeroActions'
+import Testimonials from './components/Testimonials'
+import BookTrialCTA from './components/BookTrialCTA'
 import './home.css'
 
 export default function HomePage() {
@@ -88,6 +90,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== TESTIMONIALS ===== */}
+      {/* <Testimonials /> */}
+
       {/* ===== CAMP CTA ===== */}
       <section className="section camp-cta">
         <div className="glow glow-gold camp-cta__glow"></div>
@@ -112,6 +117,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      {/* ===== BOOK TRIAL CTA ===== */}
+      <BookTrialCTA />
     </div>
   )
 }

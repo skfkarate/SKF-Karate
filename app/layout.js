@@ -1,6 +1,7 @@
 import './globals.css'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import CookieConsent from './components/CookieConsent'
 
 const siteUrl = 'https://skfkarate.org'
 
@@ -88,19 +89,20 @@ function JsonLd() {
     slogan: 'Nothing is Impossible',
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'City Center',
+      addressLocality: 'Bangalore',
+      addressRegion: 'Karnataka',
       addressCountry: 'IN',
     },
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+91-000-000-0000',
+      telephone: '+91-90199-71726',
       contactType: 'customer service',
-      email: 'info@skfkarate.org',
+      email: 'contact@skfkarate.org',
     },
     sameAs: [
-      'https://www.facebook.com/skfkarate',
-      'https://www.instagram.com/skfkarate',
-      'https://www.youtube.com/skfkarate',
+      'https://www.facebook.com/share/1DG1UZ3vKp/?mibextid=wwXIfr',
+      'https://www.instagram.com/skf_karate',
+      'https://www.youtube.com/@skfkarate',
     ],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
@@ -160,14 +162,21 @@ function JsonLd() {
   )
 }
 
+
+// ... existing code ...
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <a href="#main-content" className="skip-to-content">
+          Skip to content
+        </a>
         <JsonLd />
         <Navbar />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <Footer />
+        <CookieConsent />
       </body>
     </html>
   )

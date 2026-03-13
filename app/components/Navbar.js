@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { FaBars, FaTimes, FaChevronDown } from 'react-icons/fa'
 import './Navbar.css'
@@ -117,7 +118,7 @@ export default function Navbar() {
         <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
             <div className="container nav__inner">
                 <Link href="/" className="nav__brand">
-                    <img src="/logo/SKF logo.png" alt="SKF Karate" className="nav__brand-logo" />
+                    <Image src="/logo/SKF logo.png" alt="SKF Karate" width={50} height={50} className="nav__brand-logo" />
                     <span className="nav__brand-name">SKF</span>
                     <span className="nav__brand-accent">KARATE</span>
                 </Link>

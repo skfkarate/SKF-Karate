@@ -63,7 +63,7 @@ export default function EventsPage() {
                 </div>
             </section>
 
-            <section className="section past-events">
+            {/* <section className="section past-events">
                 <div className="container">
                     <div className="past__header">
                         <span className="section-label"><FaTrophy /> Past Results</span>
@@ -79,7 +79,7 @@ export default function EventsPage() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> */}
         </div>
     )
 }
