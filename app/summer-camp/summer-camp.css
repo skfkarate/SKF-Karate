@@ -699,9 +699,9 @@
 
 .testimonials__track {
     display: flex;
-    gap: 2rem;
-    padding-right: 2rem;
-    animation: scroll-left 60s linear infinite;
+    gap: 32px; /* Fixed px for perfect math instead of relative rems */
+    padding-right: 32px;
+    animation: scroll-left 40s linear infinite;
     will-change: transform;
 }
 
@@ -715,7 +715,7 @@
     }
 
     100% {
-        transform: translateX(-100%);
+        transform: translateX(calc(-100% - 32px));
     }
 }
 
