@@ -56,10 +56,21 @@ export async function POST(request) {
 
         // --- Google Sheets (with retry) ---
         try {
+            // Handle all possible newline formats from different hosting providers
+            let privateKey = process.env.GOOGLE_PRIVATE_KEY || ''
+            privateKey = privateKey.replace(/\\n/g, '\n')
+
+            if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !privateKey) {
+                throw new Error('Missing Google credentials: GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY not set')
+            }
+            if (!process.env.GOOGLE_SHEET_ID) {
+                throw new Error('Missing GOOGLE_SHEET_ID environment variable')
+            }
+
             const auth = new google.auth.GoogleAuth({
                 credentials: {
                     client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                    private_key: privateKey,
                 },
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             })
@@ -105,6 +116,10 @@ export async function POST(request) {
         ].filter(Boolean).join('\n')
 
         try {
+            if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+                throw new Error('Missing Telegram credentials: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set')
+            }
+
             await retryWithBackoff(async () => {
                 const res = await fetch(
                     `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -118,7 +133,10 @@ export async function POST(request) {
                         }),
                     }
                 )
-                if (!res.ok) throw new Error(`Telegram HTTP ${res.status}`)
+                if (!res.ok) {
+                    const errorBody = await res.text()
+                    throw new Error(`Telegram HTTP ${res.status}: ${errorBody}`)
+                }
             }, 2, 800)
             telegramOk = true
         } catch (err) {
@@ -138,7 +156,14 @@ export async function POST(request) {
         // 5. Both failed — tell client to queue locally
         console.error('BOTH channels failed. Sheet:', sheetError?.message, 'Telegram:', telegramError?.message)
         return NextResponse.json(
-            { error: 'Temporary issue — your request has been saved and will be sent automatically.', retryable: true },
+            {
+                error: 'Could not send your message. Please try again or call us directly.',
+                details: {
+                    sheet: sheetError?.message || 'unknown',
+                    telegram: telegramError?.message || 'unknown',
+                },
+                retryable: true,
+            },
             { status: 503 }
         )
 

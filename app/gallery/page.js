@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { FaCamera, FaStar, FaTh } from 'react-icons/fa'
 import './gallery.css'
 
@@ -106,12 +107,19 @@ export default function GalleryPage() {
                     <div className="masonry-grid">
                         {displayedPhotos.map((p, i) => (
                             <div className="gallery__item" key={`${activeCat}-${i}`} onClick={() => setLightbox(p)}>
-                                {/* Using native intrisic img tags inside the Masonry Columns for zero cropping */}
-                                <img
+                                {/* Using Next.js Image for automatic WebP conversion and responsive sizes */}
+                                <Image
                                     src={p.src}
                                     alt={p.title}
                                     className="gallery__item-img"
-                                    loading="lazy"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    width={800}
+                                    height={600}
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        objectFit: 'cover'
+                                    }}
                                 />
                                 {p.pinned && <div className="gallery__pin-badge"><FaStar /></div>}
                                 <div className="gallery__overlay">

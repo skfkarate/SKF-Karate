@@ -5,7 +5,7 @@ export default function Loading() {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      minHeight: '60vh',
+      minHeight: '100dvh',
       width: '100%',
       backgroundColor: 'var(--bg-body)'
     }}>
