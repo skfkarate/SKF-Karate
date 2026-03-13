@@ -1,10 +1,6 @@
 import { google } from 'googleapis'
 import { NextResponse } from 'next/server'
 
-// Rate limiting — simple in-memory store
-const submissions = new Map()
-const RATE_LIMIT_MS = 60000 // 1 submission per minute per IP
-
 // Retry helper with exponential backoff
 async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
     let lastError
@@ -14,7 +10,7 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
         } catch (err) {
             lastError = err
             if (attempt < maxRetries - 1) {
-                const delay = baseDelay * Math.pow(2, attempt) // 500ms → 1s → 2s
+                const delay = baseDelay * Math.pow(2, attempt)
                 await new Promise(resolve => setTimeout(resolve, delay))
             }
         }
@@ -44,25 +40,21 @@ export async function POST(request) {
             )
         }
 
-        // 2. Rate limiting
-        const ip = request.headers.get('x-forwarded-for') || 'unknown'
-        const lastSubmission = submissions.get(ip)
-        if (lastSubmission && Date.now() - lastSubmission < RATE_LIMIT_MS) {
-            return NextResponse.json(
-                { error: 'Please wait a minute before submitting again', retryable: false },
-                { status: 429 }
-            )
-        }
-        submissions.set(ip, Date.now())
-
-        // 3. Timestamp
+        // 2. Timestamp
         const timestamp = new Date().toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
             dateStyle: 'medium',
             timeStyle: 'short',
         })
 
-        // 4. Write to Google Sheets with retry logic (primary lead capture)
+        // 3. Try BOTH Google Sheets and Telegram independently
+        //    Success = at least one of them worked
+        let sheetOk = false
+        let telegramOk = false
+        let sheetError = null
+        let telegramError = null
+
+        // --- Google Sheets (with retry) ---
         try {
             const auth = new google.auth.GoogleAuth({
                 credentials: {
@@ -92,15 +84,13 @@ export async function POST(request) {
                     },
                 })
             })
-        } catch (sheetError) {
-            console.error('Google Sheets error (all retries failed):', sheetError?.message || sheetError)
-            return NextResponse.json(
-                { error: 'We\'re experiencing a temporary issue. Your request has been saved locally and will be sent automatically.', retryable: true },
-                { status: 503 }
-            )
+            sheetOk = true
+        } catch (err) {
+            sheetError = err
+            console.error('Google Sheets error:', err?.message || err)
         }
 
-        // 5. Send Telegram notification (fire-and-forget — don't wait for it)
+        // --- Telegram (with retry) ---
         const telegramMessage = [
             `🥋 *New Callback Request*`,
             ``,
@@ -114,25 +104,48 @@ export async function POST(request) {
             `🕐 ${timestamp}`,
         ].filter(Boolean).join('\n')
 
-        fetch(
-            `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: process.env.TELEGRAM_CHAT_ID,
-                    text: telegramMessage,
-                    parse_mode: 'Markdown',
-                }),
-            }
-        ).catch(err => console.error('Telegram notification failed:', err))
+        try {
+            await retryWithBackoff(async () => {
+                const res = await fetch(
+                    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: process.env.TELEGRAM_CHAT_ID,
+                            text: telegramMessage,
+                            parse_mode: 'Markdown',
+                        }),
+                    }
+                )
+                if (!res.ok) throw new Error(`Telegram HTTP ${res.status}`)
+            }, 2, 800)
+            telegramOk = true
+        } catch (err) {
+            telegramError = err
+            console.error('Telegram error:', err?.message || err)
+        }
 
-        return NextResponse.json({ success: true, message: 'Message sent successfully!' })
+        // 4. Return success if at least one channel captured the data
+        if (sheetOk || telegramOk) {
+            return NextResponse.json({
+                success: true,
+                message: 'Message sent successfully!',
+                channels: { sheet: sheetOk, telegram: telegramOk },
+            })
+        }
+
+        // 5. Both failed — tell client to queue locally
+        console.error('BOTH channels failed. Sheet:', sheetError?.message, 'Telegram:', telegramError?.message)
+        return NextResponse.json(
+            { error: 'Temporary issue — your request has been saved and will be sent automatically.', retryable: true },
+            { status: 503 }
+        )
 
     } catch (error) {
         console.error('Contact form error:', error?.message || error)
         return NextResponse.json(
-            { error: 'Something went wrong. Please try again.', retryable: true },
+            { error: 'Something went wrong. Your request has been saved locally.', retryable: true },
             { status: 500 }
         )
     }

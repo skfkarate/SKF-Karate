@@ -173,15 +173,15 @@ export default function SummerCampPage() {
                         </div>
                         <div className="sensei__info">
                             <h3>Sensei Usha C</h3>
-                            <p className="sensei__title">President, SKF Karate</p>
+                            <p className="sensei__title">President - SKF Karate</p>
                             <p className="sensei__bio">
-                                Sensei Usha C (4th Dan Black Belt & Senior Instructor) leads the SKF Karate Summer Camp 2026. 
-                                Specializing in self-defense, fitness, and Nunchaku, she blends traditional discipline 
+                                Sensei Usha C (4th Dan Black Belt & Senior Instructor) leads the SKF Karate Summer Camp 2026.
+                                Specializing in self-defense, fitness, and Nunchaku, she blends traditional discipline
                                 with modern techniques to build strength, resilience, and confidence in every student.
                             </p>
                             <div className="sensei__stats">
                                 <div className="sensei__stat">
-                                    <span className="sensei__stat-number">5100+</span>
+                                    <span className="sensei__stat-number">500+</span>
                                     <span className="sensei__stat-label">Students Trained</span>
                                 </div>
                                 <div className="sensei__stat">

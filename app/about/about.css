@@ -7,7 +7,7 @@
 }
 
 .page-hero__logo {
-    width: 150px;
+    width: clamp(80px, 18vw, 150px);
     height: auto;
     margin: 0 auto 1.5rem auto;
     display: block;
@@ -18,7 +18,7 @@
 .philosophy__grid {
     display: grid;
     grid-template-columns: 1.2fr 0.8fr;
-    gap: 5rem;
+    gap: clamp(2rem, 5vw, 5rem);
     align-items: center;
 }
 
@@ -34,18 +34,18 @@
 }
 
 .philosophy__card {
-    padding: 3rem;
+    padding: clamp(2rem, 4vw, 3rem);
     text-align: center;
 }
 
 .philosophy__icon {
-    font-size: 4rem;
+    font-size: clamp(2.5rem, 5vw, 4rem);
     color: var(--crimson);
     margin-bottom: 1.5rem;
 }
 
 .philosophy__card h3 {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
     margin-bottom: 1rem;
     color: var(--gold);
 }
@@ -53,6 +53,38 @@
 .philosophy__card p {
     color: var(--text-light);
     line-height: 1.7;
+}
+
+/* ===== ASSOCIATION STATS ===== */
+.assoc-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.assoc-stat {
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.5rem);
+    text-align: center;
+}
+
+.assoc-stat__number {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.3rem;
+}
+
+.assoc-stat__label {
+    color: var(--text-muted);
+    font-size: clamp(0.65rem, 1.5vw, 0.82rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* ===== VALUES ===== */
@@ -70,29 +102,29 @@
 
 .values__header {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
 }
 
 .values__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: clamp(1rem, 2.5vw, 2rem);
 }
 
 .value-card {
-    padding: 3rem 2rem;
+    padding: clamp(2rem, 3vw, 3rem) clamp(1.25rem, 2vw, 2rem);
     text-align: center;
 }
 
 .value-card__icon {
-    width: 70px;
-    height: 70px;
+    width: clamp(56px, 8vw, 70px);
+    height: clamp(56px, 8vw, 70px);
     margin: 0 auto 1.5rem auto;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: 1.6rem;
+    font-size: clamp(1.3rem, 2vw, 1.6rem);
     color: var(--gold);
     background: rgba(255, 183, 3, 0.08);
     border: 1px solid rgba(255, 183, 3, 0.15);
@@ -115,20 +147,20 @@
 }
 
 .value-card h3 {
-    font-size: 1.3rem;
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
     margin-bottom: 1rem;
 }
 
 .value-card p {
     color: var(--text-light);
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
     line-height: 1.7;
 }
 
 /* ===== TIMELINE ===== */
 .timeline__header {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
 }
 
 .timeline {
@@ -150,7 +182,7 @@
 
 .timeline__item {
     position: relative;
-    margin-bottom: 3rem;
+    margin-bottom: clamp(1.5rem, 4vw, 3rem);
 }
 
 .timeline__marker {
@@ -166,7 +198,7 @@
 }
 
 .timeline__card {
-    padding: 2rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
 }
 
 .timeline__year {
@@ -184,13 +216,13 @@
 }
 
 .timeline__card h3 {
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2vw, 1.2rem);
     margin-bottom: 0.5rem;
 }
 
 .timeline__card p {
     color: var(--text-light);
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
     line-height: 1.7;
 }
 
@@ -199,115 +231,62 @@
     text-align: center;
     background: linear-gradient(135deg, rgba(20, 33, 61, 0.4), rgba(20, 33, 61, 0.15));
     border: 1px solid var(--border-subtle);
-    border-radius: 24px;
-    padding: 5rem 3rem;
+    border-radius: clamp(16px, 3vw, 24px);
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 992px) {
-    .philosophy__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .philosophy__card {
-        order: -1;
-    }
-
-    .values__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .leadership__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .affiliations__grid {
-        grid-template-columns: 1fr;
-    }
-
-    .assoc-stats__grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 600px) {
-    .assoc-stats__grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== ASSOCIATION STATS ===== */
-.assoc-stats__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-}
-
-.assoc-stat {
-    padding: 2.5rem 1.5rem;
+.about-cta__subtitle {
+    margin: 0 auto 2rem auto;
     text-align: center;
 }
 
-.assoc-stat__number {
-    display: block;
-    font-family: var(--font-heading);
-    font-size: 2.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--crimson), var(--gold));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0.3rem;
-}
-
-.assoc-stat__label {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.about-cta__buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* ===== LEADERSHIP ===== */
 .leadership__header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
 .leadership__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
+    gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 .leader-card {
-    padding: 2.5rem 1.5rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.5rem);
     text-align: center;
 }
 
 .leader-card__avatar {
-    width: 70px;
-    height: 70px;
+    width: clamp(56px, 8vw, 70px);
+    height: clamp(56px, 8vw, 70px);
     border-radius: 50%;
     margin: 0 auto 1.2rem auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
+    font-size: clamp(1.4rem, 2vw, 1.8rem);
     color: var(--gold);
     background: rgba(255, 183, 3, 0.08);
     border: 2px solid rgba(255, 183, 3, 0.2);
 }
 
 .leader-card h3 {
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
     margin-bottom: 0.3rem;
 }
 
 .leader-card__role {
     display: block;
     color: var(--crimson-light);
-    font-size: 0.78rem;
+    font-size: clamp(0.68rem, 1.2vw, 0.78rem);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -328,14 +307,14 @@
 
 .leader-card p {
     color: var(--text-light);
-    font-size: 0.88rem;
+    font-size: clamp(0.78rem, 1.3vw, 0.88rem);
     line-height: 1.6;
 }
 
 /* ===== AFFILIATIONS ===== */
 .affiliations__header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 
 .affiliations__hierarchy {
@@ -348,7 +327,7 @@
 }
 
 .affiliation-card {
-    padding: 2.5rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -360,6 +339,12 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
+}
+
+.affiliation-card h4 {
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    margin-top: 0.75rem;
+    line-height: 1.4;
 }
 
 .affiliation-card::before {
@@ -388,7 +373,7 @@
     background: linear-gradient(145deg, rgba(20, 33, 61, 0.8), rgba(20, 33, 61, 0.3));
     position: relative;
     z-index: 2;
-    padding: 3.5rem 2rem;
+    padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 3vw, 2rem);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 183, 3, 0.1);
 }
 
@@ -403,8 +388,8 @@
 }
 
 .affiliation-card__logo {
-    width: 150px;
-    height: 150px;
+    width: clamp(80px, 18vw, 150px);
+    height: clamp(80px, 18vw, 150px);
     object-fit: contain;
     filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15)) drop-shadow(0 5px 5px rgba(0,0,0,0.5));
     transition: var(--transition);
@@ -426,13 +411,13 @@
 .affiliation-tree__branches {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 3rem;
+    gap: clamp(1rem, 3vw, 3rem);
     width: 100%;
     max-width: 700px;
     position: relative;
 }
 
-/* Connectors */
+/* Connectors — vertical line from primary card */
 .affiliation-tree__branches::before {
     content: '';
     position: absolute;
@@ -445,6 +430,7 @@
     z-index: 1;
 }
 
+/* Horizontal branch connector (desktop only) */
 @media (min-width: 769px) {
     .affiliation-tree__branches::after {
         content: '';
@@ -462,32 +448,202 @@
     }
 }
 
-@media (max-width: 480px) {
-    .page-hero__logo {
-        width: 100px;
-        margin-bottom: 1rem;
+/* =============================================================
+   RESPONSIVE — 4-Tier Breakpoint System
+   ============================================================= */
+
+/* ===== TIER 1: Small Desktop / Large Tablet — max-width: 1200px ===== */
+@media (max-width: 1200px) {
+    .philosophy__grid {
+        gap: 3rem;
+    }
+
+    .leadership__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ===== TIER 2: Tablet — max-width: 768px ===== */
+@media (max-width: 768px) {
+    .philosophy__grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
 
     .philosophy__card {
-        padding: 2rem 1.5rem;
+        order: -1;
     }
 
-    .philosophy__icon {
-        font-size: 3rem;
+    .philosophy__cta {
+        margin-top: 1.5rem;
+    }
+
+    /* Stats — 2×2 grid on tablet */
+    .assoc-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Values — stack single column */
+    .values__grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .values__glow {
+        width: 250px;
+        height: 250px;
+        opacity: 0.1;
+    }
+
+    /* Leadership — 2 columns on tablet */
+    .leadership__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Affiliations — stack branches */
+    .affiliation-tree__branches {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        max-width: 350px;
+    }
+
+    .affiliation-tree__branches::before {
+        height: 2rem;
+        top: -2rem;
+    }
+
+    .affiliation-card--primary {
+        max-width: 350px;
+    }
+
+    /* Timeline — reduced spacing */
+    .timeline {
+        padding-left: 32px;
+    }
+
+    .timeline::before {
+        left: 12px;
+    }
+
+    .timeline__marker {
+        left: -27px;
+    }
+
+    /* CTA */
+    .about-cta__inner {
+        padding: 3rem 1.5rem;
+    }
+
+    .about-cta__buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .about-cta__buttons .btn {
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
+/* ===== TIER 3: Mobile — max-width: 480px ===== */
+@media (max-width: 480px) {
+    /* Hero fixes */
+    .page-hero__logo {
+        width: 80px;
+        margin-bottom: 1rem;
+    }
+
+    /* Stats — single column */
+    .assoc-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
     }
 
     .assoc-stat {
-        padding: 1.5rem 1rem;
+        padding: 1.2rem 0.75rem;
     }
 
     .assoc-stat__number {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
+    .assoc-stat__label {
+        font-size: 0.65rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Values — single col with compact cards */
     .value-card {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1.25rem;
     }
 
+    .value-card__icon {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    /* Leadership — single column */
+    .leadership__grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .leader-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem 1.25rem;
+    }
+
+    .leader-card__avatar {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 0.8rem;
+    }
+
+    .leader-card h3 {
+        font-size: 1rem;
+    }
+
+    .leader-card p {
+        font-size: 0.82rem;
+        max-width: 90%;
+    }
+
+    /* Affiliations */
+    .affiliations__hierarchy {
+        gap: 1.5rem;
+    }
+
+    .affiliation-card--primary {
+        max-width: 100%;
+        padding: 2rem 1.25rem;
+    }
+
+    .affiliation-tree__branches {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        max-width: 100%;
+    }
+
+    .affiliation-tree__branches::before {
+        height: 1.5rem;
+        top: -1.5rem;
+    }
+
+    .affiliation-card {
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .affiliation-card__logo {
+        width: 80px;
+        height: 80px;
+    }
+
+    /* Timeline */
     .timeline {
         padding-left: 25px;
     }
@@ -503,10 +659,166 @@
     }
 
     .timeline__card {
-        padding: 1.5rem;
+        padding: 1.25rem;
+    }
+
+    .timeline__year {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* CTA */
+    .about-cta__inner {
+        padding: 2.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .about-cta__buttons .btn {
+        max-width: 100%;
+    }
+}
+
+/* ===== TIER 4: Very Small Phones — max-width: 360px ===== */
+@media (max-width: 360px) {
+    .page-hero__logo {
+        width: 64px;
+        margin-bottom: 0.75rem;
+    }
+
+    .philosophy__card {
+        padding: 1.5rem 1rem;
+    }
+
+    .philosophy__icon {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .philosophy__card h3 {
+        font-size: 1.1rem;
+    }
+
+    .assoc-stats__grid {
+        gap: 0.5rem;
+    }
+
+    .assoc-stat {
+        padding: 1rem 0.5rem;
+    }
+
+    .assoc-stat__number {
+        font-size: 1.5rem;
+    }
+
+    .assoc-stat__label {
+        font-size: 0.6rem;
+    }
+
+    .value-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .leader-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .leader-card p {
+        font-size: 0.78rem;
+    }
+
+    .affiliation-card {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .affiliation-card__logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    .timeline {
+        padding-left: 22px;
+    }
+
+    .timeline::before {
+        left: 6px;
+    }
+
+    .timeline__marker {
+        left: -20px;
+        width: 10px;
+        height: 10px;
+    }
+
+    .timeline__card {
+        padding: 1rem;
     }
 
     .about-cta__inner {
-        padding: 3rem 1.5rem;
+        padding: 2rem 0.75rem;
+    }
+}
+
+/* ===== TOUCH DEVICE OPTIMIZATIONS ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* Disable hover lift effects on touch devices — they linger after tap */
+    .glass-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .affiliation-card:hover {
+        transform: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .value-card:hover .value-card__icon {
+        transform: none;
+    }
+
+    .affiliation-card:hover .affiliation-card__logo {
+        transform: none;
+    }
+
+    /* Active/tap feedback instead of hover */
+    .glass-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .affiliation-card:active {
+        transform: scale(0.98);
+        border-color: rgba(255, 183, 3, 0.4);
+    }
+
+    /* Ensure min tap targets for interactive elements */
+    .about-cta__buttons .btn {
+        min-height: 48px;
+        font-size: 0.85rem;
+    }
+
+    .philosophy__cta {
+        min-height: 48px;
+    }
+}
+
+/* ===== LANDSCAPE MOBILE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+    .about-page .page-hero {
+        min-height: 60vh;
+        padding-bottom: 2rem;
+    }
+
+    .page-hero__logo {
+        width: 60px;
+        margin-bottom: 0.5rem;
+    }
+
+    .assoc-stats__grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .values__grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }

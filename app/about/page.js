@@ -198,10 +198,10 @@ export default function AboutPage() {
             <section className="section about-cta">
                 <div className="container about-cta__inner">
                     <h2 className="section-title">Ready to Begin?</h2>
-                    <p className="section-subtitle" style={{ margin: '0 auto 2rem auto', textAlign: 'center' }}>
+                    <p className="section-subtitle about-cta__subtitle">
                         Whether you are a beginner stepping onto the mat for the first time or an experienced karateka — SKF Karate welcomes you. Oss!
                     </p>
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div className="about-cta__buttons">
                         <Link href="/summer-camp" className="btn btn-primary">Summer Camp 2026 <FaArrowRight /></Link>
                         <Link href="/contact" className="btn btn-secondary">Contact Us</Link>
                     </div>
