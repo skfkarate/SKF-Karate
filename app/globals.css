@@ -402,6 +402,30 @@ button {
     min-height: 40vh;
     padding-bottom: 3rem;
   }
+
+  .page-hero__glow-1 {
+    width: 250px;
+    height: 250px;
+    opacity: 0.15;
+  }
+
+  .page-hero__glow-2 {
+    width: 200px;
+    height: 200px;
+    opacity: 0.2;
+  }
+
+  .page-hero .section-label {
+    font-size: 0.65rem;
+    padding: 0.3rem 0.8rem;
+    gap: 0.4rem;
+    letter-spacing: 1px;
+  }
+
+  .page-hero__subtitle {
+    letter-spacing: 1px;
+    max-width: 90%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -423,17 +447,36 @@ button {
   }
 
   .page-hero {
-    min-height: 35vh;
-    padding-bottom: 2rem;
+    min-height: 30vh;
+    padding-bottom: 1.5rem;
   }
 
   .page-hero__title {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
   }
 
   .page-hero__subtitle {
-    font-size: 0.9rem;
-    letter-spacing: 2px;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+    max-width: 95%;
+  }
+
+  .page-hero__glow-1 {
+    width: 180px;
+    height: 180px;
+    opacity: 0.1;
+  }
+
+  .page-hero__glow-2 {
+    width: 150px;
+    height: 150px;
+    opacity: 0.12;
+  }
+
+  .page-hero .section-label {
+    font-size: 0.6rem;
+    padding: 0.25rem 0.7rem;
+    margin-bottom: 1rem;
   }
 
   .btn {

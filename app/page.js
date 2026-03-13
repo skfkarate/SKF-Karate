@@ -40,13 +40,13 @@ export default function HomePage() {
       {/* ===== STATS ===== */}
       <section className="stats">
         <div className="container stats__grid">
-          <Counter target={500} label="Active Students" />
+          <Counter target={5100} label="Active Students" />
           <div className="stats__divider"></div>
           <Counter target={20} label="Expert Instructors" />
           <div className="stats__divider"></div>
           <Counter target={15} label="Years of Excellence" />
           <div className="stats__divider"></div>
-          <Counter target={50} label="Championships Won" />
+          <Counter target={300} label="Championships Won" />
         </div>
       </section>
 

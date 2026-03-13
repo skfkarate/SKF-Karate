@@ -38,7 +38,7 @@ export const metadata = {
     url: siteUrl,
     siteName: 'SKF Karate',
     title: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association®',
-    description: 'Premier karate training academy. 500+ students, 20+ certified Senseis, 6 dojos. Summer Camp 2026 now open. Join the SKF family!',
+    description: 'Premier karate training academy. 5100+ students, 20+ certified Senseis, 6 dojos. Summer Camp 2026 now open. Join the SKF family!',
     images: [
       {
         url: '/og-image.png',
@@ -51,7 +51,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association®',
-    description: 'Premier karate training academy. 500+ students, 20+ certified Senseis. Summer Camp 2026 now open!',
+    description: 'Premier karate training academy. 5100+ students, 20+ certified Senseis. Summer Camp 2026 now open!',
     images: ['/og-image.png'],
   },
   alternates: {

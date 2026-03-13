@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { FaFire, FaCalendarAlt, FaArrowRight, FaQuoteLeft, FaStar, FaShieldAlt, FaMapMarkerAlt, FaClock, FaUsers, FaWhatsapp, FaPhoneAlt, FaQuestion } from 'react-icons/fa'
 import { GiBlackBelt, GiNunchaku } from 'react-icons/gi'
 import ScrollVideo from '../components/ScrollVideo'
@@ -32,26 +33,44 @@ export default function SummerCampPage() {
             <section className="section benefits">
                 <div className="container">
                     <div className="benefits__grid">
-                        <div className="glass-card benefit-card">
-                            <div className="benefit-card__icon text-gold"><FaShieldAlt /></div>
-                            <h4>Screen-Free Growth</h4>
-                            <p>
-                                Swap smartphones for smart moves. We build focus, respect, and physical fitness in a highly disciplined environment.
-                            </p>
+                        <div className="benefit-card">
+                            <div className="benefit-card__image">
+                                <Image src="/summer-camp/screen-free-growth.png" alt="Kids training karate with focus and discipline" fill style={{ objectFit: 'cover' }} />
+                                <div className="benefit-card__image-overlay"></div>
+                            </div>
+                            <div className="benefit-card__icon-badge"><FaShieldAlt /></div>
+                            <div className="benefit-card__content">
+                                <h4>Screen-Free Growth</h4>
+                                <p>
+                                    Swap smartphones for smart moves. We build focus, respect, and physical fitness in a highly disciplined environment.
+                                </p>
+                            </div>
                         </div>
-                        <div className="glass-card benefit-card benefit-card--highlight">
-                            <div className="benefit-card__icon benefit-card__icon--lg text-crimson"><GiNunchaku /></div>
-                            <h4>Real Ninja Skills</h4>
-                            <p>
-                                Master the Nunchaku, learn cool self-defense strikes, and earn your certified summer camp belt!
-                            </p>
+                        <div className="benefit-card benefit-card--highlight">
+                            <div className="benefit-card__image">
+                                <Image src="/summer-camp/real-ninja-skills.png" alt="Nunchaku weapon training" fill className="benefit-card__img-ninja" style={{ objectFit: 'cover' }} />
+                                <div className="benefit-card__image-overlay benefit-card__image-overlay--crimson"></div>
+                            </div>
+                            <div className="benefit-card__icon-badge benefit-card__icon-badge--crimson"><GiNunchaku /></div>
+                            <div className="benefit-card__content">
+                                <h4>Real Ninja Skills</h4>
+                                <p>
+                                    Master the Nunchaku, learn cool self-defense strikes, and earn your certified summer camp belt!
+                                </p>
+                            </div>
                         </div>
-                        <div className="glass-card benefit-card">
-                            <div className="benefit-card__icon text-gold"><FaUsers /></div>
-                            <h4>Safe &amp; Supervised</h4>
-                            <p>
-                                10+ years experienced Senseis ensuring a 100% safe, injury-free, and encouraging mat experience.
-                            </p>
+                        <div className="benefit-card">
+                            <div className="benefit-card__image">
+                                <Image src="/summer-camp/safe-supervised.png" alt="Sensei supervising student training" fill style={{ objectFit: 'cover' }} />
+                                <div className="benefit-card__image-overlay"></div>
+                            </div>
+                            <div className="benefit-card__icon-badge"><FaUsers /></div>
+                            <div className="benefit-card__content">
+                                <h4>Safe &amp; Supervised</h4>
+                                <p>
+                                    10+ years experienced Senseis ensuring a 100% safe, injury-free, and encouraging mat experience.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,17 +172,16 @@ export default function SummerCampPage() {
                             <GiBlackBelt />
                         </div>
                         <div className="sensei__info">
-                            <h3>Sensei — SKF Karate</h3>
-                            <p className="sensei__title">Head Instructor, Sports Karate-do Fitness</p>
+                            <h3>Sensei Usha C</h3>
+                            <p className="sensei__title">President, SKF Karate</p>
                             <p className="sensei__bio">
-                                With years of dedicated practice and teaching, our head Sensei has trained hundreds of students
-                                from white belt to competitive karatekas. Specializing in self-defense, fitness, and Nunchaku weapon forms,
-                                the training combines traditional discipline with modern fitness techniques.
-                                Every session is designed to build not just physical strength, but mental resilience and self-confidence.
+                                Sensei Usha C (4th Dan Black Belt & Senior Instructor) leads the SKF Karate Summer Camp 2026. 
+                                Specializing in self-defense, fitness, and Nunchaku, she blends traditional discipline 
+                                with modern techniques to build strength, resilience, and confidence in every student.
                             </p>
                             <div className="sensei__stats">
                                 <div className="sensei__stat">
-                                    <span className="sensei__stat-number">500+</span>
+                                    <span className="sensei__stat-number">5100+</span>
                                     <span className="sensei__stat-label">Students Trained</span>
                                 </div>
                                 <div className="sensei__stat">

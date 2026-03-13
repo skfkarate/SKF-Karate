@@ -1,8 +1,51 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaPaperPlane, FaCheckCircle, FaSpinner, FaUser, FaClock, FaTag, FaPen, FaArrowRight } from 'react-icons/fa'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaPaperPlane, FaCheckCircle, FaSpinner, FaUser, FaClock, FaTag, FaPen, FaArrowRight, FaInfoCircle } from 'react-icons/fa'
 import './contact.css'
+
+const QUEUE_KEY = 'skf_contact_queue'
+
+// Helper: save a submission to localStorage queue
+function queueSubmission(data) {
+    try {
+        const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]')
+        queue.push({ ...data, queuedAt: Date.now() })
+        localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
+    } catch { /* localStorage unavailable — silently fail */ }
+}
+
+// Helper: send one submission to the API
+async function sendToAPI(payload) {
+    const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+        const err = new Error(data.error || 'Something went wrong')
+        err.retryable = data.retryable !== false
+        err.status = res.status
+        throw err
+    }
+    return data
+}
+
+// Helper: retry a function up to `times` with delay
+async function retryFn(fn, times = 2, delay = 1500) {
+    let lastErr
+    for (let i = 0; i <= times; i++) {
+        try {
+            return await fn()
+        } catch (err) {
+            lastErr = err
+            if (!err.retryable || i === times) break
+            await new Promise(r => setTimeout(r, delay))
+        }
+    }
+    throw lastErr
+}
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
@@ -13,8 +56,37 @@ export default function ContactPage() {
         interest: 'Summer Camp 2026',
         message: '',
     })
-    const [status, setStatus] = useState('idle') // idle | loading | success | error
+    const [status, setStatus] = useState('idle') // idle | loading | success | error | queued
     const [errorMsg, setErrorMsg] = useState('')
+
+    // On mount: try to flush any queued submissions from localStorage
+    const flushQueue = useCallback(async () => {
+        try {
+            const raw = localStorage.getItem(QUEUE_KEY)
+            if (!raw) return
+            const queue = JSON.parse(raw)
+            if (!queue.length) return
+
+            const remaining = []
+            for (const item of queue) {
+                try {
+                    const { queuedAt, ...payload } = item
+                    await sendToAPI(payload)
+                } catch {
+                    remaining.push(item)
+                }
+            }
+            if (remaining.length) {
+                localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining))
+            } else {
+                localStorage.removeItem(QUEUE_KEY)
+            }
+        } catch { /* silently fail */ }
+    }, [])
+
+    useEffect(() => {
+        flushQueue()
+    }, [flushQueue])
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -26,14 +98,12 @@ export default function ContactPage() {
         const val = e.target.value
         const prev = formData.email
 
-        // User just typed '@' (new @ that wasn't there before)
         if (val.endsWith('@') && !prev.includes('@')) {
             const filled = val + 'gmail.com'
             setFormData({ ...formData, email: filled })
-            // Place cursor right after @ so user can overwrite the domain
             setTimeout(() => {
                 if (emailRef.current) {
-                    const pos = val.length // right after @
+                    const pos = val.length
                     emailRef.current.setSelectionRange(pos, filled.length)
                 }
             }, 0)
@@ -45,14 +115,8 @@ export default function ContactPage() {
     // Phone: strip everything except digits, cap at 10, format with +91
     const handlePhoneChange = (e) => {
         let raw = e.target.value
-
-        // Remove the +91 prefix if user typed it, we manage it ourselves
         raw = raw.replace(/^\+91\s*/, '')
-
-        // Keep only digits
         const digits = raw.replace(/\D/g, '').slice(0, 10)
-
-        // Format: +91 XXXXX XXXXX
         let formatted = ''
         if (digits.length > 0) {
             formatted = '+91 ' + digits.slice(0, 5)
@@ -60,7 +124,6 @@ export default function ContactPage() {
                 formatted += ' ' + digits.slice(5)
             }
         }
-
         setFormData({ ...formData, phone: formatted })
     }
 
@@ -71,7 +134,6 @@ export default function ContactPage() {
 
         // Client-side phone validation — must have exactly 10 digits
         const phoneDigits = formData.phone.replace(/\D/g, '')
-        // phoneDigits will be like "91XXXXXXXXXX" (12 digits) or "XXXXXXXXXX" (10 digits)
         const digitsOnly = phoneDigits.startsWith('91') ? phoneDigits.slice(2) : phoneDigits
         if (digitsOnly.length !== 10) {
             setStatus('error')
@@ -80,27 +142,31 @@ export default function ContactPage() {
         }
 
         const fullPhone = '+91' + digitsOnly
+        const payload = { ...formData, phone: fullPhone }
 
         try {
-            const res = await fetch('/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...formData, phone: fullPhone }),
-            })
-
-            const data = await res.json()
-
-            if (!res.ok) {
-                throw new Error(data.error || 'Something went wrong')
-            }
-
+            // Auto-retry up to 2 times on retryable errors
+            await retryFn(() => sendToAPI(payload), 2, 1500)
             setStatus('success')
             setFormData({ name: '', email: '', phone: '', preferredTime: '', interest: 'Summer Camp 2026', message: '' })
         } catch (err) {
-            setStatus('error')
-            setErrorMsg(err.message || 'Network error. Please check your connection and try again.')
+            if (err.status === 429) {
+                // Rate limited — not retryable, don't queue
+                setStatus('error')
+                setErrorMsg('Please wait a minute before submitting again.')
+            } else if (err.retryable !== false) {
+                // All retries failed — save to localStorage so data is never lost
+                queueSubmission(payload)
+                setStatus('queued')
+                setErrorMsg('')
+            } else {
+                // Validation or non-retryable error
+                setStatus('error')
+                setErrorMsg(err.message || 'Please check your details and try again.')
+            }
         }
     }
+
 
     return (
         <div className="contact-page">
@@ -139,11 +205,15 @@ export default function ContactPage() {
                     <div className="glass-card contact-form-wrapper">
                         <h3>Schedule Your Call</h3>
 
-                        {status === 'success' ? (
+                        {status === 'success' || status === 'queued' ? (
                             <div className="contact-form__success">
                                 <FaCheckCircle className="contact-form__success-icon" />
-                                <h4>Message Sent!</h4>
-                                <p>Thank you for reaching out. Our team will get back to you shortly.</p>
+                                <h4>{status === 'success' ? 'Message Sent!' : 'Request Saved!'}</h4>
+                                <p>
+                                    {status === 'success'
+                                        ? 'Thank you for reaching out. Our team will get back to you shortly.'
+                                        : 'Your details have been saved and will be submitted automatically. You can also call us directly at +91 90199 71726.'}
+                                </p>
                                 <button
                                     className="btn btn-secondary"
                                     onClick={() => setStatus('idle')}

@@ -6,10 +6,11 @@ import './about.css'
 
 
 const leadership = [
-    { name: 'Shihan Takeshi', role: 'President & Founder', dan: '7th Dan', desc: 'Visionary behind SKF Karate with 30+ years of international Karate-Do experience.' },
-    { name: 'Sensei Akira', role: 'Chief Instructor', dan: '5th Dan', desc: 'Leads all technical programs, competition coaching, and Sensei development.' },
-    { name: 'Mr. Vijay Kumar', role: 'General Secretary', dan: '', desc: 'Manages operations, event coordination, and federation communications.' },
-    { name: 'Ms. Lakshmi Rao', role: 'Treasurer', dan: '', desc: 'Handles financial governance, sponsorships, and membership administration.' },
+    { name: 'Renshi Dr. Channegowda UC', role: 'Founder', dan: '7th Dan', desc: 'Technical Director — The visionary leader and technical backbone of SKF Karate.' },
+    { name: 'Sensei Usha C', role: 'President', dan: '4th Dan', desc: 'Senior Instructor — Leading the association with dedication and conducting specialized training programs.' },
+    { name: 'Sensei Someshekhar', role: 'Vice President', dan: '4th Dan', desc: 'Branch Head — Managing branch operations and overseeing senior student development.' },
+    { name: 'Sensei Rakesh', role: 'General Secretary', dan: '4th Dan', desc: 'Branch Head — Coordinating administrative affairs and leading branch training initiatives.' },
+    { name: 'Latha', role: 'Treasurer', dan: '', desc: 'Managing financial governance and supporting the association\'s growth.' },
 ]
 
 export default function AboutPage() {
@@ -23,7 +24,7 @@ export default function AboutPage() {
                 <div className="container page-hero__content">
                     <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="page-hero__logo" />
                     <h1 className="page-hero__title">About <span className="text-gradient">SKF Karate</span></h1>
-                    <p className="page-hero__subtitle" style={{ whiteSpace: 'nowrap' }}>Sports Karate-do Fitness & Self Defence Association®</p>
+                    <p className="page-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
                 </div>
             </section>
 
@@ -62,8 +63,8 @@ export default function AboutPage() {
                 <div className="container">
                     <div className="assoc-stats__grid">
                         <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">500+</span>
-                            <span className="assoc-stat__label">Active Karateka</span>
+                            <span className="assoc-stat__number">5100+</span>
+                            <span className="assoc-stat__label">Active Students</span>
                         </div>
                         <div className="glass-card assoc-stat">
                             <span className="assoc-stat__number">6</span>
@@ -74,7 +75,7 @@ export default function AboutPage() {
                             <span className="assoc-stat__label">Certified Senseis</span>
                         </div>
                         <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">25+</span>
+                            <span className="assoc-stat__number">300+</span>
                             <span className="assoc-stat__label">State & National Champions</span>
                         </div>
                     </div>
@@ -179,7 +180,7 @@ export default function AboutPage() {
                             <div className="glass-card timeline__card">
                                 <span className="timeline__year">Growth</span>
                                 <h3>Expanding the Family</h3>
-                                <p>Grew to 500+ active karateka with championship-winning programs and dedicated Senseis across 6 dojos.</p>
+                                <p>Grew to 5100+ active students with championship-winning programs and dedicated Senseis across 6 dojos.</p>
                             </div>
                         </div>
                         <div className="timeline__item">

@@ -463,6 +463,11 @@
 }
 
 @media (max-width: 480px) {
+    .page-hero__logo {
+        width: 100px;
+        margin-bottom: 1rem;
+    }
+
     .philosophy__card {
         padding: 2rem 1.5rem;
     }

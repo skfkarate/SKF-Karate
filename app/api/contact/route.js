@@ -5,6 +5,23 @@ import { NextResponse } from 'next/server'
 const submissions = new Map()
 const RATE_LIMIT_MS = 60000 // 1 submission per minute per IP
 
+// Retry helper with exponential backoff
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
+    let lastError
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await fn()
+        } catch (err) {
+            lastError = err
+            if (attempt < maxRetries - 1) {
+                const delay = baseDelay * Math.pow(2, attempt) // 500ms → 1s → 2s
+                await new Promise(resolve => setTimeout(resolve, delay))
+            }
+        }
+    }
+    throw lastError
+}
+
 export async function POST(request) {
     try {
         // 1. Parse & validate
@@ -13,7 +30,7 @@ export async function POST(request) {
             body = await request.json()
         } catch {
             return NextResponse.json(
-                { error: 'Invalid request format' },
+                { error: 'Invalid request format', retryable: false },
                 { status: 400 }
             )
         }
@@ -22,7 +39,7 @@ export async function POST(request) {
 
         if (!name?.trim() || !phone?.trim()) {
             return NextResponse.json(
-                { error: 'Name and phone are required' },
+                { error: 'Name and phone are required', retryable: false },
                 { status: 400 }
             )
         }
@@ -32,7 +49,7 @@ export async function POST(request) {
         const lastSubmission = submissions.get(ip)
         if (lastSubmission && Date.now() - lastSubmission < RATE_LIMIT_MS) {
             return NextResponse.json(
-                { error: 'Please wait a minute before submitting again' },
+                { error: 'Please wait a minute before submitting again', retryable: false },
                 { status: 429 }
             )
         }
@@ -45,7 +62,7 @@ export async function POST(request) {
             timeStyle: 'short',
         })
 
-        // 4. Write to Google Sheets (primary lead capture — must succeed)
+        // 4. Write to Google Sheets with retry logic (primary lead capture)
         try {
             const auth = new google.auth.GoogleAuth({
                 credentials: {
@@ -57,27 +74,29 @@ export async function POST(request) {
 
             const sheets = google.sheets({ version: 'v4', auth })
 
-            await sheets.spreadsheets.values.append({
-                spreadsheetId: process.env.GOOGLE_SHEET_ID,
-                range: 'A:G',
-                valueInputOption: 'USER_ENTERED',
-                requestBody: {
-                    values: [[
-                        timestamp,
-                        name.trim(),
-                        phone.trim(),
-                        email?.trim() || '—',
-                        preferredTime || 'Anytime',
-                        interest || 'General Inquiry',
-                        message?.trim() || '—',
-                    ]],
-                },
+            await retryWithBackoff(async () => {
+                await sheets.spreadsheets.values.append({
+                    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+                    range: 'A:G',
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: {
+                        values: [[
+                            timestamp,
+                            name.trim(),
+                            phone.trim(),
+                            email?.trim() || '—',
+                            preferredTime || 'Anytime',
+                            interest || 'General Inquiry',
+                            message?.trim() || '—',
+                        ]],
+                    },
+                })
             })
         } catch (sheetError) {
-            console.error('Google Sheets error:', sheetError)
+            console.error('Google Sheets error (all retries failed):', sheetError?.message || sheetError)
             return NextResponse.json(
-                { error: 'Could not save your request. Please try again or call us directly.' },
-                { status: 500 }
+                { error: 'We\'re experiencing a temporary issue. Your request has been saved locally and will be sent automatically.', retryable: true },
+                { status: 503 }
             )
         }
 
@@ -95,7 +114,6 @@ export async function POST(request) {
             `🕐 ${timestamp}`,
         ].filter(Boolean).join('\n')
 
-        // Fire without awaiting — response goes back to user immediately
         fetch(
             `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
             {
@@ -112,9 +130,9 @@ export async function POST(request) {
         return NextResponse.json({ success: true, message: 'Message sent successfully!' })
 
     } catch (error) {
-        console.error('Contact form error:', error)
+        console.error('Contact form error:', error?.message || error)
         return NextResponse.json(
-            { error: 'Something went wrong. Please try again or call us directly.' },
+            { error: 'Something went wrong. Please try again.', retryable: true },
             { status: 500 }
         )
     }

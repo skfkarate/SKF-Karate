@@ -23,10 +23,10 @@ const awards = [
 ]
 
 const milestones = [
-    { text: '500+ active karateka trained', icon: <FaStar /> },
+    { text: '5100+ active students trained', icon: <FaStar /> },
     { text: '12 Gold at State Championship 2026', icon: <FaMedal /> },
     { text: '4 athletes selected for National Squad', icon: <GiPodium /> },
-    { text: '25+ champions produced at state & national level', icon: <FaTrophy /> },
+    { text: '300+ champions produced at state & national level', icon: <FaTrophy /> },
 ]
 
 export default function HonoursPage() {

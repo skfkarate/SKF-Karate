@@ -12,7 +12,7 @@ const navStructure = [
         label: 'About',
         children: [
             { label: 'Our Legacy', href: '/about' },
-            { label: 'Our Senseis', href: '/senseis' },
+            { label: 'Our Senseis', href: '/senseis', disabled: true },
             { label: 'Dojo Directory', href: '/dojos', disabled: true },
         ],
     },
