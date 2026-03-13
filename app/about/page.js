@@ -170,25 +170,41 @@ export default function AboutPage() {
                         <div className="timeline__item">
                             <div className="timeline__marker"></div>
                             <div className="glass-card timeline__card">
-                                <span className="timeline__year">Foundation</span>
-                                <h3>SKF Karate Established</h3>
-                                <p>Founded with a vision to bring professional, standardized Sports Karate-Do training to aspiring martial artists.</p>
+                                <span className="timeline__year">The Beginning</span>
+                                <h3>A Vision Takes Shape</h3>
+                                <p>Renshi Dr. Channegowda UC founded SKF Karate with a single batch of students and a bold promise — to bring world-class, standardized Sports Karate-Do training to Karnataka.</p>
                             </div>
                         </div>
                         <div className="timeline__item">
                             <div className="timeline__marker"></div>
                             <div className="glass-card timeline__card">
-                                <span className="timeline__year">Growth</span>
-                                <h3>Expanding the Family</h3>
-                                <p>Grew to 5100+ active students with championship-winning programs and dedicated Senseis across 6 dojos.</p>
+                                <span className="timeline__year">First Champions</span>
+                                <h3>Making Karnataka Proud</h3>
+                                <p>SKF students stepped onto the State Championship podium for the first time — marking the beginning of a winning legacy that would produce 300+ champions and counting.</p>
+                            </div>
+                        </div>
+                        <div className="timeline__item">
+                            <div className="timeline__marker"></div>
+                            <div className="glass-card timeline__card">
+                                <span className="timeline__year">Expansion</span>
+                                <h3>Growing Across the Region</h3>
+                                <p>What started as one training center grew into multiple branches, each led by certified Senseis trained under Renshi&apos;s direct mentorship — bringing SKF&apos;s discipline to thousands of families.</p>
+                            </div>
+                        </div>
+                        <div className="timeline__item">
+                            <div className="timeline__marker"></div>
+                            <div className="glass-card timeline__card">
+                                <span className="timeline__year">5100+ Strong</span>
+                                <h3>A Community, Not Just a Club</h3>
+                                <p>With over 5100 active students, SKF became more than a karate association — it became a movement. Belt ceremonies, inter-dojo tournaments, and national-level representation became the norm.</p>
                             </div>
                         </div>
                         <div className="timeline__item">
                             <div className="timeline__marker"></div>
                             <div className="glass-card timeline__card">
                                 <span className="timeline__year">2026</span>
-                                <h3>Summer Camp Launch</h3>
-                                <p>Launching the most ambitious Summer Camp yet — intensive training, belt progression, and life skills development.</p>
+                                <h3>Summer Camp &amp; Beyond</h3>
+                                <p>Launching the most ambitious Summer Camp yet — intensive training, belt progression, and life skills development. The legacy continues to grow, one karateka at a time.</p>
                             </div>
                         </div>
                     </div>
