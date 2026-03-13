@@ -708,8 +708,11 @@
     will-change: transform;
 }
 
-.testimonials__slider:hover .testimonials__track {
-    animation-play-state: paused;
+/* Only pause on hover if the device supports actual hovering (mouse) */
+@media (hover: hover) {
+    .testimonials__slider:hover .testimonials__track {
+        animation-play-state: paused;
+    }
 }
 
 @keyframes scroll-left {
