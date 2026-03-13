@@ -699,9 +699,11 @@
 
 .testimonials__track {
     display: flex;
-    gap: 32px; /* Fixed px for perfect math instead of relative rems */
-    padding-right: 32px;
-    animation: scroll-left 40s linear infinite;
+    /* We duplicate the entire list, so to scroll infinitely we only translate -50% of the total track width. 
+       To do this cleanly without gap math, we wrap the original items in a container, but since we didn't do that, 
+       we keep the track exactly wide enough. */
+    width: max-content;
+    animation: scroll-left 50s linear infinite;
     will-change: transform;
 }
 
@@ -713,9 +715,9 @@
     0% {
         transform: translateX(0);
     }
-
     100% {
-        transform: translateX(calc(-100% - 32px));
+        /* Translates exactly half of the duplicated track width */
+        transform: translateX(-50%);
     }
 }
 
@@ -723,6 +725,7 @@
     padding: 2.5rem 2rem;
     position: relative;
     width: 350px;
+    margin-right: 2rem; /* Replace gap with margin to keep math inside the 50% split clean */
     flex-shrink: 0;
     transition: transform 0.3s ease, border-color 0.3s ease;
 }
