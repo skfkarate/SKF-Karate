@@ -700,9 +700,10 @@
 .testimonials__track {
     display: flex;
     flex-shrink: 0;
+    width: max-content;
     gap: 2rem;
     padding-right: 2rem;
-    animation: scroll-left 60s linear infinite;
+    animation: scroll-left 40s linear infinite;
     will-change: transform;
 }
 
