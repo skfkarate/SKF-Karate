@@ -700,9 +700,10 @@
 .testimonials__track {
     display: flex;
     flex-shrink: 0;
-    width: max-content;
-    gap: 2rem;
-    padding-right: 2rem;
+    /* 10 cards per track: 10 * 350px width + 10 * 32px gap = 3820px */
+    width: 3820px;
+    gap: 32px;
+    padding-right: 32px;
     animation: scroll-left 40s linear infinite;
     will-change: transform;
 }
@@ -1615,6 +1616,11 @@
     .testimonials__slider {
         padding: 1rem 0;
     }
+    
+    .testimonials__track {
+        /* Mobile slider: 10 cards * 260px = 2600 + 320 gap = 2920px exact width */
+        width: 2920px;
+    }
 
     /* FAQ */
     .faq__header {
@@ -1736,6 +1742,11 @@
 
     .testimonial-card {
         width: 240px;
+    }
+
+    .testimonials__track {
+        /* Tiny Mobile slider: 10 cards * 240px + 320 gap = 2720px exact width */
+        width: 2720px;
     }
 
     .featured-quote__text {
