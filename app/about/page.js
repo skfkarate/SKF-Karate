@@ -21,9 +21,9 @@ export default function AboutPage() {
                     <div className="glow glow-blue page-hero__glow-2"></div>
                 </div>
                 <div className="container page-hero__content">
-                    <span className="section-label">Our Legacy</span>
+                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="page-hero__logo" />
                     <h1 className="page-hero__title">About <span className="text-gradient">SKF Karate</span></h1>
-                    <p className="page-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
+                    <p className="page-hero__subtitle" style={{ whiteSpace: 'nowrap' }}>Sports Karate-do Fitness & Self Defence Association®</p>
                 </div>
             </section>
 
@@ -137,21 +137,22 @@ export default function AboutPage() {
                         <span className="section-label"><FaGlobe /> Affiliations</span>
                         <h2 className="section-title">Our <span className="text-gradient">Affiliations</span></h2>
                     </div>
-                    <div className="affiliations__grid">
-                        <div className="glass-card affiliation-card">
-                            <FaGlobe className="affiliation-card__icon" />
-                            <h4>World Karate Federation</h4>
-                            <p>Aligned with WKF rules and competition standards</p>
+                    <div className="affiliations__hierarchy">
+                        <div className="glass-card affiliation-card affiliation-card--primary">
+                            <img src="/affliciation/akska.png" alt="AKSKA Logo" className="affiliation-card__logo" />
+                            <h4>Akhila Karnataka Sports Karate Association</h4>
                         </div>
-                        <div className="glass-card affiliation-card">
-                            <FaBuilding className="affiliation-card__icon" />
-                            <h4>National Karate Federation</h4>
-                            <p>Registered member of the National Federation</p>
-                        </div>
-                        <div className="glass-card affiliation-card">
-                            <FaMedal className="affiliation-card__icon" />
-                            <h4>State Karate Association</h4>
-                            <p>Active participant in state championships and programs</p>
+                        
+                        <div className="affiliation-tree__branches">
+                            <div className="glass-card affiliation-card">
+                                <img src="/affliciation/wkf.png" alt="WKF Logo" className="affiliation-card__logo" />
+                                <h4>World Karate Federation</h4>
+                            </div>
+                            
+                            <div className="glass-card affiliation-card">
+                                <img src="/affliciation/kio.png" alt="KIO Logo" className="affiliation-card__logo" />
+                                <h4>Karate India Organisation</h4>
+                            </div>
                         </div>
                     </div>
                 </div>

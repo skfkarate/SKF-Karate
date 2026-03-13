@@ -1,255 +1,404 @@
-/* ===== KYU SECTION ===== */
+/* ===== GRADING HERO GRADIENT ===== */
+.grading-page .page-hero__bg {
+    background: linear-gradient(160deg, var(--navy-deep) 0%, #0c0908 55%, var(--bg-body) 100%);
+}
+.grading-page .page-hero__bg::after {
+    background: radial-gradient(circle at 55% 0%, rgba(255, 183, 3, 0.06) 0%, transparent 65%);
+}
+
+/* ===== KYU SYSTEM STYLES (VERTICAL TIMELINE) ===== */
+
 .kyu-section {
     position: relative;
-    overflow: hidden;
+    padding-bottom: 5rem;
 }
 
 .kyu-section__glow {
-    width: 700px;
-    height: 700px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.08;
+    top: 20%;
+    left: -10%;
+    opacity: 0.15;
 }
 
 .kyu-header {
     text-align: center;
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto 4rem auto;
 }
 
-.kyu-header .section-subtitle {
-    margin: 0 auto;
-}
-
-/* ===== KYU TIMELINE GRID ===== */
 .kyu-timeline {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.8rem;
     position: relative;
-    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+    z-index: 2;
 }
 
-/* ===== KYU CARD ===== */
-.kyu-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    border-radius: 20px;
-    padding: 2.2rem 2rem 2.2rem 2.5rem;
+/* The Center Line */
+.kyu-timeline__line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 5%, rgba(255, 255, 255, 0.1) 95%, rgba(255, 255, 255, 0) 100%);
+    transform: translateX(-50%);
+    border-radius: 4px;
+    z-index: 0;
+}
+
+/* Timeline Rows */
+.kyu-timeline__row {
     position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.kyu-timeline__row--left {
+    justify-content: flex-start;
+}
+
+.kyu-timeline__row--right {
+    justify-content: flex-end;
+}
+
+/* Connector Dot */
+.kyu-timeline__dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    background: var(--bg-dark);
+    border: 3px solid var(--belt-color);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 3;
+    box-shadow: 0 0 10px var(--belt-color);
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s;
+}
+
+.kyu-timeline__row.is-visible .kyu-timeline__dot {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* The Glass Card */
+.kyu-card {
+    position: relative;
+    width: calc(50% - 3.5rem); /* 50% width minus margin mapping from the center line */
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    cursor: default;
-    animation: kyu-fade-in 0.6s ease forwards;
-    animation-delay: var(--delay, 0s);
+    z-index: 2;
+    overflow: hidden;
+    
+    /* Intersection Observer Initial State */
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(60px);
+    transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.8s ease;
 }
 
-@keyframes kyu-fade-in {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.kyu-timeline__row--left .kyu-card {
+    flex-direction: row-reverse;
+    text-align: right;
 }
 
-/* Left colored accent bar */
+.kyu-timeline__row.is-visible .kyu-card {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Smooth Hover & Active Scroll — Inner Glow */
+.kyu-card:hover,
+.kyu-card.scroll-active {
+    border-color: var(--belt-color);
+}
+
+.kyu-timeline__row.is-visible .kyu-card:hover,
+.kyu-timeline__row.is-visible .kyu-card.scroll-active {
+    box-shadow:
+        inset 0 0 30px rgba(0, 0, 0, 0.3),
+        inset 0 0 15px var(--belt-color),
+        0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
 .kyu-card__accent {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 5px;
+    width: 6px;
     height: 100%;
     background: var(--belt-color);
-    box-shadow: 0 0 20px var(--belt-color), 0 0 40px rgba(0, 0, 0, 0.2);
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-    border-radius: 20px 0 0 20px;
+    box-shadow: inset 0 0 10px var(--belt-color);
 }
 
-/* Hover glow overlay */
-.kyu-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    background: radial-gradient(ellipse at 20% 50%, var(--belt-color), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
+.kyu-timeline__row--left .kyu-card__accent {
+    right: 0;
 }
 
-.kyu-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, 0.5),
-        0 0 30px rgba(0, 0, 0, 0.15);
+.kyu-timeline__row--right .kyu-card__accent {
+    left: 0;
 }
 
-.kyu-card:hover::after {
-    opacity: 0.06;
-}
-
-.kyu-card:hover .kyu-card__accent {
-    width: 8px;
-    box-shadow: 0 0 30px var(--belt-color), 0 0 60px var(--belt-color);
-}
-
-/* Belt icon */
 .kyu-card__icon {
-    font-size: 3rem;
+    font-size: 2.8rem;
     color: var(--belt-color);
-    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.4));
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-    z-index: 2;
-    flex-shrink: 0;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+    transition: transform 0.4s ease;
 }
 
-.kyu-card:hover .kyu-card__icon {
-    transform: scale(1.2) rotate(8deg);
-    filter: drop-shadow(0 0 18px var(--belt-color));
+.kyu-card:hover .kyu-card__icon,
+.kyu-card.scroll-active .kyu-card__icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
-/* Info block */
 .kyu-card__info {
-    display: flex;
-    flex-direction: column;
-    z-index: 2;
-    min-width: 0;
+    flex: 1;
 }
 
 .kyu-card__level {
-    font-family: var(--font-heading);
-    font-size: 1.6rem;
-    font-weight: 800;
+    font-size: 1.4rem;
     color: var(--text-white);
-    margin: 0 0 0.35rem 0;
-    line-height: 1;
-    transition: color 0.3s ease;
-}
-
-.kyu-card:hover .kyu-card__level {
-    color: var(--belt-color);
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    margin-bottom: 0.3rem;
+    font-weight: 600;
 }
 
 .kyu-card__belt {
-    font-size: 0.85rem;
     color: var(--belt-color);
+    font-size: 0.95rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2.5px;
+    letter-spacing: 1.5px;
     opacity: 0.9;
 }
 
-.kyu-card__req {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin-top: 0.6rem;
-}
-
-/* Big background number */
 .kyu-card__number {
     position: absolute;
-    right: -5px;
-    bottom: -25px;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 5rem;
     font-family: var(--font-heading);
-    font-size: 10rem;
     font-weight: 900;
-    color: var(--belt-color);
-    opacity: 0.04;
-    z-index: 1;
-    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    color: rgba(255, 255, 255, 0.06);
     line-height: 1;
-    user-select: none;
+    z-index: 0;
+    pointer-events: none;
+    transition: color 0.4s ease;
+}
+
+/* Left-side cards: number on the left */
+.kyu-timeline__row--left .kyu-card__number {
+    right: auto;
+    left: 2rem;
+}
+
+.kyu-card:hover .kyu-card__number,
+.kyu-card.scroll-active .kyu-card__number {
+    color: rgba(255, 255, 255, 0.1);
+}
+
+/* Specific Belt Overrides */
+.kyu-card[style*="#FFD166"] h3 {
+    text-shadow: 0 0 20px rgba(255, 209, 102, 0.3);
+}
+
+/* ===== THE ULTIMATE SHODAN SHOWCASE ===== */
+
+.dan-section {
+    position: relative;
+    background: linear-gradient(to bottom, transparent, rgba(255, 183, 3, 0.02));
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 5rem;
+}
+
+.dan__glow {
+    bottom: 0;
+    right: -10%;
+    opacity: 0.1;
+    width: 60vw;
+    height: 60vw;
+}
+
+.shodan-showcase {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 24px;
+    padding: 4rem;
+    background: rgba(10, 12, 16, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 183, 3, 0.2);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.shodan-showcase:hover {
+    transform: translateY(-10px) scale(1.01);
+    border-color: rgba(255, 183, 3, 0.4);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 183, 3, 0.15), inset 0 0 0 1px rgba(255, 183, 3, 0.1);
+}
+
+.shodan-showcase__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(255, 183, 3, 0.1) 0%, transparent 60%);
+    opacity: 0.5;
+    z-index: 0;
     pointer-events: none;
 }
 
-.kyu-card:hover .kyu-card__number {
-    opacity: 0.12;
-    transform: scale(1.08) translateY(-8px) translateX(-8px);
+.shodan-showcase__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* ===== DAN SECTION ===== */
-.dan__glow {
-    width: 400px;
-    height: 400px;
-    right: -5%;
-    top: 20%;
-    opacity: 0.15;
-}
-
-.dan__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-}
-
-.dan-card {
-    padding: 2rem;
-    text-align: center;
-}
-
-.dan-card h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+.shodan-showcase__icon {
+    font-size: 5rem;
     color: var(--gold);
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 0 20px rgba(255, 183, 3, 0.3));
+    animation: float 6s ease-in-out infinite;
 }
 
-.dan-card__years {
-    display: inline-block;
-    background: rgba(255, 183, 3, 0.08);
-    border: 1px solid rgba(255, 183, 3, 0.15);
-    color: var(--text-light);
-    padding: 0.25rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.72rem;
-    font-weight: 700;
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.shodan-showcase__title {
+    font-size: 3rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.shodan-showcase__subtitle {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--gold);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.8rem;
+    letter-spacing: 4px;
+    margin-top: 0.5rem;
+    -webkit-text-fill-color: initial;
+    opacity: 0.9;
 }
 
-.dan-card p {
+.shodan-showcase__divider {
+    width: 60px;
+    height: 4px;
+    background: var(--gold);
+    margin: 2.5rem auto;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 183, 3, 0.5);
+}
+
+.shodan-showcase__philosophy {
+    font-size: 1.15rem;
     color: var(--text-light);
-    font-size: 0.88rem;
-    line-height: 1.6;
+    line-height: 1.8;
+    max-width: 700px;
+    margin: 0 auto;
+    font-style: italic;
 }
 
-/* ===== GRADING CTA ===== */
+.shodan-quote {
+    display: block;
+    font-size: 1.35rem;
+    color: white;
+    font-weight: 500;
+    font-family: var(--font-heading);
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+}
+
+/* ===== CTA SECIION ===== */
+.grading-cta {
+    position: relative;
+    z-index: 2;
+    margin-top: -2rem; /* Pull up slightly over previous section */
+}
+
 .grading-cta__inner {
     text-align: center;
-    padding: 5rem 3rem;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(20, 24, 34, 0.9) 0%, rgba(15, 18, 26, 0.95) 100%);
+    border: 1px solid rgba(255, 183, 3, 0.2); /* Gold border to match Shodan */
+    box-shadow: 0 0 30px rgba(255, 183, 3, 0.05), inset 0 0 20px rgba(17, 138, 178, 0.05); /* Soft gold/blue atmospheric glow */
+    border-radius: 24px;
 }
 
 /* ===== RESPONSIVE ===== */
+
+@media (max-width: 900px) {
+    .shodan-showcase {
+        padding: 3rem 2rem;
+    }
+    .shodan-showcase__title {
+        font-size: 2.5rem;
+    }
+    .shodan-quote {
+        font-size: 1.2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .kyu-timeline {
-        grid-template-columns: 1fr;
+        gap: 1.5rem; /* Tighter gap since line is gone */
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .kyu-timeline__line {
+        display: none; /* Hide timeline line completely on mobile */
+    }
+    
+    .kyu-timeline__dot {
+        display: none; /* Hide timeline dots completely on mobile */
+    }
+
+    .kyu-timeline__row {
+        justify-content: center; /* Center cards since line is gone */
     }
 
     .kyu-card {
-        padding: 1.8rem 1.5rem 1.8rem 2rem;
+        width: 100%; /* Take full width on mobile since there is no timeline */
+        padding: 2rem 1.5rem;
     }
 
-    .kyu-card__icon {
-        font-size: 2.5rem;
+    .kyu-timeline__row--left .kyu-card {
+        flex-direction: row; /* Un-reverse the left cards */
+        text-align: left;
     }
 
-    .kyu-card__level {
-        font-size: 1.3rem;
+    .kyu-timeline__row--left .kyu-card__accent {
+        left: 0;
+        right: auto;
     }
 
-    .kyu-card__number {
-        font-size: 7rem;
+    .kyu-timeline__row--left .kyu-card__number {
+        right: -1rem;
+        left: auto;
     }
 
     .grading-cta__inner {
@@ -258,27 +407,65 @@
 }
 
 @media (max-width: 480px) {
-    .kyu-card {
-        padding: 1.5rem 1.25rem 1.5rem 1.75rem;
+    .shodan-showcase {
+        padding: 2.5rem 1.5rem;
+        border-radius: 16px;
     }
 
-    .kyu-card__icon {
+    .shodan-showcase__icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .shodan-showcase__title {
         font-size: 2rem;
     }
 
-    .kyu-card__level {
+    .shodan-showcase__subtitle {
+        font-size: 1rem;
+        letter-spacing: 2px;
+    }
+
+    .shodan-showcase__philosophy {
+        font-size: 1rem;
+    }
+
+    .shodan-quote {
         font-size: 1.1rem;
     }
 
-    .kyu-card__number {
-        font-size: 5rem;
+    .kyu-timeline__line {
+        display: none;
     }
-
-    .kyu-card__req {
+    
+    .kyu-timeline__dot {
         display: none;
     }
 
-    .dan-card {
+    .kyu-card, .kyu-timeline__row--left .kyu-card {
+        flex-direction: row; /* Horizontal layout saves vertical screen space */
+        text-align: left;
+        gap: 1rem;
+        width: 100%; /* Take full width */
         padding: 1.5rem;
+    }
+    
+    .kyu-card__icon {
+        font-size: 2.2rem; /* Slightly smaller icon to save space */
+    }
+
+    .kyu-card__accent, .kyu-timeline__row--left .kyu-card__accent {
+        width: 6px;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    .kyu-card__number, .kyu-timeline__row--left .kyu-card__number {
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        bottom: auto;
+        font-size: 4rem; /* Down from 8rem so it fits beautifully inside the mobile card */
     }
 }

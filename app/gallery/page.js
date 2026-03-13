@@ -60,6 +60,10 @@ export default function GalleryPage() {
     return (
         <div className="gallery-page">
             <section className="page-hero gallery-hero">
+                <div className="page-hero__bg">
+                    <div className="glow glow-red page-hero__glow-1"></div>
+                    <div className="glow glow-gold page-hero__glow-2"></div>
+                </div>
                 <div className="container page-hero__content">
                     <span className="section-label"><FaCamera /> Media</span>
                     <h1 className="page-hero__title">Our <span className="text-gradient">Gallery</span></h1>

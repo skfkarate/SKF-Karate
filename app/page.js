@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { FaShieldAlt, FaBolt, FaArrowRight, FaStar } from 'react-icons/fa'
+import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt } from 'react-icons/fa'
 import { GiBlackBelt, GiPunch } from 'react-icons/gi'
 import Counter from './components/Counter'
+import HeroActions from './components/HeroActions'
 import './home.css'
 
 export default function HomePage() {
@@ -32,14 +33,7 @@ export default function HomePage() {
             and forge an unbreakable spirit.
           </p>
 
-          <div className="hero__actions animate-in delay-4">
-            <Link href="/summer-camp" className="btn btn-primary">
-              Summer Camp 2026 <FaArrowRight />
-            </Link>
-            <Link href="/about" className="btn btn-secondary">
-              Discover SKF
-            </Link>
-          </div>
+          <HeroActions />
         </div>
       </section>
 

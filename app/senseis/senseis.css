@@ -1,3 +1,11 @@
+/* ===== SENSEIS HERO GRADIENT ===== */
+.senseis-page .page-hero__bg {
+    background: linear-gradient(180deg, var(--navy-deep) 0%, #070a14 55%, var(--bg-body) 100%);
+}
+.senseis-page .page-hero__bg::after {
+    background: radial-gradient(circle at 50% 0%, rgba(63, 81, 181, 0.07) 0%, transparent 60%);
+}
+
 .senseis__intro {
     margin-bottom: 4rem;
 }

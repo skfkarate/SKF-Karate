@@ -1,3 +1,11 @@
+/* ===== EVENTS HERO GRADIENT ===== */
+.events-page .page-hero__bg {
+    background: linear-gradient(165deg, var(--navy-deep) 0%, #0e0a08 55%, var(--bg-body) 100%);
+}
+.events-page .page-hero__bg::after {
+    background: radial-gradient(circle at 60% 0%, rgba(255, 152, 0, 0.06) 0%, transparent 60%);
+}
+
 /* ===== EVENTS PAGE SPECIFIC STYLES ===== */
 
 .events__list {

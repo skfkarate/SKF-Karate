@@ -296,17 +296,12 @@ export default function SummerCampPage() {
                         </p>
                         <div className="camp-bottom-cta__buttons">
                             <Link href="/contact" className="btn btn-primary">Enroll Now <FaArrowRight /></Link>
-                            <a href="https://wa.me/910000000000?text=Hi%2C%20I%20want%20to%20claim%20the%201%2B1%20Free%20Summer%20Camp%20offer%20for%20my%20child!" target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp"><FaWhatsapp /> Claim Offer on WhatsApp</a>
                             <a href="tel:+910000000000" className="btn btn-secondary"><FaPhoneAlt /> Call Us</a>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ===== FLOATING WHATSAPP BUTTON ===== */}
-            <a href="https://wa.me/910000000000?text=Hi%2C%20I%20want%20to%20claim%20the%201%2B1%20Free%20Summer%20Camp%20offer%20for%20my%20child!" target="_blank" rel="noopener noreferrer" className="floating-whatsapp" aria-label="Chat with us on WhatsApp">
-                <FaWhatsapp />
-            </a>
         </div>
     )
 }

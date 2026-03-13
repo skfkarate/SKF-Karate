@@ -1,40 +1,18 @@
 /* ===== ULTRA-PREMIUM CONTACT PAGE OVERHAUL ===== */
 
-/* --- HERO SECTION REFINEMENTS --- */
+/* --- HERO SECTION — contact-specific gradient & padding --- */
+.contact-page .page-hero__bg {
+    background: linear-gradient(175deg, var(--navy-deep) 0%, #0a0810 55%, var(--bg-body) 100%);
+}
+.contact-page .page-hero__bg::after {
+    background: radial-gradient(circle at 50% 0%, rgba(220, 20, 60, 0.08) 0%, transparent 55%);
+}
+
+/* --- HERO SECTION — contact-specific padding & bg --- */
 .contact-hero {
     padding: 6rem 0 3rem;
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 0%, rgba(220, 20, 60, 0.08) 0%, transparent 70%);
-}
-
-.contact-hero .section-label {
-    background: rgba(255, 183, 3, 0.1);
-    color: var(--gold);
-    border: 1px solid rgba(255, 183, 3, 0.3);
-    padding: 0.4rem 1rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.contact-hero .page-hero__title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    margin-bottom: 1rem;
-    line-height: 1.1;
-}
-
-.contact-hero .page-hero__subtitle {
-    font-size: clamp(0.85rem, 2vw, 1.1rem);
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 2px;
-    max-width: 600px;
-    margin: 0 auto;
 }
 
 /* --- MAIN GRID & LAYOUT --- */

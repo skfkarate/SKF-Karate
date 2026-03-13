@@ -1,3 +1,11 @@
+/* ===== HONOURS HERO GRADIENT ===== */
+.honours-page .page-hero__bg {
+    background: linear-gradient(170deg, var(--navy-deep) 0%, #0d0b06 55%, var(--bg-body) 100%);
+}
+.honours-page .page-hero__bg::after {
+    background: radial-gradient(circle at 40% 0%, rgba(255, 183, 3, 0.08) 0%, transparent 55%);
+}
+
 .milestones__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

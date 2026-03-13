@@ -1,3 +1,11 @@
+/* ===== DOJOS HERO GRADIENT ===== */
+.dojos-page .page-hero__bg {
+    background: linear-gradient(175deg, var(--navy-deep) 0%, #060c0e 55%, var(--bg-body) 100%);
+}
+.dojos-page .page-hero__bg::after {
+    background: radial-gradient(circle at 65% 0%, rgba(0, 150, 136, 0.06) 0%, transparent 60%);
+}
+
 .dojos__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

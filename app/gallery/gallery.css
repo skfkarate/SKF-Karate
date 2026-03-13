@@ -1,3 +1,11 @@
+/* ===== GALLERY HERO GRADIENT ===== */
+.gallery-page .page-hero__bg {
+    background: linear-gradient(155deg, var(--navy-deep) 0%, #0c0814 55%, var(--bg-body) 100%);
+}
+.gallery-page .page-hero__bg::after {
+    background: radial-gradient(circle at 70% 0%, rgba(156, 39, 176, 0.06) 0%, transparent 60%);
+}
+
 /* ===== TABS & FILTERING ===== */
 .gallery-tabs {
     display: flex;

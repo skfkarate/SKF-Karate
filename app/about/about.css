@@ -1,53 +1,17 @@
-/* ===== PAGE HERO (shared pattern) ===== */
-.page-hero {
-    position: relative;
-    min-height: 50vh;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 4rem;
-    overflow: hidden;
+/* ===== ABOUT PAGE — Hero-specific styles ===== */
+.about-page .page-hero__bg {
+    background: linear-gradient(160deg, var(--navy-deep) 0%, #080c14 60%, var(--bg-body) 100%);
+}
+.about-page .page-hero__bg::after {
+    background: radial-gradient(circle at 30% 0%, rgba(220, 40, 40, 0.07) 0%, transparent 60%);
 }
 
-.page-hero__bg {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(170deg, var(--navy-deep) 0%, var(--bg-body) 100%);
-}
-
-.page-hero__glow-1 {
-    width: 400px;
-    height: 400px;
-    top: 0;
-    right: 10%;
-    opacity: 0.25;
-}
-
-.page-hero__glow-2 {
-    width: 350px;
-    height: 350px;
-    bottom: 0;
-    left: 5%;
-    opacity: 0.3;
-}
-
-.page-hero__content {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-}
-
-.page-hero__title {
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    margin-bottom: 0.5rem;
-}
-
-.page-hero__subtitle {
-    font-size: 1.1rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 600;
+.page-hero__logo {
+    width: 150px;
+    height: auto;
+    margin: 0 auto 1.5rem auto;
+    display: block;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15));
 }
 
 /* ===== PHILOSOPHY ===== */
@@ -374,31 +338,128 @@
     margin-bottom: 3rem;
 }
 
-.affiliations__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+.affiliations__hierarchy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .affiliation-card {
     padding: 2.5rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    border-radius: 20px;
+    background: rgba(20, 33, 61, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
 }
 
-.affiliation-card__icon {
-    font-size: 2.5rem;
-    color: var(--gold);
-    margin-bottom: 1.2rem;
+.affiliation-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: var(--transition);
 }
 
-.affiliation-card h4 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+.affiliation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 183, 3, 0.3);
 }
 
-.affiliation-card p {
-    color: var(--text-light);
-    font-size: 0.9rem;
+.affiliation-card:hover::before {
+    opacity: 1;
+}
+
+.affiliation-card--primary {
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(255, 183, 3, 0.4);
+    background: linear-gradient(145deg, rgba(20, 33, 61, 0.8), rgba(20, 33, 61, 0.3));
+    position: relative;
+    z-index: 2;
+    padding: 3.5rem 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 183, 3, 0.1);
+}
+
+.affiliation-card--primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.affiliation-card__logo {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15)) drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+    transition: var(--transition);
+}
+
+.affiliation-card:hover .affiliation-card__logo {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.2)) drop-shadow(0 8px 8px rgba(0,0,0,0.5));
+}
+
+.affiliation-card--primary .affiliation-card__logo {
+    filter: drop-shadow(0 0 20px rgba(255, 183, 3, 0.3)) drop-shadow(0 10px 10px rgba(0,0,0,0.6));
+}
+
+.affiliation-card--primary:hover .affiliation-card__logo {
+    filter: drop-shadow(0 0 35px rgba(255, 183, 3, 0.5)) drop-shadow(0 15px 15px rgba(0,0,0,0.6));
+}
+
+.affiliation-tree__branches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+}
+
+/* Connectors */
+.affiliation-tree__branches::before {
+    content: '';
+    position: absolute;
+    top: -3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 3rem;
+    background: linear-gradient(to bottom, rgba(255,183,3,0.5), rgba(255,183,3,0.1));
+    z-index: 1;
+}
+
+@media (min-width: 769px) {
+    .affiliation-tree__branches::after {
+        content: '';
+        position: absolute;
+        top: -1.5rem;
+        left: 25%;
+        width: 50%;
+        height: 1.5rem;
+        border-top: 2px dashed rgba(255,183,3,0.3);
+        border-left: 2px dashed rgba(255,183,3,0.3);
+        border-right: 2px dashed rgba(255,183,3,0.3);
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        z-index: 1;
+    }
 }
 
 @media (max-width: 480px) {

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaEnvelope, FaPhoneAlt } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaEnvelope, FaPhoneAlt, FaArrowRight } from 'react-icons/fa'
 import './Footer.css'
 
 export default function Footer() {
@@ -8,7 +8,7 @@ export default function Footer() {
             <div className="container">
                 {/* Main Footer */}
                 <div className="footer__main">
-                    {/* Brand + Contact */}
+                    {/* Brand */}
                     <div className="footer__brand">
                         <Link href="/" className="footer__logo">
                             <img src="/logo/SKF logo.png" alt="SKF Karate" className="footer__logo-img" />
@@ -36,7 +36,7 @@ export default function Footer() {
                     </div>
 
                     {/* Follow + CTA */}
-                    <div className="footer__section">
+                    <div className="footer__section footer__section--right">
                         <h4 className="footer__heading">Follow Us</h4>
                         <div className="footer__social">
                             <a href="https://wa.me/919019971769" className="footer__social-icon footer__social-icon--wa" aria-label="WhatsApp"><FaWhatsapp /></a>
@@ -44,9 +44,17 @@ export default function Footer() {
                             <a href="#" className="footer__social-icon footer__social-icon--fb" aria-label="Facebook"><FaFacebookF /></a>
                             <a href="#" className="footer__social-icon footer__social-icon--yt" aria-label="YouTube"><FaYoutube /></a>
                         </div>
-                        <Link href="/summer-camp" className="btn btn-primary footer__cta-btn">
-                            Join Summer Camp 2026
-                        </Link>
+                        <div className="footer__cta-group">
+                            <Link href="/contact" className="footer__cta footer__cta--outline">
+                                <FaPhoneAlt />
+                                <span>Request a Call</span>
+                                <FaArrowRight className="footer__cta-arrow" />
+                            </Link>
+                            <Link href="/summer-camp" className="footer__cta footer__cta--primary">
+                                <span>Join Summer Camp 2026</span>
+                                <FaArrowRight className="footer__cta-arrow" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
 

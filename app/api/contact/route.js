@@ -8,7 +8,16 @@ const RATE_LIMIT_MS = 60000 // 1 submission per minute per IP
 export async function POST(request) {
     try {
         // 1. Parse & validate
-        const body = await request.json()
+        let body
+        try {
+            body = await request.json()
+        } catch {
+            return NextResponse.json(
+                { error: 'Invalid request format' },
+                { status: 400 }
+            )
+        }
+
         const { name, email, phone, preferredTime, interest, message } = body
 
         if (!name?.trim() || !phone?.trim()) {
@@ -36,35 +45,43 @@ export async function POST(request) {
             timeStyle: 'short',
         })
 
-        // 4. Write to Google Sheets
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            },
-            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        })
+        // 4. Write to Google Sheets (primary lead capture — must succeed)
+        try {
+            const auth = new google.auth.GoogleAuth({
+                credentials: {
+                    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                },
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+            })
 
-        const sheets = google.sheets({ version: 'v4', auth })
+            const sheets = google.sheets({ version: 'v4', auth })
 
-        await sheets.spreadsheets.values.append({
-            spreadsheetId: process.env.GOOGLE_SHEET_ID,
-            range: 'A:G',
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-                values: [[
-                    timestamp,
-                    name.trim(),
-                    phone.trim(),
-                    email?.trim() || '—',
-                    preferredTime || 'Anytime',
-                    interest || 'General Inquiry',
-                    message?.trim() || '—',
-                ]],
-            },
-        })
+            await sheets.spreadsheets.values.append({
+                spreadsheetId: process.env.GOOGLE_SHEET_ID,
+                range: 'A:G',
+                valueInputOption: 'USER_ENTERED',
+                requestBody: {
+                    values: [[
+                        timestamp,
+                        name.trim(),
+                        phone.trim(),
+                        email?.trim() || '—',
+                        preferredTime || 'Anytime',
+                        interest || 'General Inquiry',
+                        message?.trim() || '—',
+                    ]],
+                },
+            })
+        } catch (sheetError) {
+            console.error('Google Sheets error:', sheetError)
+            return NextResponse.json(
+                { error: 'Could not save your request. Please try again or call us directly.' },
+                { status: 500 }
+            )
+        }
 
-        // 5. Send Telegram notification
+        // 5. Send Telegram notification (fire-and-forget — don't wait for it)
         const telegramMessage = [
             `🥋 *New Callback Request*`,
             ``,
@@ -78,7 +95,8 @@ export async function POST(request) {
             `🕐 ${timestamp}`,
         ].filter(Boolean).join('\n')
 
-        await fetch(
+        // Fire without awaiting — response goes back to user immediately
+        fetch(
             `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
             {
                 method: 'POST',
@@ -89,14 +107,14 @@ export async function POST(request) {
                     parse_mode: 'Markdown',
                 }),
             }
-        )
+        ).catch(err => console.error('Telegram notification failed:', err))
 
         return NextResponse.json({ success: true, message: 'Message sent successfully!' })
 
     } catch (error) {
         console.error('Contact form error:', error)
         return NextResponse.json(
-            { error: 'Something went wrong. Please try again.' },
+            { error: 'Something went wrong. Please try again or call us directly.' },
             { status: 500 }
         )
     }

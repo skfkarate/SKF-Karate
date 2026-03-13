@@ -1,0 +1,239 @@
+/* ============================================================
+   CONTACT POPUP — REFINED PREMIUM
+   ============================================================ */
+
+/* ── Overlay ── */
+.contact-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.contact-popup-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Modal Card ── */
+.contact-popup {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    background: #0d1117;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 24px 48px rgba(0, 0, 0, 0.6);
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease;
+}
+
+.contact-popup-overlay.open .contact-popup {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* ── Top Accent Bar ── */
+.contact-popup__accent {
+    height: 4px;
+    background: linear-gradient(90deg, var(--crimson) 0%, var(--gold) 100%);
+}
+
+/* ── Close ── */
+.contact-popup__close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.contact-popup__close:hover {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Body ── */
+.contact-popup__body {
+    padding: 2rem 2rem 1.75rem;
+}
+
+/* ── Header ── */
+.contact-popup__label {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+}
+
+.contact-popup__title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.3px;
+    margin-bottom: 1.75rem;
+}
+
+/* ── Option Cards ── */
+.contact-popup__options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.contact-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.95rem 1.1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.contact-option__left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.contact-option__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+
+.contact-option__info {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-option__name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #fff;
+    line-height: 1.3;
+}
+
+.contact-option__detail {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+    margin-top: 1px;
+}
+
+.contact-option__arrow {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.15);
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+}
+
+/* ── Call Option ── */
+.contact-option--call .contact-option__icon {
+    background: rgba(37, 211, 102, 0.12);
+    color: #34d058;
+}
+
+.contact-option--call:hover {
+    background: rgba(37, 211, 102, 0.06);
+    border-color: rgba(37, 211, 102, 0.2);
+}
+
+.contact-option--call:hover .contact-option__icon {
+    background: #34d058;
+    color: #fff;
+}
+
+.contact-option--call:hover .contact-option__arrow {
+    color: #34d058;
+    transform: translateX(3px);
+}
+
+/* ── Form Option ── */
+.contact-option--form .contact-option__icon {
+    background: rgba(255, 183, 3, 0.12);
+    color: var(--gold);
+}
+
+.contact-option--form:hover {
+    background: rgba(255, 183, 3, 0.06);
+    border-color: rgba(255, 183, 3, 0.2);
+}
+
+.contact-option--form:hover .contact-option__icon {
+    background: var(--gold);
+    color: #111;
+}
+
+.contact-option--form:hover .contact-option__arrow {
+    color: var(--gold);
+    transform: translateX(3px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .contact-popup__body {
+        padding: 1.75rem 1.5rem 1.5rem;
+    }
+
+    .contact-popup__title {
+        font-size: 1.35rem;
+    }
+
+    .contact-option {
+        padding: 0.85rem 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .contact-popup__body {
+        padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    .contact-popup__title {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-option__icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+}

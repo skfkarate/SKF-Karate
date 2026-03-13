@@ -1,3 +1,11 @@
+/* ===== SUMMER CAMP HERO GRADIENT ===== */
+.camp-page .page-hero__bg {
+    background: linear-gradient(155deg, var(--navy-deep) 0%, #100808 50%, var(--bg-body) 100%);
+}
+.camp-page .page-hero__bg::after {
+    background: radial-gradient(circle at 50% 0%, rgba(255, 87, 34, 0.08) 0%, transparent 55%);
+}
+
 /* ===== CAMP HERO ===== */
 .camp-hero {
     min-height: 65vh;

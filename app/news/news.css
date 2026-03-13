@@ -1,3 +1,11 @@
+/* ===== NEWS HERO GRADIENT ===== */
+.news-page .page-hero__bg {
+    background: linear-gradient(165deg, var(--navy-deep) 0%, #060b10 55%, var(--bg-body) 100%);
+}
+.news-page .page-hero__bg::after {
+    background: radial-gradient(circle at 35% 0%, rgba(0, 188, 212, 0.05) 0%, transparent 60%);
+}
+
 .news__grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

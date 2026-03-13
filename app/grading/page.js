@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
+import { useEffect } from 'react'
 import { FaArrowRight, FaAward } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 import './grading.css'
-
 
 
 const kyuBelts = [
@@ -26,6 +28,60 @@ const danGrades = [
 ]
 
 export default function GradingPage() {
+    useEffect(() => {
+        const handleScroll = () => {
+            const cards = document.querySelectorAll('.kyu-card');
+            const windowHeight = window.innerHeight;
+            const windowCenter = windowHeight / 2;
+
+            // Collect all cards with their distances from center
+            const cardDistances = [];
+
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const cardCenter = rect.top + (rect.height / 2);
+                
+                const distanceFromCenter = (cardCenter - windowCenter) / windowCenter;
+                
+                if (distanceFromCenter > -1.5 && distanceFromCenter < 1.5) {
+                    if (rect.top < windowHeight - 100) {
+                        card.closest('.kyu-timeline__row').classList.add('is-visible');
+                    }
+
+                    const rotateX = distanceFromCenter * 8;
+                    const translateY = distanceFromCenter * 10;
+                    const scale = 0.98 + ((1 - Math.min(Math.abs(distanceFromCenter), 1)) * 0.02);
+
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) translateY(${translateY}px) scale(${scale})`;
+                    card.style.transition = 'transform 0.1s linear';
+                    
+                    cardDistances.push({
+                        card,
+                        distance: Math.abs(distanceFromCenter)
+                    });
+                }
+                
+                // Remove scroll-active from all first
+                card.classList.remove('scroll-active');
+            });
+
+            // Sort by distance and only activate the 2 closest to center
+            cardDistances.sort((a, b) => a.distance - b.distance);
+            const maxActive = 2;
+            for (let i = 0; i < Math.min(maxActive, cardDistances.length); i++) {
+                if (cardDistances[i].distance < 0.8) {
+                    cardDistances[i].card.classList.add('scroll-active');
+                }
+            }
+        };
+
+        // Initial check and event listener
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div className="grading-page">
             {/* ===== HERO ===== */}
@@ -53,22 +109,25 @@ export default function GradingPage() {
                     </div>
 
                     <div className="kyu-timeline">
+                        <div className="kyu-timeline__line"></div>
                         {kyuBelts.map((rank, index) => (
-                            <div
-                                key={rank.kyu}
-                                className="kyu-card"
-                                style={{ '--belt-color': rank.color, '--delay': `${index * 0.06}s` }}
+                            <div 
+                                key={rank.kyu} 
+                                className={`kyu-timeline__row ${index % 2 === 0 ? 'kyu-timeline__row--left' : 'kyu-timeline__row--right'}`}
                             >
-                                <div className="kyu-card__accent"></div>
-                                <div className="kyu-card__icon">
-                                    <GiBlackBelt />
-                                </div>
-                                <div className="kyu-card__info">
-                                    <h3 className="kyu-card__level">{rank.kyu}</h3>
-                                    <span className="kyu-card__belt">{rank.belt}</span>
-                                </div>
-                                <div className="kyu-card__number">
-                                    {9 - index}
+                                <div className="kyu-timeline__dot" style={{ '--belt-color': rank.color }}></div>
+                                <div className="kyu-card" style={{ '--belt-color': rank.color }}>
+                                    <div className="kyu-card__accent"></div>
+                                    <div className="kyu-card__icon">
+                                        <GiBlackBelt />
+                                    </div>
+                                    <div className="kyu-card__info">
+                                        <h3 className="kyu-card__level">{rank.kyu}</h3>
+                                        <span className="kyu-card__belt">{rank.belt}</span>
+                                    </div>
+                                    <div className="kyu-card__number">
+                                        {9 - index}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -76,24 +135,32 @@ export default function GradingPage() {
                 </div>
             </section>
 
-            {/* ===== DAN GRADES ===== */}
+            {/* ===== DAN GRADES (ULTIMATE ACHIEVEMENT) ===== */}
             <section className="section dan-section">
                 <div className="glow glow-gold dan__glow"></div>
                 <div className="container">
                     <div className="kyu-header">
-                        <span className="section-label"><GiBlackBelt /> Dan Grades</span>
-                        <h2 className="section-title">Beyond <span className="text-gradient">Black Belt</span></h2>
-                        <p className="section-subtitle">The Dan system represents a lifelong journey of deepening knowledge, refining technique, and giving back to the art.</p>
+                        <span className="section-label" style={{ backgroundColor: 'rgba(255, 183, 3, 0.1)', color: 'var(--gold)' }}><GiBlackBelt /> The Ultimate Goal</span>
+                        <h2 className="section-title">Beyond <span className="text-gradient">Brown I</span></h2>
+                        <p className="section-subtitle">Achieving your Black Belt is not the end—it is the ultimate beginning of your lifelong journey in true Karate-Do.</p>
                     </div>
 
-                    <div className="dan__grid">
-                        {danGrades.map((d, i) => (
-                            <div className="glass-card dan-card" key={i}>
-                                <h3>{d.dan}</h3>
-                                <span className="dan-card__years">{d.years}</span>
-                                <p>{d.focus}</p>
+                    <div className="shodan-showcase">
+                        <div className="shodan-showcase__bg"></div>
+                        <div className="shodan-showcase__content">
+                            <div className="shodan-showcase__icon">
+                                <GiBlackBelt />
                             </div>
-                        ))}
+                            <h3 className="shodan-showcase__title">Shodan <span className="shodan-showcase__subtitle">(1st Dan Black Belt)</span></h3>
+                            
+                            <div className="shodan-showcase__divider"></div>
+                            
+                            <p className="shodan-showcase__philosophy">
+                                "Sho" (初) translates as beginning. "Dan" (段) translates as step or degree. 
+                                <br/><br/>
+                                <span className="shodan-quote">To wear the Black Belt is to embody the spirit of the Dojo: unyielding resilience, profound humility, and absolute mastery of oneself.</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
