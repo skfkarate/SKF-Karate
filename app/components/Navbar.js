@@ -13,8 +13,8 @@ const navStructure = [
         label: 'About',
         children: [
             { label: 'Our Legacy', href: '/about' },
-            { label: 'Our Senseis', href: '/senseis', disabled: true },
-            { label: 'Dojo Directory', href: '/dojos', disabled: true },
+            { label: 'Our Senseis', href: '/senseis' },
+            { label: 'Dojo Directory', href: '/dojos' },
         ],
     },
     {
@@ -22,16 +22,18 @@ const navStructure = [
         children: [
             { label: 'Kyu & Dan System', href: '/grading' },
             { label: 'Summer Camp 2026', href: '/summer-camp' },
-            { label: 'Rules & Documents', href: '/documents', disabled: true },
+            { label: 'Rules & Documents', href: '/documents' },
         ],
     },
     {
         label: 'Community',
         children: [
             { label: 'Events & Calendar', href: '/events' },
-            { label: 'News & Updates', href: '/news', disabled: true },
+            { label: 'Student Profile', href: '/student' },
+            { label: 'News & Updates', href: '/news' },
             { label: 'Gallery', href: '/gallery' },
-            { label: 'Honours Board', href: '/honours', disabled: true },
+            { label: 'Results & History', href: '/results' },
+            { label: 'Honours Board', href: '/honours' },
         ],
     },
     { label: 'Contact', href: '/contact' },

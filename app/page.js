@@ -1,13 +1,20 @@
 import Link from 'next/link'
-import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt } from 'react-icons/fa'
+import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt, FaTrophy, FaMedal } from 'react-icons/fa'
 import { GiBlackBelt, GiPunch } from 'react-icons/gi'
 import Counter from './components/Counter'
 import HeroActions from './components/HeroActions'
 import Testimonials from './components/Testimonials'
 import BookTrialCTA from './components/BookTrialCTA'
+import TournamentCard from './components/results/TournamentCard'
+import { getFeaturedTournaments, getTournamentStats } from '../lib/data/tournaments'
+import Image from 'next/image'
 import './home.css'
+import './results/results.css'
 
 export default function HomePage() {
+  const featuredTournaments = getFeaturedTournaments()
+  const stats = getTournamentStats()
+
   return (
     <div className="home">
       {/* ===== HERO ===== */}
@@ -92,6 +99,57 @@ export default function HomePage() {
 
       {/* ===== TESTIMONIALS ===== */}
       {/* <Testimonials /> */}
+
+      {/* ===== CHAMPIONSHIP RECORD ===== */}
+      <section className="section championship-record">
+        <div className="glow glow-red championship-record__glow"></div>
+        <div className="container">
+          <div className="championship-record__header">
+            <span className="section-label"><FaTrophy /> Championship Record</span>
+            <h2 className="section-title">{stats.totalMedals}+ Champions. One <span className="text-gradient">Legacy.</span></h2>
+            <p className="section-subtitle">
+              From local dojos to national arenas — our athletes
+              carry the SKF spirit to every podium.
+            </p>
+          </div>
+
+          <div className="championship-record__stats">
+            <div className="championship-record__stat">
+              <span className="championship-record__stat-number">{stats.totalTournaments}</span>
+              <span className="championship-record__stat-label">Tournaments</span>
+            </div>
+            <div className="championship-record__stat">
+              <span className="championship-record__stat-number">{stats.totalGold}</span>
+              <span className="championship-record__stat-label">Gold Medals</span>
+            </div>
+            <div className="championship-record__stat">
+              <span className="championship-record__stat-number">{stats.totalTournaments}</span>
+              <span className="championship-record__stat-label">State Champions</span>
+            </div>
+            <div className="championship-record__stat">
+              <span className="championship-record__stat-number">{stats.nationalChampions}</span>
+              <span className="championship-record__stat-label">National Champions</span>
+            </div>
+          </div>
+
+          {featuredTournaments.length > 0 && (
+            <div className="championship-record__cards">
+              {featuredTournaments.map(t => (
+                <TournamentCard key={t.id} tournament={t} />
+              ))}
+            </div>
+          )}
+
+          <div className="championship-record__cta">
+            <Link href="/results" className="btn btn-primary">
+              View Full Championship Record <FaArrowRight />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== STUDENT LOOKUP ===== */}
+
 
       {/* ===== CAMP CTA ===== */}
       <section className="section camp-cta">

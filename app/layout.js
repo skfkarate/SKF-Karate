@@ -1,8 +1,10 @@
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
+import './profile.css'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
+import SessionProvider from '@/components/SessionProvider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -54,7 +56,7 @@ export const metadata = {
     url: siteUrl,
     siteName: 'SKF Karate',
     title: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association®',
-    description: 'Premier karate training academy. 5100+ students, 20+ certified Senseis, 6 dojos. Summer Camp 2026 now open. Join the SKF family!',
+    description: 'Premier karate training academy with belt grading, tournament pathways, and structured training for all ages.',
     images: [
       {
         url: '/og-image.png',
@@ -67,7 +69,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association®',
-    description: 'Premier karate training academy. 5100+ students, 20+ certified Senseis. Summer Camp 2026 now open!',
+    description: 'Premier karate training academy with structured classes, belt grading, and competition pathways.',
     images: ['/og-image.png'],
   },
   alternates: {
@@ -92,7 +94,7 @@ function JsonLd() {
     name: 'SKF Karate',
     alternateName: 'Sports Karate-do Fitness & Self Defence Association®',
     url: siteUrl,
-    logo: `${siteUrl}/logo.png`,
+    logo: `${siteUrl}/logo/SKF%20logo.png`,
     description: 'Premier Sports Karate-Do association offering professional karate training, belt grading, competitive programs, and Summer Camp for all ages.',
     sport: 'Karate',
     foundingDate: '2010',
@@ -158,7 +160,7 @@ function JsonLd() {
     url: siteUrl,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${siteUrl}/search?q={search_term_string}`,
+      target: `${siteUrl}/student?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   }
@@ -178,20 +180,20 @@ function JsonLd() {
 }
 
 
-// ... existing code ...
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body>
-        <a href="#main-content" className="skip-to-content">
-          Skip to content
-        </a>
-        <JsonLd />
-        <Navbar />
-        <main id="main-content">{children}</main>
-        <Footer />
-        <CookieConsent />
+        <SessionProvider>
+          <a href="#main-content" className="skip-to-content">
+            Skip to content
+          </a>
+          <JsonLd />
+          <Navbar />
+          <main id="main-content">{children}</main>
+          <Footer />
+          <CookieConsent />
+        </SessionProvider>
       </body>
     </html>
   )

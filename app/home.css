@@ -693,3 +693,124 @@
         font-size: 1.8rem;
     }
 }
+
+/* ===== CHAMPIONSHIP RECORD ===== */
+.championship-record {
+    overflow: hidden;
+}
+
+.championship-record__glow {
+    width: 400px;
+    height: 400px;
+    top: 20%;
+    right: -10%;
+    opacity: 0.2;
+}
+
+.championship-record__header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 3rem auto;
+}
+
+.championship-record__header .section-subtitle {
+    margin: 0 auto;
+}
+
+.championship-record__stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.championship-record__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.championship-record__stat-number {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--text-white), var(--text-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.championship-record__stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+.championship-record__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.championship-record__cta {
+    text-align: center;
+}
+
+@media (max-width: 992px) {
+    .championship-record__cards {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        margin: 0 auto 3rem auto;
+    }
+
+    .championship-record__stats {
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .championship-record__stats {
+        gap: 1.5rem;
+    }
+
+    .championship-record__stat-number {
+        font-size: 2rem;
+    }
+
+    .championship-record__cards {
+        overflow-x: auto;
+        display: flex;
+        gap: 1.25rem;
+        max-width: 100%;
+        padding-bottom: 1rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .championship-record__cards > * {
+        min-width: 300px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
+}
+
+@media (max-width: 480px) {
+    .championship-record__stat-number {
+        font-size: 1.7rem;
+    }
+
+    .championship-record__stat-label {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+    }
+
+    .championship-record__cards > * {
+        min-width: 260px;
+    }
+}

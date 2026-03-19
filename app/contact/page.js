@@ -5,11 +5,29 @@ import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaPaperPlane, FaCheckCircle, Fa
 import './contact.css'
 
 const QUEUE_KEY = 'skf_contact_queue'
+const QUEUE_TTL_MS = 24 * 60 * 60 * 1000
+
+function readQueue() {
+    try {
+        const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]')
+        const now = Date.now()
+
+        if (!Array.isArray(queue)) return []
+
+        return queue.filter((item) => {
+            if (!item || typeof item !== 'object') return false
+            if (!item.queuedAt) return false
+            return now - item.queuedAt <= QUEUE_TTL_MS
+        })
+    } catch {
+        return []
+    }
+}
 
 // Helper: save a submission to localStorage queue
 function queueSubmission(data) {
     try {
-        const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]')
+        const queue = readQueue().slice(-4)
         queue.push({ ...data, queuedAt: Date.now() })
         localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
     } catch { /* localStorage unavailable — silently fail */ }
@@ -50,6 +68,7 @@ export default function ContactPage() {
         preferredTime: '',
         interest: 'Summer Camp 2026',
         message: '',
+        website: '',
     })
     const [status, setStatus] = useState('idle') // idle | loading | success
     const [errorMsg, setErrorMsg] = useState('')
@@ -57,9 +76,7 @@ export default function ContactPage() {
     // On mount: try to flush any queued submissions from localStorage
     const flushQueue = useCallback(async () => {
         try {
-            const raw = localStorage.getItem(QUEUE_KEY)
-            if (!raw) return
-            const queue = JSON.parse(raw)
+            const queue = readQueue()
             if (!queue.length) return
 
             const remaining = []
@@ -143,16 +160,16 @@ export default function ContactPage() {
             // Single API call — server handles all retries internally
             await sendToAPI(payload)
             setStatus('success')
-            setFormData({ name: '', email: '', phone: '', preferredTime: '', interest: 'Summer Camp 2026', message: '' })
+            setFormData({ name: '', email: '', phone: '', preferredTime: '', interest: 'Summer Camp 2026', message: '', website: '' })
         } catch (err) {
             console.error('Submission error:', err)
             
-            // Queue in localStorage as fallback
-            queueSubmission(payload)
+            if (err.retryable !== false) {
+                queueSubmission(payload)
+            }
             
-            // Show actual error to the user
             setStatus('error')
-            setErrorMsg(err.message || 'Something went wrong. Your request has been saved locally and will be sent automatically.')
+            setErrorMsg(err.message || 'Something went wrong. If the issue continues, please call us directly.')
         }
     }
 
@@ -207,7 +224,18 @@ export default function ContactPage() {
                                 </button>
                             </div>
                         ) : (
-                            <form className="contact-form" onSubmit={handleSubmit}>                                <div className="form-row">
+                            <form className="contact-form" onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    name="website"
+                                    value={formData.website}
+                                    onChange={handleChange}
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    aria-hidden="true"
+                                    style={{ display: 'none' }}
+                                />
+                                <div className="form-row">
                                 <div className="form-group">
                                     <label>Full Name *</label>
                                     <div className="form-input-wrapper">

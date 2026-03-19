@@ -1,3 +1,16 @@
+@import "tailwindcss";
+
+/* Custom theme for SKF brand colors used in Tailwind utility classes */
+@theme {
+  --color-brand-red: #d62828;
+  --color-brand-blue: #3b82f6;
+  --color-crimson: #d62828;
+  --color-gold: #ffb703;
+  --color-navy: #14213d;
+  --color-navy-deep: #0b1528;
+  --color-navy-light: #1b2d4f;
+}
+
 /* Fonts loaded via next/font in layout.js — zero render-blocking */
 
 /* ===== DESIGN SYSTEM ===== */
@@ -276,6 +289,7 @@ button {
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0);
@@ -287,6 +301,7 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -527,4 +542,131 @@ button {
 nextjs-portal,
 [data-nextjs-dev-tools-button] {
   display: none !important;
+}
+
+/* Appended from zzzz */
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 350 90% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 13%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 350 90% 42%;
+    --radius: 0.5rem;
+    --wkf-crimson: #c8102e;
+    --wkf-dark: #333333;
+    --wkf-gold: #D4AF37;
+    --wkf-silver: #A9A9A9;
+    --wkf-bronze: #CD7F32;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c8102e;
+  border-radius: 3px;
+}
+
+/* Medal badge styles */
+.medal-gold {
+  background-color: #D4AF37;
+}
+
+.medal-silver {
+  background-color: #A9A9A9;
+}
+
+.medal-bronze {
+  background-color: #CD7F32;
+}
+
+/* Honours medal styles */
+.honours-gold {
+  background-color: #D4AF37;
+}
+
+.honours-silver {
+  background-color: #808080;
+}
+
+.honours-bronze {
+  background-color: #228B22;
+}
+
+/* Rank badge for number 1 */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Table hover */
+.competition-row:hover {
+  background-color: #f8f8f8;
+}
+
+/* Countdown timer animation */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.countdown-separator {
+  animation: pulse 1s ease-in-out infinite;
 }

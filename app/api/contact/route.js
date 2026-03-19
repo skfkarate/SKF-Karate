@@ -1,5 +1,7 @@
 import { google } from 'googleapis'
 import { NextResponse } from 'next/server'
+import { ApiError, enforceRateLimit, readJsonBody } from '@/lib/server/api'
+import { validateContactPayload } from '@/lib/server/validation'
 
 // Retry helper with exponential backoff
 async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
@@ -20,25 +22,23 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
 
 export async function POST(request) {
     try {
-        // 1. Parse & validate
-        let body
-        try {
-            body = await request.json()
-        } catch {
+        enforceRateLimit(request, {
+            name: 'contact-form',
+            limit: 5,
+            windowMs: 15 * 60 * 1000,
+        })
+
+        const body = await readJsonBody(request)
+        const { data, isSpam } = validateContactPayload(body)
+
+        if (isSpam) {
             return NextResponse.json(
-                { error: 'Invalid request format', retryable: false },
-                { status: 400 }
+                { success: true, message: 'Message received.' },
+                { status: 202 }
             )
         }
 
-        const { name, email, phone, preferredTime, interest, message } = body
-
-        if (!name?.trim() || !phone?.trim()) {
-            return NextResponse.json(
-                { error: 'Name and phone are required', retryable: false },
-                { status: 400 }
-            )
-        }
+        const { name, email, phone, preferredTime, interest, message } = data
 
         // 2. Timestamp
         const timestamp = new Date().toLocaleString('en-IN', {
@@ -102,17 +102,20 @@ export async function POST(request) {
         }
 
         // --- Telegram (with retry) ---
+        const escapeTelegramMarkdown = (value) =>
+            String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
+
         const telegramMessage = [
             `🥋 *New Callback Request*`,
             ``,
-            `👤 *Name:* ${name.trim()}`,
-            `📞 *Phone:* ${phone.trim()}`,
-            `⏰ *Call Time:* ${preferredTime || 'Anytime'}`,
-            email?.trim() ? `📧 *Email:* ${email.trim()}` : '',
-            `🎯 *Interest:* ${interest || 'General Inquiry'}`,
-            message?.trim() ? `💬 *Message:* ${message.trim()}` : '',
+            `👤 *Name:* ${escapeTelegramMarkdown(name.trim())}`,
+            `📞 *Phone:* ${escapeTelegramMarkdown(phone.trim())}`,
+            `⏰ *Call Time:* ${escapeTelegramMarkdown(preferredTime || 'Anytime')}`,
+            email?.trim() ? `📧 *Email:* ${escapeTelegramMarkdown(email.trim())}` : '',
+            `🎯 *Interest:* ${escapeTelegramMarkdown(interest || 'General Inquiry')}`,
+            message?.trim() ? `💬 *Message:* ${escapeTelegramMarkdown(message.trim())}` : '',
             ``,
-            `🕐 ${timestamp}`,
+            `🕐 ${escapeTelegramMarkdown(timestamp)}`,
         ].filter(Boolean).join('\n')
 
         try {
@@ -158,19 +161,28 @@ export async function POST(request) {
         return NextResponse.json(
             {
                 error: 'Could not send your message. Please try again or call us directly.',
-                details: {
-                    sheet: sheetError?.message || 'unknown',
-                    telegram: telegramError?.message || 'unknown',
-                },
                 retryable: true,
             },
             { status: 503 }
         )
 
     } catch (error) {
+        if (error instanceof ApiError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    retryable: error.status >= 429,
+                },
+                {
+                    status: error.status,
+                    headers: error.headers,
+                }
+            )
+        }
+
         console.error('Contact form error:', error?.message || error)
         return NextResponse.json(
-            { error: 'Something went wrong. Your request has been saved locally.', retryable: true },
+            { error: 'Something went wrong. Please try again shortly.', retryable: true },
             { status: 500 }
         )
     }

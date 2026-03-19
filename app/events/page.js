@@ -1,11 +1,9 @@
 import Link from 'next/link'
 import { FaCalendarAlt, FaMapMarkerAlt, FaTrophy, FaArrowRight, FaUsers } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
+import { getAllTournaments } from '../../lib/data/tournaments'
 import './events.css'
-
-
-
-const upcomingEvents = [
+const academyEvents = [
     { date: 'April 01, 2026', title: 'Summer Camp 2026', location: 'M P Sports Club,', type: 'Camp', desc: 'Intensive 2 months long training camp for all levels - Beginner to Advanced', cta: '/summer-camp' },
     { date: 'In May', title: 'Kyu Grading Examination', location: 'M P Sports Club', type: 'Grading', desc: 'Belt examination for all Kyu grades — White to Yellow.' },
     { date: 'In May', title: 'Tournament', location: 'Herohalli', type: 'Tournament', desc: 'Tournament for all Kyu grades — White to Yellow.' },
@@ -14,15 +12,34 @@ const upcomingEvents = [
     { date: 'Dec 14, 2026', title: 'Dan Grading Examination', location: 'Central Dojo', type: 'Grading', desc: 'Black belt examination for Shodan, Nidan, and Sandan candidates.' },
 ]
 
-const pastEvents = [
-    { date: 'Mar 2, 2026', title: 'State Championship 2026', result: 'SKF secured 12 Gold, 8 Silver, 5 Bronze medals' },
-    { date: 'Jan 15, 2026', title: 'Kyu Grading — Winter 2026', result: '45 karateka successfully graded to the next level' },
-    { date: 'Nov 20, 2025', title: 'Annual SKF Tournament 2025', result: 'Record 200+ participants across all age groups' },
-]
-
 const typeBadge = { Camp: 'badge--camp', Grading: 'badge--grading', Tournament: 'badge--tournament', Seminar: 'badge--seminar' }
 
 export default function EventsPage() {
+    const tournaments = getAllTournaments()
+    const today = new Date()
+    const upcomingTournamentCards = tournaments
+        .filter((event) => new Date(event.date) >= today)
+        .slice(0, 3)
+        .map((event) => ({
+            date: new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+            title: event.name,
+            location: `${event.venue}, ${event.city}`,
+            type: 'Tournament',
+            desc: event.description,
+            cta: `/results/${event.slug}`,
+        }))
+
+    const pastEvents = tournaments
+        .filter((event) => new Date(event.date) < today)
+        .slice(0, 3)
+        .map((event) => ({
+            date: new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+            title: event.name,
+            result: `SKF medals: ${event.medals.gold} Gold, ${event.medals.silver} Silver, ${event.medals.bronze} Bronze`,
+        }))
+
+    const upcomingEvents = [...academyEvents, ...upcomingTournamentCards]
+
     return (
         <div className="events-page">
             <section className="page-hero">
@@ -63,7 +80,7 @@ export default function EventsPage() {
                 </div>
             </section>
 
-            {/* <section className="section past-events">
+            <section className="section past-events">
                 <div className="container">
                     <div className="past__header">
                         <span className="section-label"><FaTrophy /> Past Results</span>
@@ -79,7 +96,7 @@ export default function EventsPage() {
                         ))}
                     </div>
                 </div>
-            </section> */}
+            </section>
         </div>
     )
 }
