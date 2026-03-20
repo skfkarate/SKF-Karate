@@ -1,0 +1,123 @@
+.athlete-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(214, 40, 40, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgba(255, 183, 3, 0.08), transparent 28%),
+    linear-gradient(180deg, #091121 0%, #080b14 72%);
+  color: #fff;
+}
+
+.ath-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 7rem 1rem 5.5rem;
+}
+
+.ath-hero__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ath-hero__glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(110px);
+  opacity: 0.7;
+}
+
+.ath-hero__glow--1 {
+  top: 3rem;
+  left: -6rem;
+  width: 18rem;
+  height: 18rem;
+  background: rgba(214, 40, 40, 0.22);
+}
+
+.ath-hero__glow--2 {
+  top: 1rem;
+  right: -5rem;
+  width: 22rem;
+  height: 22rem;
+  background: rgba(255, 183, 3, 0.14);
+}
+
+.ath-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 72rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ath-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.ath-hero__title {
+  margin: 1.8rem 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(3.2rem, 8vw, 5.4rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.ath-text-grad {
+  background: linear-gradient(90deg, #fff4b0 0%, #ffb703 55%, #ffd977 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ath-hero__subtitle {
+  max-width: 48rem;
+  margin: 1.4rem auto 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.ath-hero__search-wrap {
+  max-width: 48rem;
+  margin: 3.25rem auto 0;
+}
+
+.ath-hero__search-inner {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .ath-hero {
+    padding-top: 6rem;
+    padding-bottom: 4.5rem;
+  }
+
+  .ath-badge {
+    padding: 0.7rem 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+  }
+
+  .ath-hero__subtitle {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+
+  .ath-hero__search-wrap {
+    margin-top: 2.5rem;
+  }
+}

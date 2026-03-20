@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { requireAdminSession } from '@/lib/utils/auth';
 import AdminStudentFormShell from '@/components/admin/AdminStudentFormShell';
 
-export default async function NewStudentPage() {
+export default async function NewAthletePage() {
   await requireAdminSession("admin");
 
   return (
@@ -16,7 +16,7 @@ export default async function NewStudentPage() {
                 <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
               </svg>
             </Link>
-            <h1 className="text-3xl font-black uppercase text-white tracking-tight">Add New Student</h1>
+            <h1 className="text-3xl font-black uppercase text-white tracking-tight">Add New Athlete</h1>
           </div>
         </div>
       </header>

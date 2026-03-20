@@ -7,14 +7,14 @@ const testimonials = [
   {
     id: 1,
     name: 'Sarah M.',
-    role: 'Parent of 2 Students',
+    role: 'Parent of 2 Athletes',
     text: 'SKF Karate has completely transformed my children. Not only have they learned self-defense, but their focus in school and respect at home has improved dramatically. The Senseis are truly mentors.',
     rating: 5
   },
   {
     id: 2,
     name: 'Rahul V.',
-    role: 'Adult Student (Brown Belt)',
+    role: 'Adult Athlete (Brown Belt)',
     text: 'I started training at 30, thinking I was too old. The adult classes are challenging but supportive. SKF is more than a dojo; it is a community that pushes you to be your absolute best.',
     rating: 5
   },
@@ -48,10 +48,10 @@ export default function Testimonials() {
       
       <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <span className="section-label"><FaStar /> Student Stories</span>
+          <span className="section-label"><FaStar /> Athlete Stories</span>
           <h2 className="section-title">Hear From Our <span className="text-gradient">Family</span></h2>
           <p className="section-subtitle" style={{ margin: '0 auto' }}>
-            Real experiences from parents and students whose lives have been impacted by SKF Karate.
+            Real experiences from parents and athletes whose lives have been impacted by SKF Karate.
           </p>
         </div>
 

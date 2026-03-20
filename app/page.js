@@ -1,20 +1,12 @@
 import Link from 'next/link'
-import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt, FaTrophy, FaMedal } from 'react-icons/fa'
-import { GiBlackBelt, GiPunch } from 'react-icons/gi'
+import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt } from 'react-icons/fa'
+import { GiPunch } from 'react-icons/gi'
 import Counter from './components/Counter'
 import HeroActions from './components/HeroActions'
-import Testimonials from './components/Testimonials'
 import BookTrialCTA from './components/BookTrialCTA'
-import TournamentCard from './components/results/TournamentCard'
-import { getFeaturedTournaments, getTournamentStats } from '../lib/data/tournaments'
-import Image from 'next/image'
 import './home.css'
-import './results/results.css'
 
 export default function HomePage() {
-  const featuredTournaments = getFeaturedTournaments()
-  const stats = getTournamentStats()
-
   return (
     <div className="home">
       {/* ===== HERO ===== */}
@@ -49,7 +41,7 @@ export default function HomePage() {
       {/* ===== STATS ===== */}
       <section className="stats">
         <div className="container stats__grid">
-          <Counter target={5100} label="Active Students" />
+          <Counter target={5100} label="Active Athletes" />
           <div className="stats__divider"></div>
           <Counter target={20} label="Expert Instructors" />
           <div className="stats__divider"></div>
@@ -97,84 +89,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== TESTIMONIALS ===== */}
-      {/* <Testimonials /> */}
-
-      {/* ===== CHAMPIONSHIP RECORD ===== */}
-      <section className="section championship-record">
-        <div className="glow glow-red championship-record__glow"></div>
-        <div className="container">
-          <div className="championship-record__header">
-            <span className="section-label"><FaTrophy /> Championship Record</span>
-            <h2 className="section-title">{stats.totalMedals}+ Champions. One <span className="text-gradient">Legacy.</span></h2>
-            <p className="section-subtitle">
-              From local dojos to national arenas — our athletes
-              carry the SKF spirit to every podium.
-            </p>
-          </div>
-
-          <div className="championship-record__stats">
-            <div className="championship-record__stat">
-              <span className="championship-record__stat-number">{stats.totalTournaments}</span>
-              <span className="championship-record__stat-label">Tournaments</span>
-            </div>
-            <div className="championship-record__stat">
-              <span className="championship-record__stat-number">{stats.totalGold}</span>
-              <span className="championship-record__stat-label">Gold Medals</span>
-            </div>
-            <div className="championship-record__stat">
-              <span className="championship-record__stat-number">{stats.totalTournaments}</span>
-              <span className="championship-record__stat-label">State Champions</span>
-            </div>
-            <div className="championship-record__stat">
-              <span className="championship-record__stat-number">{stats.nationalChampions}</span>
-              <span className="championship-record__stat-label">National Champions</span>
-            </div>
-          </div>
-
-          {featuredTournaments.length > 0 && (
-            <div className="championship-record__cards">
-              {featuredTournaments.map(t => (
-                <TournamentCard key={t.id} tournament={t} />
-              ))}
-            </div>
-          )}
-
-          <div className="championship-record__cta">
-            <Link href="/results" className="btn btn-primary">
-              View Full Championship Record <FaArrowRight />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== STUDENT LOOKUP ===== */}
-
-
-      {/* ===== CAMP CTA ===== */}
-      <section className="section camp-cta">
-        <div className="glow glow-gold camp-cta__glow"></div>
-        <div className="container camp-cta__inner">
-          <div className="camp-cta__content">
-            <span className="section-label camp-cta__label">Limited Slots</span>
-            <h2 className="section-title">Summer Camp <span className="text-gold">2026</span></h2>
-            <p className="section-subtitle">
-              Transform your summer into a season of strength, discipline, and massive personal growth.
-              Don&apos;t miss this opportunity.
-            </p>
-            <div className="camp-cta__actions">
-              <Link href="/summer-camp" className="btn btn-primary">
-                View Camp Details <FaArrowRight />
-              </Link>
-            </div>
-          </div>
-          <div className="camp-cta__visual">
-            <div className="camp-cta__ring">
-              <GiBlackBelt className="camp-cta__belt-icon" />
-            </div>
-          </div>
-        </div>
-      </section>
       {/* ===== BOOK TRIAL CTA ===== */}
       <BookTrialCTA />
     </div>

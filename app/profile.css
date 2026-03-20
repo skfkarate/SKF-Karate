@@ -1,10 +1,10 @@
 /* ==========================================================================
    profile.css
-   Student profile shell + shared student-search page styles
+   Athlete profile shell + shared athlete-search page styles
    ========================================================================== */
 
 /* ==========================================================================
-   STUDENT PROFILE PAGE SHELL
+   ATHLETE PROFILE PAGE SHELL
    ========================================================================== */
 .profile-dashboard {
   min-height: 100vh;
@@ -586,9 +586,9 @@
 }
 
 .profile-search-btn:hover {
-  background: var(--crimson);
-  color: var(--text-white);
-  box-shadow: 0 8px 20px rgba(214, 40, 40, 0.4);
+  background: var(--gold);
+  color: var(--navy-deep);
+  box-shadow: 0 8px 20px rgba(255, 183, 3, 0.35);
 }
 
 .profile-search-dropdown {
@@ -640,7 +640,7 @@
 }
 
 /* ==========================================================================
-   STUDENT SEARCH PAGE
+   ATHLETE SEARCH PAGE
    ========================================================================== */
 .bento-grid {
   display: grid;

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { searchStudentsByName } from '../../../../lib/data/students';
+import { searchAthletesByName } from '../../../../lib/data/athletes';
 import { enforceRateLimit } from '@/lib/server/api';
 
 export async function GET(request) {
   try {
     enforceRateLimit(request, {
-      name: 'student-search',
+      name: 'athlete-search',
       limit: 60,
       windowMs: 5 * 60 * 1000,
     });
@@ -23,6 +23,6 @@ export async function GET(request) {
     return NextResponse.json({ results: [] });
   }
 
-  const results = searchStudentsByName(query.trim());
+  const results = searchAthletesByName(query.trim());
   return NextResponse.json({ results: results.slice(0, 6) });
 }

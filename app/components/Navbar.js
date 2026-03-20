@@ -29,8 +29,7 @@ const navStructure = [
         label: 'Community',
         children: [
             { label: 'Events & Calendar', href: '/events' },
-            { label: 'Student Profile', href: '/student' },
-            { label: 'News & Updates', href: '/news' },
+            { label: 'Athlete Profile', href: '/athlete' },
             { label: 'Gallery', href: '/gallery' },
             { label: 'Results & History', href: '/results' },
             { label: 'Honours Board', href: '/honours' },

@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getStudentById } from '../../../../../lib/data/students';
+import { getAthleteById } from '../../../../../lib/data/athletes';
 import { requireAdminSession } from '@/lib/utils/auth';
 import AdminStudentFormShell from '@/components/admin/AdminStudentFormShell';
 
-export default async function EditStudentPage({ params }) {
+export default async function EditAthletePage({ params }) {
   await requireAdminSession("admin");
   const { id } = await params;
-  const student = getStudentById(id);
+  const athlete = getAthleteById(id);
 
-  if (!student) {
+  if (!athlete) {
     notFound();
   }
 
@@ -27,18 +27,18 @@ export default async function EditStudentPage({ params }) {
             <div>
               <span className="text-brand-red text-xs font-bold uppercase tracking-[0.2em] block mb-1">Editing Record</span>
               <h1 className="text-3xl font-black uppercase text-white tracking-tight">
-                {student.firstName} {student.lastName}
+                {athlete.firstName} {athlete.lastName}
               </h1>
             </div>
           </div>
           <div className="hidden sm:block text-right">
-            <span className="bg-[rgba(0,0,0,0.5)] font-mono text-sm font-bold text-gray-400 px-3 py-1.5 rounded border border-[rgba(255,255,255,0.05)] uppercase tracking-widest">{student.registrationNumber}</span>
+            <span className="bg-[rgba(0,0,0,0.5)] font-mono text-sm font-bold text-gray-400 px-3 py-1.5 rounded border border-[rgba(255,255,255,0.05)] uppercase tracking-widest">{athlete.registrationNumber}</span>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4">
-        <AdminStudentFormShell initialData={student} isEditing />
+        <AdminStudentFormShell initialData={athlete} isEditing />
       </div>
     </div>
   );

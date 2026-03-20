@@ -11,13 +11,13 @@ export default function NotFound() {
         <h1 className="text-[120px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-gold to-crimson tracking-tighter mb-4 opacity-80">
           404
         </h1>
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Student Not Found</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Athlete Not Found</h2>
         <p className="text-gray-400 mb-10 text-lg">
           We couldn't find a karate profile matching that registration number. Please check the number and try again.
         </p>
 
         <Link
-          href="/student"
+          href="/athlete"
           className="inline-block relative overflow-hidden group bg-[rgba(255,183,3,0.1)] border border-[rgba(255,183,3,0.3)] text-gold px-8 py-4 font-bold tracking-[0.2em] uppercase rounded hover:text-white transition-all w-full md:w-auto"
         >
           <span className="relative z-10">Search Again</span>

@@ -9,6 +9,7 @@ export default function AdminNavbar({ user }) {
   const navItems = [
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/students", label: "Students" },
+    { href: "/admin/events", label: "Events" },
     { href: "/admin/results", label: "Results" },
   ]
 

@@ -160,7 +160,7 @@ function JsonLd() {
     url: siteUrl,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${siteUrl}/student?q={search_term_string}`,
+      target: `${siteUrl}/athlete?q={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   }

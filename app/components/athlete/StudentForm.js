@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { BELTS } from '../../../lib/data/belts';
 import { DEFAULT_POINTS, calculateTournamentPoints } from '../../../lib/utils/points';
 
-export default function StudentForm({ initialData = null, isEditing = false, onSave }) {
+export default function AthleteForm({ initialData = null, isEditing = false, onSave }) {
   const [activeTab, setActiveTab] = useState('info');
   const [formData, setFormData] = useState(initialData || {
     firstName: '', lastName: '', dateOfBirth: '', gender: 'male', photoUrl: '',
@@ -187,7 +187,7 @@ export default function StudentForm({ initialData = null, isEditing = false, onS
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input name="isFeatured" type="checkbox" checked={formData.isFeatured} onChange={handleInfoChange} className="w-5 h-5 bg-[rgba(20,33,61,0.5)] border border-[rgba(255,255,255,0.1)] rounded focus:ring-gold text-gold" />
-                  <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">Featured Student</span>
+                  <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">Featured Athlete</span>
                 </label>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function StudentForm({ initialData = null, isEditing = false, onS
 
           <div className="mt-10 flex justify-end gap-4 border-t border-[rgba(255,255,255,0.1)] pt-8">
             <button type="submit" className="bg-brand-red text-white py-4 px-10 rounded font-bold uppercase tracking-widest hover:bg-red-700 transition shadow-[0_0_20px_rgba(214,40,40,0.4)] hover:shadow-[0_0_30px_rgba(214,40,40,0.6)] border border-red-500 text-sm">
-              {isEditing ? 'Save Changes' : 'Create Student Profile'}
+              {isEditing ? 'Save Changes' : 'Create Athlete Profile'}
             </button>
           </div>
         </form>

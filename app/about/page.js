@@ -1,14 +1,12 @@
 import Link from 'next/link'
-import { FaShieldAlt, FaBolt, FaArrowRight, FaMedal, FaUsers, FaGraduationCap, FaGlobe, FaBuilding } from 'react-icons/fa'
+import { FaArrowRight, FaBuilding, FaGlobe, FaInfoCircle } from 'react-icons/fa'
 import { GiBlackBelt, GiMeditation, GiPunch } from 'react-icons/gi'
 import './about.css'
-
-
 
 const leadership = [
     { name: 'Renshi Dr. Channegowda UC', role: 'Founder', dan: '7th Dan', desc: 'Technical Director — The visionary leader and technical backbone of SKF Karate.' },
     { name: 'Sensei Usha C', role: 'President', dan: '4th Dan', desc: 'Senior Instructor — Leading the association with dedication and conducting specialized training programs.' },
-    { name: 'Sensei Someshekhar', role: 'Vice President', dan: '4th Dan', desc: 'Branch Head — Managing branch operations and overseeing senior student development.' },
+    { name: 'Sensei Someshekhar', role: 'Vice President', dan: '4th Dan', desc: 'Branch Head — Managing branch operations and overseeing senior athlete development.' },
     { name: 'Sensei Rakesh', role: 'General Secretary', dan: '4th Dan', desc: 'Branch Head — Coordinating administrative affairs and leading branch training initiatives.' },
     { name: 'Latha', role: 'Treasurer', dan: '', desc: 'Managing financial governance and supporting the association\'s growth.' },
 ]
@@ -16,19 +14,20 @@ const leadership = [
 export default function AboutPage() {
     return (
         <div className="about-page">
-            <section className="page-hero">
-                <div className="page-hero__bg">
-                    <div className="glow glow-red page-hero__glow-1"></div>
-                    <div className="glow glow-blue page-hero__glow-2"></div>
+            {/* ═══════ CINEMATIC HERO ═══════ */}
+            <section className="abt-hero">
+                <div className="abt-hero__bg">
+                    <div className="abt-hero__glow abt-hero__glow--1"></div>
+                    <div className="abt-hero__glow abt-hero__glow--2"></div>
                 </div>
-                <div className="container page-hero__content">
-                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="page-hero__logo" />
-                    <h1 className="page-hero__title">About <span className="text-gradient">SKF Karate</span></h1>
-                    <p className="page-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
+                <div className="container abt-hero__content">
+                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="abt-hero__logo" />
+                    <h1 className="abt-hero__title">About <span className="abt-text-grad">SKF Karate</span></h1>
+                    <p className="abt-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
                 </div>
             </section>
 
-            {/* Philosophy */}
+            {/* ═══════ PHILOSOPHY ═══════ */}
             <section className="section philosophy">
                 <div className="container philosophy__grid">
                     <div className="philosophy__text">
@@ -58,59 +57,7 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Association Stats */}
-            <section className="section assoc-stats">
-                <div className="container">
-                    <div className="assoc-stats__grid">
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">5100+</span>
-                            <span className="assoc-stat__label">Active Students</span>
-                        </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">6</span>
-                            <span className="assoc-stat__label">Dojos</span>
-                        </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">20+</span>
-                            <span className="assoc-stat__label">Certified Senseis</span>
-                        </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">300+</span>
-                            <span className="assoc-stat__label">State & National Champions</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Values */}
-            <section className="section values">
-                <div className="glow glow-gold values__glow"></div>
-                <div className="container">
-                    <div className="values__header">
-                        <span className="section-label"><FaMedal /> Our Values</span>
-                        <h2 className="section-title">Three Pillars of <span className="text-gradient">SKF</span></h2>
-                    </div>
-                    <div className="values__grid">
-                        <div className="glass-card value-card">
-                            <div className="value-card__icon"><FaShieldAlt /></div>
-                            <h3>Discipline</h3>
-                            <p>The foundation of all growth. Every stance, every kata, every bow teaches unwavering self-control and mental focus.</p>
-                        </div>
-                        <div className="glass-card value-card value-card--accent">
-                            <div className="value-card__icon"><FaBolt /></div>
-                            <h3>Strength</h3>
-                            <p>Physical and mental fortitude built through rigorous training, pushing boundaries, and embracing challenges head-on.</p>
-                        </div>
-                        <div className="glass-card value-card">
-                            <div className="value-card__icon"><FaUsers /></div>
-                            <h3>Respect</h3>
-                            <p>The core of martial arts. Respect for your Sensei, your opponents, and most importantly, yourself and your journey.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Leadership */}
+            {/* ═══════ LEADERSHIP ═══════ */}
             <section className="section leadership">
                 <div className="container">
                     <div className="leadership__header">
@@ -131,7 +78,7 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Affiliations */}
+            {/* ═══════ AFFILIATIONS ═══════ */}
             <section className="section affiliations">
                 <div className="container">
                     <div className="affiliations__header">
@@ -159,58 +106,7 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Timeline */}
-            <section className="section timeline-section">
-                <div className="container">
-                    <div className="timeline__header">
-                        <span className="section-label"><FaGraduationCap /> Our Journey</span>
-                        <h2 className="section-title">The SKF <span className="text-gradient">Legacy</span></h2>
-                    </div>
-                    <div className="timeline">
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">The Beginning</span>
-                                <h3>A Vision Takes Shape</h3>
-                                <p>Renshi Dr. Channegowda UC founded SKF Karate with a single batch of students and a bold promise — to bring world-class, standardized Sports Karate-Do training to Karnataka.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">First Champions</span>
-                                <h3>Making Karnataka Proud</h3>
-                                <p>SKF students stepped onto the State Championship podium for the first time — marking the beginning of a winning legacy that would produce 300+ champions and counting.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">Expansion</span>
-                                <h3>Growing Across the Region</h3>
-                                <p>What started as one training center grew into multiple branches, each led by certified Senseis trained under Renshi&apos;s direct mentorship — bringing SKF&apos;s discipline to thousands of families.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">5100+ Strong</span>
-                                <h3>A Community, Not Just a Club</h3>
-                                <p>With over 5100 active students, SKF became more than a karate association — it became a movement. Belt ceremonies, inter-dojo tournaments, and national-level representation became the norm.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">2026</span>
-                                <h3>Summer Camp &amp; Beyond</h3>
-                                <p>Launching the most ambitious Summer Camp yet — intensive training, belt progression, and life skills development. The legacy continues to grow, one karateka at a time.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
+            {/* ═══════ CTA ═══════ */}
             <section className="section about-cta">
                 <div className="container about-cta__inner">
                     <h2 className="section-title">Ready to Begin?</h2>
@@ -218,8 +114,8 @@ export default function AboutPage() {
                         Whether you are a beginner stepping onto the mat for the first time or an experienced karateka — SKF Karate welcomes you. Oss!
                     </p>
                     <div className="about-cta__buttons">
-                        <Link href="/summer-camp" className="btn btn-primary">Summer Camp 2026 <FaArrowRight /></Link>
-                        <Link href="/contact" className="btn btn-secondary">Contact Us</Link>
+                        <Link href="/contact" className="btn btn-primary">Get in Touch <FaArrowRight /></Link>
+                        <Link href="/athlete" className="btn btn-secondary">Find Your Profile</Link>
                     </div>
                 </div>
             </section>

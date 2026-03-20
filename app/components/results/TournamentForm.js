@@ -29,7 +29,7 @@ function slugify(str) {
 }
 
 const emptyWinner = {
-  studentName: '',
+  athleteName: '',
   registrationNumber: '',
   branchName: 'Sunkadakatte',
   belt: 'White Belt',
@@ -137,8 +137,8 @@ export default function TournamentForm({ tournament, isEdit = false }) {
   }
 
   const saveWinner = () => {
-    if (!currentWinner.studentName.trim()) {
-      alert('Student name is required')
+    if (!currentWinner.athleteName.trim()) {
+      alert('Athlete name is required')
       return
     }
 
@@ -209,7 +209,7 @@ export default function TournamentForm({ tournament, isEdit = false }) {
 
     // TODO: Call this after saving a winner when the points system is ready
     // await awardPointsForAchievement({
-    //   studentRegistrationNumber: winner.registrationNumber,
+    //   athleteRegistrationNumber: winner.registrationNumber,
     //   achievementType: 'tournament_medal',
     //   medalType: winner.medal,
     //   tournamentLevel: tournament.level,
@@ -468,7 +468,7 @@ export default function TournamentForm({ tournament, isEdit = false }) {
                 form.winners.map((w, i) => (
                   <div key={w.id || i} className="admin-form__winner-row">
                     <div className="admin-form__winner-info">
-                      <span style={{ fontWeight: 600, color: 'var(--text-white)' }}>{w.studentName}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-white)' }}>{w.athleteName}</span>
                       <span>{w.branchName}</span>
                       <span className={`achievement-badge achievement-badge--${w.medal}`}>{w.medal}</span>
                       <span>{EVENT_CATEGORY_LABELS[w.category]}</span>
@@ -570,11 +570,11 @@ export default function TournamentForm({ tournament, isEdit = false }) {
             </div>
 
             <div className="admin-form__group">
-              <label className="admin-form__label admin-form__label--required">Student Name</label>
+              <label className="admin-form__label admin-form__label--required">Athlete Name</label>
               <input
                 className="admin-form__input"
-                value={currentWinner.studentName}
-                onChange={e => setCurrentWinner(prev => ({ ...prev, studentName: e.target.value }))}
+                value={currentWinner.athleteName}
+                onChange={e => setCurrentWinner(prev => ({ ...prev, athleteName: e.target.value }))}
               />
             </div>
 

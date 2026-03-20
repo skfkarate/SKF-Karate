@@ -10,11 +10,11 @@ const faqs = [
     },
     {
         q: "Does my child need prior martial arts experience?",
-        a: <>Not at all. Both months are designed to welcome <strong>complete beginners</strong>. Our Senseis will guide each student from the basics, adjusting the intensity to <strong>each child's level</strong>.</>
+        a: <>Not at all. Both months are designed to welcome <strong>complete beginners</strong>. Our Senseis will guide each athlete from the basics, adjusting the intensity to <strong>each child's level</strong>.</>
     },
     {
         q: "What should my child wear to training?",
-        a: <>For the summer camp, students should wear a <strong>comfortable, stretchable dress</strong> like track pants and a T-shirt. <strong>No karate uniform</strong> is required.</>
+        a: <>For the summer camp, athletes should wear a <strong>comfortable, stretchable dress</strong> like track pants and a T-shirt. <strong>No karate uniform</strong> is required.</>
     },
     {
         q: "Can I enroll my child for only one month?",
@@ -22,7 +22,7 @@ const faqs = [
     },
     {
         q: "Will my child receive a certificate?",
-        a: <>Yes, every student who completes a month receives a <strong>certified completion certificate</strong> from SKF Karate, recognizing their training and achievements.</>
+        a: <>Yes, every athlete who completes a month receives a <strong>certified completion certificate</strong> from SKF Karate, recognizing their training and achievements.</>
     },
     {
         q: "Is the training safe for young children?",

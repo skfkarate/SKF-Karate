@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa'
 import AchievementBadge from './AchievementBadge'
 import { EVENT_CATEGORY_LABELS, AGE_GROUP_LABELS } from '../../../lib/types/tournament'
@@ -42,7 +43,7 @@ export default function ResultsTable({ winners }) {
     if (filterText.trim()) {
       const q = filterText.toLowerCase()
       result = result.filter(w =>
-        w.studentName.toLowerCase().includes(q) ||
+        w.athleteName.toLowerCase().includes(q) ||
         (EVENT_CATEGORY_LABELS[w.category] || '').toLowerCase().includes(q) ||
         w.branchName.toLowerCase().includes(q)
       )
@@ -60,7 +61,7 @@ export default function ResultsTable({ winners }) {
         case 'medal':
           cmp = medalOrder[a.medal] - medalOrder[b.medal]
           if (cmp === 0) cmp = a.position - b.position
-          if (cmp === 0) cmp = a.studentName.localeCompare(b.studentName)
+          if (cmp === 0) cmp = a.athleteName.localeCompare(b.athleteName)
           break
         case 'event':
           cmp = (EVENT_CATEGORY_LABELS[a.category] || '').localeCompare(EVENT_CATEGORY_LABELS[b.category] || '')
@@ -69,7 +70,7 @@ export default function ResultsTable({ winners }) {
           cmp = (AGE_GROUP_LABELS[a.ageGroup] || '').localeCompare(AGE_GROUP_LABELS[b.ageGroup] || '')
           break
         case 'athlete':
-          cmp = a.studentName.localeCompare(b.studentName)
+          cmp = a.athleteName.localeCompare(b.athleteName)
           break
         case 'branch':
           cmp = a.branchName.localeCompare(b.branchName)
@@ -174,7 +175,15 @@ export default function ResultsTable({ winners }) {
                       #{w.position}
                     </span>
                   </td>
-                  <td className="results-table__athlete-name">{w.studentName}</td>
+                  <td className="results-table__athlete-name">
+                    {w.registrationNumber ? (
+                      <Link href={`/athlete/${w.registrationNumber}`} className="hover:text-[var(--gold)] transition-colors">
+                        {w.athleteName}
+                      </Link>
+                    ) : (
+                      w.athleteName
+                    )}
+                  </td>
                   <td>{w.branchName}</td>
                   <td>{w.belt}</td>
                   <td>{EVENT_CATEGORY_LABELS[w.category] || w.category}</td>

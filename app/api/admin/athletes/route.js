@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { revalidatePath } from 'next/cache'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { createStudent } from '@/lib/data/students'
+import { createAthlete } from '@/lib/data/athletes'
 import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { validateStudentPayload } from '@/lib/server/validation'
+import { validateAthletePayload } from '@/lib/server/validation'
 
 function isAdmin(session) {
   return session?.user?.role === 'admin'
@@ -19,15 +19,15 @@ export async function POST(request) {
     }
 
     const payload = await readJsonBody(request)
-    const student = createStudent(validateStudentPayload(payload))
+    const athlete = createAthlete(validateAthletePayload(payload))
 
     revalidatePath('/admin/students')
-    revalidatePath(`/admin/students/${student.id}/edit`)
-    revalidatePath('/student')
-    revalidatePath(`/student/${student.registrationNumber}`)
+    revalidatePath(`/admin/students/${athlete.id}/edit`)
+    revalidatePath('/athlete')
+    revalidatePath(`/athlete/${athlete.registrationNumber}`)
 
-    return NextResponse.json({ student }, { status: 201 })
+    return NextResponse.json({ athlete }, { status: 201 })
   } catch (error) {
-    return createErrorResponse(error, 'Unable to save the student record.')
+    return createErrorResponse(error, 'Unable to save the athlete record.')
   }
 }

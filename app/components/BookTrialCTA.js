@@ -26,7 +26,7 @@ export default function BookTrialCTA() {
           </h2>
           <p className="trial-cta__desc">
             One class is all it takes. Join a complimentary 60-minute session —
-            meet our Senseis, experience the discipline, and discover why 5,100+ students
+            meet our Senseis, experience the discipline, and discover why 5,100+ athletes
             call SKF Karate home.
           </p>
 
@@ -66,7 +66,7 @@ export default function BookTrialCTA() {
           </div>
           <div className="trial-cta__stat trial-cta__stat--1">
             <span className="trial-cta__stat-number">5,100+</span>
-            <span className="trial-cta__stat-label">Active Students</span>
+            <span className="trial-cta__stat-label">Active Athletes</span>
           </div>
           <div className="trial-cta__stat trial-cta__stat--2">
             <span className="trial-cta__stat-number">15+</span>

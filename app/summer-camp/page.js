@@ -61,7 +61,7 @@ export default function SummerCampPage() {
                         </div>
                         <div className="benefit-card">
                             <div className="benefit-card__image">
-                                <Image src="/summer-camp/safe-supervised.png" alt="Sensei supervising student training" fill style={{ objectFit: 'cover' }} />
+                                <Image src="/summer-camp/safe-supervised.png" alt="Sensei supervising athlete training" fill style={{ objectFit: 'cover' }} />
                                 <div className="benefit-card__image-overlay"></div>
                             </div>
                             <div className="benefit-card__icon-badge"><FaUsers /></div>
@@ -221,12 +221,12 @@ export default function SummerCampPage() {
                             <p className="sensei__bio">
                                 Sensei Usha C (4th Dan Black Belt & Senior Instructor) leads the SKF Karate Summer Camp 2026.
                                 Specializing in self-defense, fitness, and Nunchaku, she blends traditional discipline
-                                with modern techniques to build strength, resilience, and confidence in every student.
+                                with modern techniques to build strength, resilience, and confidence in every athlete.
                             </p>
                             <div className="sensei__stats">
                                 <div className="sensei__stat">
                                     <span className="sensei__stat-number">500+</span>
-                                    <span className="sensei__stat-label">Students Trained</span>
+                                    <span className="sensei__stat-label">Athletes Trained</span>
                                 </div>
                                 <div className="sensei__stat">
                                     <span className="sensei__stat-number">10+</span>
@@ -249,7 +249,7 @@ export default function SummerCampPage() {
                         <span className="section-label"><FaStar /> From Our Recent Camp</span>
                         <h2 className="section-title">We Taught. They <span className="text-gradient">Learned.</span></h2>
                         <p className="section-subtitle recent-camp__subtitle">
-                            Here&apos;s a glimpse from our recent training camp — real students, real progress.
+                            Here&apos;s a glimpse from our recent training camp — real athletes, real progress.
                         </p>
                     </div>
 
@@ -264,7 +264,7 @@ export default function SummerCampPage() {
                 <div className="container">
                     <div className="testimonials__header">
                         <span className="section-label"><FaStar /> Testimonials</span>
-                        <h2 className="section-title">What Our <span className="text-gradient">Students Say</span></h2>
+                        <h2 className="section-title">What Our <span className="text-gradient">Athletes Say</span></h2>
                     </div>
 
                     {/* ===== FEATURED QUOTE ===== */}

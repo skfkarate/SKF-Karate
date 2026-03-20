@@ -33,7 +33,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/students/search?q=${encodeURIComponent(query.trim())}`);
+      const res = await fetch(`/api/athletes/search?q=${encodeURIComponent(query.trim())}`);
       const data = await res.json();
       setResults(data.results || []);
       setIsOpen(data.results && data.results.length > 0);
@@ -54,16 +54,16 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     debounceRef.current = setTimeout(() => doSearch(val), 250);
   };
 
-  const navigateToStudent = (regNum) => {
+  const navigateToAthlete = (regNum) => {
     setIsOpen(false);
     setInputVal(regNum);
-    router.push(`/student/${regNum}`);
+    router.push(`/athlete/${regNum}`);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedIdx >= 0 && results[selectedIdx]) {
-      navigateToStudent(results[selectedIdx].registrationNumber);
+      navigateToAthlete(results[selectedIdx].registrationNumber);
       return;
     }
     if (!inputVal.trim()) return;
@@ -71,13 +71,13 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     // If it looks like a registration number, navigate directly
     const normalised = normaliseRegistrationNumber(inputVal);
     if (isValidRegistrationNumber(normalised)) {
-      navigateToStudent(normalised);
+      navigateToAthlete(normalised);
       return;
     }
 
     // If there are results, go to the first one
     if (results.length > 0) {
-      navigateToStudent(results[0].registrationNumber);
+      navigateToAthlete(results[0].registrationNumber);
     }
   };
 
@@ -147,7 +147,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
             <button
               key={s.registrationNumber}
               type="button"
-              onClick={() => navigateToStudent(s.registrationNumber)}
+              onClick={() => navigateToAthlete(s.registrationNumber)}
               onMouseEnter={() => setSelectedIdx(idx)}
               className={`profile-search-result ${selectedIdx === idx ? 'selected' : ''}`}
             >
@@ -182,17 +182,13 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
         </div>
       )}
 
-      {/* Helper / Loading Text */}
-      <div className="h-8 mt-8 px-4 flex items-center justify-center">
-        {loading ? (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-500 text-sm">Searching...</p>
-          </div>
-        ) : (
-          <p className="text-gray-600 text-sm tracking-wide">Try: <span className="text-gray-500">Arvind</span>, <span className="text-gray-500">SKF-2024-0042</span>, or <span className="text-gray-500">Priya</span></p>
-        )}
-      </div>
+      {/* Loading Only */}
+      {loading && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="w-3 h-3 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 text-sm">Searching...</p>
+        </div>
+      )}
     </div>
   );
 }

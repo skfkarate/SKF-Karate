@@ -53,7 +53,7 @@ export default function ResultsPageClient({
           tournament.venue.toLowerCase().includes(query) ||
           tournament.city.toLowerCase().includes(query) ||
           tournament.winners.some((winner) =>
-            winner.studentName.toLowerCase().includes(query)
+            winner.athleteName.toLowerCase().includes(query)
           )
       )
     }

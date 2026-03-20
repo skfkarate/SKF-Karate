@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import StudentForm from "@/app/components/student/StudentForm"
+import StudentForm from "@/app/components/athlete/StudentForm"
 
 export default function AdminStudentFormShell({
   initialData = null,
@@ -18,7 +18,7 @@ export default function AdminStudentFormShell({
 
     try {
       const response = await fetch(
-        isEditing ? `/api/admin/students/${initialData.id}` : "/api/admin/students",
+        isEditing ? `/api/admin/athletes/${initialData.id}` : "/api/admin/athletes",
         {
           method: isEditing ? "PATCH" : "POST",
           headers: {

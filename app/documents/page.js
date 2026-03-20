@@ -29,7 +29,7 @@ const docCategories = [
         icon: <FaFileAlt />,
         docs: [
             { name: 'New Member Registration Form', size: 'PDF — 280 KB' },
-            { name: 'Student Transfer Form', size: 'PDF — 220 KB' },
+            { name: 'Athlete Transfer Form', size: 'PDF — 220 KB' },
             { name: 'Competition Entry Form', size: 'PDF — 350 KB' },
             { name: 'Summer Camp Registration Form', size: 'PDF — 400 KB' },
         ],
@@ -38,7 +38,7 @@ const docCategories = [
         title: 'Code of Conduct',
         icon: <FaShieldAlt />,
         docs: [
-            { name: 'Dojo Kun — Student Code of Conduct', size: 'PDF — 180 KB' },
+            { name: 'Dojo Kun — Athlete Code of Conduct', size: 'PDF — 180 KB' },
             { name: 'Sensei & Official Code of Ethics', size: 'PDF — 250 KB' },
             { name: 'Anti-Doping Policy', size: 'PDF — 300 KB' },
             { name: 'Safeguarding & Child Protection Policy', size: 'PDF — 450 KB' },
