@@ -1,10 +1,10 @@
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import './profile.css'
-import Navbar from './components/Navbar'
-import Footer from './components/Footer'
-import CookieConsent from './components/CookieConsent'
-import SessionProvider from '@/components/SessionProvider'
+import Navbar from '@/app/_components/Navbar'
+import Footer from '@/app/_components/Footer'
+import CookieConsent from '@/app/_components/CookieConsent'
+import SessionProvider from '@/app/_components/providers/SessionProvider'
 
 const inter = Inter({
   subsets: ['latin'],

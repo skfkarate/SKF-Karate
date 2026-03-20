@@ -2,45 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { FaCamera, FaStar, FaTh, FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa'
-import ScrollReveal from '../components/ScrollReveal'
+import { FaCamera, FaStar, FaTh } from 'react-icons/fa'
+import ScrollReveal from '@/app/_components/ScrollReveal'
+import GalleryLightbox from '@/app/_components/gallery/GalleryLightbox'
+import { allPhotos, categoryOrder } from '@/app/_components/gallery/galleryPhotoData'
 import './gallery.css'
-
-const allPhotos = [
-    { src: '/gallery/Tournment8 starred.jpeg', title: 'A Proud Champion Flashes Her Gold Medal', cat: 'Tournaments', pinned: true },
-    { src: '/gallery/Karate Demonstration2 starred.jpeg', title: 'Team Pose with Weapons — Demo Day', cat: 'Demonstrations', pinned: true },
-    { src: '/gallery/In dojo 2 starred.jpeg', title: 'Sensei with Little Karatekas — Smiles at the Dojo', cat: 'In Dojo', pinned: true },
-    { src: '/gallery/Train the Elite - Training Camp starred.jpeg', title: 'Train the Elite Camp — Certificate Ceremony', cat: 'Camps', pinned: true },
-    { src: '/gallery/tounrmentss.jpg', title: 'Karateka Competing in a Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/tournmentss.jpg', title: 'Competition Match at a Karate Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/beltexam.jpg', title: 'Athletes Participating in Belt Promotion Exam', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/Karate Demonstration.jpeg', title: 'Synchronized Kicks — Outdoor Demo', cat: 'Demonstrations', pinned: false },
-    { src: '/gallery/belt.jpg', title: 'Belt Grading Ceremony', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/Tournment.jpeg', title: 'All-India Kata Championship — Medal Winners', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment2.jpeg', title: 'Kumite Squad with Judges & Officials', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment5.jpeg', title: 'Young Karatekas Ready for Action', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment4.jpeg', title: 'Cheering Before the Final Round', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/In Dojo.jpeg', title: 'Senseis Leading Morning Formation', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/Tournment3.jpeg', title: 'Team Group Photo at the Arena', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Kungal belt examination.jpeg', title: 'Kungal Kyu Grading — Certificates with Sensei', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/belt exam.jpeg', title: 'National Championship Certificate Ceremony', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/Tournment6.jpeg', title: 'Post-Match Celebrations', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment7.jpeg', title: 'Team Huddle at the Championship', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment9.jpeg', title: 'Tournament Day — Full Team Line-Up', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment10.jpeg', title: 'State-Level Championship Competitors', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment 11.jpeg', title: 'Victory Thumbs-Up after Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/In Dojo 3.jpeg', title: 'Young Warriors Standing in Seiza', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/In dogo.jpeg', title: 'All Belts United — Dojo Group Photo', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/beltt.jpg', title: 'Martial Arts Belt Exam Session', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/IMG_1191.JPG.jpeg', title: 'Dojo Family — A Legacy of Discipline', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/Training.jpeg', title: 'Training Unit — Team on the Tatami', cat: 'Camps', pinned: false },
-    { src: '/gallery/Tournment 12.jpeg', title: 'Senseis and Champions on the Mat', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment 13.jpeg', title: 'Award Ceremony — Certificate Presentation', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Kungial district level championship.jpeg', title: 'Kungial District-Level Championship — Medalists', cat: 'Championships', pinned: false },
-    { src: '/gallery/International seminar by john wick.jpeg', title: 'International Seminar — Sensei Jon Wicks', cat: 'Seminars', pinned: false },
-]
-
-const categoryOrder = ['Demonstrations', 'Tournaments', 'Belt Exams', 'In Dojo', 'Camps', 'Championships', 'Seminars']
 
 export default function GalleryPage() {
     const [lightboxIdx, setLightboxIdx] = useState(null)
@@ -171,38 +137,14 @@ export default function GalleryPage() {
                     </div>
                 </div>
             </section>
-
-            {/* LIGHTBOX WITH NAVIGATION */}
-            {currentPhoto && (
-                <div className="gal-lightbox" onClick={closeLightbox}>
-                    <div className="gal-lightbox__inner" onClick={(e) => e.stopPropagation()}>
-                        {/* Close */}
-                        <button className="gal-lightbox__close" onClick={closeLightbox} aria-label="Close">
-                            <FaTimes />
-                        </button>
-
-                        {/* Prev / Next */}
-                        <button className="gal-lightbox__nav gal-lightbox__nav--prev" onClick={goPrev} aria-label="Previous">
-                            <FaChevronLeft />
-                        </button>
-                        <button className="gal-lightbox__nav gal-lightbox__nav--next" onClick={goNext} aria-label="Next">
-                            <FaChevronRight />
-                        </button>
-
-                        {/* Image */}
-                        <div className="gal-lightbox__img-wrap">
-                            <img src={currentPhoto.src} alt={currentPhoto.title} className="gal-lightbox__img" />
-                        </div>
-
-                        {/* Caption + Counter */}
-                        <div className="gal-lightbox__caption">
-                            <span className="gal-item__cat">{currentPhoto.cat}</span>
-                            <p className="gal-lightbox__title">{currentPhoto.title}</p>
-                            <span className="gal-lightbox__counter">{lightboxIdx + 1} / {displayedPhotos.length}</span>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <GalleryLightbox
+              closeLightbox={closeLightbox}
+              currentPhoto={currentPhoto}
+              displayedPhotos={displayedPhotos}
+              goNext={goNext}
+              goPrev={goPrev}
+              lightboxIdx={lightboxIdx}
+            />
         </div>
     )
 }

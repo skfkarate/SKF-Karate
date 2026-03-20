@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAthleteById } from '../../../../../lib/data/athletes';
 import { requireAdminSession } from '@/lib/utils/auth';
-import AdminStudentFormShell from '@/components/admin/AdminStudentFormShell';
+import AdminStudentFormShell from '@/app/_components/admin/students/AdminStudentFormShell';
 
-export default async function EditAthletePage({ params }) {
+export default async function EditStudentPage({ params }) {
   await requireAdminSession("admin");
   const { id } = await params;
   const athlete = getAthleteById(id);

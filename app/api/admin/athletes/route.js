@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { revalidatePath } from 'next/cache'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { createAthlete } from '@/lib/data/athletes'
 import { createErrorResponse, readJsonBody } from '@/lib/server/api'
 import { validateAthletePayload } from '@/lib/server/validation'
-
-function isAdmin(session) {
-  return session?.user?.role === 'admin'
-}
+import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!isAdmin(session)) {
+    const session = await getAuthorizedApiSession('admin')
+    if (!session) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

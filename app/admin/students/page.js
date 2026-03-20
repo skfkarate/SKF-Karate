@@ -8,7 +8,7 @@ import { requireAdminSession } from '@/lib/utils/auth';
 // For now this is just UI skeleton for mock data rendering
 export const dynamic = 'force-dynamic';
 
-export default async function AdminAthletesPage({ searchParams }) {
+export default async function AdminStudentsPage({ searchParams }) {
   // Require admin session for access - both admin and instructor can view
   const session = await requireAdminSession(["admin", "instructor"]);
   

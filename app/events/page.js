@@ -1,5 +1,5 @@
 import { getAllEvents } from '../../lib/data/events'
-import EventsClient from './EventsClient'
+import EventsPageClient from './EventsPageClient'
 import './events.css'
 
 export const dynamic = 'force-dynamic'
@@ -66,5 +66,5 @@ export default function EventsPage() {
             result: getPastEventSummary(event),
         }))
 
-    return <EventsClient upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
+    return <EventsPageClient upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
 }

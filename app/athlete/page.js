@@ -1,5 +1,5 @@
-import SearchBox from '../components/athlete/SearchBox';
-import RankingDashboard from '../components/athlete/RankingDashboard';
+import SearchBox from '@/app/_components/athlete/SearchBox';
+import RankingDashboard from '@/app/_components/athlete/RankingDashboard';
 import { FaSearch } from 'react-icons/fa';
 import './athlete.css';
 

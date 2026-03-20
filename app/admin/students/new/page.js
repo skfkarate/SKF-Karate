@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { requireAdminSession } from '@/lib/utils/auth';
-import AdminStudentFormShell from '@/components/admin/AdminStudentFormShell';
+import AdminStudentFormShell from '@/app/_components/admin/students/AdminStudentFormShell';
 
-export default async function NewAthletePage() {
+export default async function NewStudentPage() {
   await requireAdminSession("admin");
 
   return (

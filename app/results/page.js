@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import ResultsPageClient from '../components/results/ResultsPageClient'
+import ResultsPageClient from '@/app/_components/results/ResultsPageClient'
 import {
   getAllTournaments,
   getAvailableYears,

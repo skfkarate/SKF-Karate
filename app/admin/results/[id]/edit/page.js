@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import TournamentForm from '../../../../components/results/TournamentForm'
+import AdminTournamentForm from '@/app/_components/admin/results/AdminTournamentForm'
 import { getTournamentById } from '../../../../../lib/data/tournaments'
 import { requireAdminSession } from '@/lib/utils/auth'
 
@@ -12,5 +12,5 @@ export default async function EditTournamentPage({ params }) {
     notFound()
   }
 
-  return <TournamentForm tournament={tournament} isEdit />;
+  return <AdminTournamentForm tournament={tournament} isEdit />;
 }

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import ResultsDetailClient from './ResultsDetailClient'
+import ResultsDetailPageClient from './ResultsDetailPageClient'
 import { getAllTournaments, getTournamentBySlug } from '../../../lib/data/tournaments'
 
 export async function generateStaticParams() {
@@ -30,5 +30,5 @@ export default async function TournamentDetailPage({ params }) {
   const tournament = getTournamentBySlug(slug)
   if (!tournament) notFound()
 
-  return <ResultsDetailClient tournament={tournament} />
+  return <ResultsDetailPageClient tournament={tournament} />
 }

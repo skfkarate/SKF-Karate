@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 
-import LegacyAthleteProfileClient from '@/app/components/athlete/profile/LegacyAthleteProfileClient'
-import { buildRestoredAthleteProfileData } from '@/app/components/athlete/profile/mockAthleteProfileData'
+import AthleteProfileClient from '@/app/_components/athlete/profile/AthleteProfileClient'
+import { buildRestoredAthleteProfileData } from '@/app/_components/athlete/profile/athleteProfileData'
 import { getAthleteByRegistrationNumber, getAthleteRank } from '@/lib/data/athletes'
 
 export const dynamic = 'force-dynamic'
@@ -33,5 +33,5 @@ export default async function AthleteProfilePage({ params }) {
   const rankInfo = getAthleteRank(athlete.id)
   const profile = buildRestoredAthleteProfileData(athlete, rankInfo)
 
-  return <LegacyAthleteProfileClient {...profile} />
+  return <AthleteProfileClient {...profile} />
 }

@@ -1,6 +1,6 @@
 import { getAllTournamentsAdmin } from '../../../lib/data/tournaments'
 import { requireAdminSession } from '@/lib/utils/auth'
-import AdminResultsPageClient from '@/components/admin/AdminResultsPageClient'
+import AdminResultsPageClient from '@/app/_components/admin/results/AdminResultsPageClient'
 import './admin-results.css'
 
 export default async function AdminResultsPage() {

@@ -1,4 +1,4 @@
-import AdminNavbar from "@/components/admin/AdminNavbar";
+import AdminNavbar from "@/app/_components/admin/AdminNavbar";
 import { getAdminSession } from "@/lib/utils/auth";
 
 export const metadata = {

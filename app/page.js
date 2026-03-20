@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { FaShieldAlt, FaBolt, FaArrowRight, FaStar, FaPhoneAlt } from 'react-icons/fa'
 import { GiPunch } from 'react-icons/gi'
-import Counter from './components/Counter'
-import HeroActions from './components/HeroActions'
-import BookTrialCTA from './components/BookTrialCTA'
+import HomeStatsCounter from '@/app/_components/pages/home/HomeStatsCounter'
+import HomeHeroActions from '@/app/_components/pages/home/HomeHeroActions'
+import HomeBookTrialCTA from '@/app/_components/pages/home/HomeBookTrialCTA'
 import './home.css'
 
 export default function HomePage() {
@@ -34,20 +34,20 @@ export default function HomePage() {
             and forge an unbreakable spirit.
           </p>
 
-          <HeroActions />
+          <HomeHeroActions />
         </div>
       </section>
 
       {/* ===== STATS ===== */}
       <section className="stats">
         <div className="container stats__grid">
-          <Counter target={5100} label="Active Athletes" />
+          <HomeStatsCounter target={5100} label="Active Athletes" />
           <div className="stats__divider"></div>
-          <Counter target={20} label="Expert Instructors" />
+          <HomeStatsCounter target={20} label="Expert Instructors" />
           <div className="stats__divider"></div>
-          <Counter target={15} label="Years of Excellence" />
+          <HomeStatsCounter target={15} label="Years of Excellence" />
           <div className="stats__divider"></div>
-          <Counter target={300} label="Championships Won" />
+          <HomeStatsCounter target={300} label="Championships Won" />
         </div>
       </section>
 
@@ -90,7 +90,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== BOOK TRIAL CTA ===== */}
-      <BookTrialCTA />
+      <HomeBookTrialCTA />
     </div>
   )
 }
