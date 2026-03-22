@@ -1,6 +1,8 @@
 import SearchBox from '@/app/_components/athlete/SearchBox';
 import RankingDashboard from '@/app/_components/athlete/RankingDashboard';
 import { FaSearch } from 'react-icons/fa';
+import { getRankSnapshots } from '@/lib/data/athletes';
+import { buildRankingBoards } from '@/app/_components/athlete/rankingBoardUtils';
 import './athlete.css';
 
 export const metadata = {
@@ -16,6 +18,12 @@ export const metadata = {
 };
 
 export default function AthleteLookupPage() {
+  const snapshots = getRankSnapshots().filter((entry) => entry.totalPoints > 0);
+  const boards = buildRankingBoards(snapshots);
+
+  // Extract unique branches (dojos)
+  const dojos = [...new Set(snapshots.map((s) => s.branchName).filter(Boolean))].sort();
+
   return (
     <div className="athlete-page">
 
@@ -42,11 +50,10 @@ export default function AthleteLookupPage() {
         </div>
       </section>
 
-
       {/* ═══════════════════════════════════════════
           SECTION 2: OFFICIAL RANKINGS DASHBOARD
          ═══════════════════════════════════════════ */}
-      <RankingDashboard />
+      <RankingDashboard boards={boards} dojos={dojos} totalRanked={snapshots.length} />
     </div>
   );
 }

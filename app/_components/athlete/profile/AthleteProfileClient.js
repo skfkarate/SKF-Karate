@@ -1,651 +1,432 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Search, ChevronRight, MapPin, Calendar, Award, Target, Zap, Users, Star } from 'lucide-react'
+import {
+  Search, ChevronRight, Eye,
+  Calendar, MapPin, Trophy, Flame, Shield, Star, Zap, Users,
+} from 'lucide-react'
+import '@/app/athlete-profile.css'
 
-const FONT = "'Roboto Condensed', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif"
-const RED = '#c8102e'
-const DARK_RED = '#8B0000'
-const DARK = '#2D2926'
-const LIGHT_BG = '#F2F2F2'
-
+/* ═══════════════════════════════════════════════════════════════════════
+   MEDAL BADGE — colored circle for ranks 1-3
+   ═══════════════════════════════════════════════════════════════════════ */
 function MedalBadge({ rank }) {
   if (rank === '*' || rank === '-' || rank == null) {
-    return <span style={{ fontSize: 16, color: '#999' }}>{rank ?? '-'}</span>
+    return <span className="ap-rank-plain">{rank ?? '-'}</span>
   }
-
   const n = typeof rank === 'number' ? rank : Number.parseInt(rank, 10)
-  const backgrounds = {
-    1: 'linear-gradient(180deg, #FDE02F 0%, #D89F00 100%)',
-    2: 'linear-gradient(180deg, #D4D4D4 0%, #9E9E9E 100%)',
-    3: 'linear-gradient(180deg, #C27A27 0%, #8A4B0A 100%)',
-  }
-
   if (n >= 1 && n <= 3) {
-    return (
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 34,
-          height: 34,
-          borderRadius: '50%',
-          background: backgrounds[n],
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
-          textShadow: '0 1px 1px rgba(0,0,0,0.2)',
-        }}
-      >
-        {n}
-      </span>
-    )
+    const cls = ['', 'ap-rank-gold', 'ap-rank-silver', 'ap-rank-bronze'][n]
+    return <span className={`ap-rank-circle ${cls}`}>{n}</span>
   }
-
-  return <span style={{ fontSize: 16, color: '#666' }}>{rank}</span>
+  return <span className="ap-rank-plain">{rank}</span>
 }
 
-function CareerStats({ categories, athleteInfo }) {
-  const totalGolds = categories.reduce((sum, category) => sum + category.honours.reduce((acc, honour) => acc + honour.gold, 0), 0)
-  const totalSilvers = categories.reduce((sum, category) => sum + category.honours.reduce((acc, honour) => acc + honour.silver, 0), 0)
-  const totalBronzes = categories.reduce((sum, category) => sum + category.honours.reduce((acc, honour) => acc + honour.bronze, 0), 0)
-  const totalEvents = categories.reduce((sum, category) => sum + category.results.length, 0)
-
-  const stats = [
-    { icon: <Award size={24} />, value: totalGolds, label: 'Gold', color: '#E0A900' },
-    { icon: <Award size={24} />, value: totalSilvers, label: 'Silver', color: '#A5A5A5' },
-    { icon: <Award size={24} />, value: totalBronzes, label: 'Bronze', color: '#A66018' },
-    { icon: <Target size={24} />, value: totalEvents, label: 'Events', color: RED },
-    { icon: <Zap size={24} />, value: athleteInfo.winRate, label: 'Win Rate', color: '#2e7d32' },
-  ]
-
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTION HEADER — bold heading with accent bar
+   ═══════════════════════════════════════════════════════════════════════ */
+function SectionHeader({ icon, label }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 18, marginBottom: 50 }}>
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          style={{
-            backgroundColor: '#fff',
-            border: '1px solid #eee',
-            borderRadius: 14,
-            padding: '24px 20px',
-            textAlign: 'center',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default',
-          }}
-          onMouseEnter={(event) => {
-            event.currentTarget.style.transform = 'translateY(-3px)'
-            event.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.07)'
-          }}
-          onMouseLeave={(event) => {
-            event.currentTarget.style.transform = 'translateY(0)'
-            event.currentTarget.style.boxShadow = 'none'
-          }}
-        >
-          <div style={{ color: stat.color, marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
-            {stat.icon}
-          </div>
-          <div style={{ fontSize: 34, fontWeight: 800, color: '#222', lineHeight: 1 }}>{stat.value}</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: 1, marginTop: 6 }}>
-            {stat.label}
-          </div>
-        </div>
-      ))}
+    <div className="ap-sec-head">
+      <div className="ap-sec-head__bar" />
+      <div className="ap-sec-head__icon">{icon}</div>
+      <h2 className="ap-sec-head__text">{label}</h2>
     </div>
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   HERO — clean 2-column: photo+name left | stats+rank right
+   ═══════════════════════════════════════════════════════════════════════ */
 function AthleteHero({ athleteInfo, categories }) {
-  const primary = categories.find((category) => category.isPrimary) || categories[0]
+  const primary = categories.find((c) => c.isPrimary) || categories[0]
+  const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
+  const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
+  const totalB = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.bronze, 0), 0)
+  const totalMedals = totalG + totalS + totalB
 
   return (
-    <div style={{ display: 'flex', overflow: 'hidden', marginTop: 40, marginBottom: 40 }}>
-      <div style={{ backgroundColor: DARK, color: '#fff', padding: '36px 36px', width: 460, flexShrink: 0 }}>
-        <div style={{ width: 150, height: 160, borderRadius: '50%', overflow: 'hidden', border: `3px solid ${RED}`, marginBottom: 28 }}>
-          <img
-            src={athleteInfo.photo}
-            alt={athleteInfo.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            onError={(event) => {
-              event.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 160"><rect fill="%23555" width="150" height="160"/></svg>'
-            }}
-          />
-        </div>
-        <h1 style={{ fontSize: 44, fontWeight: 700, textTransform: 'uppercase', marginBottom: 28, lineHeight: 1.12, letterSpacing: '0.5px' }}>
-          {athleteInfo.name}
-        </h1>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-          <img src={athleteInfo.countryFlag} alt="" style={{ width: 70, height: 48, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }} />
-          <div>
-            {[
-              ['Country', athleteInfo.country],
-              ['ID', athleteInfo.id],
-              ['Age', athleteInfo.age],
-            ].map(([label, value]) => (
-              <div key={label} style={{ marginBottom: 6 }}>
-                <span style={{ fontSize: 15, color: '#aaa', marginRight: 8, textTransform: 'uppercase' }}>{label}:</span>
-                <span style={{ fontSize: 17, color: '#fff', fontWeight: 700 }}>{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ backgroundColor: LIGHT_BG, padding: '36px 44px', flex: 1 }}>
-        <h2 style={{ fontSize: 30, fontWeight: 700, color: DARK_RED, marginBottom: 22 }}>{primary.name}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 34 }}>
-          {primary.rank ? (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 42,
-                height: 42,
-                borderRadius: '50%',
-                backgroundColor: DARK_RED,
-                color: '#fff',
-                fontSize: 22,
-                fontWeight: 700,
+    <section className="ap-hero ap-animate-in">
+      <div className="ap-hero-card">
+        {/* Left: photo + name */}
+        <div className="ap-hero__left">
+          <div className="ap-hero__portrait">
+            <img
+              src={athleteInfo.photo}
+              alt={athleteInfo.name}
+              className="ap-hero__portrait-img"
+              onError={(e) => {
+                e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 300"><rect fill="%23192038" width="260" height="300"/></svg>'
               }}
-            >
-              {primary.rank}
-            </span>
-          ) : null}
-          <span style={{ fontSize: 38, fontWeight: 800, color: '#212529', textTransform: 'uppercase' }}>RANK</span>
-          <span style={{ fontSize: 24, color: '#666' }}>{primary.points} points</span>
+            />
+            <div className="ap-hero__portrait-overlay">
+              <div className="ap-hero__name-block">
+                <h1 className="ap-hero__name">{athleteInfo.name}</h1>
+                <span className="ap-hero__id">{athleteInfo.id}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3 style={{ fontSize: 22, fontWeight: 700, color: DARK_RED, marginBottom: 18 }}>Honours</h3>
-        {primary.honours.map((honour) => (
-          <div key={honour.name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            {[
-              ['gold', 'linear-gradient(180deg, #FDE02F 0%, #D89F00 100%)', honour.gold],
-              ['silver', 'linear-gradient(180deg, #D4D4D4 0%, #9E9E9E 100%)', honour.silver],
-              ['bronze', 'linear-gradient(180deg, #C27A27 0%, #8A4B0A 100%)', honour.bronze],
-            ].map(([type, background, count]) => (
-              <span
-                key={type}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background,
-                  color: '#fff',
-                  fontSize: 17,
-                  fontWeight: 700,
-                  textShadow: '0 1px 1px rgba(0,0,0,0.2)',
-                }}
-              >
-                {count}
-              </span>
-            ))}
-            <span style={{ fontSize: 19, fontWeight: 700, color: '#333', marginLeft: 14 }}>{honour.name}</span>
+
+        {/* Right: Stats grid + Rank + Medals */}
+        <div className="ap-hero__right">
+          {/* Rank highlight */}
+          <div className="ap-hero__rank-row">
+            <div className="ap-hero__rank-num">
+              {primary.rank ? `#${primary.rank}` : '—'}
+            </div>
+            <div className="ap-hero__rank-meta">
+              <span className="ap-hero__rank-label">World Ranking</span>
+              <span className="ap-hero__rank-cat">{primary.name}</span>
+              <span className="ap-hero__rank-pts">{primary.points.toLocaleString()} pts</span>
+            </div>
+            <img src={athleteInfo.countryFlag} alt="" className="ap-hero__rank-flag" />
           </div>
-        ))}
+
+          {/* Quick stats */}
+          <div className="ap-hero__stats-row">
+            <div className="ap-hero__stat">
+              <span className="ap-hero__stat-val">{athleteInfo.age}</span>
+              <span className="ap-hero__stat-lbl">Age</span>
+            </div>
+            <div className="ap-hero__stat-sep" />
+            <div className="ap-hero__stat">
+              <span className="ap-hero__stat-val">{athleteInfo.country}</span>
+              <span className="ap-hero__stat-lbl">Country</span>
+            </div>
+            <div className="ap-hero__stat-sep" />
+            <div className="ap-hero__stat">
+              <span className="ap-hero__stat-val">{athleteInfo.totalBouts}</span>
+              <span className="ap-hero__stat-lbl">Bouts</span>
+            </div>
+            <div className="ap-hero__stat-sep" />
+            <div className="ap-hero__stat">
+              <span className="ap-hero__stat-val">{athleteInfo.winRate}</span>
+              <span className="ap-hero__stat-lbl">Win Rate</span>
+            </div>
+          </div>
+
+          {/* Medal tally */}
+          <div className="ap-hero__medals">
+            <div className="ap-hero__medal ap-hero__medal--gold">
+              <div className="ap-hero__medal-circle">{totalG}</div>
+              <span>Gold</span>
+            </div>
+            <div className="ap-hero__medal ap-hero__medal--silver">
+              <div className="ap-hero__medal-circle">{totalS}</div>
+              <span>Silver</span>
+            </div>
+            <div className="ap-hero__medal ap-hero__medal--bronze">
+              <div className="ap-hero__medal-circle">{totalB}</div>
+              <span>Bronze</span>
+            </div>
+            <div className="ap-hero__medal-total">
+              <span className="ap-hero__medal-total-num">{totalMedals}</span>
+              <span>Total</span>
+            </div>
+          </div>
+          </div>
       </div>
-    </div>
+    </section>
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   NEXT EVENTS
+   ═══════════════════════════════════════════════════════════════════════ */
 function NextEventsSection({ nextEvents }) {
+  if (!nextEvents || nextEvents.length === 0) return null
   return (
-    <div style={{ marginBottom: 50 }}>
-      <h2 style={{ fontSize: 30, fontWeight: 800, color: '#212529', textTransform: 'uppercase', marginBottom: 24, letterSpacing: '0.3px' }}>
-        ATHLETE&apos;S NEXT EVENTS
-      </h2>
-      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-        {nextEvents.map((event) => (
-          <div
-            key={`${event.dateRange}-${event.name}`}
-            style={{
-              backgroundColor: LIGHT_BG,
-              borderRadius: 10,
-              padding: '20px 24px',
-              minWidth: 340,
-              flex: '0 1 420px',
-              border: '1px solid #e8e8e8',
-              transition: 'box-shadow 0.2s',
-            }}
-            onMouseEnter={(entry) => {
-              entry.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
-            }}
-            onMouseLeave={(entry) => {
-              entry.currentTarget.style.boxShadow = 'none'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 17, fontWeight: 600, color: '#333' }}>{event.dateRange}</span>
-              <ChevronRight size={18} style={{ color: RED }} />
+    <section className="ap-section ap-animate-in ap-delay-1">
+      <SectionHeader icon={<Calendar size={16} />} label="Upcoming Events" />
+      <div className="ap-events-row">
+        {nextEvents.map((ev) => (
+          <div key={`${ev.dateRange}-${ev.name}`} className="ap-ev-card">
+            <div className="ap-ev-card__date">{ev.dateRange}</div>
+            <div className="ap-ev-card__body">
+              <img src={ev.flag} alt="" className="ap-ev-card__flag" loading="lazy" />
+              <span className="ap-ev-card__name">{ev.name}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 16, color: '#555' }}>
-              <img src={event.flag} alt="" style={{ width: 24, height: 16, objectFit: 'cover', borderRadius: 2 }} />
-              <span>{event.name}</span>
-            </div>
+            <ChevronRight size={15} className="ap-ev-card__arrow" />
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   TABBED COMPETITION RESULTS — sorted descending
+   ═══════════════════════════════════════════════════════════════════════ */
 function TabbedCompetitions({ categories }) {
   const [activeTab, setActiveTab] = useState(0)
   const [filter, setFilter] = useState('')
-  const category = categories[activeTab]
+
+  // Sort: ranked categories first (ascending), then unranked alphabetically
+  const sortedCategories = useMemo(() => {
+    const ranked = categories.filter((c) => c.rank).sort((a, b) => a.rank - b.rank)
+    const unranked = categories.filter((c) => !c.rank).sort((a, b) => a.name.localeCompare(b.name))
+    return [...ranked, ...unranked]
+  }, [categories])
+
+  const cat = sortedCategories[activeTab]
+
+  const hasAnyResults = sortedCategories.some((c) => c.results && c.results.length > 0)
+  if (!sortedCategories || sortedCategories.length === 0 || !hasAnyResults) return null
 
   const filtered = useMemo(() => {
-    if (!filter.trim()) return category.results
-    const query = filter.toLowerCase()
-    return category.results.filter((result) => {
-      return (
-        result.event.toLowerCase().includes(query) ||
-        result.type.toLowerCase().includes(query) ||
-        result.date.includes(query)
-      )
-    })
-  }, [category, filter])
+    let rows = [...cat.results].sort((a, b) => new Date(b.date) - new Date(a.date))
+    if (filter.trim()) {
+      const q = filter.toLowerCase()
+      rows = rows.filter((r) => r.event.toLowerCase().includes(q) || r.type.toLowerCase().includes(q) || r.date.includes(q))
+    }
+    return rows
+  }, [cat, filter])
 
   return (
-    <div style={{ marginBottom: 60 }}>
-      <h2 style={{ fontSize: 30, fontWeight: 800, color: '#212529', textTransform: 'uppercase', marginBottom: 24 }}>
-        COMPETITION RESULTS
-      </h2>
+    <section id="ap-competition-section" className="ap-section ap-animate-in ap-delay-2">
+      <SectionHeader icon={<Trophy size={16} />} label="Competition Results" />
+      <div className="ap-panel">
+        {/* Tabs */}
+        <div className="ap-tabs">
+          {sortedCategories.map((c, i) => (
+            <button key={c.name} type="button" className={`ap-tab ${activeTab === i ? 'ap-tab--on' : ''}`}
+              onClick={() => { setActiveTab(i); setFilter('') }}>
+              {c.name}
+              {c.rank ? <span className="ap-tab__badge">#{c.rank}</span> : null}
+            </button>
+          ))}
+        </div>
 
-      <div style={{ display: 'flex', borderBottom: '3px solid #eee', marginBottom: 0, overflowX: 'auto' }}>
-        {categories.map((entry, index) => (
-          <button
-            key={entry.name}
-            type="button"
-            onClick={() => {
-              setActiveTab(index)
-              setFilter('')
-            }}
-            style={{
-              padding: '16px 30px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 16,
-              fontWeight: 700,
-              fontFamily: FONT,
-              backgroundColor: activeTab === index ? '#fff' : 'transparent',
-              color: activeTab === index ? RED : '#777',
-              borderBottom: activeTab === index ? `3px solid ${RED}` : '3px solid transparent',
-              marginBottom: '-3px',
-              whiteSpace: 'nowrap',
-              transition: 'color 0.2s',
-            }}
-          >
-            {entry.name}
-            {entry.rank ? (
-              <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 700, backgroundColor: DARK_RED, color: '#fff', padding: '3px 8px', borderRadius: 10 }}>
-                #{entry.rank}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+        {/* Category overview */}
+        <div className="ap-cat-overview">
+          {/* Category title */}
+          <h3 className="ap-cat-overview__title">{cat.name}</h3>
 
-      <div style={{ backgroundColor: LIGHT_BG, padding: '22px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <h3 style={{ fontSize: 24, fontWeight: 700, color: DARK_RED, margin: 0 }}>{category.name}</h3>
-          {category.rank ? (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                backgroundColor: DARK_RED,
-                color: '#fff',
-                padding: '5px 16px',
-                borderRadius: 20,
-                fontSize: 15,
-                fontWeight: 700,
-              }}
-            >
-              Rank #{category.rank}
+          {/* Rank row */}
+          <div className="ap-cat-overview__rank">
+            {cat.rank ? (
+              <span className="ap-cat-overview__rank-circle">{cat.rank}</span>
+            ) : (
+              <span className="ap-cat-overview__rank-circle ap-cat-overview__rank-circle--unranked">–</span>
+            )}
+            <span className="ap-cat-overview__rank-label">RANK</span>
+            <span className="ap-cat-overview__rank-pts">
+              {cat.points != null ? `${cat.points.toLocaleString()} points` : 'No points yet'}
             </span>
-          ) : null}
-        </div>
-        <div style={{ display: 'flex', gap: 28 }}>
-          {[
-            ['Actual Points', category.points],
-            ['Total Points', category.totalPoints],
-            ['Events', category.results.length],
-          ].map(([label, value]) => (
-            <div key={label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#222' }}>{value}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#999', textTransform: 'uppercase' }}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div style={{ marginBottom: 28 }}>
-        <h4 style={{ fontSize: 20, fontWeight: 700, color: DARK_RED, marginBottom: 16 }}>Honours</h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
-          {category.honours.map((honour) => (
-            <div
-              key={honour.name}
-              style={{
-                backgroundColor: '#fafafa',
-                border: '1px solid #eee',
-                borderRadius: 12,
-                padding: '18px 22px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-              }}
-            >
-              {[
-                ['gold', 'linear-gradient(180deg, #FDE02F 0%, #D89F00 100%)', honour.gold],
-                ['silver', 'linear-gradient(180deg, #D4D4D4 0%, #9E9E9E 100%)', honour.silver],
-                ['bronze', 'linear-gradient(180deg, #C27A27 0%, #8A4B0A 100%)', honour.bronze],
-              ].map(([type, background, count]) => (
-                <span
-                  key={type}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background,
-                    color: '#fff',
-                    fontSize: 16,
-                    fontWeight: 700,
-                    textShadow: '0 1px 1px rgba(0,0,0,0.2)',
-                  }}
-                >
-                  {count}
-                </span>
-              ))}
-              <span style={{ fontSize: 16, fontWeight: 600, color: '#333', marginLeft: 6 }}>{honour.name}</span>
-            </div>
-          ))}
+          {/* Honours */}
+          {cat.honours && cat.honours.length > 0 && (
+            <>
+              <h4 className="ap-cat-overview__hon-title">Honours</h4>
+              <div className="ap-hon-list">
+                {[...cat.honours]
+                  .sort((a, b) => (b.gold + b.silver + b.bronze) - (a.gold + a.silver + a.bronze))
+                  .map((h) => (
+                    <div key={h.name} className="ap-hon-row">
+                      <div className="ap-hon-row__medals">
+                        <span className="ap-hon-dot ap-hon-dot--g">{h.gold}</span>
+                        <span className="ap-hon-dot ap-hon-dot--s">{h.silver}</span>
+                        <span className="ap-hon-dot ap-hon-dot--b">{h.bronze}</span>
+                      </div>
+                      <span className="ap-hon-row__name">{h.name}</span>
+                    </div>
+                  ))}
+              </div>
+            </>
+          )}
         </div>
-      </div>
 
-      <div style={{ position: 'relative', marginBottom: 22 }}>
-        <input
-          type="text"
-          placeholder="Filter events by name or type..."
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
-          style={{
-            width: '100%',
-            border: `2px solid ${RED}`,
-            borderRadius: 8,
-            padding: '16px 50px 16px 22px',
-            fontSize: 16,
-            color: '#333',
-            outline: 'none',
-            boxSizing: 'border-box',
-            fontFamily: FONT,
-          }}
-        />
-        <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', color: RED }}>
-          <Search size={22} />
+        {/* Filter */}
+        <div className="ap-filter">
+          <input type="text" placeholder="Filter events…" value={filter}
+            onChange={(e) => setFilter(e.target.value)} className="ap-filter__input" />
+          <Search size={16} className="ap-filter__icon" />
         </div>
-      </div>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Date', 'Event', 'Type', 'Category'].map((heading) => (
-                <th key={heading} style={{ textAlign: 'left', padding: '16px 14px', fontWeight: 700, fontSize: 15, textTransform: 'uppercase', color: '#333', borderBottom: '2px solid #ddd', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
-                  {heading}
-                </th>
-              ))}
-              {['Event Factor', 'View', 'Rank', 'Wins', 'Points', 'Actual'].map((heading) => (
-                <th key={heading} style={{ textAlign: 'center', padding: '16px 14px', fontWeight: 700, fontSize: 15, textTransform: 'uppercase', color: '#333', borderBottom: '2px solid #ddd', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
-                  {heading}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((result) => (
-              <tr
-                key={`${result.date}-${result.event}`}
-                style={{ cursor: 'default' }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.backgroundColor = '#f9f9f9'
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.backgroundColor = 'transparent'
-                }}
-              >
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#333', fontWeight: 700, whiteSpace: 'nowrap', fontSize: 17 }}>{result.date}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', fontSize: 17 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <img src={result.flag} alt="" style={{ width: 28, height: 19, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />
-                    <span style={{ color: '#444' }}>{result.event}</span>
-                  </div>
-                </td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444', fontSize: 17 }}>{result.type}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444', fontSize: 17 }}>{result.category}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444', textAlign: 'center', fontSize: 17 }}>{result.factor}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-                  {result.hasView ? <Search size={18} style={{ color: '#bbb', cursor: 'pointer' }} /> : null}
-                </td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-                  <MedalBadge rank={result.rank} />
-                </td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444', textAlign: 'center', fontSize: 17 }}>{result.wins}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444', textAlign: 'center', fontSize: 17 }}>{result.points}</td>
-                <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', textAlign: 'center', fontSize: 17, color: result.actual > 0 ? DARK_RED : '#aaa', fontWeight: result.actual > 0 ? 700 : 400 }}>{result.actual}</td>
+        {/* Table */}
+        <div className="ap-tbl-wrap">
+          <table className="ap-tbl">
+            <thead>
+              <tr>
+                <th style={{ width: '9%' }}>Date</th>
+                <th style={{ width: '24%' }}>Event</th>
+                <th style={{ width: '14%' }}>Type</th>
+                <th style={{ width: '11%' }}>Category</th>
+                <th style={{ width: '7%' }} className="ctr">Factor</th>
+                <th style={{ width: '5%' }} className="ctr">View</th>
+                <th style={{ width: '7%' }} className="ctr">Rank</th>
+                <th style={{ width: '6%' }} className="ctr">Wins</th>
+                <th style={{ width: '8%' }} className="ctr">Points</th>
+                <th style={{ width: '9%' }} className="ctr">Actual</th>
               </tr>
-            ))}
-            <tr style={{ borderTop: '2px solid #ccc', backgroundColor: '#fafafa' }}>
-              <td style={{ padding: '20px 14px', fontWeight: 700 }} />
-              <td style={{ padding: '20px 14px', fontWeight: 700, fontSize: 17 }} colSpan={7}>
-                Total Points: <span style={{ color: DARK_RED }}>{category.totalPoints}</span>
-              </td>
-              <td style={{ padding: '20px 14px', fontWeight: 700, fontSize: 17, textAlign: 'center' }} colSpan={2}>
-                Actual: <span style={{ color: DARK_RED }}>{category.points}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
-
-function BeltJourney({ beltExaminations, beltColors }) {
-  if (!beltExaminations || beltExaminations.length === 0) return null
-
-  return (
-    <div style={{ marginBottom: 60 }}>
-      <h2 style={{ fontSize: 30, fontWeight: 800, color: '#212529', textTransform: 'uppercase', marginBottom: 24 }}>
-        BELT PROGRESSION
-      </h2>
-
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 17 }}>
-          <thead>
-            <tr>
-              {['Date', 'Belt', 'Grade', 'Examiner', 'Dojo'].map((heading) => (
-                <th key={heading} style={{ textAlign: 'left', padding: '16px 14px', fontWeight: 700, fontSize: 15, textTransform: 'uppercase', color: '#333', borderBottom: '2px solid #ddd', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
-                  {heading}
-                </th>
-              ))}
-              <th style={{ textAlign: 'center', padding: '16px 14px', fontWeight: 700, fontSize: 15, textTransform: 'uppercase', color: '#333', borderBottom: '2px solid #ddd', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
-                Result
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {beltExaminations.map((exam) => {
-              const color = beltColors[exam.belt] || '#ccc'
-              const isWhite = exam.belt === 'White'
-
-              return (
-                <tr
-                  key={`${exam.date}-${exam.grade}`}
-                  style={{ cursor: 'default' }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.backgroundColor = '#f9f9f9'
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.backgroundColor = 'transparent'
-                  }}
-                >
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#333', fontWeight: 700, whiteSpace: 'nowrap' }}>{exam.date}</td>
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 44, height: 18, borderRadius: 4, backgroundColor: color, border: isWhite ? '1px solid #ccc' : 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.12)', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 700, color: '#222' }}>{exam.belt}</span>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={`${r.date}-${r.event}`}>
+                  <td className="ap-tbl__date">{r.date}</td>
+                  <td>
+                    <div className="ap-tbl__ev">
+                      <img src={r.flag} alt="" className="ap-tbl__fl" loading="lazy" />
+                      <span>{r.event}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: DARK_RED, fontWeight: 700 }}>{exam.grade}</td>
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444' }}>{exam.examiner}</td>
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', color: '#444' }}>{exam.dojo}</td>
-                  <td style={{ padding: '22px 14px', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-                    <span
-                      style={{
-                        padding: '6px 20px',
-                        borderRadius: 20,
-                        fontSize: 15,
-                        fontWeight: 700,
-                        backgroundColor: exam.result === 'Pass' ? '#e8f5e9' : '#ffebee',
-                        color: exam.result === 'Pass' ? '#2e7d32' : '#c62828',
-                        display: 'inline-block',
-                      }}
-                    >
-                      {exam.result}
+                  <td>{r.type}</td>
+                  <td>{r.category}</td>
+                  <td className="ctr">{r.factor}</td>
+                  <td className="ctr">{r.hasView ? <Eye size={15} className="ap-eye" title="View details" aria-label="View details" /> : null}</td>
+                  <td className="ctr"><MedalBadge rank={r.rank} /></td>
+                  <td className="ctr">{r.wins}</td>
+                  <td className="ctr">{r.points}</td>
+                  <td className={`ctr ${r.actual > 0 ? 'ap-tbl__gold-text' : 'ap-tbl__dim'}`}>{r.actual}</td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="ap-tbl__empty">No results found for &ldquo;{filter}&rdquo;</td>
+                </tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="ap-tbl__foot">
+                <td colSpan={8}>Total: <strong className="ap-tbl__accent">{cat.totalPoints?.toLocaleString()}</strong></td>
+                <td colSpan={2} className="ctr">Actual: <strong className="ap-tbl__accent">{cat.points?.toLocaleString()}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BELT JOURNEY — table with View column, sorted descending
+   ═══════════════════════════════════════════════════════════════════════ */
+function BeltJourney({ beltExaminations, beltColors }) {
+  if (!beltExaminations || beltExaminations.length === 0) return null
+  const sorted = [...beltExaminations].sort((a, b) => new Date(b.date) - new Date(a.date))
+
+  return (
+    <section className="ap-section ap-animate-in ap-delay-3">
+      <SectionHeader icon={<Shield size={16} />} label="Belt Progression" />
+      <div className="ap-panel">
+        <div className="ap-tbl-wrap">
+          <table className="ap-tbl">
+            <thead>
+              <tr>
+                <th style={{ width: '12%' }}>Date</th>
+                <th style={{ width: '18%' }}>Belt</th>
+                <th style={{ width: '10%' }}>Grade</th>
+                <th style={{ width: '22%' }}>Examiner</th>
+                <th style={{ width: '22%' }}>Dojo</th>
+                <th style={{ width: '7%' }} className="ctr">View</th>
+                <th style={{ width: '9%' }} className="ctr">Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((ex) => {
+                const col = beltColors[ex.belt] || '#ccc'
+                return (
+                  <tr key={`${ex.date}-${ex.grade}`}>
+                    <td className="ap-tbl__date">{ex.date}</td>
+                    <td>
+                      <div className="ap-tbl__ev">
+                        <span className="ap-belt-sw" style={{ backgroundColor: col, borderColor: ex.belt === 'White' ? 'rgba(255,255,255,0.25)' : 'transparent' }} />
+                        <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{ex.belt}</strong>
+                      </div>
+                    </td>
+                    <td style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
+                    <td>{ex.examiner}</td>
+                    <td>{ex.dojo}</td>
+                    <td className="ctr"><Eye size={15} className="ap-eye" title="View details" aria-label="View details" /></td>
+                    <td className="ctr">
+                      <span className={`ap-pill ${ex.result === 'Pass' ? 'ap-pill--pass' : 'ap-pill--fail'}`}>{ex.result}</span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SPECIAL EVENTS — compact table (not large cards), with View column
+   ═══════════════════════════════════════════════════════════════════════ */
+function SpecialEventsSection({ specialEvents }) {
+  if (!specialEvents || specialEvents.length === 0) return null
+  const sorted = [...specialEvents].sort((a, b) => new Date(b.date) - new Date(a.date))
+
+  const typeColor = { Seminar: '#ffe49a', 'Training Camp': '#99f6e4', Workshop: '#bfdbfe' }
+  const typeBg = { Seminar: 'rgba(255,183,3,0.1)', 'Training Camp': 'rgba(45,212,191,0.08)', Workshop: 'rgba(59,130,246,0.08)' }
+  const typeBorder = { Seminar: 'rgba(255,183,3,0.2)', 'Training Camp': 'rgba(45,212,191,0.18)', Workshop: 'rgba(59,130,246,0.18)' }
+
+  return (
+    <section className="ap-section ap-animate-in ap-delay-4">
+      <SectionHeader icon={<Star size={16} />} label="Special Events & Training" />
+      <div className="ap-panel">
+        <div className="ap-tbl-wrap">
+          <table className="ap-tbl">
+            <thead>
+              <tr>
+                <th style={{ width: '12%' }}>Date</th>
+                <th style={{ width: '15%' }}>Type</th>
+                <th style={{ width: '38%' }}>Event</th>
+                <th style={{ width: '28%' }}>Location</th>
+                <th style={{ width: '7%' }} className="ctr">View</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((ev) => (
+                <tr key={`${ev.date}-${ev.title}`}>
+                  <td className="ap-tbl__date">{ev.date}</td>
+                  <td>
+                    <span className="ap-type-tag" style={{
+                      color: typeColor[ev.type] || '#bfdbfe',
+                      background: typeBg[ev.type] || 'rgba(59,130,246,0.08)',
+                      borderColor: typeBorder[ev.type] || 'rgba(59,130,246,0.18)',
+                    }}>
+                      {ev.type}
                     </span>
                   </td>
+                  <td style={{ color: 'rgba(255,255,255,0.88)', fontWeight: 600 }}>{ev.title}</td>
+                  <td>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'rgba(255,255,255,0.5)' }}>
+                      <MapPin size={13} /> {ev.location}
+                    </span>
+                  </td>
+                  <td className="ctr"><Eye size={15} className="ap-eye" title="View details" aria-label="View details" /></td>
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }
 
-function SpecialEventsSection({ specialEvents }) {
-  const typeStyles = {
-    Seminar: { bg: 'linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%)', color: '#e65100', icon: <Star size={16} /> },
-    'Training Camp': { bg: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)', color: '#2e7d32', icon: <Zap size={16} /> },
-    Workshop: { bg: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', color: '#1565c0', icon: <Users size={16} /> },
-  }
-
-  return (
-    <div style={{ marginBottom: 60 }}>
-      <h2 style={{ fontSize: 30, fontWeight: 800, color: '#212529', textTransform: 'uppercase', marginBottom: 28 }}>
-        SPECIAL EVENTS &amp; TRAINING
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 22 }}>
-        {specialEvents.map((event) => {
-          const config = typeStyles[event.type] || typeStyles.Workshop
-
-          return (
-            <div
-              key={`${event.date}-${event.title}`}
-              style={{
-                background: config.bg,
-                borderRadius: 14,
-                padding: '26px 30px',
-                border: '1px solid rgba(0,0,0,0.05)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-              }}
-              onMouseEnter={(entry) => {
-                entry.currentTarget.style.transform = 'translateY(-3px)'
-                entry.currentTarget.style.boxShadow = '0 8px 28px rgba(0,0,0,0.08)'
-              }}
-              onMouseLeave={(entry) => {
-                entry.currentTarget.style.transform = 'translateY(0)'
-                entry.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '5px 14px',
-                    borderRadius: 20,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    color: config.color,
-                    backgroundColor: 'rgba(255,255,255,0.75)',
-                  }}
-                >
-                  {config.icon} {event.type}
-                </span>
-                <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.4)', fontWeight: 500 }}>
-                  <Calendar size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                  {event.date}
-                </span>
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#222', margin: '0 0 8px 0', lineHeight: 1.3 }}>
-                {event.title}
-              </h3>
-              <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', margin: '0 0 10px 0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <MapPin size={14} /> {event.location}
-              </p>
-              <p style={{ fontSize: 15, color: 'rgba(0,0,0,0.55)', margin: 0, lineHeight: 1.7 }}>
-                {event.description}
-              </p>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN EXPORT
+   ═══════════════════════════════════════════════════════════════════════ */
 export default function AthleteProfileClient({
-  athleteInfo,
-  categories,
-  nextEvents,
-  beltExaminations,
-  specialEvents,
-  beltColors,
+  athleteInfo, categories, nextEvents, beltExaminations, specialEvents, beltColors,
 }) {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#ffffff',
-        fontFamily: FONT,
-        color: '#212529',
-        fontSize: 14,
-        lineHeight: 1.6,
-      }}
-    >
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet"
-      />
-
-      <div style={{ height: 80, backgroundColor: '#080b14', width: '100%' }} />
-
-      <div style={{ maxWidth: 1340, margin: '0 auto', padding: '0 20px' }}>
+    <div className="ap-page">
+      <div className="ap-container">
         <AthleteHero athleteInfo={athleteInfo} categories={categories} />
-        <CareerStats categories={categories} athleteInfo={athleteInfo} />
         <NextEventsSection nextEvents={nextEvents} />
         <TabbedCompetitions categories={categories} />
         <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} />
         <SpecialEventsSection specialEvents={specialEvents} />
       </div>
-
-      <div style={{ height: 80 }} />
+      <div style={{ height: '5rem' }} />
     </div>
   )
 }

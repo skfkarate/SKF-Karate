@@ -142,43 +142,47 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
 
       {/* Dropdown Results */}
       {isOpen && results.length > 0 && (
-        <div className="profile-search-dropdown">
-          {results.map((s, idx) => (
-            <button
-              key={s.registrationNumber}
-              type="button"
-              onClick={() => navigateToAthlete(s.registrationNumber)}
-              onMouseEnter={() => setSelectedIdx(idx)}
-              className={`profile-search-result ${selectedIdx === idx ? 'selected' : ''}`}
-            >
-              {/* Avatar */}
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border border-[rgba(255,255,255,0.1)] shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] flex-shrink-0"
-                style={{ background: 'rgba(20,33,61,0.8)' }}
+        <div className="absolute top-full left-0 right-0 mt-3 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden z-50">
+          <div className="max-h-[380px] overflow-y-auto no-scrollbar py-2">
+            {results.map((s, idx) => (
+              <button
+                key={s.registrationNumber}
+                type="button"
+                onClick={() => navigateToAthlete(s.registrationNumber)}
+                onMouseEnter={() => setSelectedIdx(idx)}
+                className={`w-full text-left flex items-center gap-4 px-5 py-3.5 transition-all outline-none border-l-4 ${selectedIdx === idx ? 'bg-white/5 border-gold shadow-[inset_0_0_30px_rgba(255,183,3,0.05)]' : 'border-transparent hover:bg-white/[0.02]'}`}
               >
-                <span className="text-brand-red">{s.firstName?.charAt(0)}{s.lastName?.charAt(0)}</span>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-bold tracking-wide text-sm truncate">
-                  {s.firstName} {s.lastName}
-                </p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-gray-500 text-xs font-mono tracking-wider">{s.registrationNumber}</span>
-                  <span className="text-[rgba(255,255,255,0.1)]">&bull;</span>
-                  <span className="text-gray-500 text-xs">{s.branchName}</span>
+                {/* Minimal Avatar */}
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 border transition-colors ${selectedIdx === idx ? 'bg-gold/10 border-gold/30' : 'bg-white/5 border-white/10'}`}>
+                  <span className={`font-bold tracking-widest text-xs uppercase ${selectedIdx === idx ? 'text-gold' : 'text-white/50'}`}>
+                    {s.firstName?.charAt(0)}{s.lastName?.charAt(0)}
+                  </span>
                 </div>
-              </div>
 
-              {/* Belt indicator */}
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-[rgba(255,255,255,0.1)] shadow-[0_0_8px_rgba(0,0,0,0.3)]"
-                style={{ backgroundColor: beltColorMap[s.currentBelt] || '#555' }}
-                title={s.currentBelt?.replace(/-/g, ' ')}
-              />
-            </button>
-          ))}
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className={`font-black tracking-wide truncate transition-colors text-[0.95rem] ${selectedIdx === idx ? 'text-white' : 'text-white/70'}`}>
+                    {s.firstName} {s.lastName}
+                  </p>
+                  <div className="flex items-center gap-2.5 mt-1">
+                    <span className="text-gold text-[0.6rem] font-mono tracking-widest uppercase bg-gold/10 px-2 py-0.5 rounded-md border border-gold/20">{s.registrationNumber}</span>
+                    <span className="text-white/10">•</span>
+                    <span className="text-white/40 text-[0.7rem] font-bold uppercase tracking-wider truncate">{s.branchName}</span>
+                  </div>
+                </div>
+
+                {/* Belt indicator */}
+                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                  <div
+                    className="w-3 h-3 rounded-full ring-2 ring-black/50 shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                    style={{ backgroundColor: beltColorMap[s.currentBelt] || '#555' }}
+                    title={s.currentBelt?.replace(/-/g, ' ')}
+                  />
+                  <span className="text-[0.55rem] uppercase tracking-[0.2em] text-white/30 font-black">{s.currentBelt?.split('-')[0]}</span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
