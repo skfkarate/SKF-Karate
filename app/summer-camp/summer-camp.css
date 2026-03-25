@@ -1429,7 +1429,7 @@
     }
 
     .offer-banner__badge {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         padding: 5px 14px;
     }
 
@@ -1469,7 +1469,7 @@
     }
 
     .program-card__level {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 
     .program-card__price {
@@ -1478,7 +1478,7 @@
     }
 
     .program-card__price-old {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 
     .program-card__features {
@@ -1679,6 +1679,7 @@
     .camp-bottom-cta__buttons .btn-whatsapp {
         width: 100%;
         justify-content: center;
+        padding: 1rem 1.5rem;
     }
 
     .btn-whatsapp {
@@ -1791,3 +1792,381 @@
         right: 14px;
     }
 }
+
+
+/* ===== ENROLLMENT FORM ===== */
+.enroll-form-wrapper {
+    max-width: 680px;
+    margin: 0 auto;
+    scroll-margin-top: 100px;
+}
+
+.enroll-form {
+    background: linear-gradient(145deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.95));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.06);
+}
+
+.enroll-form__header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.enroll-form__emoji {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.enroll-form__header h2 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.enroll-form__speed-note {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.enroll-form__field {
+    margin-bottom: 1.8rem;
+}
+
+.enroll-form__field label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.6rem;
+}
+
+.enroll-form__field-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold);
+    font-size: 0.7rem;
+    margin-right: 8px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.enroll-form__req {
+    color: var(--crimson);
+    font-weight: 800;
+}
+
+.enroll-form__field input[type="text"],
+.enroll-form__field input[type="number"],
+.enroll-form__field input[type="tel"] {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+.enroll-form__field input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.enroll-form__field input::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+.enroll-form__hint {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    opacity: 0.7;
+}
+
+.enroll-form__radio-group {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.enroll-form__radio-group--three {
+    gap: 0.6rem;
+}
+
+.enroll-form__radio-option {
+    flex: 1;
+    min-width: 130px;
+    padding: 0.8rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.enroll-form__radio-option input {
+    display: none;
+}
+
+.enroll-form__radio-option:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.enroll-form__radio-option--active {
+    border-color: var(--gold) !important;
+    background: rgba(255, 215, 0, 0.1) !important;
+    color: var(--gold);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.enroll-form__conditional-input {
+    margin-top: 0.8rem;
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    animation: slide-in 0.3s ease;
+}
+
+.enroll-form__conditional-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+@keyframes slide-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.enroll-form__error {
+    background: rgba(214, 40, 40, 0.1);
+    border: 1px solid rgba(214, 40, 40, 0.4);
+    color: #ff6b6b;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.enroll-form__submit {
+    width: 100%;
+    padding: 1.2rem;
+    background: linear-gradient(90deg, #FFDF00, #D4AF37);
+    color: #000;
+    font-weight: 900;
+    font-size: 1.15rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.35);
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.enroll-form__submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+}
+
+.enroll-form__submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.enroll-form__spinner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.enroll-form__spinner::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== ENROLLMENT SUCCESS ===== */
+.enroll-success {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+    scroll-margin-top: 100px;
+}
+
+.enroll-success__card {
+    max-width: 600px;
+    width: 100%;
+    background: linear-gradient(145deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.95));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 24px;
+    padding: 3.5rem 2.5rem;
+    text-align: center;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 50px rgba(255, 215, 0, 0.08);
+    animation: fadeInUp 0.6s var(--ease-out) forwards;
+}
+
+.enroll-success__icon-wrap {
+    margin-bottom: 1.5rem;
+}
+
+.enroll-success__icon {
+    font-size: 4rem;
+    color: #4caf50;
+    filter: drop-shadow(0 0 15px rgba(76, 175, 80, 0.5));
+    animation: pulse 1.5s ease-in-out;
+}
+
+.enroll-success__card h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+
+.enroll-success__main-text {
+    font-size: 1.15rem;
+    color: var(--text-light);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+}
+
+.enroll-success__sub-text {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+}
+
+.enroll-success__whatsapp-box {
+    background: rgba(37, 211, 102, 0.08);
+    border: 1px solid rgba(37, 211, 102, 0.3);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.enroll-success__belt-icon {
+    font-size: 2.5rem;
+    color: var(--gold);
+    margin-bottom: 0.8rem;
+}
+
+.enroll-success__whatsapp-box h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.enroll-success__whatsapp-box p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+}
+
+.enroll-success__whatsapp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: #fff;
+    padding: 0.9rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.enroll-success__whatsapp-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(37, 211, 102, 0.6);
+    background: #20bd5a;
+}
+
+.enroll-success__seats-note {
+    font-size: 0.9rem;
+    color: var(--gold);
+    opacity: 0.8;
+    font-weight: 600;
+}
+
+/* ===== FORM RESPONSIVE ===== */
+@media screen and (max-width: 768px) {
+    .enroll-form {
+        padding: 2rem 1.5rem;
+        border-radius: 18px;
+    }
+
+    .enroll-form__header h2 {
+        font-size: 1.5rem;
+    }
+
+    .enroll-form__radio-group {
+        flex-direction: column;
+    }
+
+    .enroll-form__radio-group--three {
+        flex-direction: row;
+    }
+
+    .enroll-form__radio-group--three .enroll-form__radio-option {
+        min-width: 80px;
+        padding: 0.7rem;
+        font-size: 0.85rem;
+    }
+
+    .enroll-success__card {
+        padding: 2.5rem 1.5rem;
+    }
+}
+
