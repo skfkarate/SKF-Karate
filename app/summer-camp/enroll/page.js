@@ -1,4 +1,6 @@
 import SummerCampEnrollForm from '../../_components/pages/summer-camp/SummerCampEnrollForm'
+import Link from 'next/link'
+import { FaArrowLeft } from 'react-icons/fa'
 import './enroll.css'
 
 export const metadata = {
@@ -9,6 +11,10 @@ export const metadata = {
 export default function EnrollPage() {
     return (
         <div className="enroll-wizard-page">
+            <Link href="/summer-camp" className="wizard-back-link">
+                <FaArrowLeft /> Back to Camp
+            </Link>
+            
             <div className="wizard-container">
                 <div className="wizard-header">
                     <h1>Register for <strong>Free Camp</strong></h1>
