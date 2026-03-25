@@ -11,13 +11,17 @@ export default function ClientLayoutWrapper({ children }) {
   // Hide the public shell on admin routes and auth portal routes
   const isPublicRoute = !pathname?.startsWith('/admin') && !pathname?.startsWith('/portal')
 
+  // Hide Navbar/Footer on enrollment page to minimize distraction
+  const isEnrollmentForm = pathname?.startsWith('/summer-camp/enroll')
+  const showHeaderFooter = isPublicRoute && !isEnrollmentForm
+
   return (
     <>
-      {isPublicRoute && <Navbar />}
+      {showHeaderFooter && <Navbar />}
       <main id="main-content" style={{ minHeight: isPublicRoute ? 'auto' : '100vh', background: isPublicRoute ? 'transparent' : '#0a0a0a' }}>
         {children}
       </main>
-      {isPublicRoute && (
+      {showHeaderFooter && (
         <>
           <Footer />
           <CookieConsent />
