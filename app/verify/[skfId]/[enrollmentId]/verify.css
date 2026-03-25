@@ -1,0 +1,288 @@
+/* verify.css - Matches the existing global scheme from portal/athlete */
+.verify-page {
+  min-height: 100vh;
+  background-color: var(--bg-dark, #05080f);
+  background-image: radial-gradient(circle at top center, rgba(255, 183, 3, 0.05) 0%, transparent 40%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  color: var(--text-light, #f8fafc);
+}
+
+.verify-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.verify-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.verify-seal {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.text-green-500 { color: #22c55e; }
+.text-red-500 { color: #ef4444; }
+
+.verify-header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.verify-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Card */
+.verify-card {
+  background: rgba(20, 25, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.verify-card--success {
+  border-top: 3px solid #22c55e;
+}
+
+.verify-card--error {
+  border-top: 3px solid #ef4444;
+}
+
+/* Status Banner */
+.verify-status-banner {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.verify-status-banner h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.verify-card--success .verify-status-banner h2 {
+  color: #22c55e;
+}
+
+.verify-card--error .verify-status-banner h2 {
+  color: #ef4444;
+}
+
+.verify-card--success .verify-status-banner {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.1), transparent);
+}
+
+.verify-card--error .verify-status-banner {
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.1), transparent);
+}
+
+/* Card Body */
+.verify-card-body {
+  padding: 1.5rem;
+}
+
+/* Details Grid */
+.verify-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.verify-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .verify-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.verify-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.text-right {
+  text-align: left;
+}
+@media (min-width: 481px) {
+  .text-right {
+    text-align: right;
+  }
+  .text-right .verify-label {
+    justify-content: flex-end;
+  }
+}
+
+.verify-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.verify-value {
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.verify-highlight {
+  font-size: 1.25rem;
+  color: var(--gold, #ffb703);
+  font-weight: 700;
+}
+
+.verify-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  width: 100%;
+  margin: 0.25rem 0;
+}
+
+.verify-footer-note {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Error State */
+.verify-error {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.verify-error > p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.verify-help-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.verify-help-box p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.verify-help-box ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+/* Actions */
+.verify-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .verify-actions {
+    flex-direction: column-reverse;
+  }
+}
+
+.verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.verify-btn--outline {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.verify-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.verify-btn--primary {
+  background: var(--gold, #ffb703);
+  color: #000;
+  border: 1px solid var(--gold, #ffb703);
+  box-shadow: 0 4px 12px rgba(255, 183, 3, 0.2);
+}
+
+.verify-btn--primary:hover {
+  background: #ffcc33;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 183, 3, 0.3);
+}

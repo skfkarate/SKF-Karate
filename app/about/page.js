@@ -1,157 +1,176 @@
+'use client'
+
 import Link from 'next/link'
-import { FaShieldAlt, FaBolt, FaArrowRight, FaMedal, FaUsers, FaGraduationCap, FaGlobe, FaBuilding } from 'react-icons/fa'
-import { GiBlackBelt, GiMeditation, GiPunch } from 'react-icons/gi'
+import { useEffect } from 'react'
+import { FaArrowRight, FaBuilding, FaGlobe, FaInfoCircle, FaCrown } from 'react-icons/fa'
+import { GiBlackBelt, GiMeditation, GiPunch, GiYinYang } from 'react-icons/gi'
+import HomeStatsCounter from '@/app/_components/pages/home/HomeStatsCounter'
+import HomeSenseisTeaser from '@/app/_components/pages/home/HomeSenseisTeaser'
 import './about.css'
 
-
-
 const leadership = [
-    { name: 'Renshi Dr. Channegowda UC', role: 'Founder', dan: '7th Dan', desc: 'Technical Director — The visionary leader and technical backbone of SKF Karate.' },
-    { name: 'Sensei Usha C', role: 'President', dan: '4th Dan', desc: 'Senior Instructor — Leading the association with dedication and conducting specialized training programs.' },
-    { name: 'Sensei Someshekhar', role: 'Vice President', dan: '4th Dan', desc: 'Branch Head — Managing branch operations and overseeing senior student development.' },
-    { name: 'Sensei Rakesh', role: 'General Secretary', dan: '4th Dan', desc: 'Branch Head — Coordinating administrative affairs and leading branch training initiatives.' },
-    { name: 'Latha', role: 'Treasurer', dan: '', desc: 'Managing financial governance and supporting the association\'s growth.' },
+    { name: 'Renshi Dr. Channegowda UC', role: 'Founder & Technical Director', dan: '7th Dan Black Belt', desc: 'The absolute visionary and technical backbone of SKF Karate, bringing decades of elite pedagogical experience to forge global champions.', isFounder: true },
+    { name: 'Sensei Usha C', role: 'President', dan: '4th Dan', desc: 'Leading the association with unwavering dedication and spearheading specialized technical programs.' },
+    { name: 'Sensei Someshekhar', role: 'Vice President', dan: '4th Dan', desc: 'Overseeing metropolitan branch operations and guiding the senior athlete development system.' },
+    { name: 'Sensei Rakesh', role: 'General Secretary', dan: '4th Dan', desc: 'Coordinating high-level administrative affairs and leading advanced branch training initiatives.' },
+    { name: 'Latha', role: 'Treasurer', dan: '', desc: 'Managing vital financial governance and supporting the association\'s rapid infrastructure expansion.' },
 ]
 
 export default function AboutPage() {
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
+
     return (
         <div className="about-page">
-            <section className="page-hero">
-                <div className="page-hero__bg">
-                    <div className="glow glow-red page-hero__glow-1"></div>
-                    <div className="glow glow-blue page-hero__glow-2"></div>
-                </div>
+            {/* ═══════ CINEMATIC HERO ═══════ */}
+            <section className="page-hero about-hero">
+                <div className="page-hero__bg"></div>
+                
                 <div className="container page-hero__content">
-                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="page-hero__logo" />
-                    <h1 className="page-hero__title">About <span className="text-gradient">SKF Karate</span></h1>
-                    <p className="page-hero__subtitle">Sports Karate-do Fitness & Self Defence Association®</p>
+                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="about-hero__logo reveal-on-scroll" />
+                    <span className="section-label hero-label-pulse reveal-on-scroll delay-1"><FaBuilding /> Our Origin</span>
+                    <h1 className="page-hero__title reveal-on-scroll delay-2">
+                        The Legacy of <span className="text-gradient">SKF</span>
+                    </h1>
+                    <p className="page-hero__subtitle reveal-on-scroll delay-3">
+                        Sports Karate-do Fitness & Self Defence Association®
+                    </p>
                 </div>
             </section>
 
-            {/* Philosophy */}
-            <section className="section philosophy">
-                <div className="container philosophy__grid">
-                    <div className="philosophy__text">
-                        <span className="section-label"><GiMeditation /> Our Philosophy</span>
-                        <h2 className="section-title">Forging Champions <br />On & Off the Mat</h2>
-                        <p className="section-subtitle">
-                            SKF Karate stands as an elite institution dedicated to the mastery of
-                            Sports Karate-Do, physical fitness, and practical self-defence. Built on a
-                            foundation of standardized, professional training protocols, we forge champions
-                            both on the mat and in life.
-                        </p>
-                        <p className="philosophy__text-secondary">
-                            Our Senseis bring decades of competition and coaching experience, ensuring
-                            every karateka receives world-class guidance tailored to their potential.
-                        </p>
-                        <Link href="/contact" className="btn btn-primary philosophy__cta">
-                            Begin Your Journey <FaArrowRight />
-                        </Link>
-                    </div>
-                    <div className="philosophy__visual">
-                        <div className="philosophy__card glass-card">
-                            <GiPunch className="philosophy__icon" />
-                            <h3>Nothing is Impossible</h3>
-                            <p>Our founding motto drives every session, every belt earned, every champion made.</p>
-                        </div>
-                    </div>
+            {/* ═══════ THE ZEN PHILOSOPHY CORE ═══════ */}
+            <section className="stats" style={{ marginTop: "-4rem", marginBottom: "4rem" }}>
+                <div className="container stats__grid">
+                    <HomeStatsCounter target={5100} label="Active Athletes" />
+                    <div className="stats__divider"></div>
+                    <HomeStatsCounter target={20} label="Expert Instructors" />
+                    <div className="stats__divider"></div>
+                    <HomeStatsCounter target={15} label="Years Legacy" />
+                    <div className="stats__divider"></div>
+                    <HomeStatsCounter target={300} label="Championships" />
                 </div>
             </section>
 
-            {/* Association Stats */}
-            <section className="section assoc-stats">
+            <section className="section zen-philosophy">
+                <div className="zen-bg-kanji">空手道</div>
                 <div className="container">
-                    <div className="assoc-stats__grid">
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">5100+</span>
-                            <span className="assoc-stat__label">Active Students</span>
+                    <div className="zen-grid reveal-on-scroll">
+                        <div className="zen-content">
+                            <span className="section-label"><GiYinYang /> The Way</span>
+                            <h2 className="section-title">Forging Champions <br /><span className="text-gradient">On & Off the Mat</span></h2>
+                            
+                            <div className="zen-text-block">
+                                <p className="lead-text">
+                                    SKF Karate is not merely a training facility; it is an elite institution dedicated to the absolute mastery of Sports Karate-Do, physical conditioning, and profound mental discipline.
+                                </p>
+                                <p>
+                                    Built on a foundation of standardized, professional WKF training protocols, we forge resilient champions. Our Senseis bring decades of rigorous competition and coaching experience, ensuring every single karateka receives world-class, tailored guidance to unlock their absolute peak potential.
+                                </p>
+                            </div>
+                            
+                            <Link href="/dojos" className="btn btn-primary zen-cta">
+                                Find Your Dojo <FaArrowRight />
+                            </Link>
                         </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">6</span>
-                            <span className="assoc-stat__label">Dojos</span>
-                        </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">20+</span>
-                            <span className="assoc-stat__label">Certified Senseis</span>
-                        </div>
-                        <div className="glass-card assoc-stat">
-                            <span className="assoc-stat__number">300+</span>
-                            <span className="assoc-stat__label">State & National Champions</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Values */}
-            <section className="section values">
-                <div className="glow glow-gold values__glow"></div>
-                <div className="container">
-                    <div className="values__header">
-                        <span className="section-label"><FaMedal /> Our Values</span>
-                        <h2 className="section-title">Three Pillars of <span className="text-gradient">SKF</span></h2>
-                    </div>
-                    <div className="values__grid">
-                        <div className="glass-card value-card">
-                            <div className="value-card__icon"><FaShieldAlt /></div>
-                            <h3>Discipline</h3>
-                            <p>The foundation of all growth. Every stance, every kata, every bow teaches unwavering self-control and mental focus.</p>
-                        </div>
-                        <div className="glass-card value-card value-card--accent">
-                            <div className="value-card__icon"><FaBolt /></div>
-                            <h3>Strength</h3>
-                            <p>Physical and mental fortitude built through rigorous training, pushing boundaries, and embracing challenges head-on.</p>
-                        </div>
-                        <div className="glass-card value-card">
-                            <div className="value-card__icon"><FaUsers /></div>
-                            <h3>Respect</h3>
-                            <p>The core of martial arts. Respect for your Sensei, your opponents, and most importantly, yourself and your journey.</p>
+                        
+                        <div className="zen-visual">
+                            <div className="zen-glass-card">
+                                <div className="zen-glass-card__inner">
+                                    <GiPunch className="zen-icon" />
+                                    <h3>"Nothing is Impossible"</h3>
+                                    <div className="zen-divider"></div>
+                                    <p>Our founding doctrine. This single truth drives every training session, every drop of sweat, and every true champion forged in our halls.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Leadership */}
-            <section className="section leadership">
+            {/* ═══════ HOMEPAGE SENSEIS TEASER (LEGACY) ═══════ */}
+            <HomeSenseisTeaser />
+
+            {/* ═══════ THE VANGUARD (LEADERSHIP) ═══════ */}
+            <section className="section vanguard-section section--tint-mid">
                 <div className="container">
-                    <div className="leadership__header">
-                        <span className="section-label"><FaBuilding /> Leadership</span>
+                    <div className="vanguard-header reveal-on-scroll center">
+                        <span className="section-label"><FaCrown /> The Vanguard</span>
                         <h2 className="section-title">Executive <span className="text-gradient">Committee</span></h2>
+                        <p className="section-subtitle">
+                            The elite council guiding SKF Karate towards absolute global excellence.
+                        </p>
                     </div>
-                    <div className="leadership__grid">
-                        {leadership.map((l, i) => (
-                            <div className="glass-card leader-card" key={i}>
-                                <div className="leader-card__avatar"><GiBlackBelt /></div>
-                                <h3>{l.name}</h3>
-                                <span className="leader-card__role">{l.role}</span>
-                                {l.dan && <span className="leader-card__dan">{l.dan}</span>}
-                                <p>{l.desc}</p>
+
+                    <div className="vanguard-grid">
+                        {leadership.map((leader, idx) => (
+                            <div 
+                                className={`vanguard-card ${leader.isFounder ? 'vanguard-card--founder' : ''} reveal-on-scroll`} 
+                                key={leader.name}
+                                style={{ transitionDelay: (idx * 0.1) + 's' }}
+                            >
+                                <div className="vanguard-card__glow"></div>
+                                <div className="vanguard-card__content">
+                                    <div className="vanguard-icon-wrap">
+                                        {leader.isFounder ? <FaCrown className="founder-icon" /> : <GiBlackBelt className="leader-icon" />}
+                                    </div>
+                                    <div className="vanguard-meta">
+                                        <h3>{leader.name}</h3>
+                                        <span className="vanguard-role">{leader.role}</span>
+                                        {leader.dan && <span className="vanguard-dan">{leader.dan}</span>}
+                                    </div>
+                                    <p className="vanguard-desc">{leader.desc}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Affiliations */}
-            <section className="section affiliations">
+            {/* ═══════ GLOBAL STANDARD (AFFILIATIONS) ═══════ */}
+            <section className="section global-standard">
+                <div className="global-bg-glow"></div>
                 <div className="container">
-                    <div className="affiliations__header">
-                        <span className="section-label"><FaGlobe /> Affiliations</span>
-                        <h2 className="section-title">Our <span className="text-gradient">Affiliations</span></h2>
+                    <div className="global-header reveal-on-scroll center">
+                        <span className="section-label" style={{ backgroundColor: 'rgba(63, 81, 181, 0.15)', color: '#8c9eff', borderColor: 'rgba(63, 81, 181, 0.3)' }}>
+                            <FaGlobe /> Global Recognition
+                        </span>
+                        <h2 className="section-title">Elite <span className="text-gradient-blue">Affiliations</span></h2>
+                        <p className="section-subtitle">
+                            Our training protocols and belt ranks are universally recognized by the highest governing bodies in global Karate.
+                        </p>
                     </div>
-                    <div className="affiliations__hierarchy">
-                        <div className="glass-card affiliation-card affiliation-card--primary">
-                            <img src="/affliciation/akska.png" alt="AKSKA Logo" className="affiliation-card__logo" />
-                            <h4>Akhila Karnataka Sports Karate Association</h4>
-                        </div>
-                        
-                        <div className="affiliation-tree__branches">
-                            <div className="glass-card affiliation-card">
-                                <img src="/affliciation/wkf.png" alt="WKF Logo" className="affiliation-card__logo" />
+
+                    <div className="affiliation-showcase reveal-on-scroll">
+                        {/* Left: WKF */}
+                        <div className="affil-node">
+                            <div className="affil-glass">
+                                <img src="/affliciation/wkf.png" alt="WKF Logo" />
                                 <h4>World Karate Federation</h4>
                             </div>
-                            
-                            <div className="glass-card affiliation-card">
-                                <img src="/affliciation/kio.png" alt="KIO Logo" className="affiliation-card__logo" />
+                        </div>
+                        
+                        {/* Center: Primary Affiliation */}
+                        <div className="affil-node affil-primary">
+                            <div className="affil-glass">
+                                <img src="/affliciation/akska.png" alt="AKSKA Logo" />
+                                <h4>Akhila Karnataka Sports Karate Association</h4>
+                            </div>
+                        </div>
+
+                        {/* Right: KIO */}
+                        <div className="affil-node">
+                            <div className="affil-glass">
+                                <img src="/affliciation/kio.png" alt="KIO Logo" />
                                 <h4>Karate India Organisation</h4>
                             </div>
                         </div>
@@ -159,67 +178,18 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Timeline */}
-            <section className="section timeline-section">
+            {/* ═══════ ORIGIN CTA ═══════ */}
+            <section className="section origin-cta section--tint-cool">
                 <div className="container">
-                    <div className="timeline__header">
-                        <span className="section-label"><FaGraduationCap /> Our Journey</span>
-                        <h2 className="section-title">The SKF <span className="text-gradient">Legacy</span></h2>
-                    </div>
-                    <div className="timeline">
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">The Beginning</span>
-                                <h3>A Vision Takes Shape</h3>
-                                <p>Renshi Dr. Channegowda UC founded SKF Karate with a single batch of students and a bold promise — to bring world-class, standardized Sports Karate-Do training to Karnataka.</p>
-                            </div>
+                    <div className="origin-cta__card glass-card reveal-on-scroll">
+                        <h2 className="section-title">Write Your History With Us</h2>
+                        <p className="section-subtitle" style={{ margin: '0 auto 2rem auto', textAlign: 'center', maxWidth: '600px' }}>
+                            Whether you are stepping onto the tatami for the first time or returning to the path of mastery, the SKF family welcomes you. Oss!
+                        </p>
+                        <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Link href="/contact" className="btn btn-primary">Begin Your Journey <FaArrowRight /></Link>
+                            <Link href="/athlete" className="btn btn-secondary">Find Athlete Profile</Link>
                         </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">First Champions</span>
-                                <h3>Making Karnataka Proud</h3>
-                                <p>SKF students stepped onto the State Championship podium for the first time — marking the beginning of a winning legacy that would produce 300+ champions and counting.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">Expansion</span>
-                                <h3>Growing Across the Region</h3>
-                                <p>What started as one training center grew into multiple branches, each led by certified Senseis trained under Renshi&apos;s direct mentorship — bringing SKF&apos;s discipline to thousands of families.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">5100+ Strong</span>
-                                <h3>A Community, Not Just a Club</h3>
-                                <p>With over 5100 active students, SKF became more than a karate association — it became a movement. Belt ceremonies, inter-dojo tournaments, and national-level representation became the norm.</p>
-                            </div>
-                        </div>
-                        <div className="timeline__item">
-                            <div className="timeline__marker"></div>
-                            <div className="glass-card timeline__card">
-                                <span className="timeline__year">2026</span>
-                                <h3>Summer Camp &amp; Beyond</h3>
-                                <p>Launching the most ambitious Summer Camp yet — intensive training, belt progression, and life skills development. The legacy continues to grow, one karateka at a time.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section className="section about-cta">
-                <div className="container about-cta__inner">
-                    <h2 className="section-title">Ready to Begin?</h2>
-                    <p className="section-subtitle about-cta__subtitle">
-                        Whether you are a beginner stepping onto the mat for the first time or an experienced karateka — SKF Karate welcomes you. Oss!
-                    </p>
-                    <div className="about-cta__buttons">
-                        <Link href="/summer-camp" className="btn btn-primary">Summer Camp 2026 <FaArrowRight /></Link>
-                        <Link href="/contact" className="btn btn-secondary">Contact Us</Link>
                     </div>
                 </div>
             </section>

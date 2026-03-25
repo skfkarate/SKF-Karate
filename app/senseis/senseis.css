@@ -1,147 +1,449 @@
-/* ===== SENSEIS HERO GRADIENT ===== */
+/* ============================================================
+   SENSEIS PAGE — Master Spotlights
+   ============================================================ */
+
+/* ── IMMERSIVE HERO ── */
+.senseis-page .sensei-hero {
+    position: relative;
+    padding: 8rem 0 6rem;
+    min-height: 55vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
 .senseis-page .page-hero__bg {
-    background: linear-gradient(180deg, var(--navy-deep) 0%, #070a14 55%, var(--bg-body) 100%);
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, var(--navy-deep) 0%, #080c18 55%, var(--bg-body) 100%);
+    z-index: 0;
 }
+
+
+
 .senseis-page .page-hero__bg::after {
-    background: radial-gradient(circle at 50% 0%, rgba(63, 81, 181, 0.07) 0%, transparent 60%);
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 10%, rgba(63, 81, 181, 0.15) 0%, rgba(214, 40, 40, 0.05) 50%, transparent 70%);
+    z-index: 0;
 }
 
-.senseis__intro {
-    margin-bottom: 4rem;
+.hero-label-pulse {
+    animation: pulse 2.5s infinite;
 }
 
-.senseis__grid {
+/* ── GRANDMASTER SPOTLIGHTS ── */
+.spotlight-section {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+.spotlight-card {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: 1fr 2.5fr;
+    gap: 4rem;
+    align-items: center;
+    background: rgba(12, 16, 28, 0.65);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 4.5rem;
+    position: relative;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transition: all 0.5s ease;
 }
 
-.sensei-card {
-    padding: 2.5rem 2rem;
-    text-align: center;
+.spotlight-card:hover {
+    border-color: rgba(255, 183, 3, 0.3);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(255, 183, 3, 0.05);
+    background: rgba(12, 16, 28, 0.85);
 }
 
-.sensei-card__avatar {
-    width: 80px;
-    height: 80px;
+/* Alternate Left/Right Layout */
+.spotlight-card--reverse {
+    grid-template-columns: 2.5fr 1fr;
+    text-align: right;
+}
+
+.spotlight-card--reverse .spotlight-card__visual {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.spotlight-card--reverse .spotlight-card__content {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.spotlight-card--reverse .spotlight-stats {
+    direction: rtl; /* Allows the stats to mirror elegantly */
+}
+.spotlight-card--reverse .spotlight-stat {
+    text-align: right;
+}
+
+/* Quote mirroring */
+.spotlight-card--reverse .spotlight-quote {
+    padding-left: 0;
+    padding-right: 2.5rem;
+    border-left: none;
+    border-right: 4px solid var(--gold);
+}
+
+.spotlight-card--reverse .spotlight-quote-icon {
+    left: auto;
+    right: 20px;
+}
+
+.spotlight-card--reverse .spotlight-achievements strong {
+    justify-content: flex-end;
+}
+.spotlight-card--reverse .spotlight-achievements p {
+    text-align: right;
+}
+
+.spotlight-card--reverse .spotlight-action {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Visual Glow Ring */
+.spotlight-card__visual {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.spotlight-avatar-ring {
+    position: relative;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
-    margin: 0 auto 1.5rem auto;
+    padding: 3px;
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Color Variants */
+.spotlight-avatar-ring--gold {
+    background: linear-gradient(135deg, rgba(255, 183, 3, 0.3), rgba(214, 40, 40, 0.2));
+    box-shadow: 0 15px 40px rgba(255, 183, 3, 0.2);
+}
+.spotlight-avatar-ring--gold::before { border-color: rgba(255, 183, 3, 0.3); }
+
+.spotlight-avatar-ring--crimson {
+    background: linear-gradient(135deg, rgba(214, 40, 40, 0.4), rgba(255, 183, 3, 0.2));
+    box-shadow: 0 15px 40px rgba(214, 40, 40, 0.3);
+}
+.spotlight-avatar-ring--crimson::before { border-color: rgba(214, 40, 40, 0.4); }
+
+.spotlight-avatar-ring--blue {
+    background: linear-gradient(135deg, rgba(63, 81, 181, 0.4), rgba(20, 33, 61, 0.2));
+    box-shadow: 0 15px 40px rgba(63, 81, 181, 0.3);
+}
+.spotlight-avatar-ring--blue::before { border-color: rgba(63, 81, 181, 0.4); }
+
+.spotlight-avatar-ring::before {
+    content: '';
+    position: absolute;
+    inset: -15px;
+    border-radius: 50%;
+    border: 1px dashed;
+    animation: spin 30s linear infinite;
+}
+
+.spotlight-avatar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #101626 0%, #0a0d18 100%);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 5.5rem;
     color: var(--gold);
-    background: rgba(255, 183, 3, 0.08);
-    border: 2px solid rgba(255, 183, 3, 0.2);
+    border: 2px solid rgba(255,255,255,0.05);
 }
 
-.sensei-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.3rem;
-}
-
-.sensei-card__dan {
-    display: block;
-    color: var(--gold);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-bottom: 0.3rem;
-}
-
-.sensei-card__role {
-    display: inline-block;
-    background: rgba(214, 40, 40, 0.08);
-    color: var(--crimson-light);
-    border: 1px solid rgba(214, 40, 40, 0.15);
-    padding: 0.25rem 0.8rem;
+.spotlight-badge {
+    margin-top: -20px;
+    z-index: 2;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    padding: 8px 24px;
     border-radius: 50px;
-    font-size: 0.7rem;
+    box-shadow: 0 8px 25px rgba(255, 183, 3, 0.4);
+    position: relative;
+}
+
+.spotlight-badge__rank {
+    color: #000;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Content */
+.spotlight-card__content {
+    position: relative;
+    z-index: 2;
+}
+
+.spotlight-role {
+    display: block;
+    color: var(--crimson-light);
+    font-size: 0.9rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 1.5rem;
+    letter-spacing: 3px;
+    margin-bottom: 0.5rem;
 }
 
-.sensei-card__details {
+.spotlight-name {
+    font-family: var(--font-heading);
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(to right, #ffffff 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    letter-spacing: -1px;
+}
+
+.spotlight-quote {
+    position: relative;
+    padding-left: 2.5rem;
+    border-left: 4px solid var(--gold);
+    color: var(--text-light);
+    font-size: 1.3rem;
+    font-style: italic;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+}
+
+.spotlight-quote-icon {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-size: 3rem;
+    color: rgba(255, 183, 3, 0.1);
+    z-index: -1;
+}
+
+.spotlight-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.spotlight-stat {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.2rem;
-    text-align: left;
+    gap: 0.4rem;
 }
 
-.sensei-detail {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 0.85rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.sensei-detail strong {
-    color: var(--text-muted);
-    font-size: 0.75rem;
+.spotlight-stat strong {
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1.5px;
 }
 
-.sensei-detail span {
+.spotlight-stat span {
+    font-size: 1.05rem;
+    color: var(--text-white);
+    font-weight: 500;
+}
+
+.spotlight-achievements {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    margin-bottom: 2.5rem;
+}
+
+.spotlight-achievements strong {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-white);
+    margin-bottom: 0.5rem;
+}
+
+.spotlight-achievements p {
     color: var(--text-light);
-    text-align: right;
-    max-width: 55%;
-}
-
-.sensei-card__achievements {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-style: italic;
+    font-size: 1rem;
     line-height: 1.6;
-    border-top: 1px solid var(--border-subtle);
-    padding-top: 1rem;
+    margin: 0;
 }
 
-@media (max-width: 992px) {
-    .senseis__grid {
-        grid-template-columns: repeat(2, 1fr);
+.profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 2rem;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.profile-btn:hover {
+    background: rgba(255, 183, 3, 0.1);
+    box-shadow: 0 4px 15px rgba(255, 183, 3, 0.2);
+    color: var(--gold-light);
+}
+
+/* ── CTA ── */
+.sensei-cta {
+    padding-bottom: 8rem;
+}
+
+.sensei-cta__card {
+    position: relative;
+    text-align: center;
+    padding: 5rem 2rem;
+    border: 1px solid rgba(214, 40, 40, 0.2);
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(12, 16, 28, 0.6);
+}
+
+.sensei-cta__bg-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(214, 40, 40, 0.1) 0%, transparent 60%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.sensei-cta .section-title, .sensei-cta .section-subtitle, .sensei-cta__actions {
+    position: relative;
+    z-index: 2;
+}
+
+.sensei-cta__subtitle {
+    margin: 0 auto 3rem auto;
+    max-width: 600px;
+}
+
+.sensei-cta__actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ── RESPONSIVE COMPATIBILITY ── */
+
+@media (max-width: 1024px) {
+    .spotlight-card, .spotlight-card--reverse {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    
+    .spotlight-card--reverse .spotlight-card__visual, .spotlight-card__visual {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .spotlight-card--reverse .spotlight-card__content, .spotlight-card__content {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    
+    .spotlight-quote, .spotlight-card--reverse .spotlight-quote {
+        margin: 0 auto 2rem auto;
+        text-align: center;
+        border-left: none;
+        border-right: none;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .spotlight-quote-icon, .spotlight-card--reverse .spotlight-quote-icon {
+        display: none;
+    }
+    
+    .spotlight-stats {
+        grid-template-columns: 1fr 1fr 1fr;
+        direction: ltr !important;
+    }
+
+    .spotlight-stat {
+        text-align: center !important;
+    }
+    
+    .spotlight-card--reverse .spotlight-achievements strong {
+        justify-content: center;
+    }
+
+    .spotlight-card--reverse .spotlight-achievements p {
+        text-align: center;
+    }
+
+    .spotlight-card--reverse .spotlight-action {
+        justify-content: center;
     }
 }
 
-@media (max-width: 600px) {
-    .senseis__grid {
+@media (max-width: 768px) {
+    .spotlight-avatar-ring {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .spotlight-avatar {
+        font-size: 4rem;
+    }
+    
+    .spotlight-name {
+        font-size: 2.5rem;
+    }
+    
+    .spotlight-stats {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
 @media (max-width: 480px) {
-    .senseis__intro {
-        margin-bottom: 2.5rem;
+    .senseis-page .page-hero__title {
+        font-size: 3rem;
     }
-
-    .sensei-card {
-        padding: 2rem 1.25rem;
+    
+    .spotlight-card {
+        padding: 3rem 1.5rem;
     }
-
-    .sensei-card__avatar {
-        width: 65px;
-        height: 65px;
-        font-size: 1.6rem;
+    
+    .spotlight-name {
+        font-size: 2.2rem;
     }
-
-    .sensei-card h3 {
-        font-size: 1.1rem;
-    }
-
-    .sensei-detail {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.3rem;
-    }
-
-    .sensei-detail span {
-        text-align: left;
-        max-width: 100%;
-        font-size: 0.9rem;
+    
+    .spotlight-quote {
+        font-size: 1.15rem;
     }
 }
