@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import { FaArrowRight, FaBuilding, FaGlobe, FaInfoCircle, FaCrown } from 'react-icons/fa'
 import { GiBlackBelt, GiMeditation, GiPunch, GiYinYang } from 'react-icons/gi'
@@ -37,7 +38,7 @@ export default function AboutPage() {
                 <div className="page-hero__bg"></div>
                 
                 <div className="container page-hero__content">
-                    <img src="/logo/SKF%20logo.png" alt="SKF Logo" className="about-hero__logo reveal-on-scroll" />
+                    <Image src="/logo/SKF logo.png" alt="SKF Logo" width={120} height={120} className="about-hero__logo reveal-on-scroll" />
                     <span className="section-label hero-label-pulse reveal-on-scroll delay-1"><FaBuilding /> Our Origin</span>
                     <h1 className="page-hero__title reveal-on-scroll delay-2">
                         The Legacy of <span className="text-gradient">SKF</span>
@@ -78,9 +79,9 @@ export default function AboutPage() {
                                 </p>
                             </div>
                             
-                            <Link href="/dojos" className="btn btn-primary zen-cta">
-                                Find Your Dojo <FaArrowRight />
-                            </Link>
+                            <span className="btn btn-primary zen-cta" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                Find Your Dojo (Soon)
+                            </span>
                         </div>
                         
                         <div className="zen-visual">
@@ -154,7 +155,7 @@ export default function AboutPage() {
                         {/* Left: WKF */}
                         <div className="affil-node">
                             <div className="affil-glass">
-                                <img src="/affliciation/wkf.png" alt="WKF Logo" />
+                                <Image src="/affliciation/wkf.png" alt="WKF Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
                                 <h4>World Karate Federation</h4>
                             </div>
                         </div>
@@ -162,7 +163,7 @@ export default function AboutPage() {
                         {/* Center: Primary Affiliation */}
                         <div className="affil-node affil-primary">
                             <div className="affil-glass">
-                                <img src="/affliciation/akska.png" alt="AKSKA Logo" />
+                                <Image src="/affliciation/akska.png" alt="AKSKA Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
                                 <h4>Akhila Karnataka Sports Karate Association</h4>
                             </div>
                         </div>
@@ -170,7 +171,7 @@ export default function AboutPage() {
                         {/* Right: KIO */}
                         <div className="affil-node">
                             <div className="affil-glass">
-                                <img src="/affliciation/kio.png" alt="KIO Logo" />
+                                <Image src="/affliciation/kio.png" alt="KIO Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
                                 <h4>Karate India Organisation</h4>
                             </div>
                         </div>
@@ -188,7 +189,7 @@ export default function AboutPage() {
                         </p>
                         <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <Link href="/contact" className="btn btn-primary">Begin Your Journey <FaArrowRight /></Link>
-                            <Link href="/athlete" className="btn btn-secondary">Find Athlete Profile</Link>
+                            <span className="btn btn-secondary" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Find Athlete Profile (Soon)</span>
                         </div>
                     </div>
                 </div>

@@ -376,78 +376,124 @@
     margin-bottom: 2rem;
 }
 
-.monolith-time {
+.monolith-kanji {
+    font-size: 4rem;
+    font-family: 'Yu Mincho', 'Sawarabi Mincho', serif;
+    color: rgba(255, 183, 3, 0.08);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    user-select: none;
+    letter-spacing: 4px;
+}
+
+.dan-monolith:hover .monolith-kanji {
+    color: rgba(255, 183, 3, 0.18);
+    transition: color 0.5s ease;
+}
+
+.monolith-role {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 183, 3, 0.05);
-    border: 1px solid rgba(255, 183, 3, 0.2);
+    padding: 0.4rem 1.2rem;
+    background: rgba(255, 183, 3, 0.06);
+    border: 1px solid rgba(255, 183, 3, 0.15);
     border-radius: 50px;
-    font-size: 0.8rem;
-    color: var(--gold-light);
-}
-
-.monolith-time strong {
-    color: white;
+    font-size: 0.78rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+}
+
+.monolith-principle {
+    display: block;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 183, 3, 0.03);
+    border-left: 3px solid rgba(255, 183, 3, 0.3);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    text-align: left;
 }
 
 
-/* ── JOURNEY CTA ── */
+/* ── JOURNEY CTA (Monolith Style) ── */
 .grad-cta-section {
     padding: 8rem 0;
 }
 
-.grad-cta-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    background: rgba(16, 22, 38, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    overflow: hidden;
-}
-
-.grad-cta__content {
-    padding: 5rem 4rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.grad-cta__content .section-title {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.grad-cta__content .section-subtitle {
-    margin-bottom: 2.5rem;
-}
-
-.grad-cta__buttons {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.grad-cta__visual {
-    background: linear-gradient(135deg, rgba(20, 25, 40, 0.8), rgba(12, 16, 28, 0.9));
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.grad-cta-monolith {
     position: relative;
     overflow: hidden;
+    text-align: center;
+    padding: 5rem 3rem;
+    background: rgba(8, 10, 15, 0.8);
+    border: 1px solid rgba(255, 183, 3, 0.12);
+    border-radius: 16px;
+    max-width: 700px;
+    margin: 0 auto;
 }
 
-.cta-katana {
-    font-size: 15rem;
-    color: rgba(255, 255, 255, 0.03);
-    transform: rotate(45deg);
-    transition: all 0.8s ease;
+.grad-cta-monolith__glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center top, rgba(255, 183, 3, 0.08) 0%, transparent 60%);
+    pointer-events: none;
 }
 
-.grad-cta-card:hover .cta-katana {
-    transform: rotate(45deg) scale(1.1);
-    color: rgba(214, 40, 40, 0.08);
+.grad-cta-monolith__kanji {
+    font-size: 12rem;
+    font-family: 'Yu Mincho', 'Sawarabi Mincho', serif;
+    color: rgba(255, 183, 3, 0.04);
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+}
+
+.grad-cta-monolith__stripe {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--gold);
+    box-shadow: 0 0 15px var(--gold);
+}
+
+.grad-cta-monolith__title {
+    position: relative;
+    z-index: 1;
+    font-size: 2.5rem;
+    font-family: var(--font-heading);
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.grad-cta-monolith__subtitle {
+    position: relative;
+    z-index: 1;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto 2.5rem auto;
+}
+
+.grad-cta-monolith__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 
@@ -471,47 +517,73 @@
         font-size: 3rem;
     }
     
-    .grad-cta-card {
-        grid-template-columns: 1fr;
+    .grad-cta-monolith {
+        padding: 3rem 1.5rem;
+    }
+
+    .grad-cta-monolith__title {
+        font-size: 2rem;
     }
     
-    .grad-cta__content {
-        padding: 3rem 2rem;
-        text-align: center;
+    .grad-cta-monolith__kanji {
+        font-size: 8rem;
     }
-    
-    .grad-cta__buttons {
-        justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .grad-kyu-section, .grad-cta-section {
+        padding: 4rem 0;
     }
-    
-    .grad-cta__visual {
-        min-height: 200px;
-        border-left: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    .grad-dan-sanctuary {
+        padding: 5rem 0;
+    }
+    .grad-hero {
+        min-height: 40vh;
+    }
+    .kyu-split-layout {
+        gap: 2rem;
+    }
+    .kyu-cards-flow {
+        gap: 1.5rem;
+    }
+    .dan-monolith {
+        padding: 2.5rem 1.5rem;
     }
 }
 
 @media (max-width: 480px) {
     .grad-hero {
-        padding-top: 8rem;
+        padding-top: 6rem;
     }
     
     .grad-hero__title {
-        font-size: 2.4rem;
+        font-size: 2.2rem;
     }
     
-    .dan-monolith {
-        padding: 2.5rem 1.5rem;
+    .grad-hero__kanji-bg {
+        font-size: 20rem;
     }
-    
+
     .kyu-card-inner {
         flex-direction: column;
         gap: 1.5rem;
-        padding: 2rem 1.5rem;
+        padding: 1.5rem;
     }
     
     .kyu-rank-meta {
         flex-direction: row;
         align-items: center;
+    }
+
+    .dan-monolith {
+        padding: 2rem 1.25rem;
+    }
+
+    .grad-cta-monolith__title {
+        font-size: 1.8rem;
+    }
+    
+    .grad-cta-monolith__kanji {
+        font-size: 5rem;
     }
 }

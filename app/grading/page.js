@@ -3,28 +3,28 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { FaArrowRight, FaFistRaised } from 'react-icons/fa'
-import { GiBlackBelt, GiYinYang, GiKatana } from 'react-icons/gi'
+import { GiBlackBelt, GiYinYang } from 'react-icons/gi'
 import './grading.css'
 
 const kyuBelts = [
-    { kyu: '10th Kyu', belt: 'White Belt', color: '#f8f9fa', textSync: '#212529', desc: "The empty cup. A state of pure readiness and beginner's mind (Shoshin). The journey of a thousand miles begins here.", requirements: "Basic stances (Dachi), straight punches (Choku Zuki), and blocks (Uke)." },
-    { kyu: '9th Kyu', belt: 'Yellow Belt', color: '#ffb703', textSync: '#ffffff', desc: "The first ray of sunlight breaking the darkness. The student begins to understand the mechanics of their own body.", requirements: "Pinan Nidan, basic combinations, and multi-directional movement." },
-    { kyu: '8th Kyu', belt: 'Orange Belt', color: '#fb8500', textSync: '#ffffff', desc: "The warming earth. Strength and coordination begin to align. The foundational movements become familiar.", requirements: "Pinan Shodan, introduction to sparring distance (Maai)." },
-    { kyu: '7th Kyu', belt: 'Green II', color: '#2a9d8f', textSync: '#ffffff', desc: "The sprouting seed. The student learns to adapt, breathe, and yield before striking.", requirements: "Pinan Sandan, advanced blocking, and breath regulation." },
-    { kyu: '6th Kyu', belt: 'Green I', color: '#206a5d', textSync: '#ffffff', desc: "The growing tree. Roots go deep as stances solidify. Techniques generate true mechanical power.", requirements: "Pinan Yondan, continuous striking combinations." },
-    { kyu: '5th Kyu', belt: 'Blue Belt', color: '#023e8a', textSync: '#ffffff', desc: "The vast sky. Fluidity of movement takes precedence over sheer force. Mind and body synchronize.", requirements: "Pinan Godan, introduction to fluid counter-striking." },
-    { kyu: '4th Kyu', belt: 'Purple Belt', color: '#7209b7', textSync: '#ffffff', desc: "The darkening sky. Transitioning from intermediate to advanced. A deep dive into the hidden applications of kata.", requirements: "Naihanchi Shodan, advanced Kumite tactics, and close-quarters Bunkai." },
-    { kyu: '3rd Kyu', belt: 'Brown III', color: '#cd7f32', textSync: '#ffffff', desc: "The ripening harvest. Nearing physical maturity in the art. Every strike is delivered with potent, undeniable intent.", requirements: "Naihanchi Nidan, heavy conditioning, and complex defensive maneuvers." },
-    { kyu: '2nd Kyu', belt: 'Brown II', color: '#a0522d', textSync: '#ffffff', desc: "The solid rock. Unwavering mental resilience. The practitioner demonstrates exceptional focus under extreme pressure.", requirements: "Naihanchi Sandan, mastery of all earlier katas." },
-    { kyu: '1st Kyu', belt: 'Brown I', color: '#5c4033', textSync: '#ffffff', desc: "The absolute threshold. The final exacting trial before the elite ranks. Perfection of basics is absolutely mandated.", requirements: "Bassai Dai. The final test of spirit, technique, and stamina." },
+    { kyu: '10th Kyu', belt: 'White Belt', color: '#f8f9fa', textSync: '#212529', desc: "\"In the beginner's mind there are many possibilities, in the expert's mind there are few.\" — Shunryū Suzuki. White represents Shoshin (初心), the empty mind ready to receive. You own nothing yet — and that is your greatest advantage." },
+    { kyu: '9th Kyu', belt: 'Yellow Belt', color: '#ffb703', textSync: '#ffffff', desc: "The first sunrise. As Gichin Funakoshi taught: \"Karate begins and ends with courtesy.\" The yellow belt learns that every technique starts with Rei (礼) — respect and humility on the tatami." },
+    { kyu: '8th Kyu', belt: 'Orange Belt', color: '#fb8500', textSync: '#ffffff', desc: "The warming fire within. The practitioner discovers Kime (決め) — the art of focusing total energy into a single decisive point. Movements transition from mechanical repetition to deliberate intent." },
+    { kyu: '7th Kyu', belt: 'Green II', color: '#2a9d8f', textSync: '#ffffff', desc: "The bamboo bends but never breaks. At this stage, the karateka learns Tai Sabaki (体捌き) — body shifting to evade and redirect force. As Miyamoto Musashi wrote: \"Do not waste movement. Do not waste time.\"" },
+    { kyu: '6th Kyu', belt: 'Green I', color: '#206a5d', textSync: '#ffffff', desc: "Deep roots, unbending trunk. The student begins to grasp Koshi (腰) — generating devastating power from the hips, not the arms. Every senior karateka knows: the punch is born in the floor, travels through the hips, and exits through the fist." },
+    { kyu: '5th Kyu', belt: 'Blue Belt', color: '#023e8a', textSync: '#ffffff', desc: "The ocean has no wasted motion. Blue represents the pursuit of Nagare (流れ) — flow. Techniques begin to chain seamlessly. The gap between thought and action narrows. As the ancient maxim states: \"Flowing water never goes stale.\"" },
+    { kyu: '4th Kyu', belt: 'Purple Belt', color: '#7209b7', textSync: '#ffffff', desc: "\"To know the Kata is not enough. You must know the Bunkai.\" Purple marks the threshold where the student looks beyond the visible form and discovers the hidden combat applications (Bunkai 分解) embedded within every Kata since the Okinawan masters." },
+    { kyu: '3rd Kyu', belt: 'Brown III', color: '#cd7f32', textSync: '#ffffff', desc: "The harvest before winter. Brown represents earth — the karateka is grounded, conditioned, dangerous. The concept of Ikken Hissatsu (一拳必殺) — \"one strike, certain defeat\" — becomes the standard. No technique is thrown without total commitment." },
+    { kyu: '2nd Kyu', belt: 'Brown II', color: '#a0522d', textSync: '#ffffff', desc: "Zanshin (残心) — the lingering mind. After delivering a technique, the warrior remains alert, poised, unfinished. There is no relaxation until the threat is neutralized. At this level, mental discipline eclipses physical ability." },
+    { kyu: '1st Kyu', belt: 'Brown I', color: '#5c4033', textSync: '#ffffff', desc: "\"Before enlightenment, chop wood, carry water. After enlightenment, chop wood, carry water.\" The final Kyu grade demands absolute mastery of fundamentals. Fancy techniques mean nothing — Kihon (基本), the basics, must be flawless under any condition." },
 ]
 
 const danGrades = [
-    { dan: 'Shodan', level: '1st Dan', desc: 'Mastery of the basics. The student has now become a true beginner of Karate-do.', years: '3-4 Years' },
-    { dan: 'Nidan', level: '2nd Dan', desc: 'Technical refinement. Smoothness of technique and introductory dojo leadership.', years: '2+ Years from Shodan' },
-    { dan: 'Sandan', level: '3rd Dan', desc: 'Advanced Bunkai (application). Eligibility to act as an instructor.', years: '3+ Years from Nidan' },
-    { dan: 'Yondan', level: '4th Dan', desc: 'Sensei level. Physical perfection combined with pedagogical mastery.', years: '4+ Years from Sandan' },
-    { dan: 'Godan', level: '5th Dan', desc: 'Shihan eligibility. Moving entirely beyond physical technique into spiritual mastery.', years: '5+ Years from Yondan' },
+    { dan: 'Shodan', level: '1st Dan', kanji: '初段', role: 'Sempai — Senior Student', principle: 'Hitotsu! Doryoku no Seishin wo Yashinau Koto — Foster the spirit of effort.', desc: "\"Shodan does not mean expert. It means you are now ready to truly begin.\" — Gichin Funakoshi. The Black Belt is not a destination; it is permission to start learning Karate-do for real. The ego dissolves; the student is reborn." },
+    { dan: 'Nidan', level: '2nd Dan', kanji: '弐段', role: 'Sempai — Mentor & Demonstrator', principle: 'Hitotsu! Makoto no Michi wo Mamoru Koto — Be faithful and sincere.', desc: "The rough edges are polished. Techniques become silk over steel — smooth on the surface, devastating underneath. The Nidan practitioner begins teaching junior students, learning that to teach is the deepest form of understanding." },
+    { dan: 'Sandan', level: '3rd Dan', kanji: '参段', role: 'Sensei — Qualified Instructor', principle: 'Hitotsu! Reigi wo Omonzuru Koto — Respect others and practice etiquette.', desc: "\"Karate is not about winning. Karate is about not losing — not losing your composure, not losing your dignity.\" At Sandan, Bunkai mastery is expected. The practitioner sees the invisible threads connecting every Kata to real combat." },
+    { dan: 'Yondan', level: '4th Dan', kanji: '四段', role: 'Shihan-Dai — Master Instructor', principle: 'Hitotsu! Kekki no Yu wo Imashimuru Koto — Refrain from violent and impetuous behaviour.', desc: "Sensei (先生) — \"one who has walked before.\" The Yondan has earned the full right to lead a Dojo, shape curriculum, and forge the next generation. Physical technique and teaching pedagogy exist in perfect Wa (和) — harmony." },
+    { dan: 'Godan', level: '5th Dan', kanji: '五段', role: 'Shihan — Grand Master', principle: 'Hitotsu! Jinkaku Kansei ni Tsutomuru Koto — Seek perfection of character.', desc: "Mushin (無心) — the mind of no mind. At Godan, technique is forgotten because it has become the practitioner. There is no separation between thought and action. The body moves; the conscious mind simply watches. This is the way of the master." },
 ]
 
 export default function GradingPage() {
@@ -95,9 +95,6 @@ export default function GradingPage() {
                                                 <span className="kyu-belt-name" style={{ color: rank.color }}>{rank.belt}</span>
                                             </div>
                                             <p className="kyu-desc">{rank.desc}</p>
-                                            <div className="kyu-req">
-                                                <strong>Focus:</strong> {rank.requirements}
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -133,11 +130,13 @@ export default function GradingPage() {
                                     <div className="monolith-glow"></div>
                                     <div className="monolith-content">
                                         <div className="monolith-stripe"></div>
+                                        <div className="monolith-kanji">{dan.kanji}</div>
                                         <h3 className="monolith-title">{dan.dan}</h3>
                                         <span className="monolith-level">{dan.level}</span>
+                                        <span className="monolith-role">{dan.role}</span>
                                         <p className="monolith-desc">{dan.desc}</p>
-                                        <div className="monolith-time">
-                                            <strong>Time in Grade:</strong> {dan.years}
+                                        <div className="monolith-principle">
+                                            <em>{dan.principle}</em>
                                         </div>
                                     </div>
                                 </div>
@@ -148,20 +147,20 @@ export default function GradingPage() {
             </section>
 
             {/* ═══════ JOURNEY CTA ═══════ */}
-            <section className="section grad-cta-section">
+            <section className="grad-cta-section">
                 <div className="container">
-                    <div className="grad-cta-card slab-reveal">
-                        <div className="grad-cta__content">
-                            <h2 className="section-title">Are You Ready For Your Trial?</h2>
-                            <p className="section-subtitle">
-                                The path requires utter devotion. Consult your Sensei to determine if you are mentally and physically prepared for the next grading cycle.
-                            </p>
-                            <div className="grad-cta__buttons">
-                                <Link href="/events" className="btn btn-primary">Check Grading Calendar <FaArrowRight /></Link>
-                            </div>
-                        </div>
-                        <div className="grad-cta__visual">
-                            <GiKatana className="cta-katana" />
+                    <div className="grad-cta-monolith slab-reveal">
+                        <div className="grad-cta-monolith__glow"></div>
+                        <div className="grad-cta-monolith__kanji">道</div>
+                        <div className="grad-cta-monolith__stripe"></div>
+                        <h2 className="grad-cta-monolith__title">The Path Awaits</h2>
+                        <p className="grad-cta-monolith__subtitle">
+                            &ldquo;A black belt is a white belt who never quit.&rdquo;<br />
+                            Speak with your Sensei. When both mind and body are aligned, the grading board will summon you.
+                        </p>
+                        <div className="grad-cta-monolith__actions">
+                            <Link href="/events" className="btn btn-primary">View Events Calendar <FaArrowRight /></Link>
+                            <Link href="/contact" className="btn btn-secondary">Contact Your Dojo</Link>
                         </div>
                     </div>
                 </div>

@@ -24,7 +24,7 @@ export default function SummerCampPage() {
                     <p className="page-hero__subtitle">
                         Transform their summer with focus and real-world self-defense.
                     </p>
-                    <CountdownTimer targetDate="2026-04-01T06:00:00+05:30" />
+                    <CountdownTimer targetDate="2026-04-03T16:30:00+05:30" />
                 </div>
             </section>
 
@@ -186,6 +186,7 @@ export default function SummerCampPage() {
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
                             title="SKF Karate Location"
+                            sandbox="allow-scripts allow-same-origin"
                         ></iframe>
                     </div>
                 </div>
@@ -271,53 +272,40 @@ export default function SummerCampPage() {
                     </div>
 
                     <div className="testimonials__slider">
-                        <div className="testimonials__track">
-                            {[
-                                { name: "Anjali M.", role: "Parent of 8yo", text: "My son used to be very shy, but his confidence has completely changed. He even wakes up early by himself for practice!" },
-                                { name: "Rahul S.", role: "Parent of 10yo", text: "The discipline they teach here is excellent. Along with karate, they are teaching real respect for elders and teachers." },
-                                { name: "Priya K.", role: "Parent of 6yo", text: "I was worried about screen time during holidays. This camp was the perfect mix of serious training and fun." },
-                                { name: "Vikram R.", role: "Parent of 12yo", text: "Best summer investment. He stopped playing video games all day and actually looks forward to the fitness routines." },
-                                { name: "Neha D.", role: "Parent of 9yo", text: "The self-defense techniques are so practical. As a mother, it gives me great peace of mind knowing she can protect herself." },
-                                { name: "Suresh P.", role: "Parent of 7yo", text: "Very professional and safe environment. The Senseis are strict on the mat but very encouraging with the kids." },
-                                { name: "Kavita N.", role: "Parent of 11yo", text: "We noticed an improvement in his focus, even in his studies! Karate has really taught him how to concentrate." },
-                                { name: "Arvind V.", role: "Parent of 8yo", text: "Fantastic energy. It's not just hitting and kicking; they focus heavily on warmups, stretching, and proper technique." },
-                                { name: "Meera C.", role: "Parent of 14yo", text: "Even my teenager, who argues about everything, absolutely loved the Nunchaku training. Highly recommended." },
-                                { name: "Amit B.", role: "Parent of 6yo & 9yo", text: "Both my kids come home totally exhausted and happy. It's the best way to utilize their summer break productively." }
-                            ].map((testimonial, i) => (
-                                <div key={i} className="glass-card testimonial-card">
-                                    <FaQuoteLeft className="testimonial-card__quote" />
-                                    <p>&quot;{testimonial.text}&quot;</p>
-                                    <div className="testimonial-card__author">
-                                        <div className="testimonial-card__avatar">{testimonial.name.charAt(0)}</div>
-                                        <div><strong>{testimonial.name}</strong><span>{testimonial.role}</span></div>
+                    {(() => {
+                        const testimonials = [
+                            { name: "Anjali M.", role: "Parent of 8yo", text: "My son used to be very shy, but his confidence has completely changed. He even wakes up early by himself for practice!" },
+                            { name: "Rahul S.", role: "Parent of 10yo", text: "The discipline they teach here is excellent. Along with karate, they are teaching real respect for elders and teachers." },
+                            { name: "Priya K.", role: "Parent of 6yo", text: "I was worried about screen time during holidays. This camp was the perfect mix of serious training and fun." },
+                            { name: "Vikram R.", role: "Parent of 12yo", text: "Best summer investment. He stopped playing video games all day and actually looks forward to the fitness routines." },
+                            { name: "Neha D.", role: "Parent of 9yo", text: "The self-defense techniques are so practical. As a mother, it gives me great peace of mind knowing she can protect herself." },
+                            { name: "Suresh P.", role: "Parent of 7yo", text: "Very professional and safe environment. The Senseis are strict on the mat but very encouraging with the kids." },
+                            { name: "Kavita N.", role: "Parent of 11yo", text: "We noticed an improvement in his focus, even in his studies! Karate has really taught him how to concentrate." },
+                            { name: "Arvind V.", role: "Parent of 8yo", text: "Fantastic energy. It's not just hitting and kicking; they focus heavily on warmups, stretching, and proper technique." },
+                            { name: "Meera C.", role: "Parent of 14yo", text: "Even my teenager, who argues about everything, absolutely loved the Nunchaku training. Highly recommended." },
+                            { name: "Amit B.", role: "Parent of 6yo & 9yo", text: "Both my kids come home totally exhausted and happy. It's the best way to utilize their summer break productively." }
+                        ]
+                        const renderTrack = (items, keyPrefix = '') => (
+                            <div className="testimonials__track" aria-hidden={keyPrefix === 'dup-' ? 'true' : undefined}>
+                                {items.map((testimonial, i) => (
+                                    <div key={`${keyPrefix}${i}`} className="glass-card testimonial-card">
+                                        <FaQuoteLeft className="testimonial-card__quote" />
+                                        <p>&quot;{testimonial.text}&quot;</p>
+                                        <div className="testimonial-card__author">
+                                            <div className="testimonial-card__avatar">{testimonial.name.charAt(0)}</div>
+                                            <div><strong>{testimonial.name}</strong><span>{testimonial.role}</span></div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="testimonials__track" aria-hidden="true">
-                            {[
-                                { name: "Anjali M.", role: "Parent of 8yo", text: "My son used to be very shy, but his confidence has completely changed. He even wakes up early by himself for practice!" },
-                                { name: "Rahul S.", role: "Parent of 10yo", text: "The discipline they teach here is excellent. Along with karate, they are teaching real respect for elders and teachers." },
-                                { name: "Priya K.", role: "Parent of 6yo", text: "I was worried about screen time during holidays. This camp was the perfect mix of serious training and fun." },
-                                { name: "Vikram R.", role: "Parent of 12yo", text: "Best summer investment. He stopped playing video games all day and actually looks forward to the fitness routines." },
-                                { name: "Neha D.", role: "Parent of 9yo", text: "The self-defense techniques are so practical. As a mother, it gives me great peace of mind knowing she can protect herself." },
-                                { name: "Suresh P.", role: "Parent of 7yo", text: "Very professional and safe environment. The Senseis are strict on the mat but very encouraging with the kids." },
-                                { name: "Kavita N.", role: "Parent of 11yo", text: "We noticed an improvement in his focus, even in his studies! Karate has really taught him how to concentrate." },
-                                { name: "Arvind V.", role: "Parent of 8yo", text: "Fantastic energy. It's not just hitting and kicking; they focus heavily on warmups, stretching, and proper technique." },
-                                { name: "Meera C.", role: "Parent of 14yo", text: "Even my teenager, who argues about everything, absolutely loved the Nunchaku training. Highly recommended." },
-                                { name: "Amit B.", role: "Parent of 6yo & 9yo", text: "Both my kids come home totally exhausted and happy. It's the best way to utilize their summer break productively." }
-                            ].map((testimonial, i) => (
-                                <div key={`dup-${i}`} className="glass-card testimonial-card">
-                                    <FaQuoteLeft className="testimonial-card__quote" />
-                                    <p>&quot;{testimonial.text}&quot;</p>
-                                    <div className="testimonial-card__author">
-                                        <div className="testimonial-card__avatar">{testimonial.name.charAt(0)}</div>
-                                        <div><strong>{testimonial.name}</strong><span>{testimonial.role}</span></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                                ))}
+                            </div>
+                        )
+                        return (
+                            <>
+                                {renderTrack(testimonials)}
+                                {renderTrack(testimonials, 'dup-')}
+                            </>
+                        )
+                    })()}</div>
                 </div>
             </section>
 

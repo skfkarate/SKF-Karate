@@ -14,9 +14,9 @@ export default function HomeSenseisTeaser() {
                         Our Dojo is led by internationally recognized Grandmasters who have dedicated their lives to the perfection of Karate-do. 
                         Train under World Champions and true martial arts scholars.
                     </p>
-                    <Link href="/senseis" className="btn btn-primary">
-                        Meet the Masters <FaArrowRight />
-                    </Link>
+                    <span className="btn btn-primary" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                        Meet the Masters (Soon)
+                    </span>
                 </div>
                 
                 <div className="teaser__avatars">

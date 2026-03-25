@@ -11,10 +11,10 @@ const programs = [
     buttonClassName: 'btn btn-secondary program-card__btn',
     buttonCopy: 'Enroll Month 1',
     features: [
-      '<strong>For kids:</strong> Cool reflex & evasion games',
-      '<strong>For parents:</strong> Screen-free discipline building',
-      'Practical self-defense techniques',
-      'Situational awareness / Bully prevention',
+      { bold: 'For kids:', text: ' Cool reflex & evasion games' },
+      { bold: 'For parents:', text: ' Screen-free discipline building' },
+      { text: 'Practical self-defense techniques' },
+      { text: 'Situational awareness / Bully prevention' },
     ],
     Icon: FaShieldAlt,
     cardClassName: '',
@@ -28,10 +28,10 @@ const programs = [
     buttonClassName: 'btn btn-primary program-card__btn',
     buttonCopy: 'Enroll Full Camp',
     features: [
-      'Month 1: Self Defense (Discipline & Focus)',
-      'Month 2: Nunchaku (Coordination & Agility)',
-      'Comprehensive fitness & stamina building',
-      'Mastery of a predefined Nunchaku sequence',
+      { text: 'Month 1: Self Defense (Discipline & Focus)' },
+      { text: 'Month 2: Nunchaku (Coordination & Agility)' },
+      { text: 'Comprehensive fitness & stamina building' },
+      { text: 'Mastery of a predefined Nunchaku sequence' },
     ],
     Icon: GiBlackBelt,
     cardClassName: 'program-card--featured program-card--offer',
@@ -46,10 +46,10 @@ const programs = [
     buttonClassName: 'btn btn-secondary program-card__btn',
     buttonCopy: 'Enroll Month 2',
     features: [
-      '<strong>For kids:</strong> Learn movie-style strikes',
-      '<strong>For parents:</strong> Safe, foam training weapons',
-      'Nunchaku basics, grips, and safety',
-      'Hand-eye coordination drills',
+      { bold: 'For kids:', text: ' Learn movie-style strikes' },
+      { bold: 'For parents:', text: ' Safe, foam training weapons' },
+      { text: 'Nunchaku basics, grips, and safety' },
+      { text: 'Hand-eye coordination drills' },
     ],
     Icon: GiNunchaku,
     cardClassName: '',
@@ -113,11 +113,11 @@ export default function SummerCampPrograms() {
               </div>
 
               <ul className="program-card__features">
-                {program.features.map((feature) => (
-                  <li
-                    key={feature}
-                    dangerouslySetInnerHTML={{ __html: feature }}
-                  />
+                {program.features.map((feature, fidx) => (
+                  <li key={fidx}>
+                    {feature.bold && <strong>{feature.bold}</strong>}
+                    {feature.text}
+                  </li>
                 ))}
               </ul>
 

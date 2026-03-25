@@ -35,7 +35,7 @@ export async function POST(request) {
         const month = payment.notes?.month
 
         if (skfId && month) {
-            console.log(`[Webhook] Payment Captured: SKF ID: ${skfId}, Month: ${month}, Amount: ${payment.amount / 100}`)
+            console.info(`[Webhook] Payment Captured: SKF ID: ${skfId}, Month: ${month}, Amount: ${payment.amount / 100}`)
             // 3. Mark in DB/Sheets as Paid
             await markFeeAsPaid(skfId, month, payment.id)
         }

@@ -116,7 +116,7 @@ export default function GalleryPage() {
                     <div className="masonry-grid">
                         {displayedPhotos.map((p, i) => (
                             <ScrollReveal key={`${activeCat}-${i}`} delay={(i % 4) * 0.06}>
-                                <div className="gal-item" onClick={() => openLightbox(i)}>
+                                <div className="gal-item" onClick={() => openLightbox(i)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && openLightbox(i)}>
                                     <Image
                                         src={p.src}
                                         alt={p.title}

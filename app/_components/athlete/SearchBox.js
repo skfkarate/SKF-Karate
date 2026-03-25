@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { normaliseRegistrationNumber, isValidRegistrationNumber } from '../../../lib/utils/registration';
+import { FaSpinner } from 'react-icons/fa';
 
 export default function SearchBox({ defaultValue = '', autoFocus = true }) {
   const router = useRouter();
@@ -174,7 +175,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
       {/* Loading Only */}
       {loading && (
         <div className="mt-4 flex items-center justify-center gap-2">
-          <div className="w-3 h-3 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          <FaSpinner className="spin text-gold" style={{ fontSize: '1rem' }} />
           <p className="text-gray-500 text-sm">Searching...</p>
         </div>
       )}

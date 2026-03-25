@@ -42,7 +42,7 @@ export default function SummerCampVideo() {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting && videoRef.current) {
-                    videoRef.current.play().catch(e => console.log('Video play prevented:', e))
+                    videoRef.current.play().catch(() => { /* Autoplay prevented by browser — expected */ })
                 } else if (!entry.isIntersecting && videoRef.current) {
                     videoRef.current.pause()
                 }

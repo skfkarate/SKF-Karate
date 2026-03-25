@@ -171,13 +171,18 @@
   }
   
   .trial-cta__features {
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    gap: 0.5rem; /* Drastically force tighter vertical gaps */
+    margin-bottom: 1.5rem;
+    width: 100%;
+    align-items: center;
   }
 
   .trial-cta__feature {
     font-size: 0.85rem;
     gap: 0.5rem;
+    justify-content: center; /* Bind the yellow dot to the text locally in the center */
+    width: 100%;
+    text-align: center; /* Center multi-line text cleanly */
   }
   
   .section-label {

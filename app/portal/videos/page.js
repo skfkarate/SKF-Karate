@@ -67,9 +67,8 @@ export default function CinematicDojoVideos() {
       
       {isLoading ? (
         <div style={{ height: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ width: '48px', height: '48px', border: '4px solid rgba(214,40,40,0.2)', borderTopColor: 'var(--crimson, #d62828)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-heading)' }}>Loading Dojo Library...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <div style={{ width: '50px', height: '50px', border: '3px solid rgba(255, 183, 3, 0.1)', borderTop: '3px solid var(--crimson)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <p style={{ color: 'var(--gold)', fontFamily: 'var(--font-heading)', letterSpacing: '3px', textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: '600', animation: 'loadingPulse 1.5s ease-in-out infinite alternate' }}>Loading Dojo Library...</p>
         </div>
       ) : videos.length === 0 ? (
         <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', background: 'rgba(10,14,22,0.5)' }}>

@@ -8,33 +8,38 @@ import { FaBars, FaTimes, FaChevronDown } from 'react-icons/fa'
 import './Navbar.css'
 
 const navStructure = [
-    { label: 'Home', href: '/' },
     {
-        label: 'About',
+        label: 'About SKF',
         children: [
             { label: 'Our Legacy', href: '/about' },
-            { label: 'Our Senseis', href: '/senseis' },
-            { label: 'Dojo Directory', href: '/dojos' },
+            { label: 'Our Senseis', href: '/senseis', disabled: true },
+            { label: 'Our Dojos', href: '/dojos', disabled: true },
         ],
     },
     {
         label: 'Training',
         children: [
-            { label: 'Kyu & Dan System', href: '/grading' },
+            { label: 'Belt Grading', href: '/grading' },
             { label: 'Summer Camp 2026', href: '/summer-camp' },
         ],
     },
     {
-        label: 'Community',
+        label: 'Events',
         children: [
-            { label: 'Events & Calendar', href: '/events' },
-            { label: 'Athlete Profile', href: '/athlete' },
-            { label: 'Verify Certificate', href: '/verify' },
+            { label: 'Events & Calendar', href: '/events', disabled: true },
+            { label: 'Results & History', href: '/results', disabled: true },
             { label: 'Gallery', href: '/gallery' },
-            { label: 'Results & History', href: '/results' },
-            { label: 'Honours Board', href: '/honours' },
         ],
     },
+    {
+        label: 'Athletes',
+        children: [
+            { label: 'Athlete Profile', href: '/athlete', disabled: true },
+            { label: 'Verify Certificate', href: '/verify', disabled: true },
+            { label: 'Honours Board', href: '/honours', disabled: true },
+        ],
+    },
+    { label: 'Rankings', href: '/rankings', disabled: true },
     { label: 'Contact', href: '/contact' },
 ]
 
@@ -50,6 +55,17 @@ function DropdownItem({ item, pathname, onNavigate }) {
     }, [])
 
     if (!item.children) {
+        if (item.disabled) {
+            return (
+                <span
+                    className="nav__link nav__link--disabled"
+                    title="Coming Soon"
+                    aria-disabled="true"
+                >
+                    {item.label}
+                </span>
+            )
+        }
         return (
             <Link
                 href={item.href}
@@ -76,6 +92,7 @@ function DropdownItem({ item, pathname, onNavigate }) {
                             key={child.href}
                             className="nav__dropdown-link nav__dropdown-link--disabled"
                             title="Coming Soon"
+                            aria-disabled="true"
                         >
                             {child.label}
                             <span className="nav__coming-soon">Soon</span>
@@ -169,6 +186,14 @@ export default function Navbar() {
                                     </div>
                                 )}
                             </div>
+                        ) : item.disabled ? (
+                            <span
+                                key={item.label}
+                                className="nav__link nav__link--disabled"
+                                aria-disabled="true"
+                            >
+                                {item.label}
+                            </span>
                         ) : (
                             <Link
                                 key={item.label}
@@ -180,8 +205,8 @@ export default function Navbar() {
                             </Link>
                         )
                     )}
-                    <Link href="/contact" className="btn btn-primary nav__cta-mobile" onClick={() => setMenuOpen(false)}>
-                        Enroll Now
+                    <Link href="/summer-camp" className="btn btn-primary nav__cta-mobile" onClick={() => setMenuOpen(false)}>
+                        Summer Camp 2026
                     </Link>
                 </nav>
 

@@ -69,7 +69,7 @@ nextjs-portal {
 }
 
 .nav__link {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-light);
     text-transform: uppercase;
@@ -84,6 +84,12 @@ nextjs-portal {
     align-items: center;
     gap: 0.35rem;
     transition: color 0.2s ease;
+}
+
+.nav__link--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .nav__link::after {
@@ -318,14 +324,20 @@ nextjs-portal {
 }
 
 @media (max-width: 480px) {
-    .nav__logo span {
+    .nav__brand-name,
+    .nav__brand-accent {
         font-size: 1.2rem;
+    }
+
+    .nav__brand-logo {
+        width: 32px;
+        height: 32px;
     }
 
     .nav__links--mobile .nav__link,
     .nav__mobile-trigger {
         font-size: 1.1rem;
-        padding: 0.6rem 1rem;
+        padding: 0.8rem 1rem;
     }
 
     .nav__mobile-sub-link {

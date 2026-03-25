@@ -2,23 +2,9 @@ import { google } from 'googleapis'
 import { NextResponse } from 'next/server'
 import { ApiError, enforceRateLimit, readJsonBody } from '@/lib/server/api'
 import { validateContactPayload } from '@/lib/server/validation'
+import { retryWithBackoff } from '@/lib/utils/retry'
 
-// Retry helper with exponential backoff
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 500) {
-    let lastError
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-            return await fn()
-        } catch (err) {
-            lastError = err
-            if (attempt < maxRetries - 1) {
-                const delay = baseDelay * Math.pow(2, attempt)
-                await new Promise(resolve => setTimeout(resolve, delay))
-            }
-        }
-    }
-    throw lastError
-}
+
 
 export async function POST(request) {
     try {
