@@ -41,27 +41,28 @@
 
 .trial-cta__title {
   font-family: var(--font-heading);
-  font-size: clamp(3rem, 6vw, 5rem);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 900;
   line-height: 1.1;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vh, 2rem);
   letter-spacing: -2px;
   text-transform: uppercase;
 }
 
 .trial-cta__desc {
-  font-size: 1.2rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
   color: var(--text-light);
-  line-height: 1.8;
-  margin-bottom: 3rem;
+  line-height: 1.6;
+  margin-bottom: clamp(1.5rem, 4vh, 3rem);
   opacity: 0.9;
+  max-width: 90%;
 }
 
 .trial-cta__features {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  margin-bottom: 3.5rem;
+  gap: clamp(0.8rem, 2vh, 1.2rem);
+  margin-bottom: clamp(1.5rem, 4vh, 3rem);
 }
 
 .trial-cta__feature {
