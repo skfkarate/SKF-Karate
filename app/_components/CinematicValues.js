@@ -4,17 +4,17 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 
 const values = [
-    { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg" },
-    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg" },
-    { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg" },
-    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg" },
-    { text: "RESPECT", img: "/gallery/Tournment.jpeg" },
-    { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg" },
-    { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg" },
+    { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg", pos: "center 25%" },
+    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg", pos: "center 30%" },
+    { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg", pos: "center 20%" },
+    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg", pos: "center 20%" },
+    { text: "RESPECT", img: "/gallery/Tournment.jpeg", pos: "center 25%" },
+    { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg", pos: "center 20%" },
+    { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg", pos: "center 25%" },
     { text: "HERE WE ARE", img: "/logo/SKF logo.png", isLogo: true }
 ];
 
-function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
+function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos }) {
     const start = index / total;
     const duration = 1 / total;
     const end = start + duration;
@@ -33,7 +33,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
         const textReadyIn = start + duration * 0.35;
         const textReadyFull = start + duration * 0.65;
         const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
-        const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["20px", "-30px"]);
+        const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["20px", "-20px"]);
         
         // Background turns to a deep cinematic crimson glow smoothly over the same duration as text
         const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
@@ -42,9 +42,8 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
         const logoScale = useTransform(scrollYProgress, [start, start + duration * 0.8], [1.2, 1]);
         const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
         
-        // Epic letter expanding effect
-        const textTracking = useTransform(scrollYProgress, [textReadyIn, end], [8, 22]);
-        const letterSpacing = useTransform(textTracking, (v) => `${v}px`);
+        const trackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
+        const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
 
         return (
             <motion.div 
@@ -59,7 +58,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
                     justifyContent: "center",
                     // Thematic crimson/dark aura with transparent center hole - vastly softer memory feel
                     background: "radial-gradient(circle at center, rgba(139, 0, 0, 0.05) 0%, rgba(2, 3, 6, 0.6) 60%, rgba(0, 0, 0, 0.85) 100%)",
-                    gap: "1vh"
+                    gap: "1.5vh"
                 }}
             >
                 {/* Subtle thematic gold glow behind the logo */}
@@ -94,11 +93,12 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
                         color: "transparent",
                         backgroundImage: "linear-gradient(to right, #ffb703, #e85d04)",
                         WebkitBackgroundClip: "text",
-                        fontSize: "clamp(3rem, 10vw, 8rem)",
+                        fontSize: "clamp(1.5rem, 6vw, 6rem)", // pure 6vw scaling guarantees 11 letters fit in mobile
                         fontFamily: "var(--font-heading)",
                         textTransform: "uppercase",
-                        textShadow: "none",
-                        padding: "0 1.5rem"
+                        textShadow: "none", // Eradicates VR ghosting bleeding completely
+                        padding: "0 5vw", // horizontal padding mapped to screen width
+                        whiteSpace: "nowrap" // Prevents awkward line-breaks on small mobiles!
                     }}
                 >
                     {text}
@@ -128,7 +128,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo }) {
                     alt=""
                     fill
                     sizes="100vw"
-                    style={{ objectFit: "cover", objectPosition: "center" }}
+                    style={{ objectFit: "cover", objectPosition: pos || "center" }}
                     quality={90}
                     priority={index < 2}
                     loading={index < 2 ? "eager" : "lazy"}
@@ -154,13 +154,14 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }) {
     const opInput = [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd];
     const opOutput = [0, 1, 1, 0];
     const yInput = [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd];
-    const yOutput = ["60px", "0px", "0px", "-60px"];
+    const yOutput = ["40px", "0px", "0px", "-40px"];
 
     const opacity = useTransform(scrollYProgress, opInput, opOutput);
     const y = useTransform(scrollYProgress, yInput, yOutput);
     
-    const trackingVal = useTransform(scrollYProgress, [start, end], [2, 12]);
-    const letterSpacing = useTransform(trackingVal, (val) => `${val}px`);
+    // Dynamic viewport-responsive tracking to ensure text doesn't overflow mobile boundaries
+    const trackingProgress = useTransform(scrollYProgress, [start, end], [0.1, 1.2]);
+    const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
 
     return (
         <motion.div
@@ -171,7 +172,8 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }) {
                 alignItems: "center",
                 justifyContent: "center",
                 zIndex: 100, 
-                pointerEvents: "none"
+                pointerEvents: "none",
+                padding: "0 5vw"
             }}
         >
             <motion.h2 
@@ -184,11 +186,11 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }) {
                     textAlign: "center",
                     fontWeight: 900,
                     color: "rgba(255, 255, 255, 0.95)",
-                    fontSize: "clamp(2.5rem, 8vw, 7rem)",
+                    fontSize: "clamp(1.5rem, 8vw, 7rem)",
                     fontFamily: "var(--font-heading)",
                     textTransform: "uppercase",
                     textShadow: "0 10px 40px rgba(0,0,0,0.9)",
-                    padding: "0 1.5rem"
+                    whiteSpace: "nowrap"
                 }}
             >
                 {text}
