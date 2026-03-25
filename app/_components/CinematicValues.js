@@ -11,7 +11,7 @@ const values = [
     { text: "RESPECT", img: "/gallery/Tournment.jpeg" },
     { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg" },
     { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg" },
-    { text: "HERE WE ARE", img: "/gallery/Tournment 13.jpeg" }
+    { text: "HERE WE ARE", img: "/logo/SKF logo.png" }
 ];
 
 function SlideBackground({ img, index, total, scrollYProgress }) {
