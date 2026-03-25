@@ -1,10 +1,12 @@
-/* ===== BOOK TRIAL CTA — Cinematic Monolith ===== */
 .trial-cta {
   position: relative;
-  padding: 10rem 0;
+  padding: 0;
   display: flex;
   align-items: center;
-  min-height: 80vh;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -116,8 +118,8 @@
 
 @media (max-width: 768px) {
   .trial-cta {
-    padding: 6rem 0;
-    min-height: auto;
+    padding: 0;
+    min-height: 100svh;
   }
   
   .trial-cta__bg {
