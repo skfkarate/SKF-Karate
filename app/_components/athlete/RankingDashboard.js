@@ -246,8 +246,8 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
                   </th>
                 </tr>
                 <tr>
-                  <th className="rank-tbl__th-rank" style={{ width: '15%' }}>Rank</th>
-                  <th className="rank-tbl__th-athlete" style={{ width: '40%' }}>Athlete</th>
+                  <th className="rank-tbl__th-rank" style={{ width: '7%' }}>Rank</th>
+                  <th className="rank-tbl__th-athlete" style={{ width: '48%' }}>Athlete</th>
                   <th className="rank-tbl__th-branch" style={{ width: '25%' }}>{activeTab === 'dojo' ? 'Dojo' : 'Branch'}</th>
                   <th className="rank-tbl__th-pts" style={{ width: '20%' }}>Points</th>
                 </tr>

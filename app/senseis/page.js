@@ -1,74 +1,188 @@
 import Link from 'next/link'
-import { FaArrowRight } from 'react-icons/fa'
-import { GiBlackBelt } from 'react-icons/gi'
+import { FaArrowRight, FaQuoteLeft, FaTrophy } from 'react-icons/fa'
+import { GiBlackBelt, GiKatana, GiMeditation, GiYinYang, GiPunch } from 'react-icons/gi'
 import './senseis.css'
 
-
-
-const senseis = [
-    { name: 'Sensei Akira', dan: '5th Dan — Godan', role: 'Chief Instructor', spec: 'Kata & Kumite', dojos: 'SKF Headquarters', exp: '20+ years', achievements: 'National Champion (3x), State Kata Champion, WKF-certified Coach' },
-    { name: 'Sensei Ravi', dan: '4th Dan — Yondan', role: 'Senior Instructor', spec: 'Kumite', dojos: 'Central Dojo, West District', exp: '15+ years', achievements: 'State Kumite Champion (5x), National Team Coach' },
-    { name: 'Sensei Meera', dan: '3rd Dan — Sandan', role: 'Instructor', spec: 'Kata', dojos: 'East District Dojo', exp: '12+ years', achievements: 'State Kata Champion (2x), Certified Kata Judge' },
-    { name: 'Sensei Arjun', dan: '3rd Dan — Sandan', role: 'Instructor', spec: 'Kumite & Self-Defence', dojos: 'North District Dojo', exp: '10+ years', achievements: 'National Kumite Bronze, Self-Defence Program Director' },
-    { name: 'Sensei Priya', dan: '2nd Dan — Nidan', role: 'Assistant Instructor', spec: 'Junior Training', dojos: 'SKF Headquarters', exp: '8+ years', achievements: 'Junior Development Lead, State Medalist' },
-    { name: 'Sensei Karthik', dan: '2nd Dan — Nidan', role: 'Assistant Instructor', spec: 'Kata & Fitness', dojos: 'South District Dojo', exp: '7+ years', achievements: 'Fitness Conditioning Specialist, State Champion' },
-]
+const allSenseis = [
+    {
+        id: 'akira',
+        name: 'Sensei Akira',
+        dan: '5th Dan — Godan',
+        role: 'Chief Instructor & Founder',
+        spec: 'Kata & Kumite Mastery',
+        dojos: 'SKF Headquarters',
+        exp: '20+ years of relentless dedication',
+        achievements: 'National Champion (3x), State Kata Champion, WKF-certified Elite Coach',
+        quote: "True mastery is not found in the defeat of an opponent, but in the perfection of the self through tireless discipline.",
+        icon: <GiKatana />,
+        color: 'gold'
+    },
+    {
+        id: 'ravi',
+        name: 'Sensei Ravi',
+        dan: '4th Dan — Yondan',
+        role: 'Senior Instructor',
+        spec: 'Advanced Kumite',
+        dojos: 'Central Dojo',
+        exp: '15+ years',
+        achievements: 'State Kumite Champion (5x) • National Team Coach • Elite Tactic Specialist',
+        quote: "The mat is a mirror. It reflects your fears, but more importantly, it shows you the warrior you can become.",
+        icon: <GiBlackBelt />,
+        color: 'crimson'
+    },
+    {
+        id: 'meera',
+        name: 'Sensei Meera',
+        dan: '3rd Dan — Sandan',
+        role: 'Instructor',
+        spec: 'Technical Kata',
+        dojos: 'East District Dojo',
+        exp: '12+ years',
+        achievements: 'State Kata Champion (2x) • Certified Kata Judge • Form Correction Expert',
+        quote: "Every form contains a thousand battles. Precision is the ultimate weapon against chaos.",
+        icon: <GiYinYang />,
+        color: 'blue'
+    },
+    {
+        id: 'arjun',
+        name: 'Sensei Arjun',
+        dan: '3rd Dan — Sandan',
+        role: 'Instructor',
+        spec: 'Kumite & Self-Defence',
+        dojos: 'North District Dojo',
+        exp: '10+ years',
+        achievements: 'National Kumite Bronze • Self-Defence Program Director • Street-Ready Tactical Lead',
+        quote: "We train for the fights we never wish to have. Preparedness brings peace.",
+        icon: <GiPunch />,
+        color: 'gold'
+    },
+    {
+        id: 'priya',
+        name: 'Sensei Priya',
+        dan: '2nd Dan — Nidan',
+        role: 'Assistant Instructor',
+        spec: 'Junior Training',
+        dojos: 'SKF Headquarters',
+        exp: '8+ years',
+        achievements: 'Junior Development Lead • State Medalist • Child Psychology inside the Dojo',
+        quote: "The hardest belt to earn is the white belt. My duty is to turn that first step into a lifelong journey.",
+        icon: <GiMeditation />,
+        color: 'crimson'
+    },
+    {
+        id: 'karthik',
+        name: 'Sensei Karthik',
+        dan: '2nd Dan — Nidan',
+        role: 'Assistant Instructor',
+        spec: 'Fitness Conditioning',
+        dojos: 'South District Dojo',
+        exp: '7+ years',
+        achievements: 'Conditioning Specialist • Core Strengthening • Agility & Reflex Mastery',
+        quote: "Fatigue makes cowards of us all. I forge bodies so the spirit never has to surrender.",
+        icon: <GiBlackBelt />,
+        color: 'blue'
+    }
+];
 
 export default function SenseisPage() {
     return (
         <div className="senseis-page">
-            <section className="page-hero">
-                <div className="page-hero__bg">
-                    <div className="glow glow-red page-hero__glow-1"></div>
-                    <div className="glow glow-blue page-hero__glow-2"></div>
-                </div>
+            {/* ═══════ IMMERSIVE HERO ═══════ */}
+            <section className="page-hero sensei-hero">
+                <div className="page-hero__bg"></div>
                 <div className="container page-hero__content">
-                    <span className="section-label"><GiBlackBelt /> Our Senseis</span>
-                    <h1 className="page-hero__title">Meet Our <span className="text-gradient">Senseis</span></h1>
-                    <p className="page-hero__subtitle">Masters Who Forge Champions</p>
+                    <span className="section-label hero-label-pulse"><GiBlackBelt /> Guardians of the Art</span>
+                    <h1 className="page-hero__title">
+                        Meet Our <span className="text-gradient">Senseis</span>
+                    </h1>
+                    <p className="page-hero__subtitle">
+                        Architects of discipline, engineers of strength, and crafters of unyielding spirit. 
+                        Train under the guidance of absolute mastery.
+                    </p>
                 </div>
             </section>
 
-            <section className="section">
-                <div className="container">
-                    <div className="senseis__intro">
-                        <p className="section-subtitle" style={{ margin: '0 auto', textAlign: 'center' }}>
-                            Our Senseis are not just instructors — they are mentors, role models, and lifelong practitioners of Karate-Do. Every one of them brings real competition experience and professional coaching certifications.
-                        </p>
-                    </div>
+            {/* ═══════ MASTERS LIST ═══════ */}
+            <div className="masters-list">
+                {allSenseis.map((master, idx) => {
+                    const isReverse = idx % 2 !== 0;
+                    
+                    // Assign subtle alternating background tints
+                    const tintClass = idx % 3 === 0 ? "section--tint-cool" : idx % 3 === 1 ? "section--tint-mid" : "section--tint-warm";
+                    
+                    // Assign colored rings
+                    const ringClass = master.color === 'crimson' ? 'spotlight-avatar-ring--crimson' : 
+                                      master.color === 'blue' ? 'spotlight-avatar-ring--blue' : 'spotlight-avatar-ring--gold';
 
-                    <div className="senseis__grid">
-                        {senseis.map((s, i) => (
-                            <div className="glass-card sensei-card" key={i}>
-                                <div className="sensei-card__avatar">
-                                    <GiBlackBelt />
-                                </div>
-                                <h3>{s.name}</h3>
-                                <span className="sensei-card__dan">{s.dan}</span>
-                                <span className="sensei-card__role">{s.role}</span>
+                    return (
+                        <section key={master.id} className={`section spotlight-section ${tintClass}`}>
+                            <div className="container">
+                                <div className={`spotlight-card ${isReverse ? 'spotlight-card--reverse' : ''}`}>
+                                    <div className="spotlight-card__visual">
+                                        <div className={`spotlight-avatar-ring ${ringClass}`}>
+                                            <div className="spotlight-avatar">
+                                                {master.icon}
+                                            </div>
+                                        </div>
+                                        <div className="spotlight-badge">
+                                            <span className="spotlight-badge__rank">{master.dan}</span>
+                                        </div>
+                                    </div>
 
-                                <div className="sensei-card__details">
-                                    <div className="sensei-detail"><strong>Specialization</strong><span>{s.spec}</span></div>
-                                    <div className="sensei-detail"><strong>Dojo</strong><span>{s.dojos}</span></div>
-                                    <div className="sensei-detail"><strong>Experience</strong><span>{s.exp}</span></div>
+                                    <div className="spotlight-card__content">
+                                        <span className="spotlight-role">{master.role}</span>
+                                        <h2 className="spotlight-name">{master.name}</h2>
+                                        
+                                        <blockquote className="spotlight-quote">
+                                            <FaQuoteLeft className="spotlight-quote-icon" />
+                                            {master.quote}
+                                        </blockquote>
+
+                                        <div className="spotlight-stats">
+                                            <div className="spotlight-stat">
+                                                <strong className="text-gold">Specialty</strong>
+                                                <span>{master.spec}</span>
+                                            </div>
+                                            <div className="spotlight-stat">
+                                                <strong className="text-gold">Experience</strong>
+                                                <span>{master.exp}</span>
+                                            </div>
+                                            <div className="spotlight-stat">
+                                                <strong className="text-gold">Dojo</strong>
+                                                <span>{master.dojos}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="spotlight-achievements">
+                                            <strong><FaTrophy className="text-gold" style={{ marginRight: '8px' }}/> Legacy & Honors</strong>
+                                            <p>{master.achievements}</p>
+                                        </div>
+
+                                        <div className="spotlight-action">
+                                            <Link href={`/senseis/${master.id}`} className="btn btn-primary btn--outline profile-btn">
+                                                View Full Profile <FaArrowRight />
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="sensei-card__achievements">{s.achievements}</p>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                        </section>
+                    );
+                })}
+            </div>
 
-            <section className="section">
+            {/* ═══════ JOURNEY CTA ═══════ */}
+            <section className="section sensei-cta section--tint-cool">
                 <div className="container">
-                    <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-                        <h2 className="section-title">Train Under the Best</h2>
-                        <p className="section-subtitle" style={{ margin: '0 auto 2rem auto', textAlign: 'center' }}>
-                            Find a dojo near you and begin your journey with one of our experienced Senseis.
+                    <div className="sensei-cta__card glass-card">
+                        <div className="sensei-cta__bg-glow"></div>
+                        <h2 className="section-title">Step Onto The Mat</h2>
+                        <p className="section-subtitle sensei-cta__subtitle">
+                            The master has walked the path a thousand times. Now, it is your turn to take the first step. Find a dojo near you and begin your journey.
                         </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/dojos" className="btn btn-primary">Find a Dojo <FaArrowRight /></Link>
-                            <Link href="/contact" className="btn btn-secondary">Contact Us</Link>
+                        <div className="sensei-cta__actions">
+                            <Link href="/dojos" className="btn btn-primary">Find Your Dojo <FaArrowRight /></Link>
+                            <Link href="/contact" className="btn btn-secondary">Contact Administration</Link>
                         </div>
                     </div>
                 </div>

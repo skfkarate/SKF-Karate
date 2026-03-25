@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation"
-import { requireAdminSession } from "@/lib/utils/auth"
+import { getAdminSession } from "@/lib/utils/auth"
 
 export default async function AdminIndexPage() {
-  const session = await requireAdminSession(["admin", "instructor"])
+  const session = await getAdminSession()
 
-  if (session.user.role === "admin") {
-    redirect("/admin/students")
+  if (!session) {
+    redirect("/admin/login")
   }
 
-  redirect("/admin/results")
+  // Redirect to the new Dashboard Command Center
+  redirect("/admin/dashboard")
 }

@@ -1,11 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef } from 'react'
+import html2canvas from 'html2canvas'
+import RankingCard from '@/components/RankingCard'
 import {
-  Search, ChevronRight, Eye,
-  Calendar, MapPin, Trophy, Flame, Shield, Star, Zap, Users,
+  Search, ChevronRight, Eye, Share2,
+  Calendar, MapPin, Trophy, Flame, Shield, Star, Zap, Users, Download
 } from 'lucide-react'
 import '@/app/athlete-profile.css'
+import CertificateModal from '@/components/CertificateModal'
 
 /* ═══════════════════════════════════════════════════════════════════════
    MEDAL BADGE — colored circle for ranks 1-3
@@ -304,13 +307,13 @@ function TabbedCompetitions({ categories }) {
 /* ═══════════════════════════════════════════════════════════════════════
    BELT JOURNEY — table with View column, sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function BeltJourney({ beltExaminations, beltColors }) {
+function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
   if (!beltExaminations || beltExaminations.length === 0) return null
   const sorted = [...beltExaminations].sort((a, b) => new Date(b.date) - new Date(a.date))
 
   return (
-    <section className="ap-section ap-animate-in ap-delay-3">
-      <SectionHeader icon={<Shield size={16} />} label="Belt Progression" />
+    <section className="ap-section ap-animate-in ap-delay-3" id="certifications">
+      <SectionHeader icon={<Shield size={16} />} label="Certifications & Belt Progression" />
       <div className="ap-panel">
         <div className="ap-tbl-wrap">
           <table className="ap-tbl">
@@ -340,7 +343,30 @@ function BeltJourney({ beltExaminations, beltColors }) {
                     <td style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
                     <td>{ex.examiner}</td>
                     <td>{ex.dojo}</td>
-                    <td className="ctr"><Eye size={15} className="ap-eye" title="View details" aria-label="View details" /></td>
+                    <td className="ctr">
+                      {ex.result === 'Pass' ? (
+                        <button 
+                          onClick={() => onOpenCertificate(ex)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--gold)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            padding: '0.25rem'
+                          }}
+                          aria-label="View Certificate"
+                          title="View Digital Certificate"
+                        >
+                          <Download size={16} />
+                        </button>
+                      ) : (
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>
+                      )}
+                    </td>
                     <td className="ctr">
                       <span className={`ap-pill ${ex.result === 'Pass' ? 'ap-pill--pass' : 'ap-pill--fail'}`}>{ex.result}</span>
                     </td>
@@ -415,17 +441,96 @@ function SpecialEventsSection({ specialEvents }) {
    MAIN EXPORT
    ═══════════════════════════════════════════════════════════════════════ */
 export default function AthleteProfileClient({
-  athleteInfo, categories, nextEvents, beltExaminations, specialEvents, beltColors,
+  athleteInfo, categories, nextEvents, beltExaminations, specialEvents, beltColors, isDashboardContext = false
 }) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null)
+  
+  const cardRef = useRef(null)
+  const [isExporting, setIsExporting] = useState(false)
+
+  const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
+  const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
+  const totalB = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.bronze, 0), 0)
+
+  const handleShareCard = async () => {
+    if (!cardRef.current) return
+    setIsExporting(true)
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#05080f'
+      })
+      const url = canvas.toDataURL('image/jpeg', 0.9)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `SKF_Rank_${athleteInfo.name.replace(/\s+/g, '_')}.jpg`
+      a.click()
+    } catch (err) {
+      console.error('Failed to export ranking card:', err)
+      alert("Failed to generate the ranking card. Please try again.")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleOpenCertificate = (examRow) => {
+    // Map the old examRow format to the new 'enrollment' object format expected by the Modal
+    setSelectedEnrollment({
+      id: examRow.id || 'mock-id',
+      programName: `${examRow.belt} Belt Examination`,
+      beltLevel: examRow.belt,
+      completionDate: examRow.date,
+      issuerName: examRow.examiner,
+    })
+    setModalOpen(true)
+  }
+
+  // To match the new tabbed layout spec without destroying the whole page,
+  // we are introducing page-level native smooth-scroll anchors below the hero.
+  
   return (
-    <div className="ap-page">
+    <div className={`ap-page ${isDashboardContext ? 'kuroobi-dashboard' : ''}`} style={isDashboardContext ? { background: 'transparent', minHeight: 'auto' } : {}}>
       <div className="ap-container">
         <AthleteHero athleteInfo={athleteInfo} categories={categories} />
+        
+        {!isDashboardContext && (
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap', justifyContent: 'center' }} className="ap-animate-in">
+            <button onClick={handleShareCard} disabled={isExporting} className="ap-pill" style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <Share2 size={16} /> {isExporting ? 'Generating...' : 'Share Ranking Card'}
+            </button>
+            <a href="#ap-competition-section" className="ap-pill" style={{ textDecoration: 'none', background: 'rgba(255,183,3,0.1)', color: '#ffb703', border: '1px solid rgba(255,183,3,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600 }}>🏆 Tournaments</a>
+            <a href="#certifications" className="ap-pill" style={{ textDecoration: 'none', background: 'rgba(214,40,40,0.1)', color: '#ff6b6b', border: '1px solid rgba(214,40,40,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600 }}>📜 Certifications</a>
+          </div>
+        )}
+
         <NextEventsSection nextEvents={nextEvents} />
         <TabbedCompetitions categories={categories} />
-        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} />
+        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} onOpenCertificate={handleOpenCertificate} />
         <SpecialEventsSection specialEvents={specialEvents} />
       </div>
+
+      <CertificateModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        enrollment={selectedEnrollment}
+        student={{
+          firstName: athleteInfo?.name?.split(' ')[0] || '',
+          lastName: athleteInfo?.name?.split(' ').slice(1).join(' ') || '',
+          registrationNumber: athleteInfo?.id || '',
+        }}
+      />
+      
+      <RankingCard 
+        ref={cardRef} 
+        athleteInfo={athleteInfo} 
+        categories={categories} 
+        totalG={totalG} 
+        totalS={totalS} 
+        totalB={totalB} 
+      />
+
       <div style={{ height: '5rem' }} />
     </div>
   )

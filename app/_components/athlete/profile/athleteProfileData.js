@@ -243,7 +243,19 @@ export function buildAthleteProfileData(athlete, rankInfo) {
     primaryCategory,
     categories: profileCategories,
     nextEvents: clone(nextEvents),
-    beltExaminations: clone(beltExaminations),
+    beltExaminations: Array.isArray(athlete.achievements) && athlete.achievements.length > 0
+      ? athlete.achievements
+          .filter(a => a.type === 'belt-grading' || a.type === 'enrollment')
+          .map(a => ({
+            id: a.id,
+            date: a.date,
+            belt: formatBeltLabel(a.beltEarned || athlete.currentBelt || 'white'),
+            grade: a.title || 'Grading',
+            examiner: a.examiner || 'Sensei Arvind',
+            result: 'Pass',
+            dojo: athlete.branchName
+          }))
+      : clone(beltExaminations),
     specialEvents: clone(specialEvents),
     totals: {
       totalGolds,

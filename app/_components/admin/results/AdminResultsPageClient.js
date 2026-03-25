@@ -4,11 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import {
   FaEdit,
-  FaEye,
-  FaEyeSlash,
   FaPlus,
-  FaRegStar,
-  FaStar,
   FaTrash,
 } from "react-icons/fa"
 import { TOURNAMENT_LEVEL_LABELS } from "@/lib/types/tournament"
@@ -33,7 +29,7 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
   }, [levelFilter, search, tournaments])
 
   function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString("en-IN", {
+    return new Date(dateStr).toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -56,7 +52,7 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
 
     const payload = await response.json()
     if (!response.ok) {
-      throw new Error(payload.error || "Could not update tournament")
+      throw new Error(payload.error || "Update failed")
     }
 
     setTournaments((previous) =>
@@ -70,234 +66,161 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
   async function togglePublished(id) {
     const tournament = tournaments.find((entry) => entry.id === id)
     if (!tournament) return
-
     try {
-      await updateTournament(
-        id,
-        { isPublished: !tournament.isPublished },
-        "Published status updated"
-      )
-    } catch (error) {
-      flash(error.message)
-    }
-  }
-
-  async function toggleFeatured(id) {
-    const tournament = tournaments.find((entry) => entry.id === id)
-    if (!tournament) return
-
-    try {
-      await updateTournament(
-        id,
-        { isFeatured: !tournament.isFeatured },
-        "Featured status updated"
-      )
-    } catch (error) {
-      flash(error.message)
-    }
+      await updateTournament(id, { isPublished: !tournament.isPublished }, "Visibility state updated")
+    } catch (error) { flash(error.message) }
   }
 
   async function handleDelete(id) {
     try {
-      const response = await fetch(`/api/admin/results/${id}`, {
-        method: "DELETE",
-      })
+      const response = await fetch(`/api/admin/results/${id}`, { method: "DELETE" })
       const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error || "Delete failed")
 
-      if (!response.ok) {
-        throw new Error(payload.error || "Could not delete tournament")
-      }
-
-      setTournaments((previous) =>
-        previous.filter((tournament) => tournament.id !== id)
-      )
+      setTournaments((previous) => previous.filter((tournament) => tournament.id !== id))
       setDeleteTarget(null)
-      flash("Tournament deleted")
-    } catch (error) {
-      flash(error.message)
-    }
+      flash("Record purged")
+    } catch (error) { flash(error.message) }
+  }
+
+  const inputStyle = {
+    flex: 1,
+    background: '#000',
+    border: '1px solid #222',
+    color: '#fff',
+    padding: '0.75rem 1rem',
+    fontFamily: 'system-ui, sans-serif',
+    outline: 'none',
+    minWidth: 150,
+    borderRadius: '4px'
   }
 
   return (
-    <div className="admin-results">
-      <div className="container">
-        {notification ? <div className="admin-notification">{notification}</div> : null}
-
-        <div className="admin-results__header">
-          <div>
-            <p className="admin-results__eyebrow">SKF Admin</p>
-            <h1 className="admin-results__title">Tournament Results</h1>
-            <p className="admin-results__subtitle">
-              Manage published result pages and internal tournament records.
-            </p>
-          </div>
-          {canManage ? (
-            <Link href="/admin/results/new" className="admin-results__create-btn">
-              <FaPlus />
-              <span>Log Tournament</span>
-            </Link>
-          ) : null}
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#000',
+      color: '#fff',
+      paddingBottom: '4rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      {notification && (
+        <div style={{ position: 'fixed', top: '2rem', right: '4rem', background: '#fff', color: '#000', padding: '1rem 1.5rem', fontWeight: 500, zIndex: 999, borderRadius: '4px' }}>
+          {notification}
         </div>
+      )}
 
-        <div className="admin-toolbar">
-          <div className="admin-toolbar__search">
-            <label className="admin-toolbar__label" htmlFor="search">
-              Search
-            </label>
-            <input
-              id="search"
-              className="admin-toolbar__input"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search tournaments"
-            />
+      {/* Header */}
+      <div style={{ 
+        borderBottom: '1px solid #111', 
+        padding: '2rem 2.5rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-end',
+        marginBottom: '2rem'
+      }}>
+        <div>
+          <p style={{ color: '#666', fontSize: '0.8rem', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '1rem', textTransform: 'uppercase' }}>
+            Database
+          </p>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 400, margin: 0, letterSpacing: '-0.03em' }}>
+            Tournament Records
+          </h1>
+        </div>
+        {canManage && (
+          <Link href="/admin/results/new" style={{
+            background: '#111', color: '#fff', border: '1px solid #333', padding: '0.75rem 1.5rem',
+            fontWeight: 500, textDecoration: 'none', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+            borderRadius: '4px', transition: 'background 0.2s'
+          }}
+          onMouseOver={e => e.currentTarget.style.background = '#222'}
+          onMouseOut={e => e.currentTarget.style.background = '#111'}>
+            <FaPlus /> Disclose Record
+          </Link>
+        )}
+      </div>
+
+      <div style={{ padding: '0 2.5rem' }}>
+        
+        {/* Toolbar */}
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginBottom: '2rem', background: '#050505', border: '1px solid #111', padding: '1.5rem', borderRadius: '4px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#666', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Search</label>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Query events..." style={{ ...inputStyle, width: '100%' }} />
           </div>
-
-          <div className="admin-toolbar__filter">
-            <label className="admin-toolbar__label" htmlFor="level-filter">
-              Level
-            </label>
-            <select
-              id="level-filter"
-              className="admin-toolbar__select"
-              value={levelFilter}
-              onChange={(event) => setLevelFilter(event.target.value)}
-            >
-              <option value="all">All levels</option>
-              {Object.entries(TOURNAMENT_LEVEL_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#666', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Level Filter</label>
+            <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} style={inputStyle}>
+              <option value="all">All Levels</option>
+              {Object.entries(TOURNAMENT_LEVEL_LABELS).map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
+        {/* Database Table */}
+        <div style={{ border: '1px solid #111', background: '#050505', borderRadius: '4px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ borderBottom: '1px solid #222' }}>
               <tr>
-                <th>Tournament</th>
-                <th>Level</th>
-                <th>Date</th>
-                <th>Venue</th>
-                <th>SKF</th>
-                <th>Medals</th>
-                <th>Published</th>
-                <th>Featured</th>
-                <th>Actions</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Tournament</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Date & Location</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>SKF Cohort</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Visibility</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="admin-table__empty">
-                    No tournaments matched the current filters.
-                  </td>
-                </tr>
+                <tr><td colSpan={8} style={{ padding: '4rem', textAlign: 'center', color: '#666' }}>No records found.</td></tr>
               ) : (
-                filtered.map((tournament) => (
-                  <tr key={tournament.id}>
-                    <td>
-                      <div className="admin-table__primary">
-                        <span>{tournament.name}</span>
-                        <small>{tournament.slug}</small>
+                filtered.map((t, i) => (
+                  <tr key={t.id} style={{ borderBottom: i !== filtered.length - 1 ? '1px solid #111' : 'none' }}>
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <div style={{ fontWeight: 500, color: '#fff', fontSize: '0.95rem' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.2rem', fontFamily: 'monospace' }}>
+                        {TOURNAMENT_LEVEL_LABELS[t.level]} — {t.slug}
                       </div>
                     </td>
-                    <td>{TOURNAMENT_LEVEL_LABELS[tournament.level]}</td>
-                    <td>{formatDate(tournament.date)}</td>
-                    <td>
-                      {tournament.venue}, {tournament.city}
+                    <td style={{ padding: '1.25rem 1.5rem', color: '#ccc', fontSize: '0.85rem' }}>
+                      <div>{formatDate(t.date)}</div>
+                      <div style={{ color: '#666', marginTop: '0.2rem' }}>{t.venue}, {t.city}</div>
                     </td>
-                    <td>{tournament.skfParticipants}</td>
-                    <td>
-                      <div className="admin-table__medals">
-                        <span className="admin-table__medal-g">
-                          {tournament.medals.gold}G
-                        </span>
-                        <span className="admin-table__medal-s">
-                          {tournament.medals.silver}S
-                        </span>
-                        <span className="admin-table__medal-b">
-                          {tournament.medals.bronze}B
-                        </span>
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <div style={{ color: '#fff', fontWeight: 500 }}>{t.skfParticipants} Athletes</div>
+                      <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.2rem' }}>
+                        {t.medals.gold}G · {t.medals.silver}S · {t.medals.bronze}B
                       </div>
                     </td>
-                    <td>
-                      <span
-                        className={`admin-table__status ${
-                          tournament.isPublished
-                            ? "admin-table__status--yes"
-                            : "admin-table__status--no"
-                        }`}
-                      >
-                        {tournament.isPublished ? "Yes" : "No"}
+                    <td style={{ padding: '1.25rem 1.5rem' }}>
+                      <span style={{ 
+                        padding: '0.2rem 0.6rem', 
+                        fontSize: '0.7rem', 
+                        border: `1px solid ${t.isPublished ? '#333' : '#222'}`, 
+                        color: t.isPublished ? '#fff' : '#666',
+                        background: t.isPublished ? 'rgba(255,255,255,0.1)' : 'transparent',
+                        borderRadius: '4px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}>
+                        {t.isPublished ? 'Public' : 'Hidden'}
                       </span>
                     </td>
-                    <td>
-                      <span
-                        className={`admin-table__status ${
-                          tournament.isFeatured
-                            ? "admin-table__status--yes"
-                            : "admin-table__status--no"
-                        }`}
-                      >
-                        {tournament.isFeatured ? "Yes" : "No"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="admin-table__actions">
+                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         {canManage ? (
                           <>
-                            <Link
-                              href={`/admin/results/${tournament.id}/edit`}
-                              className="admin-table__action-btn"
-                              aria-label="Edit tournament"
-                            >
-                              <FaEdit />
-                            </Link>
-                            <button
-                              className={`admin-table__action-btn ${
-                                tournament.isPublished
-                                  ? ""
-                                  : "admin-table__action-btn--active"
-                              }`}
-                              onClick={() => togglePublished(tournament.id)}
-                              aria-label={
-                                tournament.isPublished ? "Unpublish" : "Publish"
-                              }
-                            >
-                              {tournament.isPublished ? <FaEye /> : <FaEyeSlash />}
+                            <Link href={`/admin/results/${t.id}/edit`} style={{ color: '#fff', border: '1px solid #333', padding: '0.4rem 0.6rem', borderRadius: '4px', textDecoration: 'none', background: '#111' }}><FaEdit size={14} /></Link>
+                            <button onClick={() => togglePublished(t.id)} style={{ color: t.isPublished ? '#fff' : '#666', border: '1px solid #333', padding: '0.4rem 0.6rem', borderRadius: '4px', background: '#111', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: 500 }}>
+                              {t.isPublished ? 'Hide' : 'Publish'}
                             </button>
-                            <button
-                              className={`admin-table__action-btn ${
-                                tournament.isFeatured
-                                  ? "admin-table__action-btn--active"
-                                  : ""
-                              }`}
-                              onClick={() => toggleFeatured(tournament.id)}
-                              aria-label={
-                                tournament.isFeatured ? "Unfeature" : "Feature"
-                              }
-                            >
-                              {tournament.isFeatured ? <FaStar /> : <FaRegStar />}
-                            </button>
-                            <button
-                              className="admin-table__action-btn admin-table__action-btn--danger"
-                              onClick={() => setDeleteTarget(tournament)}
-                              aria-label="Delete tournament"
-                            >
-                              <FaTrash />
+                            <button onClick={() => setDeleteTarget(t)} style={{ color: '#ff003c', border: '1px solid #ff003c', padding: '0.4rem 0.6rem', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>
+                              <FaTrash size={14} />
                             </button>
                           </>
                         ) : (
-                          <Link
-                            href={tournament.isPublished ? `/results/${tournament.slug}` : "#"}
-                            className="admin-table__action-btn"
-                            aria-label="View tournament"
-                          >
-                            <FaEye />
-                          </Link>
+                          <span style={{ color: '#666', fontSize: '0.8rem' }}>Read Only</span>
                         )}
                       </div>
                     </td>
@@ -309,34 +232,20 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
         </div>
       </div>
 
-      {deleteTarget ? (
-        <div
-          className="admin-modal-overlay"
-          onClick={() => setDeleteTarget(null)}
-        >
-          <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
-            <h3>Delete Tournament?</h3>
-            <p>
-              Are you sure you want to delete "{deleteTarget.name}"? This action
-              cannot be undone.
+      {deleteTarget && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: '#050505', border: '1px solid #333', padding: '2.5rem', maxWidth: 400, borderRadius: '8px' }}>
+            <h3 style={{ color: '#fff', marginTop: 0, fontWeight: 400, fontSize: '1.5rem', letterSpacing: '-0.02em' }}>Confirm Deletion</h3>
+            <p style={{ color: '#888', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '2rem' }}>
+              Are you sure you want to permanently delete "{deleteTarget.name}"?
             </p>
-            <div className="admin-modal__actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setDeleteTarget(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => handleDelete(deleteTarget.id)}
-              >
-                Delete
-              </button>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setDeleteTarget(null)} style={{ background: 'transparent', color: '#ccc', border: '1px solid #333', padding: '0.75rem 1.5rem', cursor: 'pointer', borderRadius: '4px', fontWeight: 500, fontFamily: 'system-ui, sans-serif' }}>Cancel</button>
+              <button onClick={() => handleDelete(deleteTarget.id)} style={{ background: '#ff003c', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', fontWeight: 500, cursor: 'pointer', borderRadius: '4px', fontFamily: 'system-ui, sans-serif' }}>Delete</button>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   )
 }

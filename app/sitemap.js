@@ -14,7 +14,6 @@ export default function sitemap() {
         { path: '/events', priority: 0.9, changeFrequency: 'weekly' },
         { path: '/gallery', priority: 0.7, changeFrequency: 'monthly' },
         { path: '/honours', priority: 0.7, changeFrequency: 'monthly' },
-        { path: '/documents', priority: 0.6, changeFrequency: 'yearly' },
         { path: '/results', priority: 0.85, changeFrequency: 'monthly' },
     ]
 

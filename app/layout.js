@@ -1,9 +1,7 @@
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import './profile.css'
-import Navbar from '@/app/_components/Navbar'
-import Footer from '@/app/_components/Footer'
-import CookieConsent from '@/app/_components/CookieConsent'
+import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
 import SessionProvider from '@/app/_components/providers/SessionProvider'
 
 const inter = Inter({
@@ -24,6 +22,7 @@ const siteUrl = 'https://skfkarate.org'
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
+  manifest: '/manifest.json',
   title: 'SKF Karate',
   description: 'Join SKF Karate, the premier martial arts and self-defense academy. Best local karate classes, professional dojo training, black belt grading, and Summer Camp. Start your karate journey today.',
   keywords: [
@@ -189,10 +188,9 @@ export default function RootLayout({ children }) {
             Skip to content
           </a>
           <JsonLd />
-          <Navbar />
-          <main id="main-content">{children}</main>
-          <Footer />
-          <CookieConsent />
+          <ClientLayoutWrapper>
+            {children}
+          </ClientLayoutWrapper>
         </SessionProvider>
       </body>
     </html>

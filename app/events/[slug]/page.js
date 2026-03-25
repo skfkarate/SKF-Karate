@@ -28,9 +28,30 @@ export async function generateMetadata({ params }) {
     return { title: "Event Not Found | SKF Karate" }
   }
 
+  const imageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skfkarate.org'}/icon.png`
+
   return {
     title: `${event.name} | SKF Karate`,
-    description: event.description,
+    description: event.description || 'SKF Karate Event Details',
+    openGraph: {
+      title: `${event.name} | SKF Karate`,
+      description: event.description || 'SKF Karate Event Details',
+      type: 'website',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: event.name,
+        }
+      ]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${event.name} | SKF Karate`,
+      description: event.description || 'SKF Karate Event Details',
+      images: [imageUrl],
+    }
   }
 }
 

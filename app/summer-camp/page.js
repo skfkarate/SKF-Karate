@@ -2,10 +2,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FaFire, FaCalendarAlt, FaArrowRight, FaQuoteLeft, FaStar, FaShieldAlt, FaMapMarkerAlt, FaClock, FaUsers, FaWhatsapp, FaPhoneAlt, FaQuestion } from 'react-icons/fa'
 import { GiBlackBelt, GiNunchaku } from 'react-icons/gi'
-import ScrollVideo from '../components/ScrollVideo'
-import ScheduleLightbox from '../components/ScheduleLightbox'
-import CountdownTimer from '../components/CountdownTimer'
-import FAQSection from '../components/FAQSection'
+import ScrollVideo from '../_components/pages/summer-camp/SummerCampVideo'
+import CountdownTimer from '../_components/pages/summer-camp/SummerCampCountdownTimer'
+import FAQSection from '../_components/pages/summer-camp/SummerCampFAQ'
 import './summer-camp.css'
 
 
@@ -55,7 +54,7 @@ export default function SummerCampPage() {
                             <div className="benefit-card__content">
                                 <h4>Real Ninja Skills</h4>
                                 <p>
-                                    Master the Nunchaku, learn cool self-defense strikes, and earn your certified summer camp belt!
+                                    Master the Nunchaku, learn cool self-defense strikes, and earn your summer camp belt!
                                 </p>
                             </div>
                         </div>
@@ -76,91 +75,152 @@ export default function SummerCampPage() {
                 </div>
             </section>
 
-            {/* ===== PRICING / PROGRAMS ===== */}
-            <section className="section programs" id="pricing">
-                <div className="container">
-                    <div className="programs__header">
-                        <span className="section-label"><GiBlackBelt /> Camp Structure</span>
-                        <h2 className="section-title">Training Plans &amp; <span className="text-gradient">Pricing</span></h2>
-                        <p className="section-subtitle programs__subtitle">
-                            Choose a single month of specialized training or get the ultimate experience by enrolling for both.
+            {/* ===== VIP SCHOLARSHIP PASS ===== */}
+            <section className="section vip-pass-section" id="pricing" style={{ position: 'relative', padding: '6rem 0' }}>
+                <div className="glow glow-gold" style={{ top: '20%', left: '50%', transform: 'translateX(-50%)', opacity: 0.15, width: '600px', height: '600px' }}></div>
+                
+                <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+                    <div className="programs__header" style={{ marginBottom: '4rem' }}>
+                        <span className="section-label camp-pulse" style={{ borderColor: 'var(--color-gold)', color: 'var(--color-gold)' }}><FaFire style={{ marginRight: '8px' }}/> The Summer Scholarship</span>
+                        <h2 className="section-title">Claim Your <span className="text-gradient">VIP Access</span></h2>
+                        <p className="section-subtitle programs__subtitle" style={{ maxWidth: '700px', margin: '0 auto', fontSize: '1.2rem' }}>
+                            We are giving away <strong>20 exclusive VIP Passes</strong> that grant your child 100% free access to Month 1 of our immersive Summer Camp. 
                         </p>
                     </div>
 
-                    {/* ===== EARLY BIRD OFFER BANNER ===== */}
-                    <div className="offer-banner glass-card">
-                        <div className="offer-banner__glow"></div>
-                        <div className="offer-banner__content">
-                            <div className="offer-banner__badge">1+1 Free Offer</div>
-                            <h3><FaFire className="offer-banner__icon" /> First 10 Enrollments Special</h3>
-                            <p>
-                                Enroll for the Full Camp and get <strong>1 Month FREE!</strong><br />
-                                Pay only <strong className="text-gold">₹1,500</strong> instead of <span className="price-strike">₹2,500</span>.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="programs__grid">
-                        <div className="glass-card program-card">
-                            <div className="program-card__header">
-                                <div className="program-card__icon"><FaShieldAlt /></div>
-                                <h3>Month 1</h3>
-                                <p className="program-card__level">Self Defense Training</p>
-                                <div className="program-card__price">₹1,500<span>/mo</span></div>
-                            </div>
-                            <ul className="program-card__features">
-                                <li><strong>For kids:</strong> Cool reflex & evasion games</li>
-                                <li><strong>For parents:</strong> Screen-free discipline building</li>
-                                <li>Practical self-defense techniques</li>
-                                <li>Situational awareness / Bully prevention</li>
-                                <li>Certified completion certificate</li>
-                            </ul>
-                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Month 1</Link>
-                        </div>
-
-                        <div className="glass-card program-card program-card--featured program-card--offer">
-                            <div className="program-card__badge">First 10 Slots</div>
-                            <div className="program-card__header">
-                                <div className="program-card__icon"><GiBlackBelt /></div>
-                                <h3>Full Camp</h3>
-                                <p className="program-card__level">Both Months (1 Month Free!)</p>
-                                <div className="program-card__price">
-                                    <span className="program-card__price-old">₹2,500</span>
-                                    ₹1,500<span>/total</span>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        {/* VIP TICKET VISUAL */}
+                        <div className="vip-ticket" style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            maxWidth: '1000px',
+                            width: '100%',
+                            background: 'linear-gradient(135deg, #111 0%, #000 100%)',
+                            borderRadius: '24px',
+                            border: '1px solid rgba(255, 215, 0, 0.4)',
+                            boxShadow: '0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 215, 0, 0.15)',
+                            overflow: 'hidden',
+                            position: 'relative'
+                        }}>
+                            {/* Left Stub / Barcode Area */}
+                            <div className="vip-ticket__stub" style={{
+                                width: '25%',
+                                minWidth: '220px',
+                                borderRight: '2px dashed rgba(255, 215, 0, 0.4)',
+                                padding: '3rem 1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'linear-gradient(to bottom, rgba(255, 215, 0, 0.08), transparent)',
+                                position: 'relative'
+                            }}>
+                                {/* Ticket Cutout notches matching the dashed border */}
+                                <div className="ticket-notch-top" style={{ position: 'absolute', top: '-20px', right: '-20px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-bg)', borderBottom: '1px solid rgba(255,215,0,0.4)', zIndex: 5 }}></div>
+                                <div className="ticket-notch-bottom" style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-bg)', borderTop: '1px solid rgba(255,215,0,0.4)', zIndex: 5 }}></div>
+                                
+                                <div className="stub-vertical-text" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: '3rem', fontWeight: '900', color: 'rgba(255,255,255,0.03)', letterSpacing: '8px', position: 'absolute', left: '15px' }}>
+                                    ADMIT ONE
                                 </div>
+                                
+                                <FaShieldAlt style={{ fontSize: '4.5rem', color: 'var(--color-gold)', marginBottom: '1.5rem', filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.4))' }} />
+                                <h3 style={{ fontSize: '1.3rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#ddd', textAlign: 'center', margin: 0 }}>Month 1</h3>
+                                <div style={{ color: 'var(--color-gold)', fontWeight: '900', fontSize: '1.8rem', marginTop: '0.8rem', textAlign: 'center', textShadow: '0 0 10px rgba(255,215,0,0.3)' }}>FREE PASS</div>
                             </div>
-                            <ul className="program-card__features">
-                                <li>Month 1: Self Defense (Discipline & Focus)</li>
-                                <li>Month 2: Nunchaku (Coordination & Agility)</li>
-                                <li>Comprehensive fitness & stamina building</li>
-                                <li>Mastery of a predefined Nunchaku sequence</li>
-                                <li>Certified completion certificate</li>
-                            </ul>
-                            <Link href="/contact" className="btn btn-primary program-card__btn">Enroll Full Camp <FaArrowRight /></Link>
-                        </div>
+                            
+                            {/* Right Main Area */}
+                            <div className="vip-ticket__main" style={{
+                                padding: '3.5rem 3rem',
+                                flex: 1,
+                                position: 'relative'
+                            }}>
+                                {/* Watermark */}
+                                <div style={{ position: 'absolute', right: '30px', bottom: '10px', fontSize: '12rem', opacity: 0.02, fontWeight: '900', color: 'var(--color-gold)', pointerEvents: 'none', lineHeight: 1 }}>
+                                    VIP
+                                </div>
 
-                        <div className="glass-card program-card">
-                            <div className="program-card__header">
-                                <div className="program-card__icon"><GiNunchaku /></div>
-                                <h3>Month 2</h3>
-                                <p className="program-card__level">Nunchaku Weapon Training</p>
-                                <div className="program-card__price">₹1,500<span>/mo</span></div>
+                                <div className="vip-ticket__header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1.5rem' }}>
+                                    <div style={{ flex: '1 1 300px' }}>
+                                        <div style={{ display: 'inline-block', background: 'var(--color-gold)', color: '#000', padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.95rem', fontWeight: '900', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', boxShadow: '0 4px 15px rgba(255,215,0,0.3)' }}>
+                                            Strictly Limited to 20 Slots
+                                        </div>
+                                        <h3 className="vip-title" style={{ fontSize: '2.8rem', margin: '0 0 0.8rem 0', lineHeight: 1.1 }}>Ultimate Self Defense <br/><span className="text-gold">Experience</span></h3>
+                                        <p style={{ color: '#aaa', fontSize: '1.15rem', margin: 0 }}>Focus, Discipline, &amp; Real-World Skills.</p>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '1.1rem', color: '#777', textDecoration: 'line-through', marginBottom: '0.5rem' }}>Regular Value: ₹1,500</div>
+                                        <div className="vip-price" style={{ fontSize: '4.5rem', fontWeight: '900', color: 'var(--color-gold)', lineHeight: 0.9, textShadow: '0 0 20px rgba(255,215,0,0.2)' }}>₹0</div>
+                                    </div>
+                                </div>
+
+                                <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: '1.2rem', marginBottom: '3rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
+                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                        Action-packed modules
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
+                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                        Screen-free environment
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
+                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                        Reflex &amp; evasion games
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
+                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                        Zero commitment required
+                                    </div>
+                                </div>
+
+                                <Link href="/summer-camp/enroll" className="btn vip-btn" style={{ 
+                                    background: 'linear-gradient(90deg, #FFDF00 0%, #D4AF37 100%)', 
+                                    color: '#000', 
+                                    fontWeight: '900', 
+                                    fontSize: '1.2rem', 
+                                    padding: '1.2rem 2.8rem', 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    gap: '12px',
+                                    border: 'none',
+                                    borderRadius: '50px',
+                                    boxShadow: '0 10px 25px rgba(255, 215, 0, 0.4)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1px',
+                                    transition: 'all 0.3s ease'
+                                }}>
+                                    Redeem VIP Pass <FaArrowRight />
+                                </Link>
                             </div>
-                            <ul className="program-card__features">
-                                <li><strong>For kids:</strong> Learn movie-style strikes</li>
-                                <li><strong>For parents:</strong> Safe, foam training weapons</li>
-                                <li>Nunchaku basics, grips, and safety</li>
-                                <li>Hand-eye coordination drills</li>
-                                <li>Certified completion certificate</li>
-                            </ul>
-                            <Link href="/contact" className="btn btn-secondary program-card__btn">Enroll Month 2</Link>
                         </div>
                     </div>
+                    
+                    {/* Add a subtle CSS block for mobile responsiveness of the ticket */}
+                    <style dangerouslySetInnerHTML={{__html: `
+                        @media (max-width: 768px) {
+                            .vip-ticket { flex-direction: column !important; }
+                            .vip-ticket__stub {
+                                width: 100% !important; border-right: none !important;
+                                border-bottom: 2px dashed rgba(255, 215, 0, 0.4) !important; padding: 2.5rem !important;
+                            }
+                            .ticket-notch-top { left: -20px !important; top: auto !important; bottom: -20px !important; border-bottom: none !important; border-right: 1px solid rgba(255,215,0,0.4) !important; }
+                            .ticket-notch-bottom { right: -20px !important; bottom: -20px !important; top: auto !important; border-top: none !important; border-left: 1px solid rgba(255,215,0,0.4) !important; }
+                            .stub-vertical-text { display: none !important; }
+                            .setup-grid { grid-template-columns: 1fr !important; gap: 0.8rem !important; }
+                            .vip-ticket__main { padding: 2rem 1.25rem !important; }
+                            .vip-ticket__header-row { text-align: center; gap: 1rem !important; }
+                            .vip-ticket__header-row > div { flex: 1 1 100% !important; text-align: center !important; }
+                            .vip-title { font-size: 2.2rem !important; }
+                            .vip-price { font-size: 3.5rem !important; }
+                            .vip-btn { width: 100% !important; justify-content: center !important; }
+                        }
+                    `}} />
                 </div>
             </section>
 
+
             {/* ===== LOCATION / MAP ===== */}
-            <section className="section location">
+            <section className="section location section--tint-mid">
                 <div className="container">
                     <div className="location__header" style={{ textAlign: 'center', marginBottom: '3rem' }}>
                         <span className="section-label"><FaMapMarkerAlt /> Camp Venue</span>
@@ -243,7 +303,7 @@ export default function SummerCampPage() {
             </section>
 
             {/* ===== RECENT CAMP VIDEO ===== */}
-            <section className="section recent-camp">
+            <section className="section recent-camp section--tint-mid">
                 <div className="container">
                     <div className="recent-camp__header">
                         <span className="section-label"><FaStar /> From Our Recent Camp</span>
@@ -334,7 +394,7 @@ export default function SummerCampPage() {
             </section>
 
             {/* ===== FAQ ===== */}
-            <section className="section faq">
+            <section className="section faq section--tint-mid">
                 <div className="container">
                     <div className="faq__header">
                         <span className="section-label"><FaQuestion /> FAQ</span>
@@ -357,7 +417,7 @@ export default function SummerCampPage() {
                             Enrollment is open but slots are limited. Secure your spot today.
                         </p>
                         <div className="camp-bottom-cta__buttons">
-                            <Link href="/contact" className="btn btn-primary">Enroll Now <FaArrowRight /></Link>
+                            <Link href="/summer-camp/enroll" className="btn btn-primary">Enroll Now <FaArrowRight /></Link>
                             <a href="tel:+919019971726" className="btn btn-secondary"><FaPhoneAlt /> Call Us</a>
                         </div>
                     </div>

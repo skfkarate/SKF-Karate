@@ -1,43 +1,35 @@
-'use client'
-
-import { useState, useEffect, useRef } from 'react'
+'use client';
+import { useRef, useEffect } from 'react';
+import { motion, useInView, useSpring, useTransform } from 'framer-motion';
+import './HomeStatsCounter.css';
 
 export default function HomeStatsCounter({ target, label, suffix = '+' }) {
-    const [count, setCount] = useState(0)
-    const ref = useRef(null)
-    const started = useRef(false)
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, margin: "-50px" });
+    
+    // Physics-based spring config
+    const springValue = useSpring(0, {
+        stiffness: 40,
+        damping: 20,
+        mass: 1,
+        restDelta: 0.001
+    });
 
     useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting && !started.current) {
-                started.current = true
-                const duration = 2000
-                let startTime = null
+        if (isInView) {
+            springValue.set(target);
+        }
+    }, [isInView, springValue, target]);
 
-                function animate(timestamp) {
-                    if (!startTime) startTime = timestamp
-                    const elapsed = timestamp - startTime
-                    const progress = Math.min(elapsed / duration, 1)
-                    // Ease-out curve for natural deceleration
-                    const eased = 1 - Math.pow(1 - progress, 3)
-                    setCount(Math.floor(eased * target))
-                    if (progress < 1) {
-                        requestAnimationFrame(animate)
-                    } else {
-                        setCount(target)
-                    }
-                }
-                requestAnimationFrame(animate)
-            }
-        }, { threshold: 0.5 })
-        if (ref.current) observer.observe(ref.current)
-        return () => observer.disconnect()
-    }, [target])
+    // Format output as a clean localized string
+    const displayValue = useTransform(springValue, latest => Math.floor(latest).toLocaleString());
 
     return (
         <div className="stat" ref={ref}>
-            <span className="stat__number">{count.toLocaleString()}{suffix}</span>
+            <span className="stat__number">
+                <motion.span>{displayValue}</motion.span>{suffix}
+            </span>
             <span className="stat__label">{label}</span>
         </div>
-    )
+    );
 }

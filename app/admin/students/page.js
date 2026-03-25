@@ -4,167 +4,260 @@ import { getAllAthletes } from '../../../lib/data/athletes';
 import { getBelt } from '../../../lib/data/belts';
 import { requireAdminSession } from '@/lib/utils/auth';
 
-// Add a simple basic auth mechanism or middleware later
-// For now this is just UI skeleton for mock data rendering
 export const dynamic = 'force-dynamic';
 
 export default async function AdminStudentsPage({ searchParams }) {
-  // Require admin session for access - both admin and instructor can view
-  const session = await requireAdminSession(["admin", "instructor"]);
-  
-  const allAthletes = getAllAthletes();
-  const params = await searchParams;
-  const query = params?.q?.trim().toLowerCase() || '';
-  const branch = params?.branch || 'all';
+  const session = await requireAdminSession()
+  const canManage = session.role === 'admin' || session.role === 'super_admin'
 
-  const athletes = allAthletes.filter((athlete) => {
-    const matchesQuery =
-      !query ||
-      `${athlete.firstName} ${athlete.lastName}`.toLowerCase().includes(query) ||
-      athlete.registrationNumber.toLowerCase().includes(query);
-    const matchesBranch = branch === 'all' || athlete.branchName === branch;
-    return matchesQuery && matchesBranch;
-  });
-  const branches = [...new Set(allAthletes.map((athlete) => athlete.branchName))].sort();
-  const canManage = session.user.role === 'admin';
+  const params = await searchParams;
+  let athletes = await getAllAthletes();
+  
+  if (params?.q) {
+    const query = params.q.toLowerCase();
+    athletes = athletes.filter(athlete => 
+      athlete.firstName.toLowerCase().includes(query) ||
+      athlete.lastName.toLowerCase().includes(query) ||
+      athlete.registrationNumber.toLowerCase().includes(query)
+    );
+  }
+
+  if (params?.branch) {
+    athletes = athletes.filter(athlete => athlete.branch === params.branch);
+  }
+
+  const inActiveCount = athletes.filter(a => a.status === 'inactive').length;
 
   return (
-    <div className="min-h-screen bg-[#080b14] pb-20">
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#000',
+      color: '#fff',
+      paddingBottom: '4rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
       
-      {/* Admin Header */}
-      <header className="bg-[rgba(20,33,61,0.5)] border-b border-[rgba(255,183,3,0.1)] py-8 relative overflow-hidden">
-        {/* Glow */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-red rounded-full mix-blend-multiply filter blur-[128px] opacity-20 pointer-events-none"></div>
-        <div className="container mx-auto px-4 max-w-7xl relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <span className="text-brand-red text-sm font-bold uppercase tracking-[0.2em] block mb-2">SKF Portal</span>
-            <h1 className="text-4xl font-black uppercase text-white tracking-tight">Athlete Management</h1>
-          </div>
-          {canManage ? (
-            <Link href="/admin/students/new" className="bg-brand-red text-white px-8 py-3 rounded font-bold tracking-widest hover:bg-red-700 transition flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(214,40,40,0.4)] hover:shadow-[0_0_30px_rgba(214,40,40,0.6)] uppercase text-sm border border-red-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              Add New Athlete
-            </Link>
-          ) : null}
+      {/* Header */}
+      <header style={{ 
+        borderBottom: '1px solid #111', 
+        padding: '2rem 2.5rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-end' 
+      }}>
+        <div>
+          <span style={{ 
+            color: '#666', 
+            fontSize: '0.8rem', 
+            fontFamily: 'monospace', 
+            letterSpacing: '0.1em', 
+            display: 'block', 
+            marginBottom: '1rem',
+            textTransform: 'uppercase'
+          }}>
+            Database
+          </span>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: 400, 
+            margin: 0, 
+            letterSpacing: '-0.03em' 
+          }}>
+            Athlete Records
+          </h1>
         </div>
+        {canManage && (
+          <Link href="/admin/students/new" style={{
+            background: '#111',
+            color: '#fff',
+            border: '1px solid #333',
+            padding: '0.75rem 1.5rem',
+            textDecoration: 'none',
+            fontSize: '0.9rem',
+            borderRadius: '4px'
+          }}>
+            Add Record
+          </Link>
+        )}
       </header>
 
-      <div className="container mx-auto px-4 max-w-7xl mt-12">
+      <div style={{ padding: '2rem 2.5rem' }}>
         
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="glass-card p-6 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.05)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-[rgba(255,255,255,0.02)]">
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Athletes</p>
-              <p className="text-4xl font-black text-white mt-2">{athletes.length}</p>
-            </div>
-            <div className="w-14 h-14 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-gray-300">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-            </div>
-          </div>
-          <div className="glass-card p-6 rounded-2xl flex items-center justify-between border border-[rgba(34,197,94,0.2)] shadow-[0_10px_30px_rgba(34,197,94,0.1)] bg-[rgba(34,197,94,0.05)]">
-            <div>
-              <p className="text-xs font-bold text-green-500 uppercase tracking-widest">Active</p>
-              <p className="text-4xl font-black text-white mt-2">{athletes.filter(s => s.status === 'active').length}</p>
-            </div>
-          </div>
-          <div className="glass-card p-6 rounded-2xl flex items-center justify-between border border-[rgba(255,255,255,0.1)] shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-[rgba(0,0,0,0.5)]">
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Black Belts</p>
-              <p className="text-4xl font-black text-white mt-2">{athletes.filter(s => s.currentBelt.includes('black')).length}</p>
-            </div>
-          </div>
-          <div className="glass-card p-6 rounded-2xl flex items-center justify-between border border-[rgba(255,183,3,0.2)] shadow-[0_10px_30px_rgba(255,183,3,0.05)] bg-[rgba(255,183,3,0.05)]">
-            <div>
-              <p className="text-xs font-bold text-gold uppercase tracking-widest">Points Distributed</p>
-              <p className="text-4xl font-black text-white mt-2">
-                {athletes.reduce((acc, curr) => acc + curr.pointsLifetime, 0).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Toolbar */}
-        <form className="glass-card p-5 rounded-t-2xl border-x border-t border-[rgba(255,255,255,0.1)] shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center bg-[rgba(255,255,255,0.02)]">
-          <div className="w-full sm:w-96 relative">
-            <input name="q" defaultValue={params?.q || ''} type="text" placeholder="Search by name or reg number..." className="w-full pl-11 pr-4 py-3 bg-[rgba(0,0,0,0.5)] text-white border border-[rgba(255,255,255,0.1)] rounded hover:border-[rgba(255,255,255,0.2)] focus:border-gold focus:ring-1 focus:ring-gold transition-colors outline-none" />
-            <svg className="w-5 h-5 text-gray-500 absolute left-4 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </div>
-          <div className="flex gap-4 w-full sm:w-auto">
-            <select name="branch" defaultValue={branch} className="bg-[rgba(0,0,0,0.5)] outline-none border border-[rgba(255,255,255,0.1)] rounded px-4 py-3 text-sm text-gray-300 font-medium focus:border-gold cursor-pointer">
-              <option value="all">All Branches</option>
-              {branches.map((branchName) => (
-                <option key={branchName} value={branchName}>{branchName}</option>
+        {/* Controls */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '1rem', 
+          alignItems: 'center', 
+          marginBottom: '2rem',
+          padding: '1.5rem',
+          background: '#050505',
+          border: '1px solid #111'
+        }}>
+          <form style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            <input 
+              name="q" 
+              defaultValue={params?.q || ''} 
+              type="text" 
+              placeholder="Search ID, Name..." 
+              style={{
+                flex: 1,
+                background: '#000',
+                border: '1px solid #222',
+                color: '#fff',
+                padding: '0.75rem 1rem',
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: '0.9rem',
+                outline: 'none',
+                borderRadius: '4px'
+              }}
+            />
+            <select 
+              name="branch" 
+              defaultValue={params?.branch || ''}
+              style={{
+                background: '#000',
+                border: '1px solid #222',
+                color: '#fff',
+                padding: '0.75rem 1rem',
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: '0.9rem',
+                outline: 'none',
+                borderRadius: '4px',
+                minWidth: '150px'
+              }}
+            >
+              <option value="">All Branches</option>
+              {Array.from(new Set(athletes.map(a => a.branch))).filter(Boolean).map(b => (
+                <option key={b} value={b}>{b}</option>
               ))}
             </select>
-            <button type="submit" className="bg-white/10 px-4 py-3 text-sm font-semibold text-white rounded border border-white/10 hover:bg-white/15 transition-colors">
+            <button type="submit" style={{
+              background: '#fff',
+              color: '#000',
+              border: 'none',
+              padding: '0 1.5rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              borderRadius: '4px',
+              fontFamily: 'system-ui, sans-serif'
+            }}>
               Filter
             </button>
-          </div>
-        </form>
+            {(params?.q || params?.branch) && (
+              <Link href="/admin/students" style={{
+                color: '#666',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0 1rem',
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                border: '1px solid #222',
+                borderRadius: '4px'
+              }}>
+                Clear
+              </Link>
+            )}
+          </form>
+        </div>
 
-        {/* User Table */}
-        <div className="glass-card border-x border-b border-[rgba(255,255,255,0.1)] rounded-b-2xl overflow-x-auto bg-[rgba(0,0,0,0.2)]">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead className="bg-[rgba(255,255,255,0.03)] border-b border-[rgba(255,255,255,0.1)] text-xs font-bold text-gray-400 uppercase tracking-widest">
+        {/* Data Table */}
+        <div style={{ 
+          border: '1px solid #111', 
+          background: '#050505', 
+          overflowX: 'auto' 
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ borderBottom: '1px solid #222' }}>
               <tr>
-                <th className="px-6 py-5">Athlete</th>
-                <th className="px-6 py-5">Reg No.</th>
-                <th className="px-6 py-5">Branch</th>
-                <th className="px-6 py-5">Belt</th>
-                <th className="px-6 py-5 text-center">Flags</th>
-                <th className="px-6 py-5 text-center">Actions</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Athlete</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Rank</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Location</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Joined</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>State</th>
+                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
-              {athletes.map(athlete => (
-                <tr key={athlete.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-[rgba(20,33,61,0.8)] border-2 border-[rgba(255,255,255,0.1)] flex items-center justify-center font-black text-gray-400 overflow-hidden shadow-md">
-                         {athlete.photoUrl ? <Image src={athlete.photoUrl} alt={`${athlete.firstName} ${athlete.lastName}`} width={48} height={48} className="w-full h-full object-cover" /> : `${athlete.firstName[0]}${athlete.lastName[0]}`}
-                      </div>
-                      <div>
-                        <p className="font-bold text-white uppercase tracking-wider">{athlete.firstName} {athlete.lastName}</p>
-                        <p className="text-xs font-bold tracking-widest text-gold/70 mt-1 uppercase">{athlete.status}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-mono text-sm text-gray-400 tracking-wider">
-                    <span className="bg-[rgba(0,0,0,0.5)] px-2 py-1 rounded border border-[rgba(255,255,255,0.05)]">{athlete.registrationNumber}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-300 tracking-wider uppercase">{athlete.branchName}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[rgba(255,255,255,0.05)] text-xs font-bold border border-[rgba(255,255,255,0.1)] uppercase text-gray-200">
-                      {getBelt(athlete.currentBelt).label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-3">
-                       {athlete.isPublic && <span title="Public Profile" className="text-green-400 opacity-80 group-hover:opacity-100 transition-opacity">👁️</span>}
-                       {athlete.isFeatured && <span title="Featured" className="text-gold opacity-80 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(255,183,3,0.5)] rounded-full">⭐</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {canManage ? (
-                      <Link href={`/admin/students/${athlete.id}/edit`} className="inline-block text-white font-bold text-xs uppercase tracking-widest px-4 py-2 bg-[rgba(255,255,255,0.05)] rounded border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:border-white transition-all">
-                        Edit
-                      </Link>
-                    ) : (
-                      <span className="inline-block text-white/40 font-bold text-xs uppercase tracking-widest px-4 py-2 bg-[rgba(255,255,255,0.03)] rounded border border-[rgba(255,255,255,0.06)]">
-                        View Only
-                      </span>
-                    )}
+            <tbody>
+              {athletes.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: '#666' }}>
+                    No records found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                athletes.map((athlete) => {
+                  const beltInfo = getBelt(athlete.beltRank)
+                  return (
+                    <tr key={athlete.id} style={{ borderBottom: '1px solid #111' }}>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{ 
+                            width: 32, height: 32, borderRadius: '50%', background: '#111', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            color: '#666', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace' 
+                          }}>
+                            {athlete.firstName[0]}{athlete.lastName[0]}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 500, color: '#fff', fontSize: '0.95rem' }}>
+                              {athlete.firstName} {athlete.lastName}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#666', fontFamily: 'monospace', marginTop: '0.2rem' }}>
+                              {athlete.registrationNumber}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ width: 12, height: 12, borderRadius: 2, background: beltInfo?.hexCode || '#fff' }} />
+                          <span style={{ fontSize: '0.9rem', color: '#ccc' }}>{beltInfo?.name || athlete.beltRank}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', color: '#ccc', fontSize: '0.9rem' }}>
+                        {athlete.branch || '—'}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', color: '#666', fontSize: '0.85rem' }}>
+                        {new Date(athlete.dateOfJoin).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <span style={{ 
+                          padding: '0.25rem 0.6rem', 
+                          fontSize: '0.7rem', 
+                          background: athlete.status === 'active' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                          color: athlete.status === 'active' ? '#fff' : '#666',
+                          border: `1px solid ${athlete.status === 'active' ? '#333' : '#222'}`,
+                          borderRadius: '4px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em'
+                        }}>
+                          {athlete.status || 'Active'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                        {canManage ? (
+                          <Link href={`/admin/students/${athlete.id}/edit`} style={{
+                            color: '#fff',
+                            border: '1px solid #333',
+                            padding: '0.4rem 0.75rem',
+                            fontSize: '0.8rem',
+                            textDecoration: 'none',
+                            borderRadius: '4px'
+                          }}>
+                            Edit
+                          </Link>
+                        ) : (
+                          <span style={{ color: '#666', fontSize: '0.8rem' }}>Read Only</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
-  );
+  )
 }

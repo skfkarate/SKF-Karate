@@ -1,5 +1,6 @@
-import AdminNavbar from "@/app/_components/admin/AdminNavbar";
+import AdminSidebar from "@/app/_components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/utils/auth";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   robots: {
@@ -11,10 +12,28 @@ export const metadata = {
 export default async function AdminLayout({ children }) {
   const session = await getAdminSession()
 
+  // If not logged in, show the login page (children will render login route)
+  if (!session) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+        {children}
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {session ? <AdminNavbar user={session.user} /> : null}
-      <main className="p-6">{children}</main>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#000', color: '#fff' }}>
+      {/* Persistent Sidebar */}
+      <AdminSidebar user={session.user} />
+      
+      {/* Main Content Area */}
+      <main style={{
+        flex: 1,
+        minHeight: '100vh',
+        background: '#000'
+      }}>
+        {children}
+      </main>
     </div>
   );
 }

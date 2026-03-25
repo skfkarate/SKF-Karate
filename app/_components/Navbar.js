@@ -22,7 +22,6 @@ const navStructure = [
         children: [
             { label: 'Kyu & Dan System', href: '/grading' },
             { label: 'Summer Camp 2026', href: '/summer-camp' },
-            { label: 'Rules & Documents', href: '/documents' },
         ],
     },
     {
@@ -30,6 +29,7 @@ const navStructure = [
         children: [
             { label: 'Events & Calendar', href: '/events' },
             { label: 'Athlete Profile', href: '/athlete' },
+            { label: 'Verify Certificate', href: '/verify' },
             { label: 'Gallery', href: '/gallery' },
             { label: 'Results & History', href: '/results' },
             { label: 'Honours Board', href: '/honours' },

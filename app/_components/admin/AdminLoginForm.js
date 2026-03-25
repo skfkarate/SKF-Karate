@@ -1,142 +1,201 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { useState, useRef, useEffect } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 
 export default function AdminLoginForm() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [clickCount, setClickCount] = useState(0)
+  const [showForm, setShowForm] = useState(false)
+  
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-    setError("")
-    setIsLoading(true)
+  const clickTimeoutRef = useRef(null)
 
-    const result = await signIn("credentials", {
-      username,
-      password,
-      redirect: false,
-      callbackUrl: "/admin",
-    })
-
-    setIsLoading(false)
-
-    if (result?.error) {
-      setError("Invalid username or password.")
-      return
-    }
-
-    window.location.href = result?.url || "/admin"
+  // Handle hidden activation sequence (triple click)
+  const handleSecretClick = () => {
+    setClickCount(prev => prev + 1)
+    
+    // Reset click count if not clicked in 1.5 seconds
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current)
+    clickTimeoutRef.current = setTimeout(() => {
+      setClickCount(0)
+    }, 1500)
   }
 
-  return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-12 text-white">
-      <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-5xl items-center justify-center">
-        <div className="grid w-full overflow-hidden rounded-3xl border border-white/[0.08] bg-[#141414] shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="relative hidden overflow-hidden border-r border-white/[0.06] bg-[#101010] p-10 lg:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.12),transparent_30%)]" />
-            <div className="relative flex h-full flex-col justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-400/80">
-                  SKF Admin
-                </p>
-                <h1 className="mt-4 text-4xl font-semibold tracking-tight">
-                  Control room for the academy platform.
-                </h1>
-                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/55">
-                  This area is restricted to administrators and instructors. All
-                  admin routes stay private and are blocked from search engines.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5">
-                <p className="text-sm font-medium text-white/80">
-                  Access includes
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-white/55">
-                  <li>Student records and profile management</li>
-                  <li>Tournament and results administration</li>
-                  <li>Protected academy operations</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+  useEffect(() => {
+    if (clickCount >= 3) {
+      setShowForm(true)
+      setClickCount(0)
+    }
+  }, [clickCount])
 
-          <section className="p-6 sm:p-8 lg:p-10">
-            <div className="mx-auto max-w-md">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-400/80">
-                Secure Sign In
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-                Admin Login
-              </h2>
-              <p className="mt-3 text-sm text-white/55">
-                Use your assigned academy credentials to continue.
-              </p>
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
 
-              <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="mb-2 block text-xs font-medium uppercase tracking-[0.15em] text-white/40"
-                  >
-                    Username
-                  </label>
-                  <input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    required
-                    className="min-h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition focus:border-white/20"
-                    placeholder="Enter username"
-                  />
-                </div>
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        username,
+        password,
+      })
 
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-xs font-medium uppercase tracking-[0.15em] text-white/40"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                    className="min-h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition focus:border-white/20"
-                    placeholder="Enter password"
-                  />
-                </div>
+      if (res?.error) {
+        setError('Connection failed.') // Vague error to mislead attackers
+        return
+      }
 
-                {error ? (
-                  <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-                    {error}
-                  </p>
-                ) : null}
+      router.push(searchParams?.get('callbackUrl') || '/admin')
+      router.refresh()
+    } catch (err) {
+      setError('Connection failed.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="min-h-11 w-full rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#0a0a0a] transition hover:bg-white/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isLoading ? "Signing in..." : "Sign In"}
-                </button>
-              </form>
-
-              <a
-                href="/"
-                className="mt-6 inline-flex text-sm text-white/40 transition hover:text-white/70"
-              >
-                Back to website
-              </a>
-            </div>
-          </section>
+  // State 1: Fake 404 Page (Loud and obvious)
+  if (!showForm) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontFamily: 'monospace'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontSize: '6rem', margin: 0, fontWeight: 900, letterSpacing: '-0.05em', color: '#333' }}>
+            {/* The secret trigger is the number 4 */}
+            <span 
+              onClick={handleSecretClick} 
+              style={{ cursor: 'default', userSelect: 'none' }}
+            >
+              4
+            </span>
+            04
+          </h1>
+          <p style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.4)', marginTop: '1rem', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+            Page Not Found
+          </p>
+          <div style={{ marginTop: '3rem' }}>
+            <Link 
+              href="/"
+              style={{
+                display: 'inline-block',
+                padding: '0.75rem 2rem',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.6)',
+                textDecoration: 'none',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontSize: '0.8rem',
+                transition: 'all 0.2s',
+                borderRadius: 4
+              }}
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff' }}
+              onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
+            >
+              Return to Website
+            </Link>
+          </div>
         </div>
       </div>
-    </main>
+    )
+  }
+
+  // State 2: Stealth Login Form (No branding, no labels)
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#000',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <div style={{ width: '100%', maxWidth: 320, padding: '2rem' }}>
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid #333',
+              color: '#fff',
+              outline: 'none',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem'
+            }}
+            placeholder="—"
+            autoComplete="off"
+            spellCheck="false"
+            autoFocus
+          />
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid #333',
+              color: '#fff',
+              outline: 'none',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem'
+            }}
+            placeholder="—"
+            autoComplete="off"
+          />
+
+          {error && (
+            <p style={{ color: '#ef4444', fontSize: '0.75rem', fontFamily: 'monospace', margin: 0 }}>
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading || !username || !password}
+            style={{
+              marginTop: '1.5rem',
+              width: '100%',
+              padding: '0.75rem',
+              background: '#111',
+              color: '#666',
+              border: '1px solid #222',
+              cursor: (isLoading || !username || !password) ? 'not-allowed' : 'pointer',
+              fontFamily: 'monospace',
+              fontSize: '0.8rem',
+              transition: 'all 0.2s',
+              opacity: (isLoading || !username || !password) ? 0.5 : 1
+            }}
+            onMouseOver={e => { if (!isLoading && username && password) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#444' } }}
+            onMouseOut={e => { if (!isLoading && username && password) { e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = '#222' } }}
+          >
+            {isLoading ? '...' : '>'}
+          </button>
+        </form>
+      </div>
+    </div>
   )
 }

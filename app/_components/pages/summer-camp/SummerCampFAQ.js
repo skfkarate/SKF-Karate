@@ -17,12 +17,8 @@ const faqs = [
         a: <>For the summer camp, athletes should wear a <strong>comfortable, stretchable dress</strong> like track pants and a T-shirt. <strong>No karate uniform</strong> is required.</>
     },
     {
-        q: "Can I enroll my child for only one month?",
-        a: <>Yes! You can enroll for Month 1 or Month 2 independently at <strong>₹1,500 each</strong>. However, for our <strong>first 10 enrollments</strong>, we have a special <strong className="text-gold">1+1 Free offer</strong>—get the Full Camp (both months) for just <strong className="text-gold">₹1,500</strong> instead of ₹2,500!</>
-    },
-    {
-        q: "Will my child receive a certificate?",
-        a: <>Yes, every athlete who completes a month receives a <strong>certified completion certificate</strong> from SKF Karate, recognizing their training and achievements.</>
+        q: "Do I have to commit to the whole summer?",
+        a: <>Not at all! You can enroll just for <strong>Month 1 (Self Defense)</strong>. Best of all, if you are among our <strong>first 20 enrollments</strong>, Month 1 is <strong className="text-gold">100% FREE</strong>! If your child loves it, you can optionally secure their spot for Month 2 later.</>
     },
     {
         q: "Is the training safe for young children?",

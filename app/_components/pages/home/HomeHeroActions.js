@@ -11,8 +11,8 @@ export default function HomeHeroActions() {
     return (
         <>
             <div className="hero__actions animate-in delay-4">
-                <Link href="/summer-camp" className="btn btn-primary">
-                    Summer Camp 2026 <FaArrowRight />
+                <Link href="/about" className="btn btn-primary">
+                    Our Legacy <FaArrowRight />
                 </Link>
                 <button
                     className="btn btn-secondary"

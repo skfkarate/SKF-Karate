@@ -2,46 +2,37 @@
 
 import Link from 'next/link'
 import { FaCalendarCheck, FaArrowRight, FaPhoneAlt } from 'react-icons/fa'
-import { GiBlackBelt } from 'react-icons/gi'
 import './HomeBookTrialCTA.css'
 
 export default function HomeBookTrialCTA() {
   return (
     <section className="trial-cta">
-      {/* Animated background elements */}
-      <div className="trial-cta__bg">
-        <div className="trial-cta__glow trial-cta__glow--1"></div>
-        <div className="trial-cta__glow trial-cta__glow--2"></div>
-        <div className="trial-cta__glow trial-cta__glow--3"></div>
-        <div className="trial-cta__grid-overlay"></div>
-      </div>
-
+      {/* Cinematic Background Image Layer */}
+      <div className="trial-cta__bg" style={{ backgroundImage: "url('/gallery/In Dojo.jpeg')" }}></div>
+      <div className="trial-cta__overlay"></div>
+      
       <div className="container trial-cta__container">
-        {/* Left side — content */}
         <div className="trial-cta__content">
-          <span className="section-label"><FaCalendarCheck /> Free Trial Class</span>
+          <span className="section-label" style={{ color: "var(--gold)", borderColor: "rgba(255, 183, 3, 0.3)", background: "rgba(255, 183, 3, 0.1)" }}>
+            <FaCalendarCheck /> BECOME A CHAMPION
+          </span>
           <h2 className="trial-cta__title">
-            Step on the Mat.<br />
-            <span className="text-gradient">Feel the Difference.</span>
+            STEP ON THE MAT.<br />
+            <span className="text-gradient">FEEL THE DIFFERENCE.</span>
           </h2>
           <p className="trial-cta__desc">
-            One class is all it takes. Join a complimentary 60-minute session —
-            meet our Senseis, experience the discipline, and discover why 5,100+ athletes
-            call SKF Karate home.
+            One class is all it takes to ignite your potential. Join a complimentary 60-minute session—train with world-class Senseis, experience true discipline, and discover why we are the ultimate destination for martial arts excellence.
           </p>
 
           <div className="trial-cta__features">
             <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span>
-              No commitment required
+              <span className="trial-cta__feature-dot"></span> No commitment required
             </div>
             <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span>
-              All ages welcome (3+)
+              <span className="trial-cta__feature-dot"></span> All ages and skill levels welcome
             </div>
             <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span>
-              Explore a new discipline
+              <span className="trial-cta__feature-dot"></span> Train under Grandmasters
             </div>
           </div>
 
@@ -50,27 +41,8 @@ export default function HomeBookTrialCTA() {
               Book Free Trial <FaArrowRight />
             </Link>
             <a href="tel:+919019971726" className="btn btn-secondary trial-cta__btn-secondary">
-              <FaPhoneAlt /> Call Now
+              <FaPhoneAlt /> +91 90199 71726
             </a>
-          </div>
-        </div>
-
-        {/* Right side — visual element */}
-        <div className="trial-cta__visual">
-          <div className="trial-cta__ring trial-cta__ring--outer">
-            <div className="trial-cta__ring trial-cta__ring--middle">
-              <div className="trial-cta__ring trial-cta__ring--inner">
-                <GiBlackBelt className="trial-cta__belt-icon" />
-              </div>
-            </div>
-          </div>
-          <div className="trial-cta__stat trial-cta__stat--1">
-            <span className="trial-cta__stat-number">5,100+</span>
-            <span className="trial-cta__stat-label">Active Athletes</span>
-          </div>
-          <div className="trial-cta__stat trial-cta__stat--2">
-            <span className="trial-cta__stat-number">15+</span>
-            <span className="trial-cta__stat-label">Years Legacy</span>
           </div>
         </div>
       </div>

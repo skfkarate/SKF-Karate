@@ -1,411 +1,495 @@
 /* ============================================================
-   ABOUT PAGE — Premium Styles
+   ABOUT PAGE — Cinematic Redesign
    ============================================================ */
 
-/* ── CINEMATIC HERO ── */
-.abt-hero {
+/* ── IMMERSIVE HERO ── */
+.about-page .about-hero {
     position: relative;
-    padding: 8rem 0 5rem;
+    padding: 8rem 0 6rem;
     min-height: 50vh;
     display: flex;
     align-items: center;
     overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.abt-hero__bg {
+.about-page .page-hero__bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(160deg, var(--navy-deep) 0%, #080c14 60%, var(--bg-body) 100%);
+    background: linear-gradient(180deg, var(--navy-deep) 0%, #060a12 60%, var(--bg-body) 100%);
     z-index: 0;
 }
 
-.abt-hero__bg::after {
+.about-page .page-hero__bg::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 30% 0%, rgba(220, 40, 40, 0.07) 0%, transparent 60%);
+    background: radial-gradient(circle at 50% 10%, rgba(214, 40, 40, 0.08) 0%, rgba(255, 183, 3, 0.04) 40%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
 }
 
-.abt-hero__glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(130px);
-    z-index: 1;
-    opacity: 0.15;
-}
-
-.abt-hero__glow--1 { width: 500px; height: 500px; background: var(--crimson); top: -200px; left: -80px; }
-.abt-hero__glow--2 { width: 450px; height: 450px; background: var(--gold); bottom: -250px; right: -100px; }
-
-.abt-hero__content {
-    position: relative;
-    z-index: 2;
+.about-page .page-hero__content {
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.abt-hero__logo {
-    width: clamp(80px, 18vw, 140px);
-    height: auto;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
-}
-
-.abt-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
-    background: rgba(214, 40, 40, 0.06);
-    border: 1px solid rgba(214, 40, 40, 0.2);
-    border-radius: 50px;
-    color: var(--crimson-light);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.abt-hero__title {
-    font-size: clamp(3rem, 6vw, 5rem);
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 1.25rem;
-    letter-spacing: -1px;
-    color: var(--text-white);
-}
-
-.abt-text-grad {
-    background: linear-gradient(135deg, #fff 0%, var(--gold) 50%, var(--crimson) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.abt-hero__subtitle {
-    font-size: 1.15rem;
-    color: var(--text-light);
-    max-width: 560px;
-    line-height: 1.6;
-}
-
-/* ── PHILOSOPHY ── */
-.philosophy__grid {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
-}
-
-.philosophy__text-secondary {
-    color: var(--text-light);
-    margin-top: 1.5rem;
-    line-height: 1.8;
-    font-size: 1rem;
-}
-
-.philosophy__cta { margin-top: 2.5rem; }
-
-.philosophy__card {
-    padding: clamp(2rem, 4vw, 3rem);
-    text-align: center;
-}
-
-.philosophy__icon {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    color: var(--crimson);
-    margin-bottom: 1.5rem;
-}
-
-.philosophy__card h3 {
-    font-size: clamp(1.2rem, 3vw, 1.5rem);
-    margin-bottom: 1rem;
-    color: var(--gold);
-}
-
-.philosophy__card p {
-    color: var(--text-light);
-    line-height: 1.7;
-}
-
-/* ── LEADERSHIP ── */
-.leadership__header {
-    text-align: center;
-    margin-bottom: clamp(2rem, 4vw, 3rem);
-}
-
-.leadership__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: clamp(1rem, 2vw, 1.5rem);
-}
-
-.leader-card {
-    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.5rem);
-    text-align: center;
-}
-
-.leader-card__avatar {
-    width: clamp(56px, 8vw, 70px);
-    height: clamp(56px, 8vw, 70px);
-    border-radius: 50%;
-    margin: 0 auto 1.2rem auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(1.4rem, 2vw, 1.8rem);
-    color: var(--gold);
-    background: rgba(255, 183, 3, 0.08);
-    border: 2px solid rgba(255, 183, 3, 0.2);
-}
-
-.leader-card h3 {
-    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
-    margin-bottom: 0.3rem;
-}
-
-.leader-card__role {
+.about-hero__logo {
+    height: 140px;
+    width: auto;
+    margin: 0 auto 2.5rem auto;
     display: block;
-    color: var(--crimson-light);
-    font-size: clamp(0.68rem, 1.2vw, 0.78rem);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.3rem;
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
+    animation: float 6s ease-in-out infinite;
 }
 
-.leader-card__dan {
-    display: inline-block;
-    background: rgba(255, 183, 3, 0.08);
-    border: 1px solid rgba(255, 183, 3, 0.15);
-    color: var(--gold);
-    padding: 0.2rem 0.6rem;
-    border-radius: 50px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+.hero-label-pulse {
+    animation: pulse 2.5s infinite;
 }
 
-.leader-card p {
-    color: var(--text-light);
-    font-size: clamp(0.78rem, 1.3vw, 0.88rem);
-    line-height: 1.6;
+/* ── INTERSECTION OBSERVER REVEAL ── */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    filter: blur(5px);
+    transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+    will-change: transform, opacity, filter;
 }
 
-/* ── AFFILIATIONS ── */
-.affiliations__header {
-    text-align: center;
-    margin-bottom: clamp(2rem, 4vw, 3rem);
+.reveal-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
 }
 
-.affiliations__hierarchy {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    max-width: 900px;
-    margin: 0 auto;
-}
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
 
-.affiliation-card {
-    padding: clamp(1.5rem, 3vw, 2.5rem);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    border-radius: 20px;
-    background: rgba(20, 33, 61, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+
+/* ── THE ZEN PHILOSOPHY CORE ── */
+.zen-philosophy {
     position: relative;
+    padding: 8rem 0;
+    background: var(--bg-body);
     overflow: hidden;
 }
 
-.affiliation-card h4 {
-    font-size: clamp(0.85rem, 1.5vw, 1rem);
-    margin-top: 0.75rem;
-    line-height: 1.4;
+.zen-bg-kanji {
+    position: absolute;
+    top: 50%;
+    right: -5%;
+    transform: translateY(-50%);
+    font-size: 35rem;
+    font-family: 'Yu Mincho', 'Sawarabi Mincho', serif;
+    color: rgba(255, 255, 255, 0.015);
+    line-height: 1;
+    z-index: 0;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
 }
 
-.affiliation-card::before {
+.zen-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 6rem;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.zen-content .section-title {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+}
+
+.zen-text-block {
+    margin-bottom: 3rem;
+    border-left: 2px solid var(--crimson);
+    padding-left: 2rem;
+}
+
+.lead-text {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-white);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+}
+
+.zen-text-block p:not(.lead-text) {
+    color: var(--text-light);
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+.zen-visual {
+    position: relative;
+}
+
+.zen-glass-card {
+    background: rgba(12, 16, 28, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 4rem 3rem;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    transition: transform 0.5s ease;
+}
+
+.zen-glass-card::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    opacity: 0;
-    transition: var(--transition);
+    background: radial-gradient(circle at top right, rgba(214, 40, 40, 0.15) 0%, transparent 60%);
+    border-radius: 20px;
+    pointer-events: none;
 }
 
-.affiliation-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 183, 3, 0.3);
+.zen-glass-card:hover {
+    transform: translateY(-10px);
 }
 
-.affiliation-card:hover::before { opacity: 1; }
-
-.affiliation-card--primary {
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid rgba(255, 183, 3, 0.4);
-    background: linear-gradient(145deg, rgba(20, 33, 61, 0.8), rgba(20, 33, 61, 0.3));
-    position: relative;
-    z-index: 2;
-    padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 3vw, 2rem);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(255, 183, 3, 0.1);
+.zen-icon {
+    font-size: 4rem;
+    color: var(--crimson);
+    margin: 0 auto 1.5rem auto;
+    display: block;
+    filter: drop-shadow(0 0 15px rgba(214, 40, 40, 0.4));
 }
 
-.affiliation-card--primary::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
+.zen-glass-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.zen-divider {
+    width: 50px;
     height: 3px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    background: var(--gold);
+    margin: 0 auto 1.5rem auto;
+    border-radius: 2px;
 }
 
-.affiliation-card__logo {
-    width: clamp(80px, 18vw, 150px);
-    height: clamp(80px, 18vw, 150px);
-    object-fit: contain;
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15)) drop-shadow(0 5px 5px rgba(0,0,0,0.5));
-    transition: var(--transition);
+.zen-glass-card p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    line-height: 1.7;
 }
 
-.affiliation-card:hover .affiliation-card__logo {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.2)) drop-shadow(0 8px 8px rgba(0,0,0,0.5));
+
+/* ── THE VANGUARD (LEADERSHIP MONOLITHS) ── */
+.vanguard-section {
+    padding-top: 6rem;
+    padding-bottom: 8rem;
 }
 
-.affiliation-card--primary .affiliation-card__logo {
-    filter: drop-shadow(0 0 20px rgba(255, 183, 3, 0.3)) drop-shadow(0 10px 10px rgba(0,0,0,0.6));
+.vanguard-header {
+    margin-bottom: 5rem;
 }
 
-.affiliation-card--primary:hover .affiliation-card__logo {
-    filter: drop-shadow(0 0 35px rgba(255, 183, 3, 0.5)) drop-shadow(0 15px 15px rgba(0,0,0,0.6));
-}
-
-.affiliation-tree__branches {
+.vanguard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(1rem, 3vw, 3rem);
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2.5rem;
+}
+
+.vanguard-card {
+    position: relative;
+    background: rgba(16, 22, 38, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.vanguard-card__glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: var(--gold);
+    box-shadow: 0 0 20px var(--gold);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.vanguard-card:hover {
+    transform: translateY(-8px);
+    background: rgba(20, 30, 50, 0.8);
+    border-color: rgba(255, 183, 3, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.vanguard-card:hover .vanguard-card__glow {
+    opacity: 1;
+}
+
+/* Make founder double wide on desktop */
+.vanguard-card--founder {
+    grid-column: 1 / -1;
+    background: linear-gradient(145deg, rgba(20, 25, 40, 0.8), rgba(12, 16, 28, 0.9));
+    border-color: rgba(255, 183, 3, 0.3);
+    padding: 4rem;
+}
+
+.vanguard-card--founder .vanguard-card__glow {
+    opacity: 0.5;
     width: 100%;
-    max-width: 700px;
+}
+
+.vanguard-icon-wrap {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1.5rem auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vanguard-card--founder .vanguard-icon-wrap {
+    width: 90px;
+    height: 90px;
+    border-color: rgba(255, 183, 3, 0.4);
+    background: rgba(255, 183, 3, 0.05);
+}
+
+.leader-icon {
+    font-size: 2rem;
+    color: var(--text-muted);
+}
+
+.founder-icon {
+    font-size: 3rem;
+    color: var(--gold);
+    filter: drop-shadow(0 0 10px rgba(255, 183, 3, 0.5));
+}
+
+.vanguard-card h3 {
+    font-size: 1.4rem;
+    font-family: var(--font-heading);
+    color: white;
+    margin-bottom: 0.4rem;
+}
+
+.vanguard-card--founder h3 {
+    font-size: 2.2rem;
+    background: linear-gradient(to right, #ffffff, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.vanguard-role {
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.vanguard-card--founder .vanguard-role {
+    color: var(--gold);
+    letter-spacing: 2px;
+}
+
+.vanguard-dan {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    background: rgba(255, 183, 3, 0.1);
+    color: var(--gold);
+    border: 1px solid rgba(255, 183, 3, 0.2);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.vanguard-desc {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.vanguard-card--founder .vanguard-desc {
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+
+/* ── GLOBAL STANDARD (AFFILIATIONS TREE) ── */
+.global-standard {
+    position: relative;
+    padding: 8rem 0;
+    overflow: hidden;
+    background: var(--bg-body);
+}
+
+.global-bg-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(63, 81, 181, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.global-header {
+    margin-bottom: 5rem;
+}
+
+.text-gradient-blue {
+    background: linear-gradient(to right, #8c9eff, #3f51b5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.affiliation-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.affil-node {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.affil-glass {
+    background: rgba(12, 16, 28, 0.5);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s ease;
+}
+
+.affil-glass:hover {
+    transform: translateY(-5px);
+    border-color: rgba(63, 81, 181, 0.4);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(63, 81, 181, 0.15);
+}
+
+.affil-primary .affil-glass {
+    background: rgba(20, 26, 46, 0.7);
+    border-color: rgba(63, 81, 181, 0.3);
+    transform: scale(1.05);
+}
+
+.affil-primary .affil-glass:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.affil-glass img {
+    height: 100px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+}
+
+.affil-glass h4 {
+    color: var(--text-light);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+    width: 100%;
+    padding-top: 30px;
     position: relative;
 }
 
-.affiliation-tree__branches::before {
+.affil-branches .affil-node {
+    position: relative;
+}
+
+.affil-branches .affil-node::before {
     content: '';
     position: absolute;
-    top: -3rem; left: 50%;
-    transform: translateX(-50%);
-    width: 2px; height: 3rem;
-    background: linear-gradient(to bottom, rgba(255,183,3,0.5), rgba(255,183,3,0.1));
-    z-index: 1;
+    top: -30px;
+    left: 50%;
+    width: 2px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.1);
 }
 
-@media (min-width: 769px) {
-    .affiliation-tree__branches::after {
-        content: '';
-        position: absolute;
-        top: -1.5rem; left: 25%;
-        width: 50%; height: 1.5rem;
-        border-top: 2px dashed rgba(255,183,3,0.3);
-        border-left: 2px dashed rgba(255,183,3,0.3);
-        border-right: 2px dashed rgba(255,183,3,0.3);
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-        z-index: 1;
+/* ── ORIGIN CTA ── */
+.origin-cta {
+    padding-bottom: 8rem;
+}
+
+.origin-cta__card {
+    padding: 5rem 3rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(20, 25, 40, 0.8), rgba(12, 16, 28, 0.9));
+}
+
+
+/* ── RESPONSIVE COMPATIBILITY ── */
+@media (max-width: 1024px) {
+    .zen-grid {
+        grid-template-columns: 1fr;
+        gap: 4rem;
     }
-}
 
-/* ── ABOUT CTA ── */
-.about-cta__inner {
-    text-align: center;
-    background: linear-gradient(135deg, rgba(20, 33, 61, 0.4), rgba(20, 33, 61, 0.15));
-    border: 1px solid var(--border-subtle);
-    border-radius: clamp(16px, 3vw, 24px);
-    padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem);
-}
-
-.about-cta__subtitle {
-    margin: 0 auto 2rem auto;
-    text-align: center;
-}
-
-.about-cta__buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 1200px) {
-    .philosophy__grid { gap: 3rem; }
-    .leadership__grid { grid-template-columns: repeat(3, 1fr); }
+    .affiliation-showcase {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        gap: 2rem;
+    }
+    
+    .zen-bg-kanji {
+        font-size: 25rem;
+        right: 50%;
+        transform: translate(50%, -50%);
+        opacity: 0.02;
+    }
+    
+    .vanguard-card--founder {
+        padding: 3rem 2rem;
+    }
 }
 
 @media (max-width: 768px) {
-    .abt-hero { padding: 6rem 0 4rem; min-height: 40vh; }
-
-    .philosophy__grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
+    .affil-primary {
+        margin-bottom: 0;
     }
-    .philosophy__card { order: -1; }
-    .philosophy__cta { margin-top: 1.5rem; }
-
-    .leadership__grid { grid-template-columns: repeat(2, 1fr); }
-
-    .affiliation-tree__branches {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        max-width: 350px;
-    }
-    .affiliation-tree__branches::before { height: 2rem; top: -2rem; }
-    .affiliation-card--primary { max-width: 350px; }
-
-    .about-cta__inner { padding: 3rem 1.5rem; }
-    .about-cta__buttons { flex-direction: column; align-items: center; }
-    .about-cta__buttons .btn { width: 100%; max-width: 320px; }
 }
 
 @media (max-width: 480px) {
-    .abt-hero { padding: 5rem 0 3rem; }
-    .abt-hero__logo { width: 70px; margin-bottom: 0.75rem; }
-    .abt-hero__title { font-size: 2.5rem; }
-
-    .leadership__grid { grid-template-columns: 1fr; gap: 0.75rem; }
-    .leader-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1.5rem 1.25rem;
+    .about-page .page-hero__title {
+        font-size: 3.5rem;
     }
-
-    .affiliations__hierarchy { gap: 1.5rem; }
-    .affiliation-card--primary { max-width: 100%; padding: 2rem 1.25rem; }
-    .affiliation-tree__branches { max-width: 100%; gap: 0.75rem; }
-    .affiliation-tree__branches::before { height: 1.5rem; top: -1.5rem; }
-    .affiliation-card { padding: 1.5rem 1rem; border-radius: 16px; }
-    .affiliation-card__logo { width: 80px; height: 80px; }
-
-    .about-cta__inner { padding: 2.5rem 1rem; border-radius: 16px; }
-    .about-cta__buttons .btn { max-width: 100%; }
-}
-
-/* ── TOUCH DEVICES ── */
-@media (hover: none) and (pointer: coarse) {
-    .glass-card:hover { transform: none; box-shadow: none; }
-    .affiliation-card:hover { transform: none; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
-    .affiliation-card:hover .affiliation-card__logo { transform: none; }
-    .glass-card:active { transform: scale(0.98); transition: transform 0.1s ease; }
-    .affiliation-card:active { transform: scale(0.98); border-color: rgba(255, 183, 3, 0.4); }
+    
+    .zen-content .section-title {
+        font-size: 2.5rem;
+    }
+    
+    .zen-text-block {
+        padding-left: 1rem;
+    }
 }
