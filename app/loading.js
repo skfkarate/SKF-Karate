@@ -17,12 +17,6 @@ export default function Loading() {
         borderRadius: '50%',
         animation: 'spin 1s linear infinite'
       }}></div>
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
       <div style={{
         marginTop: '1.5rem',
         fontFamily: 'var(--font-heading)',
@@ -31,16 +25,10 @@ export default function Loading() {
         textTransform: 'uppercase',
         fontSize: '0.85rem',
         fontWeight: '600',
-        animation: 'pulse 1.5s ease-in-out infinite alternate'
+        animation: 'loadingPulse 1.5s ease-in-out infinite alternate'
       }}>
         Loading...
       </div>
-      <style>{`
-        @keyframes pulse {
-          0% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

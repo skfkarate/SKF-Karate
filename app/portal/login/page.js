@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
+import { FaSpinner } from 'react-icons/fa'
 import './login.css'
 
 export default function DojoLogin() {
@@ -132,7 +133,11 @@ export default function DojoLogin() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5 }}
           >
-            {loading ? 'Authenticating...' : 'Access Hub'}
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <FaSpinner className="spin" /> Authenticating...
+              </span>
+            ) : 'Access Hub'}
           </motion.button>
         </form>
 

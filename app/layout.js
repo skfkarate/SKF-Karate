@@ -23,8 +23,8 @@ const siteUrl = 'https://skfkarate.org'
 export const metadata = {
   metadataBase: new URL(siteUrl),
   manifest: '/manifest.json',
-  title: 'SKF Karate',
-  description: 'Join SKF Karate, the premier martial arts and self-defense academy. Best local karate classes, professional dojo training, black belt grading, and Summer Camp. Start your karate journey today.',
+  title: 'SKF Karate | Sports Karate-do Fitness & Self Defence Association | Bangalore',
+  description: 'Join SKF Karate in Bangalore. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
   keywords: [
     'SKF Karate', 'SKF', 'karate', 'martial arts', 'karate training',
     'Sports Karate-do', 'self defence', 'self defense', 'karate classes',
@@ -89,7 +89,7 @@ export const metadata = {
 function JsonLd() {
   const orgSchema = {
     '@context': 'https://schema.org',
-    '@type': 'SportsOrganization',
+    '@type': 'SportsActivityLocation',
     name: 'SKF Karate',
     alternateName: 'Sports Karate-do Fitness & Self Defence Association®',
     url: siteUrl,
@@ -181,7 +181,7 @@ function JsonLd() {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>
       <body>
         <SessionProvider>
           <a href="#main-content" className="skip-to-content">

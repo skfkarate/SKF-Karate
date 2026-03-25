@@ -5,6 +5,11 @@ import CinematicValues from '@/app/_components/CinematicValues'
 import HomePathsOfMastery from '@/app/_components/pages/home/HomePathsOfMastery'
 import './home.css'
 
+export const metadata = {
+  title: 'SKF Karate Classes in Bangalore | Expert Self-Defense Training',
+  description: 'Join SKF Karate in Bangalore. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
+}
+
 export default function HomePage() {
   return (
     <div className="home">

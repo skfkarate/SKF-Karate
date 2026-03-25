@@ -33,7 +33,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
         const textReadyIn = start + duration * 0.35;
         const textReadyFull = start + duration * 0.65;
         const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
-        const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["20px", "-20px"]);
+        const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["30px", "0px"]); // Shift down to avoid logo overlap
         
         // Background turns to a deep cinematic crimson glow smoothly over the same duration as text
         const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
@@ -43,7 +43,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
         const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
         
         const trackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
-        const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
+        const letterSpacing = useTransform(trackingProgress, (v) => `calc(${v * 10}px + ${v * 0.5}vw)`);
 
         return (
             <motion.div 
@@ -58,7 +58,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                     justifyContent: "center",
                     // Thematic crimson/dark aura with transparent center hole - vastly softer memory feel
                     background: "radial-gradient(circle at center, rgba(139, 0, 0, 0.05) 0%, rgba(2, 3, 6, 0.6) 60%, rgba(0, 0, 0, 0.85) 100%)",
-                    gap: "1.5vh"
+                    gap: "4vh" // Increased gap to completely separate text from logo
                 }}
             >
                 {/* Subtle thematic gold glow behind the logo */}
@@ -78,7 +78,6 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                         sizes="(max-width: 768px) 75vmin, 60vmin"
                         style={{ objectFit: "contain", objectPosition: "center", filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.8))" }}
                         quality={100}
-                        priority
                     />
                 </motion.div>
 
@@ -93,12 +92,12 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                         color: "transparent",
                         backgroundImage: "linear-gradient(to right, #ffb703, #e85d04)",
                         WebkitBackgroundClip: "text",
-                        fontSize: "clamp(1.5rem, 6vw, 6rem)", // pure 6vw scaling guarantees 11 letters fit in mobile
+                        fontSize: "clamp(2.5rem, 12vw, 6.5rem)", // Huge, grand font
+                        lineHeight: 1.1, // Keeps wrapped lines tightly bound to each other
                         fontFamily: "var(--font-heading)",
                         textTransform: "uppercase",
                         textShadow: "none", // Eradicates VR ghosting bleeding completely
-                        padding: "0 5vw", // horizontal padding mapped to screen width
-                        whiteSpace: "nowrap" // Prevents awkward line-breaks on small mobiles!
+                        padding: "0 1.5rem"
                     }}
                 >
                     {text}

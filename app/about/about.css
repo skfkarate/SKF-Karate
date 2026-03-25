@@ -478,18 +478,51 @@
     .affil-primary {
         margin-bottom: 0;
     }
+    .zen-philosophy, .vanguard-section, .global-standard {
+        padding: 4rem 0;
+    }
+    .about-page .about-hero {
+        padding: 6rem 0 4rem;
+        min-height: 40vh;
+    }
+    .origin-cta {
+        padding-bottom: 4rem;
+    }
+    .zen-glass-card {
+        padding: 2.5rem 1.5rem;
+    }
+    .origin-cta__card {
+        padding: 3rem 1.5rem;
+    }
 }
 
 @media (max-width: 480px) {
     .about-page .page-hero__title {
-        font-size: 3.5rem;
+        font-size: 2.5rem;
     }
     
     .zen-content .section-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     .zen-text-block {
         padding-left: 1rem;
+    }
+
+    .zen-bg-kanji {
+        font-size: 15rem;
+    }
+
+    .zen-icon {
+        font-size: 2.5rem;
+    }
+    .founder-icon {
+        font-size: 2.5rem;
+    }
+    .vanguard-card {
+        padding: 2rem 1.5rem;
+    }
+    .vanguard-card--founder {
+        padding: 2rem 1.5rem;
     }
 }

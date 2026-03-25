@@ -24,6 +24,11 @@ const districtDojos = [
 
 const ageIcon = { Junior: <FaChild />, Cadet: <FaUserFriends />, Senior: <FaUser /> }
 
+export const metadata = {
+  title: 'Find Karate Classes Near Me | SKF Karate Bangalore Dojos',
+  description: 'Locate an SKF Karate dojo near you in Bangalore. View our class schedules, facility details, and book your first martial arts session.',
+}
+
 export default function DojosPage() {
     return (
         <div className="dojos-page">

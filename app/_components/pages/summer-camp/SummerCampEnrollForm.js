@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt } from 'react-icons/fa'
+import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 
 
@@ -387,7 +387,7 @@ export default function SummerCampEnrollForm() {
                     ) : (
                         <button type="submit" className="wizard-btn-next wizard-btn-next--submit" disabled={status === 'submitting' || isTransitioning}>
                             {status === 'submitting' ? (
-                                <span className="wizard-spinner"></span>
+                                <><FaSpinner className="spin" style={{ marginRight: '8px' }} /> Submitting...</>
                             ) : (
                                 <>Submit Application <FaArrowRight /></>
                             )}

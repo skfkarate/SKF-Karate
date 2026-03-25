@@ -2,8 +2,6 @@ import { getAllEvents } from '../../lib/data/events'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
 
-export const dynamic = 'force-dynamic'
-
 function getEventLabel(type) {
     if (type === 'tournament') return 'Tournament'
     if (type === 'seminar') return 'Seminar'

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
+import { FaSpinner } from 'react-icons/fa'
 
 export default function CertificateSearchPage() {
   const router = useRouter()
@@ -100,7 +101,11 @@ export default function CertificateSearchPage() {
                 transition: 'all 0.3s'
               }}
             >
-              {isLoading ? 'Verifying...' : 'Verify'}
+              {isLoading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FaSpinner className="spin" /> Verifying...
+                </span>
+              ) : 'Verify'}
             </button>
           </div>
         </form>
