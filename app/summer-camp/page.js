@@ -76,12 +76,12 @@ export default function SummerCampPage() {
             </section>
 
             {/* ===== VIP SCHOLARSHIP PASS ===== */}
-            <section className="section vip-pass-section" id="pricing" style={{ position: 'relative', padding: '6rem 0' }}>
-                <div className="glow glow-gold" style={{ top: '20%', left: '50%', transform: 'translateX(-50%)', opacity: 0.15, width: '600px', height: '600px' }}></div>
+            <section className="section vip-pass-section" id="pricing">
+                <div className="glow glow-gold"></div>
                 
                 <div className="container" style={{ position: 'relative', zIndex: 2 }}>
                     <div className="programs__header" style={{ marginBottom: '4rem' }}>
-                        <span className="section-label camp-pulse" style={{ borderColor: 'var(--color-gold)', color: 'var(--color-gold)' }}><FaFire style={{ marginRight: '8px' }}/> The Summer Scholarship</span>
+                        <span className="section-label camp-pulse"><FaFire style={{ marginRight: '8px' }}/> The Summer Scholarship</span>
                         <h2 className="section-title">Claim Your <span className="text-gradient">VIP Access</span></h2>
                         <p className="section-subtitle programs__subtitle" style={{ maxWidth: '700px', margin: '0 auto', fontSize: '1.2rem' }}>
                             We are giving away <strong>20 exclusive VIP Passes</strong> that grant your child 100% free access to Month 1 of our immersive Summer Camp. 
@@ -89,132 +89,60 @@ export default function SummerCampPage() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        {/* VIP TICKET VISUAL */}
-                        <div className="vip-ticket" style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            maxWidth: '1000px',
-                            width: '100%',
-                            background: 'linear-gradient(135deg, #111 0%, #000 100%)',
-                            borderRadius: '24px',
-                            border: '1px solid rgba(255, 215, 0, 0.4)',
-                            boxShadow: '0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 215, 0, 0.15)',
-                            overflow: 'hidden',
-                            position: 'relative'
-                        }}>
-                            {/* Left Stub / Barcode Area */}
-                            <div className="vip-ticket__stub" style={{
-                                width: '25%',
-                                minWidth: '220px',
-                                borderRight: '2px dashed rgba(255, 215, 0, 0.4)',
-                                padding: '3rem 1.5rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: 'linear-gradient(to bottom, rgba(255, 215, 0, 0.08), transparent)',
-                                position: 'relative'
-                            }}>
-                                {/* Ticket Cutout notches matching the dashed border */}
-                                <div className="ticket-notch-top" style={{ position: 'absolute', top: '-20px', right: '-20px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-bg)', borderBottom: '1px solid rgba(255,215,0,0.4)', zIndex: 5 }}></div>
-                                <div className="ticket-notch-bottom" style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '40px', height: '40px', borderRadius: '50%', background: 'var(--color-bg)', borderTop: '1px solid rgba(255,215,0,0.4)', zIndex: 5 }}></div>
-                                
-                                <div className="stub-vertical-text" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: '3rem', fontWeight: '900', color: 'rgba(255,255,255,0.03)', letterSpacing: '8px', position: 'absolute', left: '15px' }}>
-                                    ADMIT ONE
-                                </div>
-                                
-                                <FaShieldAlt style={{ fontSize: '4.5rem', color: 'var(--color-gold)', marginBottom: '1.5rem', filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.4))' }} />
-                                <h3 style={{ fontSize: '1.3rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#ddd', textAlign: 'center', margin: 0 }}>Month 1</h3>
-                                <div style={{ color: 'var(--color-gold)', fontWeight: '900', fontSize: '1.8rem', marginTop: '0.8rem', textAlign: 'center', textShadow: '0 0 10px rgba(255,215,0,0.3)' }}>FREE PASS</div>
+                        <div className="vip-ticket">
+                            {/* Left Stub */}
+                            <div className="vip-ticket__stub">
+                                <div className="ticket-notch-top"></div>
+                                <div className="ticket-notch-bottom"></div>
+                                <div className="stub-vertical-text">ADMIT ONE</div>
+                                <FaShieldAlt className="vip-ticket__stub-icon" />
+                                <h3 className="vip-ticket__stub-label">Month 1</h3>
+                                <div className="vip-ticket__stub-pass">FREE PASS</div>
                             </div>
                             
                             {/* Right Main Area */}
-                            <div className="vip-ticket__main" style={{
-                                padding: '3.5rem 3rem',
-                                flex: 1,
-                                position: 'relative'
-                            }}>
-                                {/* Watermark */}
-                                <div style={{ position: 'absolute', right: '30px', bottom: '10px', fontSize: '12rem', opacity: 0.02, fontWeight: '900', color: 'var(--color-gold)', pointerEvents: 'none', lineHeight: 1 }}>
-                                    VIP
-                                </div>
+                            <div className="vip-ticket__main">
+                                <div className="vip-ticket__watermark">VIP</div>
 
-                                <div className="vip-ticket__header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-                                    <div style={{ flex: '1 1 300px' }}>
-                                        <div style={{ display: 'inline-block', background: 'var(--color-gold)', color: '#000', padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.95rem', fontWeight: '900', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', boxShadow: '0 4px 15px rgba(255,215,0,0.3)' }}>
+                                <div className="vip-ticket__header-row">
+                                    <div className="vip-ticket__info">
+                                        <div className="vip-ticket__badge">
                                             Strictly Limited to 20 Slots
                                         </div>
-                                        <h3 className="vip-title" style={{ fontSize: '2.8rem', margin: '0 0 0.8rem 0', lineHeight: 1.1 }}>Ultimate Self Defense <br/><span className="text-gold">Experience</span></h3>
-                                        <p style={{ color: '#aaa', fontSize: '1.15rem', margin: 0 }}>Focus, Discipline, &amp; Real-World Skills.</p>
+                                        <h3 className="vip-title">Ultimate Self Defense <br/><span className="text-gold">Experience</span></h3>
+                                        <p className="vip-ticket__tagline">Focus, Discipline, &amp; Real-World Skills.</p>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '1.1rem', color: '#777', textDecoration: 'line-through', marginBottom: '0.5rem' }}>Regular Value: ₹1,500</div>
-                                        <div className="vip-price" style={{ fontSize: '4.5rem', fontWeight: '900', color: 'var(--color-gold)', lineHeight: 0.9, textShadow: '0 0 20px rgba(255,215,0,0.2)' }}>₹0</div>
+                                    <div className="vip-ticket__pricing">
+                                        <div className="vip-ticket__old-price">Regular Value: ₹1,500</div>
+                                        <div className="vip-price">₹0</div>
                                     </div>
                                 </div>
 
-                                <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: '1.2rem', marginBottom: '3rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
-                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
-                                        Action-packed modules
+                                <div className="vip-ticket__features">
+                                    <div className="vip-ticket__feature">
+                                        <div className="vip-ticket__feature-dot"></div>
+                                        Real-world self-defense drills
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
-                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                    <div className="vip-ticket__feature">
+                                        <div className="vip-ticket__feature-dot"></div>
                                         Screen-free environment
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
-                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                    <div className="vip-ticket__feature">
+                                        <div className="vip-ticket__feature-dot"></div>
                                         Reflex &amp; evasion games
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#ddd' }}>
-                                        <div style={{ width: '8px', height: '8px', background: 'var(--color-gold)', borderRadius: '50%', boxShadow: '0 0 8px var(--color-gold)' }}></div>
+                                    <div className="vip-ticket__feature">
+                                        <div className="vip-ticket__feature-dot"></div>
                                         Zero commitment required
                                     </div>
                                 </div>
 
-                                <Link href="/summer-camp/enroll" className="btn vip-btn" style={{ 
-                                    background: 'linear-gradient(90deg, #FFDF00 0%, #D4AF37 100%)', 
-                                    color: '#000', 
-                                    fontWeight: '900', 
-                                    fontSize: '1.2rem', 
-                                    padding: '1.2rem 2.8rem', 
-                                    display: 'inline-flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    gap: '12px',
-                                    border: 'none',
-                                    borderRadius: '50px',
-                                    boxShadow: '0 10px 25px rgba(255, 215, 0, 0.4)',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '1px',
-                                    transition: 'all 0.3s ease'
-                                }}>
+                                <Link href="/summer-camp/enroll" className="btn vip-btn">
                                     Redeem VIP Pass <FaArrowRight />
                                 </Link>
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Add a subtle CSS block for mobile responsiveness of the ticket */}
-                    <style dangerouslySetInnerHTML={{__html: `
-                        @media (max-width: 768px) {
-                            .vip-ticket { flex-direction: column !important; }
-                            .vip-ticket__stub {
-                                width: 100% !important; border-right: none !important;
-                                border-bottom: 2px dashed rgba(255, 215, 0, 0.4) !important; padding: 2.5rem !important;
-                            }
-                            .ticket-notch-top { left: -20px !important; top: auto !important; bottom: -20px !important; border-bottom: none !important; border-right: 1px solid rgba(255,215,0,0.4) !important; }
-                            .ticket-notch-bottom { right: -20px !important; bottom: -20px !important; top: auto !important; border-top: none !important; border-left: 1px solid rgba(255,215,0,0.4) !important; }
-                            .stub-vertical-text { display: none !important; }
-                            .setup-grid { grid-template-columns: 1fr !important; gap: 0.8rem !important; }
-                            .vip-ticket__main { padding: 2rem 1.25rem !important; }
-                            .vip-ticket__header-row { text-align: center; gap: 1rem !important; }
-                            .vip-ticket__header-row > div { flex: 1 1 100% !important; text-align: center !important; }
-                            .vip-title { font-size: 2.2rem !important; }
-                            .vip-price { font-size: 3.5rem !important; }
-                            .vip-btn { width: 100% !important; justify-content: center !important; }
-                        }
-                    `}} />
                 </div>
             </section>
 
