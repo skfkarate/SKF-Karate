@@ -4,17 +4,18 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 
 const values = [
-    { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg" },
-    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg" },
-    { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg" },
-    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg" },
-    { text: "RESPECT", img: "/gallery/Tournment.jpeg" },
-    { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg" },
-    { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg" },
-    { text: "HERE WE ARE", img: "/logo/SKF logo.png" }
+    { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg", objectPosition: "center 40%", mobileScale: 1.15 },
+    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg", objectPosition: "center 30%", mobileScale: 1.25 },
+    { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg", objectPosition: "center 20%", mobileScale: 1.2 },
+    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg", objectPosition: "center 25%", mobileScale: 1.1 },
+    { text: "RESPECT", img: "/gallery/Tournment.jpeg", objectPosition: "center 35%", mobileScale: 1.2 },
+    { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg", objectPosition: "center 30%", mobileScale: 1.15 },
+    { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg", objectPosition: "center 30%", mobileScale: 1.15 },
+    { text: "HERE WE ARE", img: "/logo/SKF logo.png", objectPosition: "center", mobileScale: 1 }
 ];
 
-function SlideBackground({ img, index, total, scrollYProgress }) {
+function SlideBackground({ v, index, total, scrollYProgress }) {
+    const { img, objectPosition = "center", mobileObjectPosition, mobileScale = 1 } = v;
     const start = index / total;
     const end = (index + 1) / total;
     
@@ -41,12 +42,25 @@ function SlideBackground({ img, index, total, scrollYProgress }) {
                 zIndex: 1
             }}
         >
+            <style>{`
+                .cinematic-img-${index} {
+                    object-position: ${objectPosition} !important;
+                    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                @media (max-width: 768px) {
+                    .cinematic-img-${index} {
+                        object-position: ${mobileObjectPosition || objectPosition} !important;
+                        transform: scale(${mobileScale}) !important;
+                    }
+                }
+            `}</style>
             <Image 
                 src={img}
                 alt=""
                 fill
                 sizes="100vw"
-                style={{ objectFit: "cover", objectPosition: "center" }}
+                className={`cinematic-img-${index}`}
+                style={{ objectFit: "cover" }}
                 quality={60}
                 priority={index < 2}
                 loading={index < 2 ? "eager" : "lazy"}
@@ -112,7 +126,7 @@ export default function CinematicValues() {
                 {values.map((v, i) => (
                     <SlideBackground 
                         key={`bg-${i}`} 
-                        img={v.img} 
+                        v={v} 
                         index={i} 
                         total={values.length} 
                         scrollYProgress={scrollYProgress} 
