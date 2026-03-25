@@ -5,10 +5,10 @@ import Image from 'next/image';
 
 const values = [
     { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg" },
-    { text: "INCLUSION", img: "/gallery/beltexam.jpg" },
+    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg" },
     { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg" },
-    { text: "EXCELLENCE", img: "/gallery/Tournment9.jpeg" },
-    { text: "RESPECT", img: "/gallery/belt.jpg" },
+    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg" },
+    { text: "RESPECT", img: "/gallery/Tournment.jpeg" },
     { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg" },
     { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg" },
     { text: "HERE WE ARE", img: "/gallery/Tournment 13.jpeg" }
