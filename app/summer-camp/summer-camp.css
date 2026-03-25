@@ -1120,6 +1120,327 @@
     font-size: 0.85rem;
 }
 
+/* ===== CAMP PAGE OVERFLOW FIX ===== */
+.camp-page {
+    overflow-x: hidden;
+}
+
+/* ===== VIP TICKET SECTION ===== */
+.vip-pass-section {
+    position: relative;
+    padding: 6rem 0;
+}
+
+.vip-pass-section .glow-gold {
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.15;
+    width: 600px;
+    height: 600px;
+}
+
+.vip-ticket {
+    display: flex;
+    flex-direction: row;
+    max-width: 1000px;
+    width: 100%;
+    background: linear-gradient(135deg, #111 0%, #000 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.15);
+    overflow: hidden;
+    position: relative;
+}
+
+.vip-ticket__stub {
+    width: 25%;
+    min-width: 220px;
+    border-right: 2px dashed rgba(255, 215, 0, 0.4);
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom, rgba(255, 215, 0, 0.08), transparent);
+    position: relative;
+}
+
+.ticket-notch-top,
+.ticket-notch-bottom {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-body, #0a0a14);
+    z-index: 5;
+}
+
+.ticket-notch-top {
+    top: -20px;
+    right: -20px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.ticket-notch-bottom {
+    bottom: -20px;
+    right: -20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.stub-vertical-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.03);
+    letter-spacing: 8px;
+    position: absolute;
+    left: 15px;
+}
+
+.vip-ticket__stub-icon {
+    font-size: 4.5rem;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+}
+
+.vip-ticket__stub-label {
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #ddd;
+    text-align: center;
+    margin: 0;
+}
+
+.vip-ticket__stub-pass {
+    color: var(--gold);
+    font-weight: 900;
+    font-size: 1.8rem;
+    margin-top: 0.8rem;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.vip-ticket__main {
+    padding: 3.5rem 3rem;
+    flex: 1;
+    position: relative;
+}
+
+.vip-ticket__watermark {
+    position: absolute;
+    right: 30px;
+    bottom: 10px;
+    font-size: 12rem;
+    opacity: 0.02;
+    font-weight: 900;
+    color: var(--gold);
+    pointer-events: none;
+    line-height: 1;
+}
+
+.vip-ticket__header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.vip-ticket__info {
+    flex: 1 1 300px;
+}
+
+.vip-ticket__badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light, #D4AF37));
+    color: #000;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.vip-title {
+    font-size: 2.8rem;
+    margin: 0 0 0.8rem 0;
+    line-height: 1.1;
+}
+
+.vip-ticket__tagline {
+    color: #aaa;
+    font-size: 1.15rem;
+    margin: 0;
+}
+
+.vip-ticket__pricing {
+    text-align: right;
+}
+
+.vip-ticket__old-price {
+    font-size: 1.1rem;
+    color: #777;
+    text-decoration: line-through;
+    margin-bottom: 0.5rem;
+}
+
+.vip-price {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 0.9;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.vip-ticket__features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 3rem;
+}
+
+.vip-ticket__feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.1rem;
+    color: #ddd;
+}
+
+.vip-ticket__feature-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--gold);
+    flex-shrink: 0;
+}
+
+.vip-btn {
+    background: linear-gradient(90deg, #FFDF00 0%, #D4AF37 100%);
+    color: #000;
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 1.2rem 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.vip-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 35px rgba(255, 215, 0, 0.5);
+    filter: brightness(1.1);
+}
+
+/* ===== LOADING SKELETON ===== */
+.camp-loading {
+    min-height: 100vh;
+    background: var(--bg-body, #0a0a14);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    overflow: hidden;
+}
+
+.camp-loading__hero {
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding-top: 8rem;
+}
+
+.camp-loading__shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease infinite;
+    border-radius: 8px;
+}
+
+.camp-loading__bar {
+    height: 14px;
+}
+
+.camp-loading__bar--lg {
+    height: 48px;
+    width: 60%;
+    border-radius: 12px;
+}
+
+.camp-loading__bar--md {
+    height: 20px;
+    width: 45%;
+}
+
+.camp-loading__bar--sm {
+    height: 14px;
+    width: 70%;
+}
+
+.camp-loading__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.camp-loading__card {
+    height: 280px;
+    border-radius: 16px;
+}
+
+.camp-loading__ticket {
+    width: 100%;
+    max-width: 900px;
+    height: 320px;
+    border-radius: 24px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@media (max-width: 768px) {
+    .camp-loading__cards {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+    .camp-loading__card {
+        height: 200px;
+    }
+    .camp-loading__hero {
+        padding-top: 5rem;
+    }
+    .camp-loading__ticket {
+        height: 450px;
+    }
+}
+
 /* ===================================================================
    RESPONSIVE — 4-breakpoint system
    992px → tablet landscape
@@ -1361,6 +1682,82 @@
         font-size: 1.7rem;
         bottom: 24px;
         right: 24px;
+    }
+
+    /* VIP Ticket – Tablet Portrait */
+    .vip-pass-section {
+        padding: 4rem 0;
+    }
+
+    .vip-ticket {
+        flex-direction: column;
+    }
+
+    .vip-ticket__stub {
+        width: 100%;
+        min-width: unset;
+        border-right: none;
+        border-bottom: 2px dashed rgba(255, 215, 0, 0.4);
+        padding: 2.5rem;
+        flex-direction: row;
+        gap: 1.5rem;
+    }
+
+    .ticket-notch-top {
+        left: -20px;
+        top: auto;
+        bottom: -20px;
+        border-bottom: none;
+        right: auto;
+        border-right: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .ticket-notch-bottom {
+        right: -20px;
+        left: auto;
+        bottom: -20px;
+        border-top: none;
+        border-left: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .stub-vertical-text {
+        display: none;
+    }
+
+    .vip-ticket__main {
+        padding: 2rem 1.5rem;
+    }
+
+    .vip-ticket__header-row {
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .vip-ticket__header-row > div {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+
+    .vip-ticket__pricing {
+        text-align: center;
+    }
+
+    .vip-title {
+        font-size: 2.2rem;
+    }
+
+    .vip-price {
+        font-size: 3.5rem;
+    }
+
+    .vip-ticket__features {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .vip-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -1695,6 +2092,71 @@
         bottom: 18px;
         right: 18px;
     }
+
+    /* VIP Ticket – Mobile */
+    .vip-pass-section {
+        padding: 3rem 0;
+    }
+
+    .vip-ticket__stub {
+        padding: 1.8rem 1.25rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .vip-ticket__stub-icon {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .vip-ticket__stub-label {
+        font-size: 1rem;
+        letter-spacing: 2px;
+    }
+
+    .vip-ticket__stub-pass {
+        font-size: 1.5rem;
+    }
+
+    .vip-ticket__main {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .vip-ticket__badge {
+        font-size: 0.78rem;
+        padding: 0.35rem 0.8rem;
+        letter-spacing: 1px;
+    }
+
+    .vip-title {
+        font-size: 1.8rem;
+    }
+
+    .vip-ticket__tagline {
+        font-size: 1rem;
+    }
+
+    .vip-price {
+        font-size: 3rem;
+    }
+
+    .vip-ticket__old-price {
+        font-size: 0.95rem;
+    }
+
+    .vip-ticket__feature {
+        font-size: 0.95rem;
+    }
+
+    .vip-btn {
+        font-size: 1rem;
+        padding: 1rem 2rem;
+    }
+
+    .vip-ticket__watermark {
+        font-size: 8rem;
+        right: 15px;
+    }
 }
 
 /* ───── SMALL PHONES (360px) ───── */
@@ -1792,7 +2254,6 @@
         right: 14px;
     }
 }
-
 
 /* ===== ENROLLMENT FORM ===== */
 .enroll-form-wrapper {
@@ -2169,4 +2630,3 @@
         padding: 2.5rem 1.5rem;
     }
 }
-
