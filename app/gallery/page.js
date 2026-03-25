@@ -1,153 +1,150 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { FaCamera, FaStar, FaTh } from 'react-icons/fa'
+import ScrollReveal from '@/app/_components/ScrollReveal'
+import GalleryLightbox from '@/app/_components/gallery/GalleryLightbox'
+import { allPhotos, categoryOrder } from '@/app/_components/gallery/galleryPhotoData'
 import './gallery.css'
 
-/*
-  ── SMART REORDERED GALLERY DATA ──
-  Pinned photos and high-impact visual shots (medals, action) at the top.
-*/
-const allPhotos = [
-    // ═══ Top Priority (Starred / Hero) ═══
-    { src: '/gallery/Tournment8 starred.jpeg', title: 'A Proud Champion Flashes Her Gold Medal', cat: 'Tournaments', pinned: true },
-    { src: '/gallery/Karate Demonstration2 starred.jpeg', title: 'Team Pose with Weapons — Demo Day', cat: 'Demonstrations', pinned: true },
-    { src: '/gallery/In dojo 2 starred.jpeg', title: 'Sensei with Little Karatekas — Smiles at the Dojo', cat: 'In Dojo', pinned: true },
-    { src: '/gallery/Train the Elite - Training Camp starred.jpeg', title: 'Train the Elite Camp — Certificate Ceremony', cat: 'Camps', pinned: true },
-    { src: '/gallery/tounrmentss.jpg', title: 'Karateka Competing in a Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/tournmentss.jpg', title: 'Competition Match at a Karate Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/beltexam.jpg', title: 'Students Participating in Belt Promotion Exam', cat: 'Belt Exams', pinned: false },
-    
-    // ═══ Remainder Sorted Logically ═══
-    { src: '/gallery/Karate Demonstration.jpeg', title: 'Synchronized Kicks — Outdoor Demo', cat: 'Demonstrations', pinned: false },
-    { src: '/gallery/belt.jpg', title: 'Belt Grading Ceremony', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/Tournment.jpeg', title: 'All-India Kata Championship — Medal Winners', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment2.jpeg', title: 'Kumite Squad with Judges & Officials', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment5.jpeg', title: 'Young Karatekas Ready for Action', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment4.jpeg', title: 'Cheering Before the Final Round', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/In Dojo.jpeg', title: 'Senseis Leading Morning Formation', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/Tournment3.jpeg', title: 'Team Group Photo at the Arena', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Kungal belt examination.jpeg', title: 'Kungal Kyu Grading — Certificates with Sensei', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/belt exam.jpeg', title: 'National Championship Certificate Ceremony', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/Tournment6.jpeg', title: 'Post-Match Celebrations', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment7.jpeg', title: 'Team Huddle at the Championship', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment9.jpeg', title: 'Tournament Day — Full Team Line-Up', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment10.jpeg', title: 'State-Level Championship Competitors', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment 11.jpeg', title: 'Victory Thumbs-Up after Tournament', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/In Dojo 3.jpeg', title: 'Young Warriors Standing in Seiza', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/In dogo.jpeg', title: 'All Belts United — Dojo Group Photo', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/beltt.jpg', title: 'Martial Arts Belt Exam Session', cat: 'Belt Exams', pinned: false },
-    { src: '/gallery/IMG_1191.JPG.jpeg', title: 'Dojo Family — A Legacy of Discipline', cat: 'In Dojo', pinned: false },
-    { src: '/gallery/Training.jpeg', title: 'Training Unit — Team on the Tatami', cat: 'Camps', pinned: false },
-    { src: '/gallery/Tournment 12.jpeg', title: 'Senseis and Champions on the Mat', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Tournment 13.jpeg', title: 'Award Ceremony — Certificate Presentation', cat: 'Tournaments', pinned: false },
-    { src: '/gallery/Kungial district level championship.jpeg', title: 'Kungial District-Level Championship — Medalists', cat: 'Championships', pinned: false },
-    { src: '/gallery/International seminar by john wick.jpeg', title: 'International Seminar — Sensei Jon Wicks', cat: 'Seminars', pinned: false },
-]
-
 export default function GalleryPage() {
-    const [lightbox, setLightbox] = useState(null)
-    const [activeCat, setActiveCat] = useState('Starred')
+    const [lightboxIdx, setLightboxIdx] = useState(null)
+    const [activeCat, setActiveCat] = useState('All')
 
-    const pinnedPhotos = allPhotos.filter(p => p.pinned)
-    const categoryOrder = ['Demonstrations', 'Tournaments', 'Belt Exams', 'In Dojo', 'Camps', 'Championships', 'Seminars']
     const availableCategories = categoryOrder.filter(cat => allPhotos.some(p => p.cat === cat))
+    const displayedPhotos = activeCat === 'All' ? allPhotos : allPhotos.filter(p => p.cat === activeCat)
 
-    // For "Starred", we actually just want to show the top pinned hits, but it might be better to show All photos prioritizing pinned 
-    // Wait, the original code filtered strictly by p.pinned. We will stick to that or let Starred mean "Highlighted"
-    const displayedPhotos = activeCat === 'Starred' ? allPhotos : allPhotos.filter(p => p.cat === activeCat)
+    const openLightbox = (i) => setLightboxIdx(i)
+    const closeLightbox = () => setLightboxIdx(null)
+
+    const goPrev = useCallback(() => {
+        if (lightboxIdx === null) return
+        setLightboxIdx(prev => prev > 0 ? prev - 1 : displayedPhotos.length - 1)
+    }, [lightboxIdx, displayedPhotos.length])
+
+    const goNext = useCallback(() => {
+        if (lightboxIdx === null) return
+        setLightboxIdx(prev => prev < displayedPhotos.length - 1 ? prev + 1 : 0)
+    }, [lightboxIdx, displayedPhotos.length])
+
+    // Keyboard navigation
+    useEffect(() => {
+        if (lightboxIdx === null) return
+        const handleKey = (e) => {
+            if (e.key === 'Escape') closeLightbox()
+            if (e.key === 'ArrowLeft') goPrev()
+            if (e.key === 'ArrowRight') goNext()
+        }
+        document.body.style.overflow = 'hidden'
+        window.addEventListener('keydown', handleKey)
+        return () => {
+            document.body.style.overflow = ''
+            window.removeEventListener('keydown', handleKey)
+        }
+    }, [lightboxIdx, goPrev, goNext])
+
+    const currentPhoto = lightboxIdx !== null ? displayedPhotos[lightboxIdx] : null
 
     return (
         <div className="gallery-page">
-            <section className="page-hero gallery-hero">
-                <div className="page-hero__bg">
-                    <div className="glow glow-red page-hero__glow-1"></div>
-                    <div className="glow glow-gold page-hero__glow-2"></div>
+            {/* HERO */}
+            <section className="gal-hero">
+                <div className="gal-hero__bg">
+                    <div className="gal-hero__glow gal-hero__glow--1"></div>
+                    <div className="gal-hero__glow gal-hero__glow--2"></div>
                 </div>
-                <div className="container page-hero__content">
-                    <span className="section-label"><FaCamera /> Media</span>
-                    <h1 className="page-hero__title">Our <span className="text-gradient">Gallery</span></h1>
-                    <p className="page-hero__subtitle">Moments from the Dojo, Tournaments, and Championships</p>
+                <div className="container gal-hero__content">
+                    <span className="gal-badge"><FaCamera /> Media Gallery</span>
+                    <h1 className="gal-hero__title">Our <span className="gal-text-grad">Gallery</span></h1>
+                    <p className="gal-hero__subtitle">Moments from the Dojo, Tournaments, and Championships</p>
+                    <div className="gal-hero__stats-row">
+                        <div className="gal-hero__stat">
+                            <span className="gal-hero__stat-num">{allPhotos.length}</span>
+                            <span className="gal-hero__stat-label">Photos</span>
+                        </div>
+                        <div className="gal-hero__stat-divider"></div>
+                        <div className="gal-hero__stat">
+                            <span className="gal-hero__stat-num">{availableCategories.length}</span>
+                            <span className="gal-hero__stat-label">Categories</span>
+                        </div>
+                        <div className="gal-hero__stat-divider"></div>
+                        <div className="gal-hero__stat">
+                            <span className="gal-hero__stat-num">{allPhotos.filter(p => p.pinned).length}</span>
+                            <span className="gal-hero__stat-label">Featured</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section className="section gallery-content-section">
+            {/* GALLERY CONTENT */}
+            <section className="section gal-content-section">
                 <div className="container">
 
-                    {/* TABS */}
-                    <div className="gallery-tabs">
-                        <button
-                            className={`gallery-tab ${activeCat === 'Starred' ? 'active gallery-tab--star' : ''}`}
-                            onClick={() => setActiveCat('Starred')}
-                        >
-                            <FaStar /> All Highlights
-                        </button>
-                        {availableCategories.map(cat => (
+                    {/* FILTER TABS */}
+                    <ScrollReveal>
+                        <div className="gal-filter-bar">
                             <button
-                                key={cat}
-                                className={`gallery-tab ${activeCat === cat ? 'active' : ''}`}
-                                onClick={() => setActiveCat(cat)}
+                                className={`gal-filter-pill ${activeCat === 'All' ? 'gal-filter-pill--active' : ''}`}
+                                onClick={() => setActiveCat('All')}
                             >
-                                <FaTh /> {cat}
+                                <FaStar /> All
                             </button>
-                        ))}
-                    </div>
+                            {availableCategories.map(cat => (
+                                <button
+                                    key={cat}
+                                    className={`gal-filter-pill ${activeCat === cat ? 'gal-filter-pill--active' : ''}`}
+                                    onClick={() => setActiveCat(cat)}
+                                >
+                                    <FaTh /> {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </ScrollReveal>
 
-                    <div className="gallery-section-header">
-                        {activeCat === 'Starred' ? (
-                            <span className="gallery-section-badge gallery-section-badge--star"><FaStar /> All Highlights</span>
-                        ) : (
-                            <span className="gallery-section-badge"><FaTh /> {activeCat}</span>
-                        )}
-                        <span className="gallery-section-count">{displayedPhotos.length} photo{displayedPhotos.length !== 1 ? 's' : ''}</span>
-                    </div>
+                    {/* SECTION HEADER */}
+                    <ScrollReveal delay={0.1}>
+                        <div className="gal-section-header">
+                            <h2 className="gal-section-title">
+                                {activeCat === 'All' ? 'All' : activeCat} <span className="gal-text-grad">Photos</span>
+                            </h2>
+                            <span className="gal-photo-count">{displayedPhotos.length} photo{displayedPhotos.length !== 1 ? 's' : ''}</span>
+                        </div>
+                    </ScrollReveal>
 
-                    {/* CSS MASONRY GRID */}
+                    {/* MASONRY GRID */}
                     <div className="masonry-grid">
                         {displayedPhotos.map((p, i) => (
-                            <div className="gallery__item" key={`${activeCat}-${i}`} onClick={() => setLightbox(p)}>
-                                {/* Using Next.js Image for automatic WebP conversion and responsive sizes */}
-                                <Image
-                                    src={p.src}
-                                    alt={p.title}
-                                    className="gallery__item-img"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    width={800}
-                                    height={600}
-                                    style={{
-                                        width: '100%',
-                                        height: 'auto',
-                                        objectFit: 'cover'
-                                    }}
-                                />
-                                {p.pinned && <div className="gallery__pin-badge"><FaStar /></div>}
-                                <div className="gallery__overlay">
-                                    <span className="gallery__cat">{p.cat}</span>
-                                    <p className="gallery__title">{p.title}</p>
+                            <ScrollReveal key={`${activeCat}-${i}`} delay={(i % 4) * 0.06}>
+                                <div className="gal-item" onClick={() => openLightbox(i)}>
+                                    <Image
+                                        src={p.src}
+                                        alt={p.title}
+                                        className="gal-item__img"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        width={800}
+                                        height={600}
+                                        style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                                    />
+                                    {p.pinned && <div className="gal-item__star"><FaStar /></div>}
+                                    <div className="gal-item__overlay">
+                                        <span className="gal-item__cat">{p.cat}</span>
+                                        <p className="gal-item__title">{p.title}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </ScrollReveal>
                         ))}
                     </div>
-
                 </div>
             </section>
-
-            {/* ===== ULTRA PREMIUM LIGHTBOX ===== */}
-            {lightbox && (
-                <div className="lightbox" onClick={() => setLightbox(null)}>
-                    <div className="lightbox__inner" onClick={(e) => e.stopPropagation()}>
-                        <button className="lightbox__close" onClick={() => setLightbox(null)}>✕</button>
-                        <div className="lightbox__img-wrapper">
-                            <img src={lightbox.src} alt={lightbox.title} className="lightbox__img" />
-                        </div>
-                        <div className="lightbox__caption">
-                            <span className="gallery__cat">{lightbox.cat}</span>
-                            <p className="lightbox__title">{lightbox.title}</p>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <GalleryLightbox
+              closeLightbox={closeLightbox}
+              currentPhoto={currentPhoto}
+              displayedPhotos={displayedPhotos}
+              goNext={goNext}
+              goPrev={goPrev}
+              lightboxIdx={lightboxIdx}
+            />
         </div>
     )
 }
