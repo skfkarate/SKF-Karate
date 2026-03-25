@@ -1,0 +1,270 @@
+/* ============================================================
+   INDIVIDUAL SENSEI PROFILE PAGE
+   ============================================================ */
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--gold);
+    transform: translateX(-5px);
+}
+
+/* ── PROFILE HERO ── */
+.profile-hero {
+    position: relative;
+    padding-top: 8rem;
+    padding-bottom: 5rem;
+    min-height: 70vh;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.profile-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 4rem;
+    align-items: flex-start;
+}
+
+.profile-hero__image-wrapper {
+    position: relative;
+}
+
+.profile-hero__image-placeholder {
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 20px;
+    background: rgba(12, 16, 28, 0.8);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.ring-gold { border-color: rgba(255, 183, 3, 0.3); box-shadow: 0 0 40px rgba(255, 183, 3, 0.1); }
+.ring-crimson { border-color: rgba(214, 40, 40, 0.3); box-shadow: 0 0 40px rgba(214, 40, 40, 0.1); }
+.ring-blue { border-color: rgba(63, 81, 181, 0.3); box-shadow: 0 0 40px rgba(63, 81, 181, 0.1); }
+
+.photo-placeholder-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0.5;
+}
+
+.photo-placeholder-icon svg {
+    font-size: 4rem;
+}
+
+.profile-hero__dan {
+    color: var(--gold);
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.profile-hero__name {
+    font-family: var(--font-heading);
+    font-size: 4.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--text-white);
+    margin-bottom: 0.5rem;
+}
+
+.profile-hero__role {
+    display: inline-block;
+    background: rgba(214, 40, 40, 0.15);
+    color: var(--crimson-light);
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(214, 40, 40, 0.3);
+}
+
+.profile-hero__quick-stats {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quick-stat {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.quick-stat strong {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+}
+
+.quick-stat span {
+    color: var(--text-white);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.profile-hero__bio {
+    padding: 2.5rem;
+    border-left: 4px solid var(--gold);
+}
+
+.profile-hero__bio p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* ── ACHIEVEMENTS ── */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.achievement-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    transition: transform 0.3s ease;
+}
+
+.achievement-card:hover {
+    transform: translateX(10px);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.achievement-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.icon-glow-gold { background: rgba(255, 183, 3, 0.1); color: var(--gold); border: 1px solid rgba(255, 183, 3, 0.3); }
+.icon-glow-crimson { background: rgba(214, 40, 40, 0.1); color: var(--crimson-light); border: 1px solid rgba(214, 40, 40, 0.3); }
+.icon-glow-blue { background: rgba(63, 81, 181, 0.1); color: #7986CB; border: 1px solid rgba(63, 81, 181, 0.3); }
+
+.achievement-card h3 {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--text-white);
+}
+
+/* ── ACTION GALLERY ── */
+.action-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.gallery-placeholder {
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(12, 16, 28, 0.4);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.placeholder-cam {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+/* ── PROFILE CTA ── */
+.profile-cta {
+    padding-bottom: 6rem;
+}
+
+.profile-cta__inner {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.profile-cta__inner .section-subtitle {
+    margin: 0 auto 2.5rem auto;
+    max-width: 600px;
+}
+
+.profile-cta__actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+    .profile-hero__grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-hero__image-placeholder {
+        aspect-ratio: 16/9;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-hero__name {
+        font-size: 3rem;
+    }
+    
+    .profile-hero__quick-stats {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .action-gallery-grid {
+        grid-template-columns: 1fr;
+    }
+}

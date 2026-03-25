@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TIMETABLE PAGE — Navy / Glassmorphic Theme
+   Reference: app/athlete/athlete.css
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tt-page {
+  min-height: 100vh;
+  padding: 6rem 1rem 4rem;
+  background:
+    radial-gradient(circle at top left, rgba(214, 40, 40, 0.1), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 183, 3, 0.06), transparent 28%),
+    linear-gradient(180deg, #091121 0%, #05080f 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.tt-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.tt-glow--1 {
+  top: -8rem;
+  left: -10rem;
+  width: 30rem;
+  height: 30rem;
+  background: rgba(214, 40, 40, 0.12);
+}
+
+.tt-glow--2 {
+  bottom: -10rem;
+  right: -8rem;
+  width: 25rem;
+  height: 25rem;
+  background: rgba(255, 183, 3, 0.08);
+}
+
+/* ── Container ── */
+.tt-container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Header ── */
+.tt-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.tt-header__tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--gold, #ffb703);
+  background: rgba(255, 183, 3, 0.08);
+  border: 1px solid rgba(255, 183, 3, 0.25);
+  padding: 0.5rem 1.25rem;
+  border-radius: 100px;
+  margin-bottom: 1.25rem;
+}
+
+.tt-header__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.tt-header__branch {
+  display: block;
+  background: linear-gradient(90deg, #ff2a2a 0%, #ff6b6b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tt-header__title-text {
+  display: block;
+  background: linear-gradient(90deg, #fff4b0 0%, #ffb703 55%, #ffd977 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Month Badge ── */
+.tt-month-badge {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.tt-month-badge__text {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  border-radius: 100px;
+  background: rgba(255, 183, 3, 0.1);
+  border: 1px solid rgba(255, 183, 3, 0.3);
+  color: var(--gold, #ffb703);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* ── Timetable Card ── */
+.tt-card {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 14, 25, 0.55);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+
+.tt-card__image-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.tt-card__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Empty State */
+.tt-card__empty {
+  text-align: center;
+  padding: 5rem 2rem;
+}
+
+.tt-card__empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.tt-card__empty-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--gold, #ffb703);
+  margin: 0 0 0.75rem;
+}
+
+.tt-card__empty-text {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ── Previous Months ── */
+.tt-previous {
+  margin-bottom: 2.5rem;
+}
+
+.tt-previous__title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 1.25rem;
+}
+
+.tt-previous__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.tt-previous__card {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(10, 14, 25, 0.4);
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.tt-previous__card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.tt-previous__month {
+  display: block;
+  padding: 0.75rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tt-previous__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── WhatsApp Button ── */
+.tt-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  background: rgba(37, 211, 102, 0.08);
+  color: #25d366;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: all 0.3s;
+  margin-bottom: 2rem;
+}
+
+.tt-whatsapp:hover {
+  background: rgba(37, 211, 102, 0.15);
+  border-color: rgba(37, 211, 102, 0.5);
+  transform: translateY(-2px);
+}
+
+.tt-whatsapp__icon {
+  font-size: 1.2rem;
+}
+
+/* ── Back Link ── */
+.tt-back {
+  text-align: center;
+}
+
+.tt-back__link {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.tt-back__link:hover {
+  color: var(--gold, #ffb703);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .tt-page {
+    padding: 5rem 0.75rem 3rem;
+  }
+
+  .tt-previous__grid {
+    grid-template-columns: 1fr;
+  }
+}

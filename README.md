@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SKF Karate Website
 
-## Getting Started
+Next.js 16 website for SKF Karate with:
+- public marketing pages
+- athlete search and profile pages
+- results and events pages
+- admin-only athlete and tournament management
+- JSON-backed local data storage for development and lightweight deployments
 
-First, run the development server:
+## Commands
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```text
+app/
+  _components/         shared and feature UI used by routes
+  admin/               admin routes
+  api/                 route handlers
+  ...                  public app routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+lib/
+  data/                compatibility facades for domain data access
+  server/
+    auth/              NextAuth options and session guards
+    repositories/      server-owned athlete, tournament, and event data logic
+    validation/        request validation
+    api.js             API helpers and error handling
+    data-store.js      JSON file persistence helpers
+  types/               shared domain constants and labels
+  utils/               domain utilities used by app and repositories
 
-## Learn More
+public/                static assets
+proxy.js               admin route protection
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Structure Rules
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Keep route entry files in `app/**/page.js`, `layout.js`, and `route.js` thin.
+- Put reusable UI in `app/_components`, grouped by domain when possible.
+- Keep server-only business logic in `lib/server/**`.
+- Treat `lib/data/*.js` as stable public entrypoints that forward to `lib/server/repositories/*`.
+- Do not make server helpers import from `app/api/**`; API routes should depend on server modules, not the other way around.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data Storage
 
-## Deploy on Vercel
+By default, mutable athlete, event, and tournament data is written under:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+.data/
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+You can override that location with:
+
+```bash
+SKF_DATA_DIR=/path/to/data
+```
+
+## Auth Environment
+
+Admin auth uses NextAuth credentials and expects environment variables such as:
+
+```bash
+NEXTAUTH_SECRET=
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
+INSTRUCTOR_USERNAME=
+INSTRUCTOR_PASSWORD=
+```
+
+The contact form integrations also rely on the Google Sheets and Telegram environment variables already referenced in `app/api/contact/route.js`.

@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KUROOBI THEME: "The Dojo Gates" Login
+   Deep obsidian black minimalism, glowing crimson, massive typography.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dojo-login {
+  min-height: 100vh;
+  background: #02040a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Background effects */
+.dojo-login__bg-glow {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(214, 40, 40, 0.08) 0%, rgba(2, 4, 10, 0) 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dojo-login__watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Outfit', sans-serif;
+  font-size: 30vw;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.015);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+/* ── Content Container ── */
+.dojo-login__content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 480px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.dojo-login__header {
+  margin-bottom: 4rem;
+}
+
+.dojo-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dojo-login__logo {
+  filter: drop-shadow(0 0 15px rgba(255, 183, 3, 0.3));
+}
+
+.dojo-login__brand-text {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dojo-login__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 4rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.dojo-login__subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* ── Form Inputs (Ultra Minimalist) ── */
+.dojo-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.dojo-input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.dojo-input-group label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dojo-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.dojo-input::placeholder {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.dojo-input:focus {
+  border-bottom-color: var(--crimson, #d62828);
+}
+
+.dojo-input:focus + label,
+.dojo-input:not(:placeholder-shown) + label {
+  color: var(--crimson, #d62828);
+}
+
+/* ── Submit Button (The Glowing Slash) ── */
+.dojo-login__submit {
+  margin-top: 1rem;
+  width: 100%;
+  background: var(--crimson, #d62828);
+  color: #fff;
+  border: none;
+  padding: 1.25rem;
+  border-radius: 4px; /* Sharp corners for martial arts feel */
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.2);
+}
+
+.dojo-login__submit:hover:not(:disabled) {
+  background: #ff3b3b;
+  box-shadow: 0 15px 40px rgba(214, 40, 40, 0.4);
+  transform: translateY(-2px);
+}
+
+.dojo-login__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #333;
+  box-shadow: none;
+}
+
+/* Error message */
+.dojo-login__error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(214, 40, 40, 0.1);
+  border-left: 3px solid var(--crimson, #d62828);
+  color: #ff8787;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── Testing Bypass ── */
+.dojo-login__test-bypass {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.dojo-login__test-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.dojo-login__test-btn:hover {
+  color: rgba(255, 183, 3, 0.8);
+}

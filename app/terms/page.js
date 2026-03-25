@@ -27,7 +27,7 @@ export default function TermsConditions() {
 
           <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>2. Training & Liability</h2>
           <p style={{ marginBottom: '1.5rem' }}>
-            Martial arts training involves physical contact and inherent risks. Students and parents/guardians acknowledge these risks. The SKF Karate organization and its instructors are not liable for injuries sustained during training, grading, or tournaments.
+            Martial arts training involves physical contact and inherent risks. Athletes and parents/guardians acknowledge these risks. The SKF Karate organization and its instructors are not liable for injuries sustained during training, grading, or tournaments.
           </p>
 
           <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>3. Registration & Fees</h2>
@@ -37,7 +37,7 @@ export default function TermsConditions() {
 
           <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>4. DoJo Etiquette</h2>
           <p style={{ marginBottom: '1.5rem' }}>
-            Students are expected to adhere to the traditional respect and discipline required in the DoJo. Instructors reserve the right to dismiss any student whose behavior is disruptive or unsafe.
+            Athletes are expected to adhere to the traditional respect and discipline required in the DoJo. Instructors reserve the right to dismiss any athlete whose behavior is disruptive or unsafe.
           </p>
 
           <p style={{ marginTop: '3rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>

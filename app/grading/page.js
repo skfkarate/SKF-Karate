@@ -2,180 +2,166 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
-import { FaArrowRight, FaAward } from 'react-icons/fa'
-import { GiBlackBelt } from 'react-icons/gi'
+import { FaArrowRight, FaFistRaised } from 'react-icons/fa'
+import { GiBlackBelt, GiYinYang, GiKatana } from 'react-icons/gi'
 import './grading.css'
 
-
 const kyuBelts = [
-    { kyu: '9th Kyu', belt: 'Yellow Belt', color: '#FFD166' },
-    { kyu: '8th Kyu', belt: 'Orange Belt', color: '#F77F00' },
-    { kyu: '7th Kyu', belt: 'Green II Belt', color: '#52B788' },
-    { kyu: '6th Kyu', belt: 'Green I Belt', color: '#2D6A4F' },
-    { kyu: '5th Kyu', belt: 'Blue Belt', color: '#118AB2' },
-    { kyu: '4th Kyu', belt: 'Purple Belt', color: '#9D4EDD' },
-    { kyu: '3rd Kyu', belt: 'Brown III Belt', color: '#D4A373' },
-    { kyu: '2nd Kyu', belt: 'Brown II Belt', color: '#A98467' },
-    { kyu: '1st Kyu', belt: 'Brown I Belt', color: '#6B3E2E' },
+    { kyu: '10th Kyu', belt: 'White Belt', color: '#f8f9fa', textSync: '#212529', desc: "The empty cup. A state of pure readiness and beginner's mind (Shoshin). The journey of a thousand miles begins here.", requirements: "Basic stances (Dachi), straight punches (Choku Zuki), and blocks (Uke)." },
+    { kyu: '9th Kyu', belt: 'Yellow Belt', color: '#ffb703', textSync: '#ffffff', desc: "The first ray of sunlight breaking the darkness. The student begins to understand the mechanics of their own body.", requirements: "Pinan Nidan, basic combinations, and multi-directional movement." },
+    { kyu: '8th Kyu', belt: 'Orange Belt', color: '#fb8500', textSync: '#ffffff', desc: "The warming earth. Strength and coordination begin to align. The foundational movements become familiar.", requirements: "Pinan Shodan, introduction to sparring distance (Maai)." },
+    { kyu: '7th Kyu', belt: 'Green II', color: '#2a9d8f', textSync: '#ffffff', desc: "The sprouting seed. The student learns to adapt, breathe, and yield before striking.", requirements: "Pinan Sandan, advanced blocking, and breath regulation." },
+    { kyu: '6th Kyu', belt: 'Green I', color: '#206a5d', textSync: '#ffffff', desc: "The growing tree. Roots go deep as stances solidify. Techniques generate true mechanical power.", requirements: "Pinan Yondan, continuous striking combinations." },
+    { kyu: '5th Kyu', belt: 'Blue Belt', color: '#023e8a', textSync: '#ffffff', desc: "The vast sky. Fluidity of movement takes precedence over sheer force. Mind and body synchronize.", requirements: "Pinan Godan, introduction to fluid counter-striking." },
+    { kyu: '4th Kyu', belt: 'Purple Belt', color: '#7209b7', textSync: '#ffffff', desc: "The darkening sky. Transitioning from intermediate to advanced. A deep dive into the hidden applications of kata.", requirements: "Naihanchi Shodan, advanced Kumite tactics, and close-quarters Bunkai." },
+    { kyu: '3rd Kyu', belt: 'Brown III', color: '#cd7f32', textSync: '#ffffff', desc: "The ripening harvest. Nearing physical maturity in the art. Every strike is delivered with potent, undeniable intent.", requirements: "Naihanchi Nidan, heavy conditioning, and complex defensive maneuvers." },
+    { kyu: '2nd Kyu', belt: 'Brown II', color: '#a0522d', textSync: '#ffffff', desc: "The solid rock. Unwavering mental resilience. The practitioner demonstrates exceptional focus under extreme pressure.", requirements: "Naihanchi Sandan, mastery of all earlier katas." },
+    { kyu: '1st Kyu', belt: 'Brown I', color: '#5c4033', textSync: '#ffffff', desc: "The absolute threshold. The final exacting trial before the elite ranks. Perfection of basics is absolutely mandated.", requirements: "Bassai Dai. The final test of spirit, technique, and stamina." },
 ]
 
 const danGrades = [
-    { dan: 'Shodan (1st Dan)', years: '3+ years training', focus: 'Mastery of fundamentals, teaching basics' },
-    { dan: 'Nidan (2nd Dan)', years: '5+ years', focus: 'Technical refinement, dojo leadership' },
-    { dan: 'Sandan (3rd Dan)', years: '8+ years', focus: 'Advanced bunkai, competition coaching' },
-    { dan: 'Yondan (4th Dan)', years: '12+ years', focus: 'Sensei level — independent dojo operation' },
-    { dan: 'Godan (5th Dan)', years: '17+ years', focus: 'Shihan eligibility — master instructor' },
+    { dan: 'Shodan', level: '1st Dan', desc: 'Mastery of the basics. The student has now become a true beginner of Karate-do.', years: '3-4 Years' },
+    { dan: 'Nidan', level: '2nd Dan', desc: 'Technical refinement. Smoothness of technique and introductory dojo leadership.', years: '2+ Years from Shodan' },
+    { dan: 'Sandan', level: '3rd Dan', desc: 'Advanced Bunkai (application). Eligibility to act as an instructor.', years: '3+ Years from Nidan' },
+    { dan: 'Yondan', level: '4th Dan', desc: 'Sensei level. Physical perfection combined with pedagogical mastery.', years: '4+ Years from Sandan' },
+    { dan: 'Godan', level: '5th Dan', desc: 'Shihan eligibility. Moving entirely beyond physical technique into spiritual mastery.', years: '5+ Years from Yondan' },
 ]
 
 export default function GradingPage() {
     useEffect(() => {
-        const handleScroll = () => {
-            const cards = document.querySelectorAll('.kyu-card');
-            const windowHeight = window.innerHeight;
-            const windowCenter = windowHeight / 2;
-
-            // Collect all cards with their distances from center
-            const cardDistances = [];
-
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const cardCenter = rect.top + (rect.height / 2);
-                
-                const distanceFromCenter = (cardCenter - windowCenter) / windowCenter;
-                
-                if (distanceFromCenter > -1.5 && distanceFromCenter < 1.5) {
-                    if (rect.top < windowHeight - 100) {
-                        card.closest('.kyu-timeline__row').classList.add('is-visible');
-                    }
-
-                    const rotateX = distanceFromCenter * 8;
-                    const translateY = distanceFromCenter * 10;
-                    const scale = 0.98 + ((1 - Math.min(Math.abs(distanceFromCenter), 1)) * 0.02);
-
-                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) translateY(${translateY}px) scale(${scale})`;
-                    card.style.transition = 'transform 0.1s linear';
-                    
-                    cardDistances.push({
-                        card,
-                        distance: Math.abs(distanceFromCenter)
-                    });
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
                 }
-                
-                // Remove scroll-active from all first
-                card.classList.remove('scroll-active');
             });
+        }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
 
-            // Sort by distance and only activate the 2 closest to center
-            cardDistances.sort((a, b) => a.distance - b.distance);
-            const maxActive = 2;
-            for (let i = 0; i < Math.min(maxActive, cardDistances.length); i++) {
-                if (cardDistances[i].distance < 0.8) {
-                    cardDistances[i].card.classList.add('scroll-active');
-                }
-            }
-        };
-
-        // Initial check and event listener
-        handleScroll();
-        window.addEventListener('scroll', handleScroll, { passive: true });
-
-        return () => window.removeEventListener('scroll', handleScroll);
+        document.querySelectorAll('.slab-reveal, .dan-reveal').forEach(el => observer.observe(el));
+        return () => observer.disconnect();
     }, []);
 
     return (
-        <div className="grading-page">
-            {/* ===== HERO ===== */}
-            <section className="page-hero">
-                <div className="page-hero__bg">
-                    <div className="glow glow-gold page-hero__glow-1"></div>
-                    <div className="glow glow-red page-hero__glow-2"></div>
+        <div className="grad-redesign">
+            {/* ═══════ THE ZENITH HERO ═══════ */}
+            <section className="grad-hero">
+                <div className="grad-hero__bg"></div>
+                
+                <div className="container grad-hero__content">
+                    <div className="grad-hero__badge">
+                        <GiYinYang className="spin-icon"/> Pathway to Mastery
+                    </div>
+                    <h1 className="grad-hero__title">
+                        The Evolution of <br /><span className="text-gradient">Power & Mind</span>
+                    </h1>
+                    <p className="grad-hero__subtitle">
+                        Grading is not merely a test of physical strength. It is an intricate, agonizing, and profoundly beautiful shedding of limitations. Track the legendary journey from 10th Kyu to 5th Dan.
+                    </p>
                 </div>
-                <div className="container page-hero__content">
-                    <span className="section-label"><GiBlackBelt /> Belt System</span>
-                    <h1 className="page-hero__title">Kyu & Dan <span className="text-gradient">Grading</span></h1>
-                    <p className="page-hero__subtitle">The Path from White Belt to Black Belt and Beyond</p>
-                </div>
+
+                <div className="grad-hero__kanji-bg">級 / 段</div>
             </section>
 
-            {/* ===== KYU SYSTEM ===== */}
-            <section className="section kyu-section">
-                <div className="glow glow-blue kyu-section__glow"></div>
+            {/* ═══════ THE KYU JOURNEY (Sticky Scroll & Floating Glass) ═══════ */}
+            <section className="grad-kyu-section">
                 <div className="container">
-                    <div className="kyu-header">
-                        <h2 className="section-title">The Journey of a <span className="text-gradient">Karateka</span></h2>
-                        <p className="section-subtitle">
-                            Every black belt was once a white belt who never quit. The Kyu (color belt) system builds your foundation. The Dan (black belt) system deepens your mastery.
-                        </p>
-                    </div>
+                    <div className="kyu-split-layout">
+                        {/* Left Side: Sticky Header */}
+                        <div className="kyu-sticky-header slab-reveal">
+                            <span className="section-label"><FaFistRaised /> The Foundation</span>
+                            <h2 className="section-title">The Path of <span className="text-gradient">Color</span></h2>
+                            <p className="kyu-sticky-desc">
+                                The vibrant colors of the Kyu belts represent the shifting elements of nature as a student grows. An arduous journey of shedding ego and building unbreakable spirit.
+                            </p>
+                            <div className="kyu-scroll-indicator">
+                                <span>Scroll the Journey</span>
+                                <div className="scroll-line"></div>
+                            </div>
+                        </div>
 
-                    <div className="kyu-timeline">
-                        <div className="kyu-timeline__line"></div>
-                        {kyuBelts.map((rank, index) => (
-                            <div 
-                                key={rank.kyu} 
-                                className={`kyu-timeline__row ${index % 2 === 0 ? 'kyu-timeline__row--left' : 'kyu-timeline__row--right'}`}
-                            >
-                                <div className="kyu-timeline__dot" style={{ '--belt-color': rank.color }}></div>
-                                <div className="kyu-card" style={{ '--belt-color': rank.color }}>
-                                    <div className="kyu-card__accent"></div>
-                                    <div className="kyu-card__icon">
-                                        <GiBlackBelt />
-                                    </div>
-                                    <div className="kyu-card__info">
-                                        <h3 className="kyu-card__level">{rank.kyu}</h3>
-                                        <span className="kyu-card__belt">{rank.belt}</span>
-                                    </div>
-                                    <div className="kyu-card__number">
-                                        {9 - index}
+                        {/* Right Side: Flowing Glass Cards */}
+                        <div className="kyu-cards-flow">
+                            {kyuBelts.map((rank, i) => (
+                                <div className="kyu-glass-card slab-reveal" key={rank.kyu}>
+                                    <div className="kyu-ethereal-glow" style={{ background: `radial-gradient(circle at top right, ${rank.color} 0%, transparent 60%)` }}></div>
+                                    <div className="kyu-card-inner">
+                                        <div className="kyu-rank-meta">
+                                            <div className="kyu-orb" style={{ background: rank.color, boxShadow: `0 0 20px ${rank.color}80` }}></div>
+                                            <span className="kyu-number">{10 - i}</span>
+                                        </div>
+                                        <div className="kyu-text-content">
+                                            <div className="kyu-titles">
+                                                <h3>{rank.kyu}</h3>
+                                                <span className="kyu-belt-name" style={{ color: rank.color }}>{rank.belt}</span>
+                                            </div>
+                                            <p className="kyu-desc">{rank.desc}</p>
+                                            <div className="kyu-req">
+                                                <strong>Focus:</strong> {rank.requirements}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ===== DAN GRADES (ULTIMATE ACHIEVEMENT) ===== */}
-            <section className="section dan-section">
-                <div className="glow glow-gold dan__glow"></div>
-                <div className="container">
-                    <div className="kyu-header">
-                        <span className="section-label" style={{ backgroundColor: 'rgba(255, 183, 3, 0.1)', color: 'var(--gold)' }}><GiBlackBelt /> The Ultimate Goal</span>
-                        <h2 className="section-title">Beyond <span className="text-gradient">Brown I</span></h2>
-                        <p className="section-subtitle">Achieving your Black Belt is not the end—it is the ultimate beginning of your lifelong journey in true Karate-Do.</p>
-                    </div>
-
-                    <div className="shodan-showcase">
-                        <div className="shodan-showcase__bg"></div>
-                        <div className="shodan-showcase__content">
-                            <div className="shodan-showcase__icon">
-                                <GiBlackBelt />
-                            </div>
-                            <h3 className="shodan-showcase__title">Shodan <span className="shodan-showcase__subtitle">(1st Dan Black Belt)</span></h3>
-                            
-                            <div className="shodan-showcase__divider"></div>
-                            
-                            <p className="shodan-showcase__philosophy">
-                                "Sho" (初) translates as beginning. "Dan" (段) translates as step or degree. 
-                                <br/><br/>
-                                <span className="shodan-quote">To wear the Black Belt is to embody the spirit of the Dojo: unyielding resilience, profound humility, and absolute mastery of oneself.</span>
-                            </p>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ===== CTA ===== */}
-            <section className="section grading-cta">
+            {/* ═══════ THE DAN SANCTUARY (Sticky Scroll) ═══════ */}
+            <section className="grad-dan-sanctuary">
+                <div className="sanctuary-bg-glow"></div>
+                
                 <div className="container">
-                    <div className="glass-card grading-cta__inner">
-                        <h2 className="section-title">Ready for Your Next Belt?</h2>
-                        <p className="section-subtitle" style={{ margin: '0 auto 2rem auto', textAlign: 'center' }}>
-                            Check the events calendar for the next grading date and register with your Sensei.
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/events" className="btn btn-primary">View Grading Dates <FaArrowRight /></Link>
-                            <Link href="/contact" className="btn btn-secondary">Contact Us</Link>
+                    <div className="kyu-split-layout">
+                        {/* Left Side: Sticky Header */}
+                        <div className="kyu-sticky-header slab-reveal">
+                            <GiBlackBelt className="sanctuary-icon" />
+                            <h2 className="section-title">The Dan <br/><span className="text-gradient-gold">Sanctuary</span></h2>
+                            <p className="kyu-sticky-desc" style={{ color: 'var(--text-light)' }}>
+                                Black Belt is the beginning. This is where physical execution transcends into sheer artistry, pedagogical mastery, and unquestionable leadership.
+                            </p>
+                            <div className="kyu-scroll-indicator" style={{ color: 'var(--gold)' }}>
+                                <span>Ascend the Ranks</span>
+                                <div className="scroll-line" style={{ background: 'linear-gradient(90deg, rgba(255,183,3,0.3), transparent)' }}></div>
+                            </div>
+                        </div>
+
+                        {/* Right Side: Flowing Monolith Cards */}
+                        <div className="kyu-cards-flow">
+                            {danGrades.map((dan, idx) => (
+                                <div className="dan-monolith slab-reveal" key={dan.dan}>
+                                    <div className="monolith-glow"></div>
+                                    <div className="monolith-content">
+                                        <div className="monolith-stripe"></div>
+                                        <h3 className="monolith-title">{dan.dan}</h3>
+                                        <span className="monolith-level">{dan.level}</span>
+                                        <p className="monolith-desc">{dan.desc}</p>
+                                        <div className="monolith-time">
+                                            <strong>Time in Grade:</strong> {dan.years}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══════ JOURNEY CTA ═══════ */}
+            <section className="section grad-cta-section">
+                <div className="container">
+                    <div className="grad-cta-card slab-reveal">
+                        <div className="grad-cta__content">
+                            <h2 className="section-title">Are You Ready For Your Trial?</h2>
+                            <p className="section-subtitle">
+                                The path requires utter devotion. Consult your Sensei to determine if you are mentally and physically prepared for the next grading cycle.
+                            </p>
+                            <div className="grad-cta__buttons">
+                                <Link href="/events" className="btn btn-primary">Check Grading Calendar <FaArrowRight /></Link>
+                            </div>
+                        </div>
+                        <div className="grad-cta__visual">
+                            <GiKatana className="cta-katana" />
                         </div>
                     </div>
                 </div>

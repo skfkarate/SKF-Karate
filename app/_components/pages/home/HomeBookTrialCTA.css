@@ -1,0 +1,153 @@
+/* ===== BOOK TRIAL CTA — Cinematic Monolith ===== */
+.trial-cta {
+  position: relative;
+  padding: 10rem 0;
+  display: flex;
+  align-items: center;
+  min-height: 80vh;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.trial-cta__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center right 20%;
+  background-attachment: fixed;
+  z-index: 0;
+  filter: grayscale(100%) contrast(1.2);
+  opacity: 0.25;
+}
+
+.trial-cta__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #020306 30%, rgba(2, 3, 6, 0.4) 100%),
+              linear-gradient(to bottom, #020306 0%, transparent 30%, transparent 70%, #020306 100%);
+  z-index: 1;
+}
+
+.trial-cta__container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.trial-cta__content {
+  max-width: 650px;
+}
+
+.trial-cta__title {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+}
+
+.trial-cta__desc {
+  font-size: 1.2rem;
+  color: var(--text-light);
+  line-height: 1.8;
+  margin-bottom: 3rem;
+  opacity: 0.9;
+}
+
+.trial-cta__features {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 3.5rem;
+}
+
+.trial-cta__feature {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.05rem;
+  color: var(--text-white);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.trial-cta__feature-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 15px rgba(255, 183, 3, 0.8);
+}
+
+.trial-cta__actions {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.trial-cta__btn-primary {
+  padding: 1.2rem 3rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.trial-cta__btn-secondary {
+  padding: 1.2rem 2.5rem;
+  font-size: 1rem;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-white);
+}
+
+.trial-cta__btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 992px) {
+  .trial-cta__overlay {
+    background: linear-gradient(to right, #020306 60%, rgba(2, 3, 6, 0.6) 100%),
+                linear-gradient(to bottom, #020306 0%, transparent 10%, transparent 90%, #020306 100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .trial-cta {
+    padding: 6rem 0;
+    min-height: auto;
+  }
+  
+  .trial-cta__bg {
+    background-position: center;
+    background-attachment: scroll;
+    opacity: 0.15;
+  }
+  
+  .trial-cta__overlay {
+    background: linear-gradient(to bottom, rgba(2, 3, 6, 0.9) 0%, rgba(2, 3, 6, 0.95) 100%);
+  }
+  
+  .trial-cta__content {
+    text-align: center;
+    margin: 0 auto;
+  }
+  
+  .trial-cta__features {
+    align-items: center;
+  }
+  
+  .trial-cta__actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .trial-cta__btn-primary, .trial-cta__btn-secondary {
+    width: 100%;
+    max-width: 350px;
+    justify-content: center;
+  }
+}

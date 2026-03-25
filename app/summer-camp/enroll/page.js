@@ -15,6 +15,7 @@ export default function EnrollPage() {
                 <FaArrowLeft /> Back to Camp
             </Link>
             
+
             <div className="wizard-container">
                 <div className="wizard-header">
                     <h1>Register for <strong>Free Camp</strong></h1>
