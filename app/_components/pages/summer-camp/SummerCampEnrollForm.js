@@ -516,12 +516,27 @@ export default function SummerCampEnrollForm() {
     // ───── SUCCESS SCREEN ─────
     if (status === 'success') {
         return (
-            <div className="wizard-card wizard-success" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="wizard-card wizard-success" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                 <Image src="/logo/SKF logo.png" alt="SKF Logo" width={80} height={80} style={{ marginBottom: '1.5rem', objectFit: 'contain' }} />
-                <h2>Welcome to the SKF family!</h2>
-                <p>
-                    <strong>{form.studentName}</strong> has been granted VIP admission to the Free Karate Summer Camp. We will text you at <strong>{form.parentContact}</strong>.
-                </p>
+                
+                {form.isCurrentStudent === 'yes' ? (
+                    <>
+                        <h2>You're all set, VIP! 🎉</h2>
+                        <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-light)', maxWidth: '400px' }}>
+                            We are so proud to have <strong>{form.studentName}</strong> back in action! As an honored SKF member, your child's <strong>FREE VIP admission</strong> to the Summer Karate Camp and elite Achievement Kit are officially secured. 
+                        </p>
+                        <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold' }}>
+                            Thank you for your continuous dedication and trust in SKF Karate! ❤️
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h2>Welcome to the SKF family!</h2>
+                        <p>
+                            <strong>{form.studentName}</strong> has been granted VIP admission to the Free Karate Summer Camp. We will text you at <strong>{form.parentContact}</strong>.
+                        </p>
+                    </>
+                )}
 
                 <a
                     href="https://chat.whatsapp.com/KauZyp4wrgeK3ygse44mJj?mode=gi_t"
@@ -585,7 +600,7 @@ export default function SummerCampEnrollForm() {
                         <div></div> // Empty spacer so Next stays right-aligned
                     )}
 
-                    {step < totalSteps ? (
+                    {step < effectiveTotalSteps ? (
                         <button type="button" onClick={handleNext} className="wizard-btn-next" disabled={isTransitioning}>
                             Continue <FaArrowRight />
                         </button>
