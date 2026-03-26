@@ -383,11 +383,11 @@
         top: 1.5rem;
         left: 1.25rem;
         background: rgba(255, 255, 255, 0.08);
-        padding: 10px 18px;
+        padding: 8px 14px;
         border-radius: 50px;
         border: 1px solid rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
-        font-size: 0.95rem;
+        font-size: 0.8rem;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 

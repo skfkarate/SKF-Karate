@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 
@@ -311,9 +312,9 @@ export default function SummerCampEnrollForm() {
     // ───── SUCCESS SCREEN ─────
     if (status === 'success') {
         return (
-            <div className="wizard-card wizard-success">
-                <GiBlackBelt className="wizard-success-icon" />
-                <h2>Seat Secured.</h2>
+            <div className="wizard-card wizard-success" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Image src="/logo/SKF logo.png" alt="SKF Logo" width={80} height={80} style={{ marginBottom: '1.5rem', objectFit: 'contain' }} />
+                <h2>Welcome to the SKF family!</h2>
                 <p>
                     <strong>{form.studentName}</strong> has been granted VIP admission to the Free Karate Summer Camp. We will text you at <strong>{form.parentContact}</strong>.
                 </p>
