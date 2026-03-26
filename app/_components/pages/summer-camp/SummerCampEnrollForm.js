@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner, FaStar } from 'react-icons/fa'
+import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner, FaStar, FaUserNinja, FaTrophy } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 
 
@@ -518,15 +518,17 @@ export default function SummerCampEnrollForm() {
         return (
             <div className="wizard-card wizard-success" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                 <Image src="/logo/SKF logo.png" alt="SKF Logo" width={80} height={80} style={{ marginBottom: '1.5rem', objectFit: 'contain' }} />
-                
+
                 {form.isCurrentStudent === 'yes' ? (
                     <>
-                        <h2>Welcome Back, Elite Hero! 🥷✨</h2>
+                        <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            Welcome Back, Elite Hero! <FaUserNinja style={{ color: 'var(--gold)' }} />
+                        </h2>
                         <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-light)', maxWidth: '400px' }}>
-                            We are absolutely thrilled to have our hero, <strong>{form.studentName}</strong>, back in action! As an elite member of the SKF family, your child's <strong>100% FREE VIP Access</strong> to the Summer Camp and their exclusive Achievement Kit have been officially unlocked. 🔓
+                            We are absolutely thrilled to have our hero, <strong>{form.studentName}</strong>, back in action! As an elite member of the SKF family, your child's <strong>100% FREE VIP Access</strong> to the Summer Camp and their exclusive Achievement Kit have been officially unlocked. <FaShieldAlt style={{ color: '#4caf50' }} />
                         </p>
-                        <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold' }}>
-                            Get ready for an epic summer of strength, focus, and fun! Let's go! 🥋🔥
+                        <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            Get ready for an epic summer of strength, focus, and fun! Let's go! <FaTrophy style={{ color: 'var(--gold)' }} />
                         </p>
                     </>
                 ) : (
