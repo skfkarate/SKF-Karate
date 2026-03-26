@@ -521,12 +521,12 @@ export default function SummerCampEnrollForm() {
                 
                 {form.isCurrentStudent === 'yes' ? (
                     <>
-                        <h2>You're all set, VIP! 🎉</h2>
+                        <h2>Welcome Back, Elite Hero! 🥷✨</h2>
                         <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-light)', maxWidth: '400px' }}>
-                            We are so proud to have <strong>{form.studentName}</strong> back in action! As an honored SKF member, your child's <strong>FREE VIP admission</strong> to the Summer Karate Camp and elite Achievement Kit are officially secured. 
+                            We are absolutely thrilled to have our hero, <strong>{form.studentName}</strong>, back in action! As an elite member of the SKF family, your child's <strong>100% FREE VIP Access</strong> to the Summer Camp and their exclusive Achievement Kit have been officially unlocked. 🔓
                         </p>
                         <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold' }}>
-                            Thank you for your continuous dedication and trust in SKF Karate! ❤️
+                            Get ready for an epic summer of strength, focus, and fun! Let's go! 🥋🔥
                         </p>
                     </>
                 ) : (
