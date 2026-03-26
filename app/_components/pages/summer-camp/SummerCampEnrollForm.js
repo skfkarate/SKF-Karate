@@ -6,6 +6,22 @@ import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGra
 import { GiBlackBelt } from 'react-icons/gi'
 
 
+export const SKF_STUDENTS = {
+    'SKF25MP001': { name: 'Neshu Ram', parent: 'Sharathbabu', phone: '9591779191', dob: '2018-11-09' },
+    'SKF25MP002': { name: 'Ganvith Ishan', parent: 'Balaji', phone: '8123404357', dob: '2019-03-04' },
+    'SKF25MP003': { name: 'Duvan Gowda', parent: 'Darshan B B', phone: '9886633051', dob: '2019-12-06' },
+    'SKF25MP004': { name: 'Viharika S Gowda', parent: 'Siddaraju S', phone: '7019063688', dob: '2017-05-26' },
+    'SKF25MP005': { name: 'Samisha K Gowda', parent: 'Kiran Kumar J', phone: '9611766327', dob: '2020-05-16' },
+    'SKF25MP006': { name: 'Tharush H Gowda', parent: 'Samatha', phone: '7619373844', dob: '2020-10-08' },
+    'SKF25MP007': { name: 'Purvank P', parent: 'Keerthana', phone: '8618404399', dob: '2021-03-29' }
+};
+
+const calculateAge = (dobString) => {
+    const dob = new Date(dobString);
+    const ageDt = new Date(Date.now() - dob.getTime());
+    return Math.abs(ageDt.getUTCFullYear() - 1970);
+};
+
 export default function SummerCampEnrollForm() {
     // ───── STATE ─────
     const [step, setStep] = useState(1)
@@ -13,6 +29,7 @@ export default function SummerCampEnrollForm() {
 
     const [form, setForm] = useState({
         isCurrentStudent: '',
+        skfId: '',
         agreeToKit: false,
         studentName: '',
         age: '',
@@ -31,13 +48,37 @@ export default function SummerCampEnrollForm() {
     const [errorMsg, setErrorMsg] = useState('')
     const [isTransitioning, setIsTransitioning] = useState(false)
 
+    const effectiveTotalSteps = form.isCurrentStudent === 'yes' ? 4 : 5;
+
     // ───── HANDLERS ─────
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
-        setForm(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }))
+        const val = type === 'checkbox' ? checked : (name === 'skfId' ? value.toUpperCase() : value)
+
+        setForm(prev => {
+            const nextForm = { ...prev, [name]: val }
+
+            // Auto fill logic
+            if (name === 'skfId' && nextForm.isCurrentStudent === 'yes') {
+                const sku = val.trim()
+                if (SKF_STUDENTS[sku]) {
+                    nextForm.studentName = SKF_STUDENTS[sku].name;
+                    nextForm.parentName = SKF_STUDENTS[sku].parent;
+                    nextForm.parentContact = SKF_STUDENTS[sku].phone;
+                    nextForm.age = calculateAge(SKF_STUDENTS[sku].dob).toString();
+                    nextForm.agreeToKit = true; // Auto agree since it's free for them
+                } else {
+                    if (prev.skfId && SKF_STUDENTS[prev.skfId]) {
+                        nextForm.studentName = '';
+                        nextForm.parentName = '';
+                        nextForm.parentContact = '';
+                        nextForm.age = '';
+                    }
+                }
+            }
+            return nextForm;
+        })
+
         // Clear errors when they type
         if (errorMsg) setErrorMsg('')
     }
@@ -47,6 +88,11 @@ export default function SummerCampEnrollForm() {
         if (step === 1) {
             if (!form.isCurrentStudent) {
                 return "Please tell us if you are a current SKF Karate student."
+            }
+            if (form.isCurrentStudent === 'yes') {
+                if (!form.skfId.trim() || !SKF_STUDENTS[form.skfId.trim()]) {
+                    return "Please enter a valid SKF ID to fetch your details and proceed."
+                }
             }
             if (form.isCurrentStudent === 'no' && !form.agreeToKit) {
                 return "Please check the box below to reserve your child's Achievement Kit and proceed."
@@ -62,7 +108,11 @@ export default function SummerCampEnrollForm() {
             if (!form.sameAsEmergency && !form.emergencyContact.match(/^[6-9]\d{9}$/)) return "Please enter a valid emergency contact number."
         }
         if (step === 4) {
-            if (!form.area.trim() || !form.school.trim()) return "Please provide your area and school name."
+            if (form.isCurrentStudent === 'yes') {
+                if (!form.school.trim() || !form.schoolHasKarate) return "Please provide your school name and indicate if it offers Karate classes."
+            } else {
+                if (!form.area.trim() || !form.school.trim()) return "Please provide your area and school name."
+            }
         }
         if (step === 5) {
             if (!form.experience || !form.schoolHasKarate) return "Please answer both questions to complete your profile."
@@ -79,7 +129,7 @@ export default function SummerCampEnrollForm() {
 
         setErrorMsg('')
         setIsTransitioning(true)
-        setStep(prev => Math.min(prev + 1, totalSteps))
+        setStep(prev => Math.min(prev + 1, effectiveTotalSteps))
         setTimeout(() => setIsTransitioning(false), 400)
     }
 
@@ -91,7 +141,7 @@ export default function SummerCampEnrollForm() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        if (step !== totalSteps) {
+        if (step !== effectiveTotalSteps) {
             handleNext()
             return
         }
@@ -152,10 +202,31 @@ export default function SummerCampEnrollForm() {
                         </div>
 
                         {form.isCurrentStudent === 'yes' && (
-                            <div className="wizard-field" style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(76, 175, 80, 0.3)', animation: 'fadeIn 0.4s ease' }}>
-                                <p style={{ color: 'var(--text-white)', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '0' }}>
-                                    <strong style={{ color: '#4caf50' }}>Welcome back!</strong> As an active SKF Karate student, your Summer Camp training and the complete Achievement Kit are rewarded <strong style={{ color: '#4caf50' }}>100% FREE</strong> for your dedication. You can proceed directly to the next step!
-                                </p>
+                            <div className="wizard-field" style={{ animation: 'fadeIn 0.4s ease' }}>
+                                <label htmlFor="skfId">Enter your SKF ID</label>
+                                <input
+                                    id="skfId"
+                                    name="skfId"
+                                    type="text"
+                                    className="wizard-input"
+                                    placeholder="e.g. SKF25MP001"
+                                    value={form.skfId}
+                                    onChange={handleChange}
+                                    style={{ textTransform: 'uppercase' }}
+                                />
+
+                                {form.skfId && SKF_STUDENTS[form.skfId] ? (
+                                    <div style={{ marginTop: '1.5rem', background: 'rgba(76, 175, 80, 0.1)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(76, 175, 80, 0.3)', animation: 'fadeIn 0.5s ease' }}>
+                                        <p style={{ color: '#4caf50', margin: 0, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+                                            <FaUserGraduate /> Student Found: {SKF_STUDENTS[form.skfId].name}
+                                        </p>
+                                        <p style={{ color: 'var(--text-white)', fontSize: '0.95rem', marginTop: '0.75rem', marginBottom: 0, lineHeight: '1.5' }}>
+                                            Your profile has been auto-filled! As an active SKF Karate student, your <strong>Summer Camp Training &amp; Achievement Kit</strong> are rewarded <strong style={{ color: '#4caf50' }}>100% FREE</strong> for your dedication! Please proceed to cross-check your details.
+                                        </p>
+                                    </div>
+                                ) : form.skfId.length >= 10 ? (
+                                    <p style={{ color: '#f44336', fontSize: '0.9rem', marginTop: '0.75rem' }}>Student not found. Please double-check your SKF ID.</p>
+                                ) : null}
                             </div>
                         )}
 
@@ -321,36 +392,78 @@ export default function SummerCampEnrollForm() {
             case 4:
                 return (
                     <div className="wizard-stage">
-                        <h2 className="wizard-stage__title">
-                            <FaMapMarkerAlt className="wizard-stage__icon" /> Step 4: Location
-                        </h2>
+                        {form.isCurrentStudent === 'yes' ? (
+                            <>
+                                <h2 className="wizard-stage__title">
+                                    <FaUserGraduate className="wizard-stage__icon" /> Step 4: School Info
+                                </h2>
 
-                        <div className="wizard-field">
-                            <label htmlFor="area">Area / Locality</label>
-                            <input
-                                id="area"
-                                name="area"
-                                type="text"
-                                className="wizard-input"
-                                placeholder="e.g. Mallathahalli"
-                                value={form.area}
-                                onChange={handleChange}
-                                autoFocus
-                            />
-                        </div>
+                                <div className="wizard-field">
+                                    <label htmlFor="school">Current School Name</label>
+                                    <input
+                                        id="school"
+                                        name="school"
+                                        type="text"
+                                        className="wizard-input"
+                                        placeholder="Enter school name"
+                                        value={form.school}
+                                        onChange={handleChange}
+                                        autoFocus
+                                    />
+                                </div>
 
-                        <div className="wizard-field">
-                            <label htmlFor="school">Current School Name</label>
-                            <input
-                                id="school"
-                                name="school"
-                                type="text"
-                                className="wizard-input"
-                                placeholder="Enter school name"
-                                value={form.school}
-                                onChange={handleChange}
-                            />
-                        </div>
+                                <div className="wizard-field">
+                                    <label>Does your school offer Karate classes?</label>
+                                    <div className="wizard-radio-group" style={{ gap: '0.5rem' }}>
+                                        <label className={`wizard-radio-pill ${form.schoolHasKarate === 'yes' ? 'wizard-radio-pill--active' : ''}`}>
+                                            <input type="radio" name="schoolHasKarate" value="yes" checked={form.schoolHasKarate === 'yes'} onChange={handleChange} />
+                                            Yes
+                                        </label>
+                                        <label className={`wizard-radio-pill ${form.schoolHasKarate === 'no' ? 'wizard-radio-pill--active' : ''}`}>
+                                            <input type="radio" name="schoolHasKarate" value="no" checked={form.schoolHasKarate === 'no'} onChange={handleChange} />
+                                            No
+                                        </label>
+                                        <label className={`wizard-radio-pill ${form.schoolHasKarate === 'not_sure' ? 'wizard-radio-pill--active' : ''}`}>
+                                            <input type="radio" name="schoolHasKarate" value="not_sure" checked={form.schoolHasKarate === 'not_sure'} onChange={handleChange} />
+                                            Not Sure
+                                        </label>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="wizard-stage__title">
+                                    <FaMapMarkerAlt className="wizard-stage__icon" /> Step 4: Location
+                                </h2>
+
+                                <div className="wizard-field">
+                                    <label htmlFor="area">Area / Locality</label>
+                                    <input
+                                        id="area"
+                                        name="area"
+                                        type="text"
+                                        className="wizard-input"
+                                        placeholder="e.g. Mallathahalli"
+                                        value={form.area}
+                                        onChange={handleChange}
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <div className="wizard-field">
+                                    <label htmlFor="school">Current School Name</label>
+                                    <input
+                                        id="school"
+                                        name="school"
+                                        type="text"
+                                        className="wizard-input"
+                                        placeholder="Enter school name"
+                                        value={form.school}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 )
 
@@ -423,7 +536,7 @@ export default function SummerCampEnrollForm() {
     }
 
     // ───── MAIN WIZARD RENDER ─────
-    const progressPercent = ((step - 1) / totalSteps) * 100
+    const progressPercent = ((step - 1) / effectiveTotalSteps) * 100
 
     return (
         <div className="wizard-card">
@@ -434,8 +547,8 @@ export default function SummerCampEnrollForm() {
                     style={{ width: `${progressPercent === 0 ? 5 : progressPercent}%` }}
                 ></div>
             </div>
-            {step < 5 ? (
-                <div className="wizard-progress__text">{20 * (step - 1)}% Completed</div>
+            {step < effectiveTotalSteps ? (
+                <div className="wizard-progress__text">{Math.round((step - 1) / effectiveTotalSteps * 100)}% Completed</div>
             ) : (
                 <div className="wizard-progress__text" style={{ color: '#4caf50' }}>Final Step</div>
             )}

@@ -6,6 +6,8 @@ import { retryWithBackoff } from '@/lib/utils/retry'
 function validateEnrollment(body) {
     const errors = []
 
+    const isCurrentStudent = body.isCurrentStudent === 'yes'
+    const skfId = (body.skfId || '').trim()
     const studentName = (body.studentName || '').trim()
     const age = (body.age || '').toString().trim()
     const parentName = (body.parentName || '').trim()
@@ -22,10 +24,18 @@ function validateEnrollment(body) {
     if (!parentName || parentName.length < 2) errors.push('Parent/Guardian name is required')
     if (!parentContact || !/^[6-9]\d{9}$/.test(parentContact.replace(/\D/g, '').slice(-10))) errors.push('Valid 10-digit mobile number is required')
     if (!sameAsEmergency && (!emergencyContact || !/^[6-9]\d{9}$/.test(emergencyContact.replace(/\D/g, '').slice(-10)))) errors.push('Valid emergency contact is required')
-    if (!area) errors.push('Area / Locality is required')
-    if (!school) errors.push('School name is required')
-    if (!['beginner', 'experienced'].includes(experience)) errors.push('Karate experience selection is required')
-    if (!['yes', 'no', 'not_sure'].includes(schoolHasKarate)) errors.push('School karate class selection is required')
+    
+    // Conditional requirements based on student type
+    if (isCurrentStudent) {
+        if (!skfId) errors.push('SKF ID is required for existing students')
+        if (!school) errors.push('School name is required')
+        if (!['yes', 'no', 'not_sure'].includes(schoolHasKarate)) errors.push('School karate class selection is required')
+    } else {
+        if (!area) errors.push('Area / Locality is required')
+        if (!school) errors.push('School name is required')
+        if (!['beginner', 'experienced'].includes(experience)) errors.push('Karate experience selection is required')
+        if (!['yes', 'no', 'not_sure'].includes(schoolHasKarate)) errors.push('School karate class selection is required')
+    }
 
     // Honeypot spam check
     if (body._gotcha) {
@@ -37,7 +47,7 @@ function validateEnrollment(body) {
     }
 
     return {
-        data: { studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate },
+        data: { isCurrentStudent, skfId, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate },
         isSpam: false,
     }
 }
@@ -60,7 +70,7 @@ export async function POST(request) {
             )
         }
 
-        const { studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate } = data
+        const { isCurrentStudent, skfId, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate } = data
 
         const timestamp = new Date().toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
@@ -103,16 +113,16 @@ export async function POST(request) {
                     requestBody: {
                         values: [[
                             timestamp,
-                            studentName,
+                            isCurrentStudent ? `[${skfId}] ${studentName}` : studentName,
                             age,
                             parentName,
                             parentContact,
                             sameAsEmergency ? 'Same as parent' : emergencyContact,
-                            area,
+                            isCurrentStudent ? 'Existing SKF Student' : area,
                             school,
-                            experience === 'beginner' ? 'Beginner' : 'Done Before',
+                            isCurrentStudent ? 'Active SKF Member' : (experience === 'beginner' ? 'Beginner' : 'Done Before'),
                             schoolHasKarate === 'yes' ? 'Yes' : schoolHasKarate === 'no' ? 'No' : 'Not Sure',
-                            'Free Month 1',
+                            isCurrentStudent ? '100% Free (Existing VIP)' : 'Free Month 1',
                         ]],
                     },
                 })
@@ -129,16 +139,17 @@ export async function POST(request) {
         const telegramMessage = [
             `🥋 *NEW Summer Camp Enrollment*`,
             ``,
+            isCurrentStudent ? `🏆 *Existing SKF Member:* ${escapeTg(skfId)}` : `🆕 *New Student Registration*`,
             `👤 *Student:* ${escapeTg(studentName)}, Age ${escapeTg(age)}`,
             `👨‍👩‍👧 *Guardian:* ${escapeTg(parentName)}`,
             `📞 *Contact:* ${escapeTg(parentContact)}`,
             `🆘 *Emergency:* ${sameAsEmergency ? 'Same' : escapeTg(emergencyContact)}`,
-            `📍 *Area:* ${escapeTg(area)}`,
+            `📍 *Area:* ${isCurrentStudent ? '_\\(Existing Student\\)_' : escapeTg(area)}`,
             `🏫 *School:* ${escapeTg(school)}`,
-            `🥋 *Experience:* ${escapeTg(experience === 'beginner' ? 'Beginner' : 'Done Before')}`,
+            `🥋 *Experience:* ${isCurrentStudent ? 'Active SKF Member' : escapeTg(experience === 'beginner' ? 'Beginner' : 'Done Before')}`,
             `🏫 *School Karate:* ${escapeTg(schoolHasKarate === 'yes' ? 'Yes' : schoolHasKarate === 'no' ? 'No' : 'Not Sure')}`,
             ``,
-            `🎟️ *Plan:* Free Month 1`,
+            `🎟️ *Plan:* ${isCurrentStudent ? '100% Free (VIP)' : 'Free Month 1'}`,
             `🕐 ${escapeTg(timestamp)}`,
         ].join('\n')
 
