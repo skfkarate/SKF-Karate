@@ -1442,6 +1442,92 @@
 }
 
 /* ===================================================================
+   ACHIEVEMENT KIT SECTION
+   =================================================================== */
+
+.achievement-kit__inner {
+    padding: 3.5rem 4rem;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    background: linear-gradient(135deg, rgba(20, 20, 22, 0.75) 0%, rgba(35, 12, 18, 0.65) 100%);
+    border-radius: 24px;
+}
+
+.achievement-kit__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 4rem;
+    margin-bottom: 2.5rem;
+}
+
+.camp-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.camp-features-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.camp-features-list li svg {
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.achievement-kit__price-box {
+    background: rgba(212, 175, 55, 0.08);
+    border-left: 4px solid var(--gold);
+    padding: 1.25rem 1.75rem;
+    border-radius: 0 12px 12px 0;
+    margin-top: 1.5rem;
+}
+
+.achievement-kit__price-box p {
+    margin: 0;
+    color: var(--text-white);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 992px) {
+    .achievement-kit__inner {
+        padding: 3rem 2.5rem;
+    }
+    .achievement-kit__grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .achievement-kit__inner {
+        padding: 2.5rem 1.5rem;
+    }
+    .achievement-kit__content .section-title {
+        font-size: 1.8rem !important;
+    }
+    .camp-features-list li {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .achievement-kit__inner {
+        padding: 2rem 1.25rem;
+    }
+    .achievement-kit__content .section-title {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* ===================================================================
    RESPONSIVE — 4-breakpoint system
    992px → tablet landscape
    768px → tablet portrait
