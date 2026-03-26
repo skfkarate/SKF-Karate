@@ -522,13 +522,16 @@ export default function SummerCampEnrollForm() {
                 {form.isCurrentStudent === 'yes' ? (
                     <>
                         <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            Welcome Back, Elite Hero! <FaUserNinja style={{ color: 'var(--gold)' }} />
+                            Welcome Back, Champion! 🥋
                         </h2>
-                        <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-light)', maxWidth: '400px' }}>
-                            We are absolutely thrilled to have our hero, <strong>{form.studentName}</strong>, back in action! As an elite member of the SKF family, your child's <strong>100% FREE VIP Access</strong> to the Summer Camp and their exclusive Achievement Kit have been officially unlocked. <FaShieldAlt style={{ color: '#4caf50' }} />
+                        <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: 'var(--text-light)', maxWidth: '400px', marginBottom: '1rem' }}>
+                            We’re excited to have <strong>{form.studentName}</strong> back with SKF. Your child’s complimentary VIP access to the Summer Camp is confirmed, and their exclusive Achievement Kit is reserved.
                         </p>
-                        <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            Get ready for an epic summer of strength, focus, and fun! Let's go! <FaTrophy style={{ color: 'var(--gold)' }} />
+                        <p style={{ fontSize: '1.05rem', color: '#4caf50', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                            Thank you for your continued trust in SKF Karate. ❤️
+                        </p>
+                        <p style={{ fontSize: '1.15rem', color: 'var(--gold)', fontWeight: 'bold', marginTop: '1rem' }}>
+                            Let’s goooo. 💪
                         </p>
                     </>
                 ) : (
