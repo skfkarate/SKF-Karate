@@ -2,16 +2,18 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa'
+import { FaWhatsapp, FaArrowRight, FaArrowLeft, FaExclamationTriangle, FaUserGraduate, FaShieldAlt, FaMapMarkerAlt, FaSpinner, FaStar } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 
 
 export default function SummerCampEnrollForm() {
     // ───── STATE ─────
     const [step, setStep] = useState(1)
-    const totalSteps = 4
-    
+    const totalSteps = 5
+
     const [form, setForm] = useState({
+        isCurrentStudent: '',
+        agreeToKit: false,
         studentName: '',
         age: '',
         parentName: '',
@@ -43,18 +45,26 @@ export default function SummerCampEnrollForm() {
     // Validation for stepping forward
     const validateStep = () => {
         if (step === 1) {
+            if (!form.isCurrentStudent) {
+                return "Please tell us if you are a current SKF Karate student."
+            }
+            if (form.isCurrentStudent === 'no' && !form.agreeToKit) {
+                return "Please check the box below to reserve your child's Achievement Kit and proceed."
+            }
+        }
+        if (step === 2) {
             if (!form.studentName.trim() || !form.age) return "Please enter the student's name and age."
             if (form.age < 3 || form.age > 25) return "Age must be between 3 and 25."
         }
-        if (step === 2) {
+        if (step === 3) {
             if (!form.parentName.trim()) return "Please enter the parent/guardian's name."
             if (!form.parentContact.match(/^[6-9]\d{9}$/)) return "Please enter a valid 10-digit mobile number."
             if (!form.sameAsEmergency && !form.emergencyContact.match(/^[6-9]\d{9}$/)) return "Please enter a valid emergency contact number."
         }
-        if (step === 3) {
+        if (step === 4) {
             if (!form.area.trim() || !form.school.trim()) return "Please provide your area and school name."
         }
-        if (step === 4) {
+        if (step === 5) {
             if (!form.experience || !form.schoolHasKarate) return "Please answer both questions to complete your profile."
         }
         return null // Valid
@@ -66,7 +76,7 @@ export default function SummerCampEnrollForm() {
             setErrorMsg(err)
             return
         }
-        
+
         setErrorMsg('')
         setIsTransitioning(true)
         setStep(prev => Math.min(prev + 1, totalSteps))
@@ -80,7 +90,7 @@ export default function SummerCampEnrollForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        
+
         if (step !== totalSteps) {
             handleNext()
             return
@@ -122,11 +132,92 @@ export default function SummerCampEnrollForm() {
         switch (step) {
             case 1:
                 return (
+                    <div className="wizard-stage" style={{ animation: 'fadeIn 0.4s ease' }}>
+                        <h2 className="wizard-stage__title">
+                            <FaStar className="wizard-stage__icon" style={{ color: 'var(--gold)' }} /> Step 1: Pre-Registration
+                        </h2>
+
+                        <div className="wizard-field" style={{ marginBottom: '2rem' }}>
+                            <label>Are you currently an enrolled student at SKF Karate?</label>
+                            <div className="wizard-radio-group">
+                                <label className={`wizard-radio-pill ${form.isCurrentStudent === 'yes' ? 'wizard-radio-pill--active' : ''}`}>
+                                    <input type="radio" name="isCurrentStudent" value="yes" checked={form.isCurrentStudent === 'yes'} onChange={(e) => setForm({ ...form, isCurrentStudent: e.target.value })} />
+                                    Yes, I am
+                                </label>
+                                <label className={`wizard-radio-pill ${form.isCurrentStudent === 'no' ? 'wizard-radio-pill--active' : ''}`}>
+                                    <input type="radio" name="isCurrentStudent" value="no" checked={form.isCurrentStudent === 'no'} onChange={(e) => setForm({ ...form, isCurrentStudent: e.target.value })} />
+                                    No, I am new
+                                </label>
+                            </div>
+                        </div>
+
+                        {form.isCurrentStudent === 'yes' && (
+                            <div className="wizard-field" style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(76, 175, 80, 0.3)', animation: 'fadeIn 0.4s ease' }}>
+                                <p style={{ color: 'var(--text-white)', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '0' }}>
+                                    <strong style={{ color: '#4caf50' }}>Welcome back!</strong> As an active SKF Karate student, your Summer Camp training and the complete Achievement Kit are rewarded <strong style={{ color: '#4caf50' }}>100% FREE</strong> for your dedication. You can proceed directly to the next step!
+                                </p>
+                            </div>
+                        )}
+
+                        {form.isCurrentStudent === 'no' && (
+                            <div style={{ animation: 'fadeIn 0.4s ease' }}>
+                                <div className="wizard-field">
+                                    <label>Training Fee</label>
+                                    <div className="wizard-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', color: 'var(--text-white)' }}>
+                                        <span style={{ fontWeight: '500' }}>Complete Month-Long Camp Training</span>
+                                        <span style={{ fontSize: '1.15rem', color: '#4caf50', fontWeight: 'bold' }}>₹0 (FREE)</span>
+                                    </div>
+                                </div>
+
+                                <div className="wizard-field">
+                                    <label>The Achievement Kit</label>
+                                    <div style={{ padding: '0.5rem 0 1rem 0', color: 'var(--text-light)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                        <p style={{ marginBottom: '0.75rem' }}>
+                                            We believe every athlete deserves to be celebrated! While the month-long training is entirely free, we secure your child&apos;s spot by reserving an exclusive <strong style={{ color: 'var(--gold)' }}>Achievement Kit</strong> in advance. This kit honors their hard work and includes:
+                                        </p>
+                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '0.5rem' }}>
+                                                <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
+                                                <span><strong>Official Completion Certificate</strong> — Professionally designed, signed &amp; stamped to frame their success!</span>
+                                            </li>
+                                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                                <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
+                                                <span><strong>A Special Surprise Gift</strong> — A beautiful physical token they will carry with pride long after the camp ends.</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="wizard-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(212,175,55,0.08)', borderColor: 'rgba(212,175,55,0.3)', color: 'var(--text-white)' }}>
+                                        <span style={{ fontWeight: '500' }}>Achievement Kit</span>
+                                        <span style={{ fontSize: '1.15rem', color: 'var(--gold)', fontWeight: 'bold' }}>₹300</span>
+                                    </div>
+                                </div>
+
+                                <div className="wizard-field" style={{ marginTop: '2rem' }}>
+                                    <label className="wizard-checkbox" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', background: 'rgba(20, 20, 22, 0.5)', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)' }}>
+                                        <input
+                                            type="checkbox"
+                                            name="agreeToKit"
+                                            checked={form.agreeToKit}
+                                            onChange={handleChange}
+                                            style={{ width: '22px', height: '22px', marginTop: '2px', accentColor: 'var(--gold)', cursor: 'pointer', flexShrink: 0 }}
+                                        />
+                                        <span style={{ fontSize: '0.95rem', color: 'var(--text-white)', lineHeight: '1.5' }}>
+                                            Yes! I want to reserve the <strong style={{ color: 'var(--gold)' }}>Achievement Kit (₹300)</strong> to celebrate my child&apos;s progress. (I understand the entire month training itself remains completely free).
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )
+
+            case 2:
+                return (
                     <div className="wizard-stage">
                         <h2 className="wizard-stage__title">
-                            <FaUserGraduate className="wizard-stage__icon" /> Step 1: The Student
+                            <FaUserGraduate className="wizard-stage__icon" /> Step 2: The Student
                         </h2>
-                        
+
                         <div className="wizard-field">
                             <label htmlFor="studentName">Student's Full Name</label>
                             <input
@@ -157,12 +248,12 @@ export default function SummerCampEnrollForm() {
                         </div>
                     </div>
                 )
-            
-            case 2:
+
+            case 3:
                 return (
                     <div className="wizard-stage">
                         <h2 className="wizard-stage__title">
-                            <FaShieldAlt className="wizard-stage__icon" /> Step 2: Guardian Info
+                            <FaShieldAlt className="wizard-stage__icon" /> Step 3: Guardian Info
                         </h2>
 
                         <div className="wizard-field">
@@ -227,11 +318,11 @@ export default function SummerCampEnrollForm() {
                     </div>
                 )
 
-            case 3:
+            case 4:
                 return (
                     <div className="wizard-stage">
                         <h2 className="wizard-stage__title">
-                            <FaMapMarkerAlt className="wizard-stage__icon" /> Step 3: Location
+                            <FaMapMarkerAlt className="wizard-stage__icon" /> Step 4: Location
                         </h2>
 
                         <div className="wizard-field">
@@ -263,11 +354,11 @@ export default function SummerCampEnrollForm() {
                     </div>
                 )
 
-            case 4:
+            case 5:
                 return (
                     <div className="wizard-stage">
                         <h2 className="wizard-stage__title">
-                            <GiBlackBelt className="wizard-stage__icon" /> Step 4: Karate Profile
+                            <GiBlackBelt className="wizard-stage__icon" /> Step 5: Karate Profile
                         </h2>
 
                         <div className="wizard-field">
@@ -303,7 +394,7 @@ export default function SummerCampEnrollForm() {
                         </div>
                     </div>
                 )
-            
+
             default:
                 return null
         }
@@ -338,17 +429,17 @@ export default function SummerCampEnrollForm() {
         <div className="wizard-card">
             {/* Progress Bar */}
             <div className="wizard-progress">
-                <div 
-                    className="wizard-progress__fill" 
+                <div
+                    className="wizard-progress__fill"
                     style={{ width: `${progressPercent === 0 ? 5 : progressPercent}%` }}
                 ></div>
             </div>
-            {step < 4 ? (
-                <div className="wizard-progress__text">{25 * (step - 1)}% Completed</div>
+            {step < 5 ? (
+                <div className="wizard-progress__text">{20 * (step - 1)}% Completed</div>
             ) : (
                 <div className="wizard-progress__text" style={{ color: '#4caf50' }}>Final Step</div>
             )}
-            
+
             <form onSubmit={handleSubmit} autoComplete="off" style={{ marginTop: '2rem' }}>
                 {/* Honeypot */}
                 <input

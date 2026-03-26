@@ -34,8 +34,12 @@ const faqs = [
         a: <>Camp sessions are held on <strong>Tuesdays, Wednesdays, and Fridays</strong>. Contact us via WhatsApp for the exact timings and full schedule.</>
     },
     {
+        q: "Is the Achievement Kit mandatory?",
+        a: <>Yes! While the actual month-long karate training is <strong>100% free</strong>, all spots are secured by reserving the <strong>Achievement Kit (₹300)</strong>. This guarantees that every child is equally celebrated at the end of the camp with an official <strong>Completion Certificate</strong> and a <strong>Special Surprise Gift</strong> to remember their experience.</>
+    },
+    {
         q: "How do I enroll my child?",
-        a: <>You can secure a spot instantly using our <Link href="/summer-camp/enroll" className="text-gold" style={{textDecoration: 'underline'}}><strong>enrollment form</strong></Link>, or reach out via our <Link href="/contact" className="text-gold" style={{textDecoration: 'underline'}}><strong>contact page</strong></Link>. Slots are limited and filled on a <strong>first-come, first-served</strong> basis.</>
+        a: <>You can secure a spot instantly using our <Link href="/summer-camp/enroll" className="text-gold" style={{ textDecoration: 'underline' }}><strong>enrollment form</strong></Link>, or reach out via our <Link href="/contact" className="text-gold" style={{ textDecoration: 'underline' }}><strong>contact page</strong></Link>. Slots are limited and filled on a <strong>first-come, first-served</strong> basis.</>
     },
 ]
 
