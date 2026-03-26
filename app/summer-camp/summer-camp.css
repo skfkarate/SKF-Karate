@@ -1533,8 +1533,18 @@
     }
 }
 
-/* ───── TABLET PORTRAIT ───── */
+/* ───── TABLET PORTRAIT & MOBILE OPTIMIZATIONS ───── */
 @media (max-width: 768px) {
+    /* Performance overrides for faster mobile rendering */
+    .glass-card, .benefit-card, .program-card, .wizard-card, .offer-banner {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
+    }
+    .glow, .offer-banner__glow, .sensei__glow, .schedule__glow {
+        display: none !important;
+    }
+
     .camp-hero {
         min-height: 50vh;
     }

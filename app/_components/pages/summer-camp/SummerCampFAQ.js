@@ -2,11 +2,16 @@
 
 import { useState } from 'react'
 import { FaChevronDown } from 'react-icons/fa'
+import Link from 'next/link'
 
 const faqs = [
     {
+        q: "When will summer camp start?",
+        a: <>It will start on <strong>April 3rd</strong>.</>
+    },
+    {
         q: "What age group is this camp for?",
-        a: <>The summer camp is open to children and teens aged <strong>5 to 18 years</strong>. No prior karate experience is required for <strong>Month 1 (Self Defence)</strong>. Month 2 (Nunchaku) is also <strong>beginner-friendly</strong>.</>
+        a: <>The summer camp is open to children and teens aged <strong>3+ to 18 years</strong>. No prior karate experience is required for <strong>Month 1 (Self Defence)</strong>. Month 2 (Nunchaku) is also <strong>beginner-friendly</strong>.</>
     },
     {
         q: "Does my child need prior martial arts experience?",
@@ -30,7 +35,7 @@ const faqs = [
     },
     {
         q: "How do I enroll my child?",
-        a: <>You can reach us directly via <strong>WhatsApp</strong> or through our <strong>contact page</strong>. Slots are limited and filled on a <strong>first-come, first-served</strong> basis.</>
+        a: <>You can secure a spot instantly using our <Link href="/summer-camp/enroll" className="text-gold" style={{textDecoration: 'underline'}}><strong>enrollment form</strong></Link>, or reach out via our <Link href="/contact" className="text-gold" style={{textDecoration: 'underline'}}><strong>contact page</strong></Link>. Slots are limited and filled on a <strong>first-come, first-served</strong> basis.</>
     },
 ]
 
