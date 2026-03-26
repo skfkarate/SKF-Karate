@@ -144,12 +144,12 @@ export async function POST(request) {
             `👨‍👩‍👧 *Guardian:* ${escapeTg(parentName)}`,
             `📞 *Contact:* ${escapeTg(parentContact)}`,
             `🆘 *Emergency:* ${sameAsEmergency ? 'Same' : escapeTg(emergencyContact)}`,
-            `📍 *Area:* ${isCurrentStudent ? '_\\(Existing Student\\)_' : escapeTg(area)}`,
+            `📍 *Area:* ${isCurrentStudent ? escapeTg('(Existing Student)') : escapeTg(area)}`,
             `🏫 *School:* ${escapeTg(school)}`,
-            `🥋 *Experience:* ${isCurrentStudent ? 'Active SKF Member' : escapeTg(experience === 'beginner' ? 'Beginner' : 'Done Before')}`,
+            `🥋 *Experience:* ${isCurrentStudent ? escapeTg('Active SKF Member') : escapeTg(experience === 'beginner' ? 'Beginner' : 'Done Before')}`,
             `🏫 *School Karate:* ${escapeTg(schoolHasKarate === 'yes' ? 'Yes' : schoolHasKarate === 'no' ? 'No' : 'Not Sure')}`,
             ``,
-            `🎟️ *Plan:* ${isCurrentStudent ? '100% Free (VIP)' : 'Free Month 1'}`,
+            `🎟️ *Plan:* ${isCurrentStudent ? escapeTg('100% Free (VIP)') : escapeTg('Free Month 1')}`,
             `🕐 ${escapeTg(timestamp)}`,
         ].join('\n')
 
