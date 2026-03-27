@@ -8,6 +8,7 @@ function validateEnrollment(body) {
 
     const isCurrentStudent = body.isCurrentStudent === 'yes'
     const skfId = (body.skfId || '').trim()
+    const agreeToKit = body.agreeToKit === true
     const studentName = (body.studentName || '').trim()
     const age = (body.age || '').toString().trim()
     const parentName = (body.parentName || '').trim()
@@ -47,7 +48,7 @@ function validateEnrollment(body) {
     }
 
     return {
-        data: { isCurrentStudent, skfId, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate },
+        data: { isCurrentStudent, skfId, agreeToKit, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate },
         isSpam: false,
     }
 }
@@ -70,7 +71,7 @@ export async function POST(request) {
             )
         }
 
-        const { isCurrentStudent, skfId, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate } = data
+        const { isCurrentStudent, skfId, agreeToKit, studentName, age, parentName, parentContact, sameAsEmergency, emergencyContact, area, school, experience, schoolHasKarate } = data
 
         const timestamp = new Date().toLocaleString('en-IN', {
             timeZone: 'Asia/Kolkata',
@@ -122,7 +123,7 @@ export async function POST(request) {
                             school,
                             isCurrentStudent ? 'Active SKF Member' : (experience === 'beginner' ? 'Beginner' : 'Done Before'),
                             schoolHasKarate === 'yes' ? 'Yes' : schoolHasKarate === 'no' ? 'No' : 'Not Sure',
-                            isCurrentStudent ? '100% Free (Existing VIP)' : 'Free Month 1',
+                            isCurrentStudent ? '100% Free (Existing VIP)' : (agreeToKit ? 'Free Month 1 + ₹300 Kit Reserved' : 'Free Month 1 (No Kit)'),
                         ]],
                     },
                 })
@@ -149,7 +150,7 @@ export async function POST(request) {
             `🥋 *Experience:* ${isCurrentStudent ? escapeTg('Active SKF Member') : escapeTg(experience === 'beginner' ? 'Beginner' : 'Done Before')}`,
             `🏫 *School Karate:* ${escapeTg(schoolHasKarate === 'yes' ? 'Yes' : schoolHasKarate === 'no' ? 'No' : 'Not Sure')}`,
             ``,
-            `🎟️ *Plan:* ${isCurrentStudent ? escapeTg('100% Free (VIP)') : escapeTg('Free Month 1')}`,
+            `🎟️ *Plan:* ${isCurrentStudent ? escapeTg('100% Free (VIP)') : escapeTg(agreeToKit ? 'Free Month 1 + ₹300 Kit Reserved' : 'Free Month 1 (No Kit)')}`,
             `🕐 ${escapeTg(timestamp)}`,
         ].join('\n')
 
