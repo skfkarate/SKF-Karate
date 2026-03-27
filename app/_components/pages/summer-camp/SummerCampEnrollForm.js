@@ -94,9 +94,6 @@ export default function SummerCampEnrollForm() {
                     return "Please enter a valid SKF ID to fetch your details and proceed."
                 }
             }
-            if (form.isCurrentStudent === 'no' && !form.agreeToKit) {
-                return "Please check the box below to reserve your child's Achievement Kit and proceed."
-            }
         }
         if (step === 2) {
             if (!form.studentName.trim() || !form.age) return "Please enter the student's name and age."
@@ -232,50 +229,15 @@ export default function SummerCampEnrollForm() {
 
                         {form.isCurrentStudent === 'no' && (
                             <div style={{ animation: 'fadeIn 0.4s ease' }}>
-                                <div className="wizard-field">
+                                <div className="wizard-field" style={{ marginBottom: '1.5rem' }}>
                                     <label>Training Fee</label>
-                                    <div className="wizard-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', color: 'var(--text-white)' }}>
-                                        <span style={{ fontWeight: '500' }}>Complete Month-Long Camp Training</span>
-                                        <span style={{ fontSize: '1.15rem', color: '#4caf50', fontWeight: 'bold' }}>₹0 (FREE)</span>
+                                    <div className="wizard-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', color: 'var(--text-white)', gap: '12px', flexWrap: 'wrap' }}>
+                                        <span style={{ fontWeight: '500', flex: '1 1 auto' }}>1-Month Camp Training</span>
+                                        <span style={{ fontSize: '1.15rem', color: '#4caf50', fontWeight: 'bold', whiteSpace: 'nowrap' }}>₹0 (100% FREE)</span>
                                     </div>
-                                </div>
-
-                                <div className="wizard-field">
-                                    <label>The Achievement Kit</label>
-                                    <div style={{ padding: '0.5rem 0 1rem 0', color: 'var(--text-light)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                                        <p style={{ marginBottom: '0.75rem' }}>
-                                            We believe every athlete deserves to be celebrated! While the month-long training is entirely free, we secure your child&apos;s spot by reserving an exclusive <strong style={{ color: 'var(--gold)' }}>Achievement Kit</strong> in advance. This kit honors their hard work and includes:
-                                        </p>
-                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '0.5rem' }}>
-                                                <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
-                                                <span><strong>Official Completion Certificate</strong> — Professionally designed, signed &amp; stamped to frame their success!</span>
-                                            </li>
-                                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                                                <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
-                                                <span><strong>A Special Surprise Gift</strong> — A beautiful physical token they will carry with pride long after the camp ends.</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="wizard-input" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(212,175,55,0.08)', borderColor: 'rgba(212,175,55,0.3)', color: 'var(--text-white)' }}>
-                                        <span style={{ fontWeight: '500' }}>Achievement Kit</span>
-                                        <span style={{ fontSize: '1.15rem', color: 'var(--gold)', fontWeight: 'bold' }}>₹300</span>
-                                    </div>
-                                </div>
-
-                                <div className="wizard-field" style={{ marginTop: '2rem' }}>
-                                    <label className="wizard-checkbox" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', background: 'rgba(20, 20, 22, 0.5)', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.2)' }}>
-                                        <input
-                                            type="checkbox"
-                                            name="agreeToKit"
-                                            checked={form.agreeToKit}
-                                            onChange={handleChange}
-                                            style={{ width: '22px', height: '22px', marginTop: '2px', accentColor: 'var(--gold)', cursor: 'pointer', flexShrink: 0 }}
-                                        />
-                                        <span style={{ fontSize: '0.95rem', color: 'var(--text-white)', lineHeight: '1.5' }}>
-                                            Yes! I want to reserve the <strong style={{ color: 'var(--gold)' }}>Achievement Kit (₹300)</strong> to celebrate my child&apos;s progress. (I understand the entire month training itself remains completely free).
-                                        </span>
-                                    </label>
+                                    <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', marginTop: '0.75rem', lineHeight: '1.5' }}>
+                                        Your child&apos;s entire month of training is absolutely free! Let&apos;s gather a few details to quickly confirm their spot.
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -504,6 +466,41 @@ export default function SummerCampEnrollForm() {
                                     Not Sure
                                 </label>
                             </div>
+                        </div>
+
+                        <div className="wizard-field" style={{ marginTop: '2.5rem' }}>
+                            <label>Optional: The Achievement Kit</label>
+                            <div style={{ padding: '0.5rem 0 1rem 0', color: 'var(--text-light)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                <p style={{ marginBottom: '0.75rem' }}>
+                                    The month-long training is entirely free! However, if you'd like an official certification of completion to celebrate their camp journey, you can optionally reserve an <strong style={{ color: 'var(--gold)' }}>Achievement Kit</strong> now.
+                                </p>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                    <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '0.5rem' }}>
+                                        <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
+                                        <span><strong>Official Completion Certificate</strong> — Professionally designed, signed &amp; stamped to frame their success!</span>
+                                    </li>
+                                    <li style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                        <FaStar className="text-gold" style={{ marginTop: '4px', flexShrink: 0 }} />
+                                        <span><strong>A Special Surprise Gift</strong> — A beautiful physical token they will carry with pride.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <label className="wizard-checkbox" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', background: 'rgba(212, 175, 55, 0.08)', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(212,175,55,0.3)' }}>
+                                <input
+                                    type="checkbox"
+                                    name="agreeToKit"
+                                    checked={form.agreeToKit}
+                                    onChange={handleChange}
+                                    style={{ width: '22px', height: '22px', marginTop: '2px', accentColor: 'var(--gold)', cursor: 'pointer', flexShrink: 0 }}
+                                />
+                                <span style={{ fontSize: '0.95rem', color: 'var(--text-white)', lineHeight: '1.5' }}>
+                                    Yes, I would like to optionally reserve the <strong style={{ color: 'var(--gold)' }}>Achievement Kit (₹300)</strong>.
+                                </span>
+                            </label>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.75rem', textAlign: 'center' }}>
+                                Note: Payment will be collected in-person or via a separate link later. No payment is required right now.
+                            </p>
                         </div>
                     </div>
                 )
