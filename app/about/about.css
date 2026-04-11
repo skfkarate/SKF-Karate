@@ -83,7 +83,7 @@
     right: -5%;
     transform: translateY(-50%);
     font-size: 35rem;
-    font-family: 'Yu Mincho', 'Sawarabi Mincho', serif;
+    
     color: rgba(255, 255, 255, 0.015);
     line-height: 1;
     z-index: 0;
@@ -131,16 +131,22 @@
 }
 
 .zen-glass-card {
-    background: rgba(12, 16, 28, 0.5);
+    
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    
     border-radius: 20px;
     padding: 4rem 3rem;
     text-align: center;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    
     transition: transform 0.5s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .zen-glass-card::before {
@@ -165,7 +171,7 @@
 }
 
 .zen-glass-card h3 {
-    font-family: var(--font-heading);
+    
     font-size: 1.8rem;
     color: white;
     margin-bottom: 1.5rem;
@@ -204,13 +210,19 @@
 
 .vanguard-card {
     position: relative;
-    background: rgba(16, 22, 38, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    
+    
     border-radius: 16px;
     padding: 3rem 2rem;
     text-align: center;
     overflow: hidden;
     transition: all 0.4s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .vanguard-card__glow {
@@ -220,10 +232,16 @@
     transform: translateX(-50%);
     width: 60%;
     height: 2px;
-    background: var(--gold);
-    box-shadow: 0 0 20px var(--gold);
+    
+    
     opacity: 0;
     transition: opacity 0.4s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .vanguard-card:hover {
@@ -235,19 +253,37 @@
 
 .vanguard-card:hover .vanguard-card__glow {
     opacity: 1;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 /* Make founder double wide on desktop */
 .vanguard-card--founder {
     grid-column: 1 / -1;
-    background: linear-gradient(145deg, rgba(20, 25, 40, 0.8), rgba(12, 16, 28, 0.9));
+    
     border-color: rgba(255, 183, 3, 0.3);
     padding: 4rem;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .vanguard-card--founder .vanguard-card__glow {
     opacity: 0.5;
     width: 100%;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .vanguard-icon-wrap {
@@ -282,7 +318,7 @@
 
 .vanguard-card h3 {
     font-size: 1.4rem;
-    font-family: var(--font-heading);
+    
     color: white;
     margin-bottom: 0.4rem;
 }
@@ -445,7 +481,13 @@
 .origin-cta__card {
     padding: 5rem 3rem;
     text-align: center;
-    background: linear-gradient(135deg, rgba(20, 25, 40, 0.8), rgba(12, 16, 28, 0.9));
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 
@@ -471,7 +513,13 @@
     
     .vanguard-card--founder {
         padding: 3rem 2rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 }
 
 @media (max-width: 768px) {
@@ -490,10 +538,22 @@
     }
     .zen-glass-card {
         padding: 2.5rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     .origin-cta__card {
         padding: 3rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 }
 
 @media (max-width: 480px) {
@@ -521,8 +581,28 @@
     }
     .vanguard-card {
         padding: 2rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     .vanguard-card--founder {
         padding: 2rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
+}
+/* Utility Classes */
+.stats-negative-margin { margin-top: -4rem; margin-bottom: 4rem; }
+.mb-tiny { margin-bottom: 0.2rem; }
+.vanguard-link { color: inherit; text-decoration: none; }
+.blue-tinted-label { background-color: rgba(63, 81, 181, 0.15); color: #8c9eff; border-color: rgba(63, 81, 181, 0.3); }
+.flex-center-wrap { display: flex; justify-content: center; flex-wrap: wrap; }
+.gap-standard { gap: 1.5rem; }
+.disabled-btn { opacity: 0.5; cursor: not-allowed; }

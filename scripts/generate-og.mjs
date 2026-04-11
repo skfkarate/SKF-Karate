@@ -1,0 +1,31 @@
+import fs from 'fs';
+import sharp from 'sharp';
+
+const svg = `
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05080f"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <g transform="translate(600, 260)" text-anchor="middle">
+    <!-- Simplified SKF representation for OG Image default -->
+    <text x="0" y="-30" font-family="Arial, sans-serif" font-size="120" font-weight="900" fill="#ffffff" letter-spacing="4">SKF</text>
+    <text x="0" y="50" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#f39c12" letter-spacing="8">KARATE</text>
+    <text x="0" y="160" font-family="Arial, sans-serif" font-size="42" font-weight="600" fill="#ffffff" letter-spacing="1">Bangalore's Premier Karate Federation</text>
+  </g>
+</svg>
+`;
+
+fs.writeFileSync('./public/og-default.svg', svg);
+
+sharp(Buffer.from(svg))
+  .jpeg({ quality: 90 })
+  .toFile('./public/og-default.jpg')
+  .then(() => console.log('Generated og-default.jpg'))
+  .catch(err => {
+    console.error('Error generating image:', err);
+    process.exit(1);
+  });

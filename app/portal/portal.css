@@ -1,12 +1,8 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   KUROOBI THEME — Portal Layout & Shared Styles
-   A completely bespoke, immersive, app-like floating island layout.
-   ═══════════════════════════════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
-.hub-layout {
+.portal-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: #020408; /* Void black */
   color: #fff;
@@ -15,8 +11,8 @@
   overflow-x: hidden;
 }
 
-/* Base background glow effects */
-.hub-layout::before {
+/* Background glow */
+.portal-layout::before {
   content: '';
   position: fixed;
   top: -20vh;
@@ -28,7 +24,7 @@
   z-index: 0;
 }
 
-.hub-layout::after {
+.portal-layout::after {
   content: '';
   position: fixed;
   bottom: -20vh;
@@ -40,253 +36,264 @@
   z-index: 0;
 }
 
-/* ── MAIN CONTENT AREA ── */
-.hub-main {
-  flex: 1;
-  position: relative;
-  z-index: 10;
-  padding: 2rem 1rem 7rem 1rem; /* Extra padding bottom for mobile dock */
-  min-width: 0;
-}
-
-@media (min-width: 900px) {
-  .hub-main {
-    padding: 3rem 4rem 3rem 120px; /* Room for the floating dock on the left */
-  }
-}
-
-/* ── DESKTOP FLOATING DOCK ── */
-.kuroobi-dock-desktop {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 1.5rem;
-  transform: translateY(-50%);
-  height: calc(100vh - 3rem);
-  max-height: 800px;
-  background: rgba(10, 14, 22, 0.75);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 30px;
-  flex-direction: column;
-  z-index: 50;
-  overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02);
-}
-
-@media (min-width: 900px) {
-  .kuroobi-dock-desktop {
-    display: flex;
-  }
-}
-
-.kuroobi-dock__brand {
-  padding: 2rem 0;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  padding-left: 20px;
-  margin-bottom: 1rem;
-}
-
-.kuroobi-dock__logo {
-  filter: drop-shadow(0 0 10px rgba(255, 183, 3, 0.3));
-  flex-shrink: 0;
-}
-
-.kuroobi-dock__brand-text {
-  margin-left: 1rem;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 900;
-  font-size: 0.95rem;
-  letter-spacing: 0.15em;
-  color: #fff;
-}
-
-.kuroobi-dock__links {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0 12px;
-}
-
-.kuroobi-dock__link {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.4);
-  border-radius: 18px;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  position: relative;
-}
-
-.kuroobi-dock__link:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #fff;
-}
-
-.kuroobi-dock__link.active {
-  background: linear-gradient(135deg, rgba(214, 40, 40, 0.1), transparent);
-  color: #fff;
-}
-
-.kuroobi-dock__icon-wrapper {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.kuroobi-dock__active-dot {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 8px;
-  height: 8px;
-  background: var(--crimson, #d62828);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--crimson, #d62828);
-}
-
-.kuroobi-dock__link-label {
-  margin-left: 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.kuroobi-dock__footer {
-  padding: 1.5rem 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.kuroobi-dock__logout {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background: none;
-  border: none;
-  color: #ff6b6b;
-  cursor: pointer;
-  border-radius: 18px;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.kuroobi-dock__logout:hover {
-  background: rgba(214, 40, 40, 0.1);
-}
-
-.kuroobi-dock__logout span {
-  margin-left: 1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-
-/* ── MOBILE FLOATING DOCK ── */
-.kuroobi-dock-mobile {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 70px;
+/* ====== PORTAL HEADER ====== */
+.portal-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: rgba(10, 14, 22, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 0.5rem;
-  z-index: 50;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-@media (min-width: 900px) {
-  .kuroobi-dock-mobile {
-    display: none;
+.portal-header__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.portal-logo {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: #fff;
+  letter-spacing: 0.1em;
+}
+
+.portal-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.portal-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.portal-user-icon {
+  font-size: 1.5rem;
+  color: var(--gold, #ffb703);
+}
+
+.portal-user-greeting {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .portal-user-greeting {
+    display: block;
   }
 }
 
-.kuroobi-mobile-link {
+.portal-branch-badge {
+  background: rgba(214, 40, 40, 0.1);
+  color: var(--crimson, #d62828);
+  border: 1px solid rgba(214, 40, 40, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.portal-logout-btn {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.portal-logout-btn:hover {
+  transform: scale(1.1);
+}
+
+/* ====== PORTAL MAIN ====== */
+.portal-main {
+  flex: 1;
+  position: relative;
+  z-index: 10;
+  padding-bottom: 80px; /* Space for bottom nav */
+}
+
+@media (min-width: 768px) {
+  .portal-main {
+    padding-bottom: 2rem;
+  }
+}
+
+/* ====== PORTAL BOTTOM NAV ====== */
+.portal-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(10, 14, 22, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 768px) {
+  .portal-bottom-nav {
+    display: none; /* Can implement sidebar on desktop if desired, but sticking to prompt structure */
+  }
+}
+
+.portal-nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  gap: 4px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.3);
-  position: relative;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.25rem;
+  transition: all 0.3s;
   flex: 1;
+  height: 100%;
 }
 
-.kuroobi-mobile-link.active {
+.portal-nav-item span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.portal-nav-item:hover, .portal-nav-item.active {
   color: var(--crimson, #d62828);
 }
 
-.kuroobi-mobile-link__icon {
-  position: relative;
-  z-index: 2;
+/* ====== DASHBOARD COMPONENTS ====== */
+.child-switcher-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 300px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
 }
 
-.kuroobi-mobile-link__label {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.child-switcher-btn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.child-switcher-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 183, 3, 0.1);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.child-switcher-dropdown {
   position: absolute;
-  bottom: 8px;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 100%;
+  max-width: 300px;
+  background: #0a0e16;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  z-index: 50;
+  animation: slideDown 0.2s ease-out;
 }
 
-/* ── KUROOBI OVERRIDES FOR ATHLETE PROFILE (DASHBOARD ONLY) ── */
-.ap-page.kuroobi-dashboard {
-  background: transparent !important;
-}
-.ap-page.kuroobi-dashboard::before,
-.ap-page.kuroobi-dashboard::after {
-  display: none !important;
-}
-
-.kuroobi-dashboard .ap-card {
-  background: rgba(10, 14, 22, 0.6) !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
-}
-
-.kuroobi-dashboard .ap-hero-pattern {
-  background: radial-gradient(circle at top right, rgba(255, 183, 3, 0.05), transparent 50%),
-              radial-gradient(circle at bottom left, rgba(214, 40, 40, 0.08), transparent 50%) !important;
+.child-switcher-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 1rem;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
 }
 
-.kuroobi-dashboard .ap-hero-content {
-  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+.child-switcher-item:last-child {
+  border-bottom: none;
 }
 
-.kuroobi-dashboard .ap-category-tab {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
+.child-switcher-item:hover {
+  background: rgba(255,255,255,0.02);
 }
 
-.kuroobi-dashboard .ap-category-tab.active {
-  background: rgba(214, 40, 40, 0.1) !important;
-  color: #fff !important;
-  border-color: rgba(214, 40, 40, 0.3) !important;
+.child-switcher-item--active {
+  background: rgba(255, 183, 3, 0.05);
 }
 
-.kuroobi-dashboard .ap-pill {
-  background: rgba(255,255,255,0.05) !important;
-  border-color: rgba(255,255,255,0.1) !important;
-  color: rgba(255,255,255,0.7) !important;
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.portal-stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.portal-stat-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.portal-stat-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

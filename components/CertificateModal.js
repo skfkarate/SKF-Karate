@@ -137,6 +137,7 @@ export default function CertificateModal({ isOpen, onClose, enrollment, student 
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem', flexShrink: 0 }}>
             <button 
               onClick={onClose}
+              aria-label="Close certificate modal"
               style={{
                 width: 44,
                 height: 44,

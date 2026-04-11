@@ -1,15 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════════════
    TIMETABLE PAGE — Navy / Glassmorphic Theme
-   Reference: app/athlete/athlete.css
    ═══════════════════════════════════════════════════════════════════════ */
 
 .tt-page {
   min-height: 100vh;
-  padding: 6rem 1rem 4rem;
-  background:
-    radial-gradient(circle at top left, rgba(214, 40, 40, 0.1), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(255, 183, 3, 0.06), transparent 28%),
-    linear-gradient(180deg, #091121 0%, #05080f 100%);
+  padding: 6rem 1rem 8rem;
+  background: radial-gradient(circle at top left, rgba(214, 40, 40, 0.1), transparent 30%),
+              radial-gradient(circle at bottom right, rgba(255, 183, 3, 0.06), transparent 28%),
+              linear-gradient(180deg, #091121 0%, #05080f 100%);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -38,236 +36,268 @@
   background: rgba(255, 183, 3, 0.08);
 }
 
-/* ── Container ── */
 .tt-container {
   max-width: 900px;
   margin: 0 auto;
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* ── Header ── */
 .tt-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.tt-header__tag {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: var(--gold, #ffb703);
-  background: rgba(255, 183, 3, 0.08);
-  border: 1px solid rgba(255, 183, 3, 0.25);
-  padding: 0.5rem 1.25rem;
-  border-radius: 100px;
-  margin-bottom: 1.25rem;
-}
-
-.tt-header__title {
   font-family: var(--font-heading);
   font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.02em;
-  line-height: 1.05;
-  margin: 0;
+  margin: 0 0 1rem 0;
+  text-align: center;
 }
 
-.tt-header__branch {
-  display: block;
+.glow-red {
   background: linear-gradient(90deg, #ff2a2a 0%, #ff6b6b 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: 0 0 20px rgba(255, 42, 42, 0.3);
 }
 
-.tt-header__title-text {
-  display: block;
-  background: linear-gradient(90deg, #fff4b0 0%, #ffb703 55%, #ffd977 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* ── Month Badge ── */
 .tt-month-badge {
-  text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
-.tt-month-badge__text {
+.tt-pill-badge {
   display: inline-block;
-  padding: 0.6rem 1.5rem;
+  padding: 0.75rem 1.75rem;
   border-radius: 100px;
   background: rgba(255, 183, 3, 0.1);
   border: 1px solid rgba(255, 183, 3, 0.3);
   color: var(--gold, #ffb703);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.15em;
+  box-shadow: 0 0 20px rgba(255, 183, 3, 0.1);
 }
 
-/* ── Timetable Card ── */
-.tt-card {
+.tt-card-glass {
+  width: 100%;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(10, 14, 25, 0.55);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
   overflow: hidden;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
+  padding: 1rem;
 }
 
-.tt-card__image-wrap {
-  position: relative;
+.tt-scrollable-image-wrapper {
   width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
 }
 
-.tt-card__image {
+.tt-image {
   width: 100%;
   height: auto;
+  min-width: 600px; /* guarantees scrolling on mobile */
   display: block;
 }
 
-/* Empty State */
-.tt-card__empty {
+.tt-mobile-fallback {
   text-align: center;
-  padding: 5rem 2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.tt-card__empty-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
+.tt-mobile-fallback a {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-.tt-card__empty-title {
+@media (min-width: 641px) {
+  .tt-mobile-fallback { display: none; }
+  .tt-image { min-width: auto; }
+}
+
+.tt-card-empty {
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 183, 3, 0.2);
+  background: rgba(10, 14, 25, 0.8);
+  backdrop-filter: blur(30px);
+  padding: 4rem 2rem;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.tt-card-empty .tt-empty-title {
+  color: var(--gold, #ffb703);
   font-family: var(--font-heading);
   font-size: 1.5rem;
-  font-weight: 900;
   text-transform: uppercase;
-  color: var(--gold, #ffb703);
-  margin: 0 0 0.75rem;
+  margin: 0 0 1rem 0;
 }
 
-.tt-card__empty-text {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.92rem;
-  line-height: 1.7;
-  max-width: 400px;
-  margin: 0 auto;
+.tt-card-empty .tt-empty-text {
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
 }
 
-/* ── Previous Months ── */
-.tt-previous {
-  margin-bottom: 2.5rem;
+.tt-previous-accordion {
+  width: 100%;
+  margin-bottom: 3rem;
 }
 
-.tt-previous__title {
-  font-family: var(--font-heading);
+.tt-accordion {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+
+.tt-accordion-summary {
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.8);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tt-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.tt-accordion-summary::after {
+  content: '▼';
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+.tt-accordion[open] .tt-accordion-summary::after {
+  content: '▲';
+}
+
+.tt-accordion-content {
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.tt-accordion-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.tt-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.text-muted {
+  opacity: 0.5;
+}
+
+.tt-action-row {
+  margin-bottom: 4rem;
+}
+
+.tt-enrol-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #d62828 0%, #ba1818 100%);
+  color: white;
+  padding: 1.2rem 3rem;
+  border-radius: 12px;
   font-size: 1.1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 1.25rem;
-}
-
-.tt-previous__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.tt-previous__card {
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(10, 14, 25, 0.4);
-  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 10px 25px rgba(214, 40, 40, 0.25);
   transition: all 0.3s;
 }
 
-.tt-previous__card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+.tt-enrol-btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(214, 40, 40, 0.4);
 }
 
-.tt-previous__month {
-  display: block;
-  padding: 0.75rem 1rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.tt-previous__image {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* ── WhatsApp Button ── */
-.tt-whatsapp {
+.tt-subtle-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 2rem;
   width: 100%;
-  padding: 1.1rem;
-  border-radius: 14px;
-  border: 1px solid rgba(37, 211, 102, 0.3);
-  background: rgba(37, 211, 102, 0.08);
-  color: #25d366;
+}
+
+.tt-nav-divider {
+  color: rgba(255,255,255,0.2);
+}
+
+.tt-subtle-nav a {
+  color: rgba(255,255,255,0.4);
   font-size: 0.85rem;
-  font-weight: 700;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  transition: all 0.3s;
-  margin-bottom: 2rem;
-}
-
-.tt-whatsapp:hover {
-  background: rgba(37, 211, 102, 0.15);
-  border-color: rgba(37, 211, 102, 0.5);
-  transform: translateY(-2px);
-}
-
-.tt-whatsapp__icon {
-  font-size: 1.2rem;
-}
-
-/* ── Back Link ── */
-.tt-back {
-  text-align: center;
-}
-
-.tt-back__link {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   transition: color 0.2s;
 }
 
-.tt-back__link:hover {
+.tt-subtle-nav a:hover {
   color: var(--gold, #ffb703);
 }
 
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  .tt-page {
-    padding: 5rem 0.75rem 3rem;
-  }
+.tt-floating-whatsapp {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #25d366;
+  color: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+  z-index: 50;
+  transition: transform 0.3s;
+}
 
-  .tt-previous__grid {
-    grid-template-columns: 1fr;
+.tt-floating-whatsapp:hover {
+  transform: translateY(-5px);
+}
+
+.wa-icon {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 640px) {
+  .tt-floating-whatsapp {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    left: 1.5rem;
+    justify-content: center;
+    text-align: center;
   }
 }

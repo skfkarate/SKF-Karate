@@ -1,0 +1,15 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /portal
+Disallow: /admin
+Disallow: /api
+
+# Host
+Host: https://skfkarate.org
+
+# Sitemaps
+Sitemap: https://skfkarate.org/sitemap.xml

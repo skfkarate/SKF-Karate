@@ -1,0 +1,187 @@
+.portal-fees {
+  padding: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.fees-status-card {
+  background: rgba(10, 14, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.fees-status-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+}
+
+.fees-status-card.due::before {
+  background: var(--crimson, #d62828);
+  box-shadow: 0 0 20px var(--crimson, #d62828);
+}
+
+.fees-status-card.paid::before {
+  background: var(--gold, #ffb703);
+  box-shadow: 0 0 20px var(--gold, #ffb703);
+}
+
+.fees-status-amount {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  margin: 1rem 0;
+  line-height: 1;
+}
+
+.fees-status-amount.due {
+  color: var(--crimson, #d62828);
+  text-shadow: 0 0 20px rgba(214, 40, 40, 0.3);
+}
+
+.fees-status-amount.paid {
+  color: var(--gold, #ffb703);
+  text-shadow: 0 0 20px rgba(255, 183, 3, 0.3);
+}
+
+.fee-history-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.fee-history-table th {
+  text-align: left;
+  padding: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.fee-history-table td {
+  padding: 1.25rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fee-history-table tr td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+.fee-history-table tr td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  text-align: right;
+}
+
+.fee-history-table tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.badge-paid {
+  background: rgba(46, 213, 115, 0.1);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-due {
+  background: rgba(214, 40, 40, 0.1);
+  color: var(--crimson, #d62828);
+  border: 1px solid rgba(214, 40, 40, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fees-action-btn {
+  background: linear-gradient(135deg, var(--crimson), #a81c1c);
+  color: #fff;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 20px rgba(214, 40, 40, 0.3);
+}
+
+.fees-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(214, 40, 40, 0.4);
+}
+
+.fees-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: #333;
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .fee-history-table thead {
+    display: none;
+  }
+  
+  .fee-history-table, .fee-history-table tbody, .fee-history-table tr, .fee-history-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .fee-history-table tr {
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1rem;
+  }
+
+  .fee-history-table td {
+    border: none !important;
+    padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fee-history-table td::before {
+    content: attr(data-label);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-right: 1rem;
+  }
+
+  .fee-history-table td:last-child {
+    text-align: left;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding-top: 1rem;
+    justify-content: flex-end;
+  }
+}
