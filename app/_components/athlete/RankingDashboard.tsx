@@ -29,7 +29,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
   const [catDropdownOpen, setCatDropdownOpen] = useState(false)
   const [catSearch, setCatSearch] = useState('')
   const [filterText, setFilterText] = useState('')
-  const [topN, setTopN] = useState(10)
+  const [topN, setTopN] = useState<number | 'all'>(10)
 
   // Dojo-specific state
   const [selectedDojo, setSelectedDojo] = useState('')

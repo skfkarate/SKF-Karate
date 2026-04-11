@@ -10,7 +10,7 @@ export async function generateRankingCard(
   clone.style.left = '-9999px'
   clone.style.top = '0'
   clone.style.backdropFilter = 'none'
-  clone.style.webkitBackdropFilter = 'none'
+  ;(clone.style as CSSStyleDeclaration & { webkitBackdropFilter?: string }).webkitBackdropFilter = 'none'
   clone.style.background = '#05080f'
   document.body.appendChild(clone)
   

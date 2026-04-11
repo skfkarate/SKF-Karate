@@ -5,7 +5,7 @@ import { getAllShopOrders } from '@/lib/server/sheets'
 import AdminShopClient from './AdminShopClient'
 
 export default async function AdminShopPage() {
-    const session = await getServerSession(authOptions as any)
+    const session = await getServerSession(authOptions)
     if (!session || (session as any)?.role !== 'admin') {
         redirect('/api/auth/signin?callbackUrl=/admin/shop')
     }

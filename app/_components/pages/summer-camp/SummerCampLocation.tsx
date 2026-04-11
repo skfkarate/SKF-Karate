@@ -42,7 +42,7 @@ export default function SummerCampLocation() {
             width="100%"
             height="450"
             style={{ border: 0, borderRadius: '16px', filter: 'invert(90%) hue-rotate(180deg) contrast(85%)' }}
-            allowFullScreen=""
+            allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             title="SKF Karate Location"

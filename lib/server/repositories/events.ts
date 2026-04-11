@@ -9,12 +9,50 @@ import {
   hasTournamentSlug,
   updateTournament,
 } from "./tournaments"
+import type {
+  TournamentParticipant,
+  TournamentRecord,
+  TournamentResultRecord,
+  TournamentWinner,
+} from "./tournaments"
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from "../data-store"
 import { ApiError } from "../api"
 
 const EVENTS_DATA_FILE = resolveDataFile("events.json")
 
-let events = [
+type EventParticipant = TournamentParticipant
+
+type EventResult = TournamentResultRecord
+
+type EventWinner = TournamentWinner
+
+type EventRecord = {
+  id: string
+  slug: string
+  name: string
+  shortName: string
+  type: string
+  status: string
+  level?: string
+  date: string
+  endDate: string
+  venue: string
+  city: string
+  state: string
+  description: string
+  coverImageUrl: string
+  affiliatedBody: string
+  isPublished: boolean
+  isFeatured: boolean
+  participants: EventParticipant[]
+  results: EventResult[]
+  resultsAppliedAt: string
+  createdAt: string
+  updatedAt: string
+  winners?: EventWinner[]
+}
+
+let events: EventRecord[] = [
   {
     id: "evt_summer_camp_2026",
     slug: "summer-camp-2026",
@@ -134,12 +172,14 @@ let events = [
 
 let eventsLoadedFromDisk = false
 
-function cloneEventData(value) {
-  return JSON.parse(JSON.stringify(value))
+function cloneEventData<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T
 }
 
-function sortByDateDesc(items) {
-  return [...items].sort((a, b) => new Date(b.date) - new Date(a.date))
+function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
+  return [...items].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
 }
 
 function ensureEventsLoaded() {
@@ -162,7 +202,10 @@ function persistEvents() {
   writeJsonAtomically(EVENTS_DATA_FILE, events)
 }
 
-function normaliseEventPayload(input = {}, existing = null) {
+function normaliseEventPayload(
+  input: Partial<EventRecord> = {},
+  existing: EventRecord | null = null
+): EventRecord {
   const now = new Date().toISOString()
 
   return {
@@ -199,7 +242,9 @@ function normaliseEventPayload(input = {}, existing = null) {
   }
 }
 
-function buildTournamentResults(tournament) {
+function buildTournamentResults(
+  tournament: Pick<TournamentRecord, "results" | "winners">
+): EventResult[] {
   if (Array.isArray(tournament.results) && tournament.results.length > 0) {
     return tournament.results
   }
@@ -219,7 +264,9 @@ function buildTournamentResults(tournament) {
   }))
 }
 
-export function buildUnifiedTournamentEvent(tournament) {
+export function buildUnifiedTournamentEvent(
+  tournament: TournamentRecord
+) {
   return {
     ...cloneEventData(tournament),
     type: "tournament",
@@ -229,7 +276,9 @@ export function buildUnifiedTournamentEvent(tournament) {
   }
 }
 
-function buildUnifiedStoredEvent(event) {
+function buildUnifiedStoredEvent(
+  event: EventRecord
+): EventRecord & { sourceKind: "event" } {
   return {
     ...cloneEventData(event),
     sourceKind: "event",

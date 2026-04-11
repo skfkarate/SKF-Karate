@@ -33,12 +33,22 @@ const EVENT_TYPE_VALUES = new Set(EVENT_TYPES)
 const EVENT_STATUS_VALUES = new Set(EVENT_STATUSES)
 const EVENT_BELT_VALUE_SET = new Set(EVENT_BELT_VALUES)
 
-function optionalInteger(value, label, options = {}) {
+type NumericOptions = {
+  min?: number
+  max?: number
+}
+
+type PhoneOptions = {
+  minDigits?: number
+  maxDigits?: number
+}
+
+function optionalInteger(value, label, options: NumericOptions = {}) {
   if (value === undefined || value === null || value === '') return null
   return integerValue(value, label, options)
 }
 
-function optionalNumberValue(value, label, options = {}) {
+function optionalNumberValue(value, label, options: NumericOptions = {}) {
   if (value === undefined || value === null || value === '') return null
   return numberValue(value, label, options)
 }
@@ -51,7 +61,7 @@ function ensureObject(value, label) {
   return value
 }
 
-function requiredString(value, label, options = {}) {
+function requiredString(value, label, options: NumericOptions = {}) {
   const trimmed = String(value ?? '').trim()
   const min = options.min ?? 1
   const max = options.max ?? 120
@@ -67,7 +77,7 @@ function requiredString(value, label, options = {}) {
   return trimmed
 }
 
-function optionalString(value, label, options = {}) {
+function optionalString(value, label, options: NumericOptions = {}) {
   if (value === undefined || value === null) return ''
 
   const trimmed = String(value).trim()
@@ -105,7 +115,7 @@ function booleanValue(value, fallback = false) {
   return typeof value === 'boolean' ? value : fallback
 }
 
-function integerValue(value, label, options = {}) {
+function integerValue(value, label, options: NumericOptions = {}) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     throw new ApiError(400, `${label} is invalid.`)
@@ -122,7 +132,7 @@ function integerValue(value, label, options = {}) {
   return integer
 }
 
-function numberValue(value, label, options = {}) {
+function numberValue(value, label, options: NumericOptions = {}) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     throw new ApiError(400, `${label} is invalid.`)
@@ -181,7 +191,7 @@ function optionalEmail(value, label) {
   return normalized.toLowerCase()
 }
 
-function optionalPhone(value, label, options = {}) {
+function optionalPhone(value, label, options: PhoneOptions = {}) {
   const normalized = optionalString(value, label, { max: 30 })
   if (!normalized) return ''
 

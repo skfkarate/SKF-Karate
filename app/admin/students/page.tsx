@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminStudentsPage({ searchParams }) {
   const session = await requireAdminSession()
-  const canManage = session.role === 'admin' || session.role === 'super_admin'
+  const canManage = session.user.role === 'admin' || session.user.role === 'super_admin'
 
   const params = await searchParams;
   let athletes = await getAllStudents();
@@ -26,7 +26,7 @@ export default async function AdminStudentsPage({ searchParams }) {
     athletes = athletes.filter(athlete => athlete.branch === params.branch);
   }
 
-  const inActiveCount = athletes.filter(a => a.status === 'inactive').length;
+  const inActiveCount = athletes.filter(a => a.status === 'Inactive').length;
 
   return (
     <div style={{ 
@@ -191,6 +191,15 @@ export default async function AdminStudentsPage({ searchParams }) {
               ) : (
                 athletes.map((athlete) => {
                   const beltInfo = getBelt(athlete.belt)
+                  const beltColorMap: Record<string, string> = {
+                    white: '#f5f5f5',
+                    yellow: '#facc15',
+                    orange: '#fb923c',
+                    green: '#22c55e',
+                    blue: '#3b82f6',
+                    brown: '#92400e',
+                    black: '#171717',
+                  }
                   const isInactive = athlete.status === 'Inactive'
                   return (
                     <tr key={athlete.skfId} style={{ 
@@ -219,8 +228,8 @@ export default async function AdminStudentsPage({ searchParams }) {
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div style={{ width: 12, height: 12, borderRadius: 2, background: beltInfo?.hexCode || '#fff' }} />
-                          <span style={{ fontSize: '0.9rem', color: '#ccc', textTransform: 'capitalize' }}>{beltInfo?.name || athlete.belt}</span>
+                          <div style={{ width: 12, height: 12, borderRadius: 2, background: beltColorMap[athlete.belt] || '#fff' }} />
+                          <span style={{ fontSize: '0.9rem', color: '#ccc', textTransform: 'capitalize' }}>{beltInfo?.label || athlete.belt}</span>
                         </div>
                       </td>
                       <td style={{ padding: '1rem 1.5rem', color: '#ccc', fontSize: '0.9rem', textTransform: 'capitalize' }}>

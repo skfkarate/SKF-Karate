@@ -4,11 +4,11 @@ import { getStudentBySkfId } from '@/lib/server/sheets'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/server/auth/options'
 
-export async function GET(request) {
+export async function GET(_request: Request) {
   try {
     // 1. Authenticate Admin
-    const session = await getServerSession(authOptions as any)
-    if (!session || (session as any)?.role !== 'admin') {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -54,8 +54,8 @@ export async function GET(request) {
           studentName,
           belt,
           branch,
-          programId: rec.programs?.id,
-          programName: rec.programs?.name || 'Unknown Program',
+          programId: (Array.isArray(rec.programs) ? rec.programs[0] : rec.programs)?.id,
+          programName: (Array.isArray(rec.programs) ? rec.programs[0] : rec.programs)?.name || 'Unknown Program',
           status: rec.status,
           certUnlocked: rec.status === 'completed',
           date: new Date(rec.updated_at).toLocaleDateString()
@@ -73,8 +73,8 @@ export async function GET(request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session || (session as any)?.role !== 'admin') {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

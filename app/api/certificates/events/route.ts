@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const ip = headersList.get('x-forwarded-for') || '127.0.0.1'
 
     // Log to certificate_events (existing table)
-    await supabaseAdmin
+    const { error: certificateEventError } = await supabaseAdmin
       .from('certificate_events')
       .insert([{
         enrollment_id: enrollmentId,
@@ -22,24 +22,22 @@ export async function POST(request: Request) {
         event_type: eventType,
         ip_address: ip
       }])
-      .then(() => {})
-      .catch(() => {}) // Silent — events table may not exist
+    void certificateEventError
 
     // Also track in certificate_views for analytics dashboard
     if (eventType === 'viewed') {
-      await supabaseAdmin
+      const { error: certificateViewError } = await supabaseAdmin
         .from('certificate_views')
         .insert([{
           skf_id: skfId,
           enrollment_id: enrollmentId,
           viewed_at: new Date().toISOString()
         }])
-        .then(() => {})
-        .catch(() => {}) // Silent — table may not exist yet
+      void certificateViewError
     } else if (eventType === 'downloaded_pdf' || eventType === 'downloaded_png') {
       // Update the most recent view record with download info
       const format = eventType === 'downloaded_pdf' ? 'pdf' : 'png'
-      await supabaseAdmin
+      const { error: certificateDownloadError } = await supabaseAdmin
         .from('certificate_views')
         .update({
           downloaded_at: new Date().toISOString(),
@@ -50,8 +48,7 @@ export async function POST(request: Request) {
         .is('downloaded_at', null)
         .order('viewed_at', { ascending: false })
         .limit(1)
-        .then(() => {})
-        .catch(() => {}) // Silent
+      void certificateDownloadError
     }
 
     return NextResponse.json({ success: true })

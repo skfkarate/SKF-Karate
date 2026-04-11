@@ -31,21 +31,27 @@ export default function DojoDetailPage({ params }) {
         notFound()
     }
 
+    const dojoExtras = dojo as typeof dojo & {
+      images?: string[]
+      pincode?: string
+      batches?: Array<{ days: string[]; time: string }>
+    }
+
     const dojoSchema = {
       "@context": "https://schema.org",
       "@type": ["SportsOrganization", "LocalBusiness"],
       "name": `SKF Karate — ${dojo.name}`,
-      "image": dojo.images?.[0] || `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/og-default.jpg`,
+      "image": dojoExtras.images?.[0] || `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/og-default.jpg`,
       "address": {
         "@type": "PostalAddress",
         "streetAddress": dojo.address,
         "addressLocality": "Bangalore",
         "addressRegion": "Karnataka",
-        "postalCode": dojo.pincode,
+        "postalCode": dojoExtras.pincode,
         "addressCountry": "IN"
       },
       "telephone": dojo.phone,
-      "openingHoursSpecification": (dojo.batches || []).map((batch: any) => ({
+      "openingHoursSpecification": (dojoExtras.batches || []).map((batch) => ({
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": batch.days,
         "opens": batch.time.split(' - ')[0] || "17:00",

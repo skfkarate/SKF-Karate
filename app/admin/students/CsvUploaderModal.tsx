@@ -40,7 +40,9 @@ export default function CsvUploaderModal({ isOpen, onClose, onComplete }: { isOp
                         original: candidate,
                         isValid: validation.success,
                         data: validation.success ? validation.data : null,
-                        error: validation.success ? null : validation.error.errors[0].message + ' (' + validation.error.errors[0].path.join('.') + ')'
+                        error: validation.success
+                            ? null
+                            : validation.error.issues[0].message + ' (' + validation.error.issues[0].path.join('.') + ')'
                     }
                 })
                 setRows(parsed)

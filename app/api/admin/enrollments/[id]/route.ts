@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/server/auth/options'
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await getServerSession(authOptions as any)
+    const session = await getServerSession(authOptions)
     if (!session || (session as any)?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -31,7 +31,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await getServerSession(authOptions as any)
+    const session = await getServerSession(authOptions)
     if (!session || (session as any)?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

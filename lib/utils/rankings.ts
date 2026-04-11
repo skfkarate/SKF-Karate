@@ -1,5 +1,10 @@
 import { calculatePoints, calculateResultPoints, normaliseEventTier, normaliseResult } from "./points"
 
+type RankingOptions = {
+  currentDate?: Date
+  categoryKey?: string
+}
+
 function toDate(value) {
   const date = value instanceof Date ? value : new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
@@ -109,7 +114,7 @@ export function getAthleteCompetitionResults(athlete, allResults = [], currentDa
 export function getAthleteRankingCategory(athlete, allResults = [], currentDate = new Date()) {
   const athleteResults = getAthleteCompetitionResults(athlete, allResults, currentDate)
   const latestResult = [...athleteResults].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )[0]
 
   const ageGroup = latestResult?.ageGroup || getAgeCategory(athlete.dateOfBirth, currentDate)
@@ -140,7 +145,11 @@ export function compareRankingEntries(a, b) {
   return a.athleteName.localeCompare(b.athleteName)
 }
 
-export function getRankedAthletes(athletes = [], allResults = [], options = {}) {
+export function getRankedAthletes(
+  athletes = [],
+  allResults = [],
+  options: RankingOptions = {}
+) {
   const currentDate = options.currentDate || new Date()
   const activeAthletes = athletes.filter((athlete) => athlete.status === "active")
 
@@ -167,7 +176,7 @@ export function getRankedAthletes(athletes = [], allResults = [], options = {}) 
       tournamentCount: results.length,
       mostRecentResultAt: results
         .map((result) => result.date)
-        .sort((a, b) => new Date(b) - new Date(a))[0] || null,
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null,
       rankingCategory,
       pointsBreakdown: results.map((result) => ({
         ...result,

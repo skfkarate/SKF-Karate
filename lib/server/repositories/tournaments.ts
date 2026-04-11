@@ -10,7 +10,78 @@ import { ApiError } from '../api'
 /** @type {import('../../types/tournament').Tournament[]} */
 const TOURNAMENTS_DATA_FILE = resolveDataFile('tournaments.json')
 
-let tournaments = [
+export type TournamentWinner = {
+  id: string
+  athleteId?: string
+  athleteName: string
+  registrationNumber?: string
+  belt: string
+  branchName: string
+  category: string
+  ageGroup: string
+  weightCategory?: string
+  medal: 'gold' | 'silver' | 'bronze'
+  position: number
+  photoUrl?: string
+}
+
+export type TournamentParticipant = {
+  id: string
+  athleteId?: string
+  athleteName: string
+  registrationNumber: string
+  branchName: string
+  belt: string
+  photoUrl?: string
+}
+
+export type TournamentResultRecord = {
+  id?: string
+  athleteId?: string
+  registrationNumber: string
+  athleteName: string
+  result: string
+  medal?: string
+  position?: number
+  category?: string
+  ageGroup?: string
+  weightCategory?: string
+  notes?: string
+}
+
+export type TournamentRecord = {
+  id: string
+  slug: string
+  name: string
+  shortName: string
+  level: string
+  date: string
+  endDate?: string
+  venue: string
+  city: string
+  state: string
+  description: string
+  coverImageUrl?: string
+  totalParticipants: number
+  skfParticipants: number
+  medals: {
+    gold: number
+    silver: number
+    bronze: number
+  }
+  affiliatedBody?: string
+  status: string
+  isPublished: boolean
+  isFeatured: boolean
+  createdAt: string
+  updatedAt: string
+  participants: TournamentParticipant[]
+  winners: TournamentWinner[]
+  results?: TournamentResultRecord[]
+  resultsAppliedAt?: string
+}
+
+let tournaments: TournamentRecord[] = [
   {
     id: 't1',
     slug: 'skf-national-karate-championship-2025',
@@ -317,12 +388,14 @@ let tournaments = [
 ]
 
 // Sort newest first by default
-tournaments.sort((a, b) => new Date(b.date) - new Date(a.date))
+tournaments.sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+)
 
 let tournamentsLoadedFromDisk = false
 
-function cloneTournamentData(value) {
-  return JSON.parse(JSON.stringify(value))
+function cloneTournamentData<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T
 }
 
 function ensureTournamentsLoaded() {
@@ -332,7 +405,9 @@ function ensureTournamentsLoaded() {
   try {
     const stored = readJsonArray(TOURNAMENTS_DATA_FILE)
     if (Array.isArray(stored) && stored.length > 0) {
-      tournaments = stored.sort((a, b) => new Date(b.date) - new Date(a.date))
+      tournaments = (stored as TournamentRecord[]).sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      )
     }
   } catch (error) {
     console.error('Failed to load tournament store:', error)
@@ -341,11 +416,15 @@ function ensureTournamentsLoaded() {
 
 function persistTournaments() {
   ensureTournamentsLoaded()
-  tournaments.sort((a, b) => new Date(b.date) - new Date(a.date))
+  tournaments.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
   writeJsonAtomically(TOURNAMENTS_DATA_FILE, tournaments)
 }
 
-function recalculateMedals(winners = []) {
+function recalculateMedals(
+  winners: TournamentWinner[] = []
+): TournamentRecord['medals'] {
   return {
     gold: winners.filter((winner) => winner.medal === 'gold').length,
     silver: winners.filter((winner) => winner.medal === 'silver').length,
@@ -353,7 +432,10 @@ function recalculateMedals(winners = []) {
   }
 }
 
-function normaliseTournamentPayload(input = {}, existing = null) {
+function normaliseTournamentPayload(
+  input: Partial<TournamentRecord> = {},
+  existing: TournamentRecord | null = null
+): TournamentRecord {
   const winners = Array.isArray(input.winners) ? input.winners : existing?.winners || []
   const participants = Array.isArray(input.participants)
     ? input.participants
@@ -494,7 +576,11 @@ export function hasTournamentSlug(slug, excludeId = null) {
 /** Get all tournaments for admin (including unpublished) */
 export function getAllTournamentsAdmin() {
   ensureTournamentsLoaded()
-  return cloneTournamentData([...tournaments].sort((a, b) => new Date(b.date) - new Date(a.date)))
+  return cloneTournamentData(
+    [...tournaments].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+  )
 }
 
 export function createTournament(input) {
@@ -505,7 +591,9 @@ export function createTournament(input) {
     throw new ApiError(409, 'A tournament with this slug already exists.')
   }
 
-  tournaments = [tournament, ...tournaments].sort((a, b) => new Date(b.date) - new Date(a.date))
+  tournaments = [tournament, ...tournaments].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
   persistTournaments()
   return cloneTournamentData(tournament)
 }

@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { checkRateLimit } from './rate-limit'
 
 export class ApiError extends Error {
-  constructor(status, message, options = {}) {
+  status: number
+  details?: unknown
+  headers: HeadersInit
+
+  constructor(status: number, message: string, options: { details?: unknown; headers?: HeadersInit } = {}) {
     super(message)
     this.name = 'ApiError'
     this.status = status
@@ -11,7 +15,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function readJsonBody(request) {
+export async function readJsonBody(request: Request) {
   try {
     return await request.json()
   } catch {
@@ -19,7 +23,7 @@ export async function readJsonBody(request) {
   }
 }
 
-export function getClientIp(request) {
+export function getClientIp(request: Request) {
   const forwardedFor = request.headers.get('x-forwarded-for')
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim()
@@ -28,7 +32,10 @@ export function getClientIp(request) {
   return request.headers.get('x-real-ip')?.trim() || 'unknown'
 }
 
-export function enforceRateLimit(request, options) {
+export function enforceRateLimit(
+  request: Request,
+  options: { name: string; limit: number; windowMs: number }
+) {
   const result = checkRateLimit(options.name, getClientIp(request), {
     limit: options.limit,
     windowMs: options.windowMs,
@@ -45,7 +52,7 @@ export function enforceRateLimit(request, options) {
   return result
 }
 
-export function createErrorResponse(error, fallbackMessage = 'Something went wrong.') {
+export function createErrorResponse(error: unknown, fallbackMessage = 'Something went wrong.') {
   if (error instanceof ApiError) {
     return NextResponse.json(
       {

@@ -3,6 +3,10 @@ import { getStudentBySkfId } from '@/lib/server/sheets'
 import Link from 'next/link'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
+function getProgramRelation<T extends { name?: string }>(programs: T | T[] | null | undefined) {
+  return Array.isArray(programs) ? programs[0] : programs
+}
+
 export async function generateMetadata({ params }: { params: { skfId: string, enrollmentId: string } }) {
   const { skfId, enrollmentId } = await params
   
@@ -16,11 +20,13 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
 
   if (!data) return { title: 'Certificate Verification Failed | SKF Karate' }
 
+  const program = getProgramRelation(data.programs)
+
   return {
-    title: `Verified SKF Certificate - ${data.programs?.name}`,
+    title: `Verified SKF Certificate - ${program?.name}`,
     description: `Official verification of SKF Karate certification authenticity for ID: ${skfId}`,
     openGraph: {
-      title: `Verified SKF Certificate - ${data.programs?.name}`,
+      title: `Verified SKF Certificate - ${program?.name}`,
       description: 'Official SKF Karate Certification Authenticity Check'
     }
   }
@@ -29,7 +35,6 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
 export default async function VerifyCertificatePage({ params }: { params: { skfId: string, enrollmentId: string } }) {
   const { skfId, enrollmentId } = await params
 
-  // Strict check over raw properties via service config
   const { data: cert } = await supabaseAdmin
     .from('enrollments')
     .select('programs(name), belt_level, completion_date, issuer_name, status, certificate_unlocked')
@@ -56,12 +61,13 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
     )
   }
 
-  // If valid, explicitly resolve names against Sheets!
   let studentName = 'Unknown Student'
   try {
     const student = await getStudentBySkfId(skfId)
-    if (student) studentName = `${student['First Name']} ${student['Last Name']}`
-  } catch (e) { }
+    if (student) studentName = student.name
+  } catch {}
+
+  const program = getProgramRelation(cert.programs)
 
   return (
     <div style={{ minHeight: '100vh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
@@ -75,7 +81,6 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
 
         <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '1.5rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            
             <div>
               <span style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student Name</span>
               <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 600 }}>{studentName}</div>
@@ -94,7 +99,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
 
             <div>
               <span style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Program Completed</span>
-              <div style={{ color: '#f39c12', fontSize: '1.1rem', fontWeight: 600 }}>{cert.programs?.name}</div>
+              <div style={{ color: '#f39c12', fontSize: '1.1rem', fontWeight: 600 }}>{program?.name}</div>
             </div>
             
             {cert.belt_level && (
@@ -113,7 +118,6 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
                 <div style={{ color: '#666', fontSize: '0.75rem' }}>Authorized Examiner</div>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -123,7 +127,6 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           <a href="/" style={{ color: '#888', textDecoration: 'none', fontSize: '0.85rem' }}>Return to Home</a>
         </div>
-
       </div>
     </div>
   )

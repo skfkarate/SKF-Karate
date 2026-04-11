@@ -495,7 +495,7 @@ export function searchAthletesByName(query) {
 export function getRankSnapshots() {
   ensureAthletesLoaded();
   const results = buildCompetitionResultsFromAthletes(mockAthletes);
-  return calculateAllRanks(mockAthletes, results);
+  return calculateAllRanks(mockAthletes, results, new Date());
 }
 
 export function getAthleteRank(athleteId) {
@@ -511,7 +511,10 @@ export function getAthleteRank(athleteId) {
   };
 }
 
-function normaliseAthletePayload(input = {}, existing = null) {
+function normaliseAthletePayload(
+  input: Record<string, any> = {},
+  existing: Record<string, any> | null = null
+) {
   const now = new Date().toISOString();
   const joinDate = input.joinDate || existing?.joinDate || new Date().toISOString().split('T')[0];
   const joinYear = Number.parseInt(String(joinDate).slice(0, 4), 10) || new Date().getFullYear();

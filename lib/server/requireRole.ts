@@ -6,7 +6,7 @@ import { getStudentBySkfId } from './sheets'
 export async function requireRole(
   allowedRoles: UserRole[]
 ): Promise<JWTPayload> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get('skf_student_token')?.value
   if (!token) throw new Error('UNAUTHORIZED')
   const payload = verifyStudentJWT(token)

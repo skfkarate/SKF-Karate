@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#000', color: '#fff' }}>
       {/* Persistent Sidebar */}
-      <AdminSidebar user={session.user} />
+      <AdminSidebar />
       
       {/* Main Content Area */}
       <main style={{

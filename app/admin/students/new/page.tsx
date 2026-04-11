@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createStudentSchema } from '@/lib/validators'
 import * as z from 'zod'
 import Link from 'next/link'
 import { FaCopy, FaCheck } from 'react-icons/fa'
 
-type FormValues = z.infer<typeof createStudentSchema>
+type CreateStudentInput = z.input<typeof createStudentSchema>
+type FormValues = z.output<typeof createStudentSchema>
 
 export default function NewStudentPage() {
     const [submitting, setSubmitting] = useState(false)
@@ -20,7 +21,7 @@ export default function NewStudentPage() {
         register,
         handleSubmit,
         formState: { errors }
-    } = useForm<FormValues>({
+    } = useForm<CreateStudentInput, unknown, FormValues>({
         resolver: zodResolver(createStudentSchema),
         defaultValues: {
             photoConsent: false,
@@ -30,7 +31,7 @@ export default function NewStudentPage() {
         }
     })
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
         setSubmitting(true)
         setApiError('')
         try {

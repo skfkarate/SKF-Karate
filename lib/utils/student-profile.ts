@@ -238,7 +238,7 @@ export function buildAthleteProfileData(athlete, rankInfo, currentDate = new Dat
   const nextBelt = getNextBelt(athlete.currentBelt)
 
   const achievements = [...(athlete.achievements || [])].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
   const competitionEntries = achievements
@@ -252,7 +252,12 @@ export function buildAthleteProfileData(athlete, rankInfo, currentDate = new Dat
   const totalRankingPoints = Number((rankInfo?.totalPoints ?? 0).toFixed(2))
   const yearsTraining = Math.max(
     0,
-    Number(((new Date(currentDate) - new Date(athlete.joinDate)) / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1))
+    Number(
+      (
+        (new Date(currentDate).getTime() - new Date(athlete.joinDate).getTime()) /
+        (1000 * 60 * 60 * 24 * 365.25)
+      ).toFixed(1)
+    )
   )
 
   const gradingHistory = achievements

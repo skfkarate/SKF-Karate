@@ -9,8 +9,8 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session || (session as any)?.role !== 'admin') {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -37,13 +37,20 @@ export async function POST(request: Request) {
     for (const enrollment of enrollments) {
       try {
         const studentInfo = await getStudentBySkfId(enrollment.skf_id)
-        if (!studentInfo || !studentInfo.Email) {
+        const studentRecord = studentInfo as unknown as Record<string, unknown> | null
+        const emailContact =
+          typeof studentRecord?.Email === 'string'
+            ? String(studentRecord.Email)
+            : ''
+
+        if (!studentInfo || !emailContact) {
           console.warn(`No email found for SKF ID: ${enrollment.skf_id}`)
           continue
         }
 
-        const programName = enrollment.programs?.name || 'Program'
-        const emailContact = studentInfo.Email
+        const program =
+          Array.isArray(enrollment.programs) ? enrollment.programs[0] : enrollment.programs
+        const programName = program?.name || 'Program'
 
         await resend.emails.send({
           from: 'SKF Karate <certificates@updates.skfkarate.com>',

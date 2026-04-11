@@ -38,7 +38,7 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
     const achievementToAdd = {
       ...newAchievement,
       id: `ach_${Date.now()}`,
-      pointsAwarded: parseInt(pts) || 0
+      pointsAwarded: Number(pts) || 0
     };
 
     const newHistory = {
@@ -277,7 +277,7 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
                   ))}
                   {formData.pointsHistory.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="p-10 text-center text-gray-500 italic border-t border-[rgba(255,255,255,0.05)]">No points history available.</td>
+                      <td colSpan={4} className="p-10 text-center text-gray-500 italic border-t border-[rgba(255,255,255,0.05)]">No points history available.</td>
                     </tr>
                   )}
                 </tbody>
@@ -350,7 +350,7 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Points Overwrite</label>
-                      <input type="number" value={newAchievement.pointsAwarded} onChange={e => setNewAchievement({ ...newAchievement, pointsAwarded: e.target.value })} className="input-field" />
+                      <input type="number" value={newAchievement.pointsAwarded} onChange={e => setNewAchievement({ ...newAchievement, pointsAwarded: Number(e.target.value) || 0 })} className="input-field" />
                     </div>
                   </div>
                 )}
