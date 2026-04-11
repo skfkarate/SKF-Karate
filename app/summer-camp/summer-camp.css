@@ -34,7 +34,7 @@
 .countdown__number {
     font-size: 2.5rem;
     font-weight: 800;
-    font-family: var(--font-heading);
+    
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -94,6 +94,12 @@
     height: 220px;
     overflow: hidden;
     border-radius: 16px 16px 0 0;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .benefit-card__image img {
@@ -110,24 +116,25 @@
 .benefit-card__image-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        180deg,
-        transparent 30%,
-        rgba(0, 0, 0, 0.5) 70%,
-        rgba(10, 10, 20, 0.95) 100%
-    );
+    
     z-index: 1;
     pointer-events: none;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .benefit-card__image-overlay--crimson {
-    background: linear-gradient(
-        180deg,
-        rgba(214, 40, 40, 0.05) 0%,
-        transparent 30%,
-        rgba(0, 0, 0, 0.5) 70%,
-        rgba(10, 10, 20, 0.95) 100%
-    );
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 /* Floating icon badge */
@@ -140,7 +147,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.3rem;
-    color: #000;
+    color: var(--text-primary);
     z-index: 3;
     box-shadow: 0 4px 15px rgba(255, 183, 3, 0.4);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -151,18 +158,36 @@
 }
 
 .benefit-card__icon-badge--crimson {
-    background: linear-gradient(135deg, var(--crimson), #a51c1c);
+    
     color: #fff;
-    box-shadow: 0 4px 15px rgba(214, 40, 40, 0.4);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .benefit-card:hover .benefit-card__icon-badge {
     transform: scale(1.15);
-    box-shadow: 0 6px 20px rgba(255, 183, 3, 0.5);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .benefit-card--highlight:hover .benefit-card__icon-badge--crimson {
-    box-shadow: 0 6px 20px rgba(214, 40, 40, 0.5);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 /* Content section */
@@ -173,6 +198,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .benefit-card__content h4 {
@@ -207,6 +238,12 @@
     text-align: center;
     padding: 2rem 1.5rem;
     transition: transform 0.3s ease, border-color 0.3s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .camp-detail-card:hover {
@@ -220,6 +257,12 @@
     color: var(--gold);
     margin-bottom: 1rem;
     filter: drop-shadow(0 0 8px rgba(255, 183, 3, 0.3));
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .camp-detail-card h4 {
@@ -327,14 +370,20 @@
     display: flex;
     flex-direction: column;
     position: relative;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__badge {
     position: absolute;
     top: 20px;
     right: -30px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    color: #000;
+    
+    color: var(--text-primary);
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -342,12 +391,24 @@
     padding: 5px 40px;
     transform: rotate(45deg);
     z-index: 2;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__header {
     padding: 2.5rem 2rem 1.5rem;
     text-align: center;
     border-bottom: 1px solid var(--border-subtle);
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__icon {
@@ -359,15 +420,27 @@
     border-radius: 50%;
     font-size: 1.6rem;
     color: var(--gold);
-    background: rgba(255, 183, 3, 0.08);
-    border: 1px solid rgba(255, 183, 3, 0.15);
+    
+    
     margin: 0 auto 1.5rem auto;
     transition: var(--transition);
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card:hover .program-card__icon {
     transform: scale(1.1);
-    background: rgba(255, 183, 3, 0.15);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__header h3 {
@@ -381,6 +454,12 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-weight: 600;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__price {
@@ -392,6 +471,12 @@
     justify-content: center;
     align-items: baseline;
     gap: 0.2rem;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__price-old {
@@ -402,6 +487,12 @@
     margin-right: -0.2rem;
     align-self: center;
     margin-top: 0.5rem;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__price span {
@@ -414,6 +505,12 @@
 .program-card__features {
     padding: 2rem;
     flex: 1;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card__features li {
@@ -436,13 +533,30 @@
 .program-card__btn {
     margin: 0 2rem 2rem 2rem;
     text-align: center;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 /* Featured card */
 .program-card--featured {
     border-color: rgba(255, 183, 3, 0.25);
     transform: scale(1.03);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .program-card--featured:hover {
@@ -451,8 +565,14 @@
 
 .program-card--featured .program-card__icon {
     color: var(--crimson);
-    background: rgba(214, 40, 40, 0.1);
+    
     border-color: rgba(214, 40, 40, 0.2);
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 /* ===== SCHEDULE ===== */
@@ -484,6 +604,12 @@
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .schedule__image-card:hover {
@@ -664,7 +790,7 @@
 .sensei__stat-number {
     font-size: 2rem;
     font-weight: 800;
-    font-family: var(--font-heading);
+    
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -730,6 +856,12 @@
     width: 350px;
     flex-shrink: 0;
     transition: transform 0.3s ease, border-color 0.3s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .testimonial-card:hover {
@@ -742,6 +874,12 @@
     font-size: 1.5rem;
     opacity: 0.5;
     margin-bottom: 1rem;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .testimonial-card p {
@@ -756,19 +894,31 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .testimonial-card__avatar {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
     font-size: 1.1rem;
     color: white;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .testimonial-card__author strong {
@@ -841,7 +991,7 @@
     font-weight: 800;
     color: var(--gold);
     opacity: 0.5;
-    font-family: var(--font-heading);
+    
     min-width: 24px;
 }
 
@@ -932,7 +1082,7 @@
     align-items: center;
     overflow: hidden;
     margin: 0 auto;
-    background-color: #000;
+    background-color: var(--text-primary);
     will-change: transform, border-radius;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
 }
@@ -987,6 +1137,11 @@
     transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     border: none;
     cursor: pointer;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-whatsapp svg {
@@ -1258,7 +1413,7 @@
 .vip-ticket__badge {
     display: inline-block;
     background: linear-gradient(135deg, var(--gold), var(--gold-light, #D4AF37));
-    color: #000;
+    color: var(--text-primary);
     padding: 0.4rem 1rem;
     border-radius: 6px;
     font-size: 0.95rem;
@@ -1288,7 +1443,7 @@
 
 .vip-ticket__old-price {
     font-size: 1.1rem;
-    color: #777;
+    color: var(--text-muted);
     text-decoration: line-through;
     margin-bottom: 0.5rem;
 }
@@ -1327,7 +1482,7 @@
 
 .vip-btn {
     background: linear-gradient(90deg, #FFDF00 0%, #D4AF37 100%);
-    color: #000;
+    color: var(--text-primary);
     font-weight: 900;
     font-size: 1.2rem;
     padding: 1.2rem 2.8rem;
@@ -1342,6 +1497,11 @@
     letter-spacing: 1px;
     transition: all 0.3s ease;
     text-decoration: none;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .vip-btn:hover {
@@ -1406,11 +1566,23 @@
     gap: 2rem;
     width: 100%;
     max-width: 1000px;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .camp-loading__card {
     height: 280px;
     border-radius: 16px;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .camp-loading__ticket {
@@ -1429,10 +1601,22 @@
     .camp-loading__cards {
         grid-template-columns: 1fr;
         max-width: 400px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     .camp-loading__card {
         height: 200px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     .camp-loading__hero {
         padding-top: 5rem;
     }
@@ -1549,7 +1733,13 @@
 
     .program-card--featured {
         transform: scale(1);
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card--featured:hover {
         transform: translateY(-8px);
@@ -1567,7 +1757,13 @@
 
     .benefit-card--highlight {
         transform: none;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .sensei__content {
         grid-template-columns: 1fr;
@@ -1603,7 +1799,13 @@
 
     .testimonial-card {
         width: 310px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .featured-quote {
         padding: 2.5rem 2rem;
@@ -1642,7 +1844,13 @@
 
     .benefit-card__image {
         height: 180px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .offer-banner {
         padding: 2rem 1.5rem;
@@ -1660,19 +1868,48 @@
 
     .program-card__header {
         padding: 2rem 1.5rem 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__features {
         padding: 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__btn {
         margin: 0 1.5rem 1.5rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     .program-card__price {
         font-size: 2rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .sensei__content {
         padding: 2rem;
@@ -1699,7 +1936,13 @@
     .testimonial-card {
         width: 280px;
         padding: 2rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .testimonial-card p {
         font-size: 0.9rem;
@@ -1854,7 +2097,12 @@
     .vip-btn {
         width: 100%;
         justify-content: center;
-    }
+    
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 }
 
 /* ───── MOBILE STANDARD (480px) ───── */
@@ -1870,11 +2118,23 @@
 
     .benefit-card__image {
         height: 160px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .benefit-card__content {
         padding: 1.5rem 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .benefit-card__content h4 {
         font-size: 1rem;
@@ -1886,7 +2146,13 @@
 
     .benefit-card__img-ninja {
         object-position: center 35% !important;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .camp-details__grid {
         grid-template-columns: 1fr;
@@ -1944,18 +2210,36 @@
     /* Reorder: Full Camp first, then Month 1, then Month 2 */
     .programs__grid .program-card--featured {
         order: -1;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__header {
         padding: 1.75rem 1.25rem 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__icon {
         width: 56px;
         height: 56px;
         font-size: 1.4rem;
         margin-bottom: 1rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__header h3 {
         font-size: 1.3rem;
@@ -1963,20 +2247,44 @@
 
     .program-card__level {
         font-size: 0.8rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__price {
         font-size: 1.9rem;
         margin-top: 0.75rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__price-old {
         font-size: 1.05rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__features {
         padding: 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__features li {
         font-size: 0.88rem;
@@ -1986,14 +2294,31 @@
 
     .program-card__btn {
         margin: 0 1.25rem 1.25rem 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     .program-card__badge {
         font-size: 0.6rem;
         padding: 4px 35px;
         top: 16px;
         right: -32px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     /* Sensei */
     .sensei__header {
@@ -2082,12 +2407,24 @@
     .testimonial-card {
         width: 260px;
         padding: 1.75rem 1.25rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .testimonial-card__quote {
         font-size: 1.2rem;
         margin-bottom: 0.75rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .testimonial-card p {
         font-size: 0.85rem;
@@ -2099,7 +2436,13 @@
         width: 38px;
         height: 38px;
         font-size: 0.95rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .testimonial-card__author strong {
         font-size: 0.88rem;
@@ -2173,12 +2516,22 @@
         width: 100%;
         justify-content: center;
         padding: 1rem 1.5rem;
-    }
+    
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     .btn-whatsapp {
         font-size: 0.88rem;
         padding: 0.8rem 1.5rem;
-    }
+    
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     /* Floating WhatsApp */
     .floating-whatsapp {
@@ -2247,7 +2600,12 @@
     .vip-btn {
         font-size: 1rem;
         padding: 1rem 2rem;
-    }
+    
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     .vip-ticket__watermark {
         font-size: 8rem;
@@ -2296,7 +2654,13 @@
 
     .program-card__price {
         font-size: 1.7rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .program-card__features li {
         font-size: 0.82rem;
@@ -2304,7 +2668,13 @@
 
     .testimonial-card {
         width: 240px;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .testimonials__track {
         /* Tiny Mobile slider: 10 cards * 240px + 320 gap = 2720px exact width */
@@ -2435,7 +2805,7 @@
     border-radius: 12px;
     color: #fff;
     font-size: 1rem;
-    font-family: inherit;
+    
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
     outline: none;
 }
@@ -2512,7 +2882,7 @@
     border-radius: 12px;
     color: #fff;
     font-size: 1rem;
-    font-family: inherit;
+    
     outline: none;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
     animation: slide-in 0.3s ease;
@@ -2545,7 +2915,7 @@
     width: 100%;
     padding: 1.2rem;
     background: linear-gradient(90deg, #FFDF00, #D4AF37);
-    color: #000;
+    color: var(--text-primary);
     font-weight: 900;
     font-size: 1.15rem;
     border: none;
@@ -2559,7 +2929,7 @@
     letter-spacing: 1px;
     box-shadow: 0 10px 30px rgba(255, 215, 0, 0.35);
     transition: all 0.3s ease;
-    font-family: inherit;
+    
 }
 
 .enroll-form__submit:hover:not(:disabled) {
@@ -2583,7 +2953,7 @@
     width: 20px;
     height: 20px;
     border: 3px solid rgba(0, 0, 0, 0.2);
-    border-top-color: #000;
+    border-top-color: var(--text-primary);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
 }
@@ -2603,13 +2973,19 @@
 .enroll-success__card {
     max-width: 600px;
     width: 100%;
-    background: linear-gradient(145deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.95));
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    
+    
     border-radius: 24px;
     padding: 3.5rem 2.5rem;
     text-align: center;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 50px rgba(255, 215, 0, 0.08);
+    
     animation: fadeInUp 0.6s var(--ease-out) forwards;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .enroll-success__icon-wrap {
@@ -2682,6 +3058,11 @@
     box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
     transition: all 0.3s ease;
     letter-spacing: 0.5px;
+
+  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
+  color: white;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .enroll-success__whatsapp-btn:hover {
@@ -2724,5 +3105,15 @@
 
     .enroll-success__card {
         padding: 2.5rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
+}
+/* Map Utilities */
+.map-card { padding: 1rem; border-radius: 24px; overflow: hidden; position: relative; }
+.map-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: pointer; }
+.map-iframe { border: 0; border-radius: 16px; filter: invert(90%) hue-rotate(180deg) contrast(85%); }

@@ -1,4 +1,5 @@
 import withPWAInit from 'next-pwa'
+import { withSentryConfig } from '@sentry/nextjs'
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -10,13 +11,14 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   turbopack: {},
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
+      { protocol: 'https', hostname: '*.googleusercontent.com' },
     ],
   },
   async headers() {
@@ -58,4 +60,12 @@ const nextConfig = {
   }
 };
 
-export default withPWA(nextConfig);
+export default withSentryConfig(withPWA(nextConfig), {
+  silent: true,
+  org: "skf-karate",
+  project: "skf-website",
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+});

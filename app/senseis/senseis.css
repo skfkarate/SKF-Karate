@@ -45,16 +45,22 @@
     grid-template-columns: 1fr 2.5fr;
     gap: 4rem;
     align-items: center;
-    background: rgba(12, 16, 28, 0.65);
+    
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    
     border-radius: 24px;
     padding: 4.5rem;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 0, 0, 0.2);
+    
     overflow: hidden;
     transition: all 0.5s ease;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-card:hover {
@@ -67,16 +73,34 @@
 .spotlight-card--reverse {
     grid-template-columns: 2.5fr 1fr;
     text-align: right;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-card--reverse .spotlight-card__visual {
     grid-column: 2;
     grid-row: 1;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-card--reverse .spotlight-card__content {
     grid-column: 1;
     grid-row: 1;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-card--reverse .spotlight-stats {
@@ -118,6 +142,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-avatar-ring {
@@ -181,7 +211,7 @@
 }
 
 .spotlight-badge__rank {
-    color: #000;
+    color: var(--text-primary);
     font-size: 0.9rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -192,6 +222,12 @@
 .spotlight-card__content {
     position: relative;
     z-index: 2;
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .spotlight-role {
@@ -205,7 +241,7 @@
 }
 
 .spotlight-name {
-    font-family: var(--font-heading);
+    
     font-size: 3.5rem;
     font-weight: 900;
     background: linear-gradient(to right, #ffffff 0%, var(--gold) 100%);
@@ -321,10 +357,16 @@
     position: relative;
     text-align: center;
     padding: 5rem 2rem;
-    border: 1px solid rgba(214, 40, 40, 0.2);
+    
     border-radius: 24px;
     overflow: hidden;
-    background: rgba(12, 16, 28, 0.6);
+    
+
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
 }
 
 .sensei-cta__bg-glow {
@@ -363,17 +405,35 @@
         grid-template-columns: 1fr;
         text-align: center;
         padding: 4rem 2rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     
     .spotlight-card--reverse .spotlight-card__visual, .spotlight-card__visual {
         grid-column: 1;
         grid-row: 1;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
 
     .spotlight-card--reverse .spotlight-card__content, .spotlight-card__content {
         grid-column: 1;
         grid-row: 2;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     
     .spotlight-quote, .spotlight-card--reverse .spotlight-quote {
         margin: 0 auto 2rem auto;
@@ -437,7 +497,13 @@
     
     .spotlight-card {
         padding: 3rem 1.5rem;
-    }
+    
+  background: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: var(--border-glass);
+  border-radius: 16px;
+}
     
     .spotlight-name {
         font-size: 2.2rem;
@@ -447,3 +513,6 @@
         font-size: 1.15rem;
     }
 }
+/* Utility Classes */
+.link-underline { text-decoration: underline; text-underline-offset: 2px; color: inherit; }
+.mr-half { margin-right: 8px; }
