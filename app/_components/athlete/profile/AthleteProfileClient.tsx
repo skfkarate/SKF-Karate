@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import html2canvas from 'html2canvas'
 import { RankingCard } from '@/components/RankingCard'
 import {
@@ -222,7 +223,7 @@ function TabbedCompetitions({ categories }) {
   if (!sortedCategories || sortedCategories.length === 0 || !hasAnyResults) return null
 
   const filtered = useMemo(() => {
-    let rows = [...cat.results].sort((a, b) => new Date(b.date) - new Date(a.date))
+    let rows = [...cat.results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     if (filter.trim()) {
       const q = filter.toLowerCase()
       rows = rows.filter((r) => r.event.toLowerCase().includes(q) || r.type.toLowerCase().includes(q) || r.date.includes(q))
@@ -322,7 +323,7 @@ function TabbedCompetitions({ categories }) {
                   <td>{r.type}</td>
                   <td>{r.category}</td>
                   <td className="ctr">{r.factor}</td>
-                  <td className="ctr">{r.hasView ? <Eye size={15} className="ap-eye" title="View details" aria-label="View details" /> : null}</td>
+                  <td className="ctr">{r.hasView ? <Eye size={15} className="ap-eye" aria-label="View details" /> : null}</td>
                   <td className="ctr"><MedalBadge rank={r.rank} /></td>
                   <td className="ctr">{r.wins}</td>
                   <td className="ctr">{r.points}</td>
@@ -353,7 +354,7 @@ function TabbedCompetitions({ categories }) {
    ═══════════════════════════════════════════════════════════════════════ */
 function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
   if (!beltExaminations || beltExaminations.length === 0) return null
-  const sorted = [...beltExaminations].sort((a, b) => new Date(b.date) - new Date(a.date))
+  const sorted = [...beltExaminations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return (
     <section className="ap-section ap-animate-in ap-delay-3" id="certifications">
@@ -430,7 +431,7 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
    ═══════════════════════════════════════════════════════════════════════ */
 function SpecialEventsSection({ specialEvents }) {
   if (!specialEvents || specialEvents.length === 0) return null
-  const sorted = [...specialEvents].sort((a, b) => new Date(b.date) - new Date(a.date))
+  const sorted = [...specialEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const typeColor = { Seminar: '#ffe49a', 'Training Camp': '#99f6e4', Workshop: '#bfdbfe' }
   const typeBg = { Seminar: 'rgba(255,183,3,0.1)', 'Training Camp': 'rgba(45,212,191,0.08)', Workshop: 'rgba(59,130,246,0.08)' }
@@ -470,7 +471,7 @@ function SpecialEventsSection({ specialEvents }) {
                       <MapPin size={13} /> {ev.location}
                     </span>
                   </td>
-                  <td className="ctr"><Eye size={15} className="ap-eye" title="View details" aria-label="View details" /></td>
+                  <td className="ctr"><Eye size={15} className="ap-eye" aria-label="View details" /></td>
                 </tr>
               ))}
             </tbody>
@@ -490,7 +491,7 @@ export default function AthleteProfileClient({
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null)
   
-  const cardRef = useRef(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [isExporting, setIsExporting] = useState(false)
 
   const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)

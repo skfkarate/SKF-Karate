@@ -6,16 +6,19 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { FaCheckCircle, FaCalendarAlt, FaCircleNotch } from 'react-icons/fa'
 
+const BRANCH_VALUES = ['koramangala', 'whitefield', 'jp-nagar'] as const
+
 export const freeTrialSchema = z.object({
   studentName: z.string().min(2, 'Name must be at least 2 characters').max(100),
   parentPhone: z.string().regex(/^\+91[0-9]{10}$/, 'Must be a valid +91 phone number'),
   childAge: z.coerce.number().min(5, 'Minimum age is 5').max(60, 'Maximum age is 60'),
-  branch: z.enum(['koramangala', 'whitefield', 'jp-nagar'], { errorMap: () => ({ message: 'Please select a branch' }) }),
+  branch: z.enum(BRANCH_VALUES),
   preferredBatch: z.string().min(1, 'Please select a preferred batch'),
   hearAboutUs: z.string().optional()
 })
 
-type FreeTrialFormValues = z.infer<typeof freeTrialSchema>
+type FreeTrialFormInput = z.input<typeof freeTrialSchema>
+type FreeTrialFormValues = z.output<typeof freeTrialSchema>
 
 const BRANCH_BATCHES = {
   koramangala: ['Tue/Thu 5pm', 'Tue/Thu 7pm', 'Sat 9am'],
@@ -31,7 +34,7 @@ export default function FreeTrialForm({ branch }: Props) {
     const [isSubmitted, setIsSubmitted] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     
-    const { register, handleSubmit, watch, formState: { errors } } = useForm<FreeTrialFormValues>({
+    const { register, handleSubmit, watch, formState: { errors } } = useForm<FreeTrialFormInput, unknown, FreeTrialFormValues>({
         resolver: zodResolver(freeTrialSchema),
         defaultValues: {
             branch: branch,

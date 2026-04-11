@@ -1,10 +1,24 @@
+import type { AuthOptions, User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-function buildUser({ id, name, role }) {
+interface AuthUser extends User {
+  id: string
+  role: string
+}
+
+function buildUser({
+  id,
+  name,
+  role,
+}: {
+  id: string
+  name: string
+  role: string
+}): AuthUser {
   return { id, name, role }
 }
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -58,8 +72,13 @@ export const authOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
-        session.user.role = token.role
+        if (typeof token.id === 'string') {
+          session.user.id = token.id
+        }
+
+        if (typeof token.role === 'string') {
+          session.user.role = token.role
+        }
       }
 
       return session

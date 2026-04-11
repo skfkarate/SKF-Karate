@@ -44,7 +44,7 @@ export default function EventsPage() {
     const upcomingEvents = events
         .filter((event) => event.status !== 'archived')
         .filter((event) => new Date(event.date) >= today)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map((event) => ({
             date: formatDisplayDate(event.date),
             title: event.name,
@@ -56,7 +56,7 @@ export default function EventsPage() {
 
     const pastEvents = events
         .filter((event) => new Date(event.date) < today || event.status === 'completed')
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3)
         .map((event) => ({
             date: formatDisplayDate(event.date),

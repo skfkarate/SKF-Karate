@@ -58,7 +58,7 @@ export function getCertificateAvailability(athlete) {
   const achievements = athlete.achievements || []
   const latestGrading = [...achievements]
     .filter((achievement) => achievement.type === "belt-grading")
-    .sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
 
   return {
     beltCertificateAvailable: Boolean(latestGrading),

@@ -102,7 +102,8 @@ export default function SummerCampEnrollForm() {
         }
         if (step === 2) {
             if (!form.studentName.trim() || !form.age) return "Please enter the student's name and age."
-            if (form.age < 3 || form.age > 25) return "Age must be between 3 and 25."
+            const age = Number(form.age)
+            if (age < 3 || age > 25) return "Age must be between 3 and 25."
         }
         if (step === 3) {
             if (!form.parentName.trim()) return "Please enter the parent/guardian's name."

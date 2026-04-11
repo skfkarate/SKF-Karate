@@ -29,7 +29,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     // Add the ID from URL to payload for updating
     const updatePayload = { ...payload, id: params.id }
     
-    const tournament = updateTournament(validateTournamentPayload(updatePayload))
+    const tournament = updateTournament(params.id, validateTournamentPayload(updatePayload))
 
     if (!tournament) {
       return NextResponse.json({ error: 'Tournament not found.' }, { status: 404 })

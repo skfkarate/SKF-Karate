@@ -27,9 +27,10 @@ export default function ProfileClient({ student, tournaments, attendance, enroll
   // Tournament calculations
   let goldStats = 0, silverStats = 0, bronzeStats = 0
   tournaments.forEach(t => {
-    if (t.result === 'Gold') goldStats++
-    if (t.result === 'Silver') silverStats++
-    if (t.result === 'Bronze') bronzeStats++
+    const result = t.result ?? t.medal
+    if (result === 'Gold') goldStats++
+    if (result === 'Silver') silverStats++
+    if (result === 'Bronze') bronzeStats++
   })
 
   // Attendance metrics

@@ -144,8 +144,7 @@ export default function AdminDashboardPage() {
                 borderBottom: '1px solid #111',
                 color: '#fff',
                 textDecoration: 'none',
-                transition: 'color 0.2s',
-                group: 'link'
+                transition: 'color 0.2s'
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.color = '#888'

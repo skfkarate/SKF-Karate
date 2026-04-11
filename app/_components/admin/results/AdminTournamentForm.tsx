@@ -19,7 +19,54 @@ import '../../../admin/results/admin-results.css'
 
 const AUTOSAVE_INTERVAL = 30000
 
-function slugify(str) {
+type WinnerFormValue = {
+  id?: string
+  athleteName: string
+  registrationNumber: string
+  branchName: string
+  belt: string
+  medal: 'gold' | 'silver' | 'bronze'
+  position: number
+  category: string
+  ageGroup: string
+  weightCategory: string
+  photoUrl: string
+}
+
+type TournamentFormState = {
+  id?: string
+  name: string
+  shortName: string
+  slug: string
+  level: string
+  affiliatedBody: string
+  date: string
+  endDate: string
+  venue: string
+  city: string
+  state: string
+  description: string
+  coverImageUrl: string
+  totalParticipants: number
+  skfParticipants: number
+  isPublished: boolean
+  isFeatured: boolean
+  winners: WinnerFormValue[]
+  medals: {
+    gold: number
+    silver: number
+    bronze: number
+  }
+}
+
+type TournamentFormErrors = Partial<
+  Record<
+    'name' | 'shortName' | 'slug' | 'date' | 'venue' | 'city' | 'state' | 'description' | 'totalParticipants' | 'skfParticipants' | 'winners',
+    string
+  >
+>
+
+function slugify(str: string) {
   return str
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -28,7 +75,7 @@ function slugify(str) {
     .trim()
 }
 
-const emptyWinner = {
+const emptyWinner: WinnerFormValue = {
   athleteName: '',
   registrationNumber: '',
   branchName: 'Sunkadakatte',
@@ -41,53 +88,81 @@ const emptyWinner = {
   photoUrl: '',
 }
 
-export default function AdminTournamentForm({ tournament, isEdit = false }) {
+const defaultTournamentForm: TournamentFormState = {
+  name: '',
+  shortName: '',
+  slug: '',
+  level: 'district',
+  affiliatedBody: '',
+  date: '',
+  endDate: '',
+  venue: '',
+  city: '',
+  state: 'Karnataka',
+  description: '',
+  coverImageUrl: '',
+  totalParticipants: 0,
+  skfParticipants: 0,
+  isPublished: false,
+  isFeatured: false,
+  winners: [],
+  medals: { gold: 0, silver: 0, bronze: 0 },
+}
+
+interface AdminTournamentFormProps {
+  tournament?: Partial<Omit<TournamentFormState, 'winners'>> & {
+    id?: string
+    winners?: Partial<WinnerFormValue>[]
+  }
+  isEdit?: boolean
+}
+
+function normaliseWinner(winner: Partial<WinnerFormValue> = {}): WinnerFormValue {
+  return {
+    ...emptyWinner,
+    ...winner,
+    registrationNumber: winner.registrationNumber ?? '',
+  }
+}
+
+export default function AdminTournamentForm({ tournament, isEdit = false }: AdminTournamentFormProps) {
   const router = useRouter()
 
   const [activeTab, setActiveTab] = useState(0)
   const [isDirty, setIsDirty] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<TournamentFormErrors>({})
   const [showWinnerModal, setShowWinnerModal] = useState(false)
-  const [editingWinnerIndex, setEditingWinnerIndex] = useState(null)
-  const [currentWinner, setCurrentWinner] = useState({ ...emptyWinner })
+  const [editingWinnerIndex, setEditingWinnerIndex] = useState<number | null>(null)
+  const [currentWinner, setCurrentWinner] = useState<WinnerFormValue>({ ...emptyWinner })
   const [notification, setNotification] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  const [form, setForm] = useState(() => {
+  const [form, setForm] = useState<TournamentFormState>(() => {
     if (tournament) {
-      return { ...tournament }
+      return {
+        ...defaultTournamentForm,
+        ...tournament,
+        winners: Array.isArray(tournament.winners)
+          ? tournament.winners.map(normaliseWinner)
+          : [],
+      }
     }
     // Try to load from localStorage
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('tournament_draft')
       if (saved) {
-        try { return JSON.parse(saved) } catch { /* ignore */ }
+        try {
+          return { ...defaultTournamentForm, ...JSON.parse(saved) }
+        } catch {
+          // ignore
+        }
       }
     }
-    return {
-      name: '',
-      shortName: '',
-      slug: '',
-      level: 'district',
-      affiliatedBody: '',
-      date: '',
-      endDate: '',
-      venue: '',
-      city: '',
-      state: 'Karnataka',
-      description: '',
-      coverImageUrl: '',
-      totalParticipants: 0,
-      skfParticipants: 0,
-      isPublished: false,
-      isFeatured: false,
-      winners: [],
-      medals: { gold: 0, silver: 0, bronze: 0 },
-    }
+    return defaultTournamentForm
   })
 
   // Auto-generate slug from name
-  const handleNameChange = (name) => {
+  const handleNameChange = (name: string) => {
     setForm(prev => ({
       ...prev,
       name,
@@ -96,14 +171,17 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
     setIsDirty(true)
   }
 
-  const updateField = (field, value) => {
+  const updateField = <K extends keyof TournamentFormState>(field: K, value: TournamentFormState[K]) => {
     setForm(prev => ({ ...prev, [field]: value }))
     setIsDirty(true)
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }))
+    const currentErrors = errors as Partial<Record<string, string>>
+    if (currentErrors[field as string]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }))
+    }
   }
 
   // Recalculate medals when winners change
-  const recalcMedals = useCallback((winners) => {
+  const recalcMedals = useCallback((winners: WinnerFormValue[]) => {
     return {
       gold: winners.filter(w => w.medal === 'gold').length,
       silver: winners.filter(w => w.medal === 'silver').length,
@@ -130,7 +208,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
     setShowWinnerModal(true)
   }
 
-  const openEditWinner = (index) => {
+  const openEditWinner = (index: number) => {
     setCurrentWinner({ ...form.winners[index] })
     setEditingWinnerIndex(index)
     setShowWinnerModal(true)
@@ -143,14 +221,14 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
     }
 
     // Auto-sync medal and position
-    const medalPositionMap = { gold: 1, silver: 2, bronze: 3 }
+    const medalPositionMap: Record<WinnerFormValue['medal'], number> = { gold: 1, silver: 2, bronze: 3 }
     const winner = {
       ...currentWinner,
       position: medalPositionMap[currentWinner.medal],
       id: currentWinner.id || `w_${Date.now()}`,
     }
 
-    let newWinners
+    let newWinners: WinnerFormValue[]
     if (editingWinnerIndex !== null) {
       newWinners = [...form.winners]
       newWinners[editingWinnerIndex] = winner
@@ -167,7 +245,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
     setShowWinnerModal(false)
   }
 
-  const removeWinner = (index) => {
+  const removeWinner = (index: number) => {
     const newWinners = form.winners.filter((_, i) => i !== index)
     setForm(prev => ({
       ...prev,
@@ -179,7 +257,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
 
   // Validation
   const validate = () => {
-    const errs = {}
+    const errs: TournamentFormErrors = {}
     if (!form.name.trim()) errs.name = 'Tournament name is required'
     if (!form.shortName.trim()) errs.shortName = 'Short name is required'
     if (!form.slug.trim()) errs.slug = 'Slug is required'
@@ -249,7 +327,8 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
         router.refresh()
       }, 800)
     } catch (error) {
-      setNotification(error.message || 'Could not save the tournament.')
+      const message = error instanceof Error ? error.message : 'Could not save the tournament.'
+      setNotification(message)
     } finally {
       setIsSaving(false)
     }
@@ -618,8 +697,8 @@ export default function AdminTournamentForm({ tournament, isEdit = false }) {
                   className="admin-form__form-select"
                   value={currentWinner.medal}
                   onChange={e => {
-                    const medal = e.target.value
-                    const posMap = { gold: 1, silver: 2, bronze: 3 }
+                    const medal = e.target.value as WinnerFormValue['medal']
+                    const posMap: Record<WinnerFormValue['medal'], number> = { gold: 1, silver: 2, bronze: 3 }
                     setCurrentWinner(prev => ({ ...prev, medal, position: posMap[medal] }))
                   }}
                 >

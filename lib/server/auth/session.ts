@@ -1,8 +1,14 @@
+import type { Session } from 'next-auth'
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from './options'
 
-function normaliseAllowedRoles(allowedRoles, fallbackRoles) {
+type AllowedRoles = string | string[] | undefined
+
+function normaliseAllowedRoles(
+  allowedRoles: AllowedRoles,
+  fallbackRoles: string[]
+): string[] {
   if (!allowedRoles) {
     return fallbackRoles
   }
@@ -10,10 +16,12 @@ function normaliseAllowedRoles(allowedRoles, fallbackRoles) {
   return Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
 }
 
-export async function requireAdminSession(allowedRoles) {
+export async function requireAdminSession(
+  allowedRoles?: AllowedRoles
+): Promise<Session> {
   const session = await getServerSession(authOptions)
 
-  if (!session) {
+  if (!session?.user?.role) {
     redirect('/admin/login')
   }
 
@@ -26,11 +34,13 @@ export async function requireAdminSession(allowedRoles) {
   return session
 }
 
-export async function getAdminSession() {
+export async function getAdminSession(): Promise<Session | null> {
   return getServerSession(authOptions)
 }
 
-export async function getAuthorizedApiSession(allowedRoles = 'admin') {
+export async function getAuthorizedApiSession(
+  allowedRoles: AllowedRoles = 'admin'
+): Promise<Session | null> {
   const session = await getServerSession(authOptions)
   if (!session?.user?.role) return null
 
@@ -38,7 +48,7 @@ export async function getAuthorizedApiSession(allowedRoles = 'admin') {
   return roles.includes(session.user.role) ? session : null
 }
 
-export function hasRole(session, role) {
+export function hasRole(session: Session | null, role: string): boolean {
   if (!session?.user) return false
   return session.user.role === role
 }

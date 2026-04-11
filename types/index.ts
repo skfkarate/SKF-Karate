@@ -61,6 +61,10 @@ export interface TournamentResult {
   points: number
 }
 
+export interface TournamentRow extends TournamentResult {
+  result?: TournamentResult['medal']
+}
+
 export interface AttendanceRow {
   skfId: string
   date: string

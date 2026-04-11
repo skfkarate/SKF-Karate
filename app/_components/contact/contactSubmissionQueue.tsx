@@ -11,6 +11,15 @@ export const INITIAL_CONTACT_FORM_STATE = {
 const QUEUE_KEY = 'skf_contact_queue'
 const QUEUE_TTL_MS = 24 * 60 * 60 * 1000
 
+type QueuedSubmission = typeof INITIAL_CONTACT_FORM_STATE & {
+  queuedAt: number
+}
+
+type SubmissionApiError = Error & {
+  retryable?: boolean
+  status?: number
+}
+
 export function readQueue() {
   try {
     const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]')
@@ -61,7 +70,7 @@ export async function sendToAPI(payload) {
 
     const data = await res.json()
     if (!res.ok) {
-      const err = new Error(data.error || 'Something went wrong')
+      const err = new Error(data.error || 'Something went wrong') as SubmissionApiError
       err.retryable = data.retryable !== false
       err.status = res.status
       throw err

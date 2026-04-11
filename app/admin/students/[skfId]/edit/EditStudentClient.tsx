@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { editStudentSchema } from '@/lib/validators'
 import * as z from 'zod'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-type FormValues = z.infer<typeof editStudentSchema>
+type EditStudentInput = z.input<typeof editStudentSchema>
+type FormValues = z.output<typeof editStudentSchema>
 
 export default function EditStudentClient({ student }: { student: any }) {
     const [submitting, setSubmitting] = useState(false)
@@ -21,7 +22,7 @@ export default function EditStudentClient({ student }: { student: any }) {
         register,
         handleSubmit,
         formState: { errors, isDirty }
-    } = useForm<FormValues>({
+    } = useForm<EditStudentInput, unknown, FormValues>({
         resolver: zodResolver(editStudentSchema),
         defaultValues: {
             name: student.name,
@@ -35,7 +36,7 @@ export default function EditStudentClient({ student }: { student: any }) {
         }
     })
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
         setSubmitting(true)
         setApiError('')
         setSuccessMsg('')

@@ -1,7 +1,7 @@
 import { google } from 'googleapis'
 import { unstable_cache } from 'next/cache'
 import type { 
-  Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement 
+  Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement, Belt
 } from '@/types'
 
 const auth = new google.auth.GoogleAuth({

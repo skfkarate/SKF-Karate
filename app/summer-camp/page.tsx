@@ -6,7 +6,8 @@ import { FaMapMarkerAlt, FaArrowRight } from 'react-icons/fa'
 import './summer-camp.css'
 
 export default async function SummerCampRoot() {
-  const token = cookies().get('skf_student_token')?.value
+  const cookieStore = await cookies()
+  const token = cookieStore.get('skf_student_token')?.value
   
   if (token && process.env.JWT_SECRET) {
     try {

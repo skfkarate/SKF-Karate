@@ -6,11 +6,11 @@ import { getStudentBySkfId } from '@/lib/server/sheets'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/server/auth/options'
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     // 1. Authenticate Admin
-    const session = await getServerSession(authOptions as any)
-    if (!session || (session as any)?.role !== 'admin') {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -49,7 +49,13 @@ export async function POST(request) {
     for (const enrollment of enrollments) {
       // Get student email from Google Sheets
       const student = await getStudentBySkfId(enrollment.skf_id)
-      const targetEmail = student?.Email || student?.email
+      const studentRecord = student as unknown as Record<string, unknown> | null
+      const targetEmail =
+        typeof studentRecord?.Email === 'string'
+          ? String(studentRecord.Email)
+          : typeof studentRecord?.email === 'string'
+            ? String(studentRecord.email)
+            : ''
       
       if (!targetEmail) {
         emailsFailed++
@@ -57,14 +63,16 @@ export async function POST(request) {
       }
 
       // Generate the HTML template
-      const programName = enrollment.programs?.name || 'Certificate Program'
-      const studentName = student["First Name"] || student.firstName || 'Student'
+      const program =
+        Array.isArray(enrollment.programs) ? enrollment.programs[0] : enrollment.programs
+      const programName = program?.name || 'Certificate Program'
+      const studentName = student?.name || 'Student'
       
       const { subject, html } = certificateReadyTemplate({
+        parentName: student?.parentName || 'Parent',
         studentName,
         programName,
-        skfId: enrollment.skf_id,
-        portalUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skfkarate.com'}/portal/certificates`
+        skfId: enrollment.skf_id
       })
 
       // Dispatch via Resend

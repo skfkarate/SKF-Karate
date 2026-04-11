@@ -61,7 +61,7 @@ export default function ResultsPageClient({
     result.sort((a, b) => {
       if (a.isFeatured && !b.isFeatured) return -1
       if (!a.isFeatured && b.isFeatured) return 1
-      return new Date(b.date) - new Date(a.date)
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
     })
 
     return result
