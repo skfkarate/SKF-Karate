@@ -19,6 +19,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'img.youtube.com' },
       { protocol: 'https', hostname: '*.googleusercontent.com' },
+      { protocol: 'https', hostname: 'www.sportdata.org' },
+      { protocol: 'https', hostname: 'www.wkf.net' },
     ],
   },
   async headers() {
