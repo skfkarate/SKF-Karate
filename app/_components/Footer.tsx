@@ -1,19 +1,13 @@
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaEnvelope, FaPhoneAlt, FaArrowRight, FaMapMarkerAlt } from 'react-icons/fa'
 import Image from 'next/image'
-import SponsorGrid from '@/components/SponsorGrid'
+
 
 export default function Footer() {
     return (
         <footer className="footer">
             <div className="container">
-                {/* Partners */}
-                <div style={{ marginBottom: '4rem' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <p style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '1rem' }}>Our Partners</p>
-                        <SponsorGrid tierFilter="Bronze" layout="flex" />
-                    </div>
-                </div>
+
                 
                 <div className="footer__main">
                     {/* Brand */}
