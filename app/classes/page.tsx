@@ -5,7 +5,7 @@ import { getAllCities } from '@/lib/classesData'
 import './classes.css'
 
 export const metadata = {
-    title: 'Karate Classes Across India',
+    title: 'Karate Classes Across Karnataka',
     description: 'Find SKF Karate classes in Bangalore, Pondicherry, Tumkur, and Udupi. Group classes and personal training available. Book a free trial today.',
 }
 
@@ -22,7 +22,7 @@ export default function ClassesPage() {
                 <div className="container page-hero__content">
                     <span className="section-label"><FaMapMarkerAlt /> Training Locations</span>
                     <h1 className="page-hero__title">
-                        Karate Classes <span className="text-gradient">Across India</span>
+                        Karate Classes <span className="text-gradient">Across Karnataka</span>
                     </h1>
                     <p className="page-hero__subtitle">
                         Traditional WKF karate training · Group Classes & Personal Training
@@ -40,10 +40,14 @@ export default function ClassesPage() {
                             let subtitle = `${branchCount} ${branchCount === 1 ? 'Branch' : 'Branches'}`
                             if (schoolCount > 0) subtitle += ` · ${schoolCount} Schools`
 
+                            const href = (branchCount === 1 && schoolCount === 0) 
+                                ? `/classes/${city.slug}/${city.branches[0].slug}`
+                                : `/classes/${city.slug}`
+
                             return (
                                 <Link
                                     key={city.slug}
-                                    href={`/classes/${city.slug}`}
+                                    href={href}
                                     className="city-card"
                                 >
                                     <div className="city-card__image">
