@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { FaArrowLeft, FaArrowRight, FaMapMarkerAlt, FaClock, FaPhoneAlt, FaSchool } from 'react-icons/fa'
 import { getCityBySlug, getAllCities, formatClassDays } from '@/lib/classesData'
 import '../classes.css'
@@ -23,6 +23,10 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
     const { city: citySlug } = await params
     const city = getCityBySlug(citySlug)
     if (!city) notFound()
+
+    if (city.branches.length === 1 && city.schools.length === 0) {
+        redirect(`/classes/${citySlug}/${city.branches[0].slug}`)
+    }
 
     return (
         <div className="classes-page">
