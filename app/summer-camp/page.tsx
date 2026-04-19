@@ -47,9 +47,7 @@ export default async function SummerCampRoot() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
           {branches.map(b => (
             <Link key={b.slug} href={`/summer-camp/${b.slug}`} style={{ textDecoration: 'none' }}>
-              <div className="glass-card" style={{ padding: '2.5rem 2rem', transition: 'all 0.3s ease', cursor: 'pointer', textAlign: 'left', border: '1px solid rgba(255,183,3,0.1)' }}
-                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-10px)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,183,3,0.1)'; }}>
+              <div className="glass-card hover:-translate-y-2 hover:border-[#ffb703] transition-all duration-300" style={{ padding: '2.5rem 2rem', cursor: 'pointer', textAlign: 'left', border: '1px solid rgba(255,183,3,0.1)' }}>
                 <FaMapMarkerAlt style={{ fontSize: '2.5rem', color: 'var(--crimson)', marginBottom: '1.5rem' }} />
                 <h3 style={{ fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{b.name}</h3>
                 <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2rem' }}>{b.address}</p>
