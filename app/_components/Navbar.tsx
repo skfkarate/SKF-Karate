@@ -138,7 +138,7 @@ export default function Navbar() {
                         <Link href="/rankings" className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`} aria-label="Rankings" title="Rankings">
                             <FaChartLine />
                         </Link>
-                        <Link href="/athlete" className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`} aria-label="Search" title="Search Athletes">
+                        <Link href="/athlete/search" className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`} aria-label="Search" title="Search Athletes">
                             <FaSearch />
                         </Link>
 
