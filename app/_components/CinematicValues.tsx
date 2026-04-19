@@ -178,6 +178,7 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) 
                 position: "absolute",
                 inset: 0,
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 zIndex: 100, 
@@ -209,7 +210,7 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) 
 }
 
 export default function CinematicValues() {
-    const containerRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start start", "end end"]
@@ -217,8 +218,15 @@ export default function CinematicValues() {
 
     const indicatorOpacity = useTransform(scrollYProgress, [0.02, 0.05], [1, 0]);
 
+    const handleSkip = () => {
+        if (containerRef.current) {
+            const yOffset = containerRef.current.getBoundingClientRect().bottom + window.scrollY;
+            window.scrollTo({ top: yOffset, behavior: 'smooth' });
+        }
+    };
+
     return (
-        <section ref={containerRef} className="cinematic-values-wrapper" style={{ height: "1200vh", position: "relative", background: "#020306" }}>
+        <section ref={containerRef} className="cinematic-values-wrapper" style={{ height: "600vh", position: "relative", background: "#020306" }}>
             <div className="cinematic-values-sticky" style={{ height: "100vh", position: "sticky", top: 0, overflow: "hidden" }}>
                 
                 {/* Unified Background Images Ecosystem */}
@@ -232,6 +240,7 @@ export default function CinematicValues() {
                             total={values.length} 
                             scrollYProgress={scrollYProgress}
                             isLogo={v.isLogo}
+                            pos={v.pos}
                         />
                     ))}
                 </div>
@@ -251,6 +260,7 @@ export default function CinematicValues() {
                         <SlideText 
                             key={`text-${i}`} 
                             text={v.text} 
+                            sub={v.sub}
                             index={i} 
                             total={values.length} 
                             scrollYProgress={scrollYProgress} 
@@ -258,6 +268,46 @@ export default function CinematicValues() {
                         />
                     ))}
                 </div>
+
+                {/* Scroll Progress Bar */}
+                <div style={{ position: 'absolute', left: 0, bottom: 0, height: '4px', width: '100%', zIndex: 30, background: 'rgba(255,255,255,0.1)' }}>
+                    <motion.div 
+                        style={{ height: '100%', background: 'linear-gradient(90deg, var(--gold), var(--crimson))', width: '100%', scaleX: scrollYProgress, transformOrigin: '0% 50%' }}
+                    />
+                </div>
+
+                {/* Skip Button */}
+                <button
+                    onClick={handleSkip}
+                    style={{
+                        position: 'absolute',
+                        bottom: '30px',
+                        right: '30px',
+                        zIndex: 30,
+                        background: 'rgba(0,0,0,0.4)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        color: 'rgba(255,255,255,0.7)',
+                        padding: '10px 20px',
+                        borderRadius: '30px',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-heading)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '2px',
+                        fontSize: '0.8rem',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                        e.currentTarget.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(0,0,0,0.4)';
+                        e.currentTarget.style.color = 'rgba(255,255,255,0.7)';
+                    }}
+                >
+                    Skip Intro ↓
+                </button>
 
                 {/* Refined Geometric Scroll Indicator */}
                 <motion.div 

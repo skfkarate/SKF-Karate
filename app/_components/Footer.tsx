@@ -7,7 +7,7 @@ export default function Footer() {
     return (
         <footer className="footer">
             <div className="container">
-                {/* Main Footer */}
+                {/* Partners */}
                 <div style={{ marginBottom: '4rem' }}>
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <p style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '1rem' }}>Our Partners</p>
@@ -28,6 +28,20 @@ export default function Footer() {
                         <p className="footer__motto">&ldquo;Nothing is Impossible&rdquo;</p>
                     </div>
 
+                    {/* Quick Links */}
+                    <div className="footer__section">
+                        <h4 className="footer__heading">Quick Links</h4>
+                        <div className="footer__links-list">
+                            <Link href="/classes" className="footer__link">Classes</Link>
+                            <Link href="/about" className="footer__link">About SKF</Link>
+                            <Link href="/rankings" className="footer__link">Rankings</Link>
+                            <Link href="/events" className="footer__link">Events</Link>
+                            <Link href="/grading" className="footer__link">Belt Grading</Link>
+                            <Link href="/gallery" className="footer__link">Gallery</Link>
+                            <Link href="/contact" className="footer__link">Contact</Link>
+                        </div>
+                    </div>
+
                     {/* Contact */}
                     <div className="footer__section">
                         <h4 className="footer__heading">Contact Us</h4>
@@ -35,6 +49,10 @@ export default function Footer() {
                             <a href="tel:+919019971726" className="footer__contact-item">
                                 <FaPhoneAlt className="footer__contact-icon" />
                                 <span>+91 90199 71726</span>
+                            </a>
+                            <a href="https://wa.me/919019971726" className="footer__contact-item" target="_blank" rel="noopener noreferrer">
+                                <FaWhatsapp className="footer__contact-icon" />
+                                <span>WhatsApp Us</span>
                             </a>
                             <div className="footer__contact-item">
                                 <FaEnvelope className="footer__contact-icon" />
@@ -61,13 +79,14 @@ export default function Footer() {
                             <a href="https://www.youtube.com/@skfkarate" className="footer__social-icon footer__social-icon--yt" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
                         </div>
                         <div className="footer__cta-group">
-                            <Link href="/contact" className="footer__cta footer__cta--outline">
-                                <FaPhoneAlt />
-                                <span>Request a Call</span>
+                            <Link href="/classes" className="footer__cta footer__cta--outline">
+                                <FaMapMarkerAlt />
+                                <span>Find Classes</span>
                                 <FaArrowRight className="footer__cta-arrow" />
                             </Link>
-                            <Link href="/summer-camp" className="footer__cta footer__cta--primary">
-                                <span>Join Summer Camp 2026</span>
+                            <Link href="/contact" className="footer__cta footer__cta--primary">
+                                <FaPhoneAlt />
+                                <span>Get in Touch</span>
                                 <FaArrowRight className="footer__cta-arrow" />
                             </Link>
                         </div>

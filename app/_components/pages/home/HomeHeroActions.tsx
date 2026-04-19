@@ -1,28 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { FaArrowRight, FaPhoneAlt } from 'react-icons/fa'
-import { useState } from 'react'
-import HomeContactPopup from './HomeContactPopup'
+import { FaArrowRight } from 'react-icons/fa'
+import { useTrialModal } from '@/app/_components/TrialModalContext'
 
 export default function HomeHeroActions() {
-    const [isPopupOpen, setIsPopupOpen] = useState(false)
+    const { openModal } = useTrialModal()
 
     return (
-        <>
-            <div className="hero__actions animate-in delay-4">
-                <Link href="/about" className="btn btn-primary">
-                    Our Legacy <FaArrowRight />
-                </Link>
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => setIsPopupOpen(true)}
-                >
-                    <FaPhoneAlt style={{ marginRight: '8px' }} /> Contact Us
-                </button>
-            </div>
-            
-            <HomeContactPopup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
-        </>
+        <div className="hero__actions animate-in delay-4">
+            <Link href="/classes" className="btn btn-primary">
+                Find Classes <FaArrowRight />
+            </Link>
+            <button
+                className="btn btn-secondary"
+                onClick={() => openModal()}
+            >
+                Book Free Trial
+            </button>
+        </div>
     )
 }

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import { usePathname } from "next/navigation"
+import MobileStickyCTA from "./MobileStickyCTA"
 
 export default function ClientLayoutWrapper({ 
   children,
@@ -36,6 +37,7 @@ export default function ClientLayoutWrapper({
           {footer}
           {whatsappButton}
           {backToTop}
+          <MobileStickyCTA />
         </>
       )}
     </>

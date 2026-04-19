@@ -70,6 +70,25 @@
     margin-bottom: 1.25rem;
 }
 
+/* ── Quick Links ── */
+.footer__links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.footer__link {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+.footer__link:hover {
+    color: var(--gold);
+}
+
 /* ── Contact ── */
 .footer__contact-list {
     display: flex;
