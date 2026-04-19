@@ -24,10 +24,11 @@ const menuItems: MenuItem[] = [
         ],
     },
     {
-        label: 'Rankings & Honours',
+        label: 'Rankings',
         children: [
             { label: 'Official Rankings', href: '/rankings' },
             { label: 'Honours Board', href: '/honours' },
+            { label: 'Find Profile', href: '/athlete/search' },
         ],
     },
     {
@@ -48,11 +49,10 @@ const menuItems: MenuItem[] = [
     },
     { label: 'Shop', href: '/shop' },
     {
-        label: 'Athlete Zone',
+        label: 'For Athletes',
         children: [
             { label: 'Athlete Portal', href: '/portal' },
             { label: 'Belt Grading', href: '/grading' },
-            { label: 'Search Athletes', href: '/athlete/search' },
             { label: 'Verify Certificate', href: '/verify' },
         ],
     },
