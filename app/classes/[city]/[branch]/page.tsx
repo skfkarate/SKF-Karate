@@ -59,9 +59,13 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
         if (silverCount) medalsString += '🥈'.repeat(silverCount)
         if (bronzeCount) medalsString += '🥉'.repeat(bronzeCount)
 
+        const categoryVal = typeof snapshot.rankingCategory === 'string' 
+            ? snapshot.rankingCategory 
+            : snapshot.rankingCategory?.key || 'Senior';
+
         return {
             name: `${athlete.firstName} ${athlete.lastName}`,
-            category: snapshot.rankingCategory || 'Senior',
+            category: categoryVal,
             medals: medalsString || 'No medals yet',
             points: snapshot.totalPoints
         }
