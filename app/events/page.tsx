@@ -38,19 +38,9 @@ export default function EventsPage() {
             cta: event.type === 'tournament' ? `/results/${event.slug}` : `/events/${event.slug}`,
         }))
 
-    // Fetch tournament results data
-    const allTournaments = getAllTournaments()
-    const stats = getTournamentStats()
-    const availableYears = getAvailableYears()
-
     return (
         <EventsPageClient 
             upcomingEvents={upcomingEvents}
-            resultsData={{
-                allTournaments,
-                stats,
-                availableYears
-            }} 
         />
     )
 }
