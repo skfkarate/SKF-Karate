@@ -31,13 +31,7 @@ const menuItems: MenuItem[] = [
             { label: 'Honours Board', href: '/honours' },
         ],
     },
-    {
-        label: 'Classes',
-        children: [
-            { label: 'Find a Class', href: '/classes' },
-            { label: 'Summer Camp 2026', href: '/summer-camp' },
-        ],
-    },
+    { label: 'Find a Class', href: '/classes' },
     { label: 'Gallery', href: '/gallery' },
     {
         label: 'About',

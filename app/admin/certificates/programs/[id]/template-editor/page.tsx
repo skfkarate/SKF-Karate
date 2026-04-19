@@ -40,7 +40,7 @@ const AVAILABLE_FIELDS = [
   { id: 'belt_level', label: 'belt_level', sample: 'Yellow Belt' },
   { id: 'completion_date', label: 'completion_date', sample: 'October 15, 2026' },
   { id: 'issuer_name', label: 'issuer_name', sample: 'Chief Instructor Sensei' },
-  { id: 'program_name', label: 'program_name', sample: 'Summer Camp 2026' }
+  { id: 'program_name', label: 'program_name', sample: 'Kyu Grading Exam' }
 ]
 
 const BELT_TABS = ['White', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black']

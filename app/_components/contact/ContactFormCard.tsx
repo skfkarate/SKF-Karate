@@ -130,7 +130,7 @@ export default function ContactFormCard({
                 onChange={onFieldChange}
                 className="form-input"
               >
-                <option>Summer Camp 2026</option>
+
                 <option>Regular Classes</option>
                 <option>Private Training</option>
                 <option>General Inquiry</option>
