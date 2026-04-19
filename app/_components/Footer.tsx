@@ -36,6 +36,7 @@ export default function Footer() {
                             <Link href="/about" className="footer__link">About SKF</Link>
                             <Link href="/rankings" className="footer__link">Rankings</Link>
                             <Link href="/events" className="footer__link">Events</Link>
+                            <Link href="/results" className="footer__link">Results</Link>
                             <Link href="/grading" className="footer__link">Belt Grading</Link>
                             <Link href="/gallery" className="footer__link">Gallery</Link>
                             <Link href="/contact" className="footer__link">Contact</Link>
