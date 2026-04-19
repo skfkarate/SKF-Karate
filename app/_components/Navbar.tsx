@@ -26,9 +26,9 @@ const menuItems: MenuItem[] = [
     {
         label: 'Rankings',
         children: [
+            { label: 'Find Profile', href: '/athlete/search' },
             { label: 'Official Rankings', href: '/rankings' },
             { label: 'Honours Board', href: '/honours' },
-            { label: 'Find Profile', href: '/athlete/search' },
         ],
     },
     {
