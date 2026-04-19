@@ -23,7 +23,13 @@ const menuItems: MenuItem[] = [
             { label: 'Results', href: '/results' },
         ],
     },
-    { label: 'Rankings', href: '/rankings' },
+    {
+        label: 'Rankings & Honours',
+        children: [
+            { label: 'Official Rankings', href: '/rankings' },
+            { label: 'Honours Board', href: '/honours' },
+        ],
+    },
     {
         label: 'Classes',
         children: [
@@ -42,11 +48,11 @@ const menuItems: MenuItem[] = [
     },
     { label: 'Shop', href: '/shop' },
     {
-        label: 'Student Zone',
+        label: 'Athlete Zone',
         children: [
-            { label: 'Student Portal', href: '/portal' },
+            { label: 'Athlete Portal', href: '/portal' },
             { label: 'Belt Grading', href: '/grading' },
-            { label: 'Search Athletes', href: '/athlete' },
+            { label: 'Search Athletes', href: '/athlete/search' },
             { label: 'Verify Certificate', href: '/verify' },
         ],
     },
