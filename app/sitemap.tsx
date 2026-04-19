@@ -8,7 +8,6 @@ export default function sitemap() {
         { path: '/about', priority: 0.9, changeFrequency: 'monthly' },
         { path: '/dojos', priority: 0.9, changeFrequency: 'monthly' },
         { path: '/grading', priority: 0.85, changeFrequency: 'monthly' },
-        { path: '/summer-camp', priority: 0.85, changeFrequency: 'weekly' },
         { path: '/senseis', priority: 0.8, changeFrequency: 'monthly' },
         { path: '/events', priority: 0.8, changeFrequency: 'weekly' },
         { path: '/honours', priority: 0.8, changeFrequency: 'monthly' },

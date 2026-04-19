@@ -56,7 +56,7 @@ export default function NewCertificateProgram() {
             <input 
               required
               type="text" 
-              placeholder="e.g. Summer Camp 2026, Kyu Grading"
+              placeholder="e.g. Special Training Camp, Kyu Grading"
               value={formData.name}
               onChange={e => setFormData({...formData, name: e.target.value})}
               style={{ width: '100%', background: '#111', border: '1px solid #333', color: '#fff', padding: '0.75rem', borderRadius: '4px', fontSize: '1rem' }}

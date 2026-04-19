@@ -3,7 +3,7 @@ export const INITIAL_CONTACT_FORM_STATE = {
   email: '',
   phone: '',
   preferredTime: '',
-  interest: 'Summer Camp 2026',
+  interest: 'Regular Classes',
   message: '',
   website: '',
 }

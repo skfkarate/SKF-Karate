@@ -26,15 +26,7 @@ export default function HomePathsOfMastery() {
                         </div>
                     </Link>
 
-                    <Link href="/summer-camp" className="path-card group">
-                        <div className="path-card__bg" style={{ backgroundImage: "url('/gallery/Train the Elite - Training Camp starred.jpeg')" }}></div>
-                        <div className="path-card__overlay"></div>
-                        <div className="path-card__content">
-                            <h3>Train the Elite</h3>
-                            <p>Join the intense competitive Kumite and Kata camps.</p>
-                            <span className="path-card__arrow"><FaArrowRight /></span>
-                        </div>
-                    </Link>
+
                 </div>
             </div>
         </section>

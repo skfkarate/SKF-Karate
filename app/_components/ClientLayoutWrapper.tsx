@@ -21,10 +21,7 @@ export default function ClientLayoutWrapper({
 
   // Hide the public shell on admin routes and auth portal routes
   const isPublicRoute = !pathname?.startsWith('/admin') && !pathname?.startsWith('/portal')
-
-  // Hide Navbar/Footer on enrollment page to minimize distraction
-  const isEnrollmentForm = pathname?.startsWith('/summer-camp/enroll')
-  const showHeaderFooter = isPublicRoute && !isEnrollmentForm
+  const showHeaderFooter = isPublicRoute
 
   return (
     <>
