@@ -268,68 +268,106 @@ nextjs-portal {
     color: var(--text-white);
 }
 
-/* ── Drawer nav groups ── */
+/* ── WKF-style drawer menu ── */
 .drawer__nav {
     flex: 1;
-    padding: 1rem 1.5rem;
+    padding: 0.5rem 0;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    overflow-y: auto;
 }
 
-.drawer__group {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 0.5rem;
+.wkf-menu-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.drawer__group:last-child {
+.wkf-menu-item:last-child {
     border-bottom: none;
 }
 
-.drawer__group-heading {
-    display: block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: var(--text-muted);
-    padding: 0.5rem 0.75rem 0.6rem;
-    margin-bottom: 0.1rem;
-}
-
-.drawer__link {
+/* Main menu link / button */
+.wkf-menu-link {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 0.75rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 500;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.9rem 1.8rem;
+    font-size: 0.92rem;
+    font-weight: 600;
     color: var(--text-light);
-    transition: all 0.2s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: right;
+    text-decoration: none;
+    transition: color 0.2s ease, background 0.2s ease;
+    font-family: var(--font-heading);
+    letter-spacing: 0.5px;
 }
 
-.drawer__link:hover {
-    background: rgba(255, 183, 3, 0.06);
+.wkf-menu-link:hover {
     color: var(--text-white);
-    padding-left: 1rem;
+    background: rgba(255, 255, 255, 0.03);
 }
 
-.drawer__link--active {
+.wkf-menu-link--active {
     color: var(--gold);
-    background: rgba(255, 183, 3, 0.08);
 }
 
-.drawer__link-arrow {
-    font-size: 0.55rem;
+.wkf-menu-link--expanded {
+    color: var(--text-white);
+}
+
+/* Red arrow indicator — only shown on items with children */
+.wkf-menu-arrow {
+    color: var(--crimson);
+    font-size: 0.75rem;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.wkf-menu-link--expanded .wkf-menu-arrow {
+    transform: rotate(90deg);
+    color: var(--gold);
+}
+
+/* Submenu panel */
+.wkf-submenu {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.wkf-submenu--open {
+    grid-template-rows: 1fr;
+}
+
+.wkf-submenu > * {
+    overflow: hidden;
+}
+
+.wkf-submenu-link {
+    display: block;
+    padding: 0.6rem 1.8rem;
+    font-size: 0.82rem;
+    font-weight: 400;
     color: var(--text-muted);
-    transition: all 0.2s ease;
+    text-align: right;
+    text-decoration: none;
+    transition: color 0.2s ease, background 0.2s ease;
+    letter-spacing: 0.3px;
 }
 
-.drawer__link:hover .drawer__link-arrow {
-    color: var(--text-light);
-    transform: translateX(3px);
+.wkf-submenu-link:hover {
+    color: var(--text-white);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.wkf-submenu-link--active {
+    color: var(--gold);
 }
 
 /* ── Drawer footer ── */
