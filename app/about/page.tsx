@@ -120,50 +120,82 @@ export default function AboutPage() {
                 </div>
 
                 <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-                    <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', color: '#fff', textAlign: 'center', marginBottom: '3rem' }}>
-                        Executive Committee & Verified Instructors
-                    </h2>
-
-                    {/* Featured Founder Card */}
-                    <Link href={`/instructors/${founder.slug}`} style={{ textDecoration: 'none' }}>
-                        <div style={{ background: '#111', border: '1px solid rgba(214,40,40,0.3)', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexWrap: 'wrap', marginBottom: '2rem', transition: 'transform 0.3s ease, border-color 0.3s ease' }} 
-                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(214,40,40,0.8)' }}
-                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(214,40,40,0.3)' }}
-                        >
-                            <div style={{ flex: '1 1 300px', position: 'relative', minHeight: '300px' }}>
-                                <Image src={founder.image} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+                    
+                    {/* WKF Style Founder Layout */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '3rem', marginBottom: '6rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--crimson-light)', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 800 }}>THE ESTABLISHMENT</h2>
+                            <div style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 600, marginBottom: '2rem' }}>
+                                Founder & Technical Director: {founder.name}
                             </div>
-                            <div style={{ flex: '2 1 400px', padding: '3rem', display: 'flex', flexDirection: 'column' }}>
-                                <h3 style={{ fontSize: '2.5rem', color: '#fff', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{founder.name}</h3>
-                                <div style={{ color: 'var(--crimson-light)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>{founder.title}</div>
-                                <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '1.1rem', marginBottom: '1.5rem' }}>{founder.dan}</div>
-                                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem' }}>{founder.desc}</p>
-                                <div style={{ marginTop: 'auto', fontWeight: 700, color: 'var(--crimson-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    View Full Profile <FaArrowRight />
+                            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.05rem', lineHeight: 1.7 }}>
+                                <p style={{ marginBottom: '1.5rem' }}>The Sportkarate Federation (SKF) has always embraced progress, ensuring that our rigorous curriculum remains at the forefront of the martial arts ecosystem. Under elite guidance, technology and sports science play a crucial role in how our athletes prepare, engage, and dominate on the global stage.</p>
+                                <p style={{ marginBottom: '1.5rem' }}>More than just an academy, SKF reflects a commitment to innovation while preserving the classical values of WKF Karate in a modern, highly engaging environment.</p>
+                                <p>Whether you are an aspiring athlete, coach, or parent, you can now stay connected to proper, verified Karate instruction like never before.</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <Link href={`/instructors/${founder.slug}`} style={{ textDecoration: 'none', display: 'block', width: '100%' }}>
+                                <div className="hover:-translate-y-1 transition-all duration-300" style={{ position: 'relative', width: '100%', maxWidth: '380px', margin: '0 auto', aspectRatio: '3/4', borderRadius: '8px', overflow: 'hidden', borderBottom: '5px solid var(--crimson-light)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+                                    <Image src={founder.image} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center 10%' }} />
+                                </div>
+                            </Link>
+                            <div style={{ marginTop: '2rem', maxWidth: '380px', margin: '2rem auto 0 auto', textAlign: 'center' }}>
+                                <blockquote style={{ fontSize: '1.25rem', color: 'var(--crimson-light)', fontWeight: 600, lineHeight: 1.5, position: 'relative', paddingTop: '1rem', fontStyle: 'italic' }}>
+                                    "Our singular mission is to build highly resilient, confident athletes equipped completely for the real world."
+                                </blockquote>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* WKF Style Executive Committee Text & Photo */}
+                    <div style={{ marginBottom: '4rem' }}>
+                        <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--crimson-light)', textTransform: 'uppercase', marginBottom: '2rem', fontWeight: 800 }}>SKF EXECUTIVE COMMITTEE</h2>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem', alignItems: 'flex-start', marginBottom: '5rem' }}>
+                            <div style={{ flex: '1 1 400px', color: 'rgba(255,255,255,0.8)', fontSize: '1.05rem', lineHeight: 1.7 }}>
+                                <p style={{ marginBottom: '1rem' }}>The Executive Committee is responsible for leading, managing, and administering all SKF activities by developing programs following the strict directives approved by the global certifying bodies.</p>
+                                <p>Composed of our most senior Masters, the Executive Committee ensures an unparalleled standard of education, tactical mastery, and athlete safety across all official Dojo branches.</p>
+                            </div>
+                            <div style={{ flex: '1 1 500px' }}>
+                                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', borderBottom: '5px solid var(--crimson-light)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                                    <Image src="/gallery/In Dojo.jpeg" alt="SKF Executive Committee" fill style={{ objectFit: 'cover' }} />
                                 </div>
                             </div>
                         </div>
-                    </Link>
+                    </div>
 
-                    {/* Supporting Curriculum Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '5rem' }}>
+                    {/* WKF 3-Column Roster Grid with Circular Avatars */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '5rem 2.5rem', marginBottom: '6rem' }}>
                         {activeCommittee.map((instructor, idx) => (
-                            <Link key={idx} href={`/instructors/${instructor.slug}`} style={{ textDecoration: 'none' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, border-color 0.3s ease' }}
-                                    onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(255,183,3,0.4)' }}
-                                    onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)' }}
-                                >
-                                    <div style={{ position: 'relative', width: '100%', height: '260px' }}>
-                                        <Image src={instructor.image} alt={instructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center 20%', filter: 'grayscale(20%)' }} />
+                            <Link key={idx} href={`/instructors/${instructor.slug}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit' }} className="group">
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {/* Structural Title Above */}
+                                    <div style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', color: '#fff', textTransform: 'uppercase', fontWeight: 800, marginBottom: '2rem', paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                        {instructor.title}
                                     </div>
-                                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                                        <h4 style={{ fontSize: '1.3rem', color: '#fff', marginBottom: '0.2rem' }}>{instructor.name}</h4>
-                                        <div style={{ color: 'var(--gold)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.2rem' }}>{instructor.rank || instructor.dan}</div>
-                                        <div style={{ color: 'var(--crimson-light)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, marginBottom: '1rem' }}>{instructor.title}</div>
-                                        <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: '1.5rem' }}>{instructor.desc}</p>
-                                        <div style={{ marginTop: 'auto', fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            View Profile <FaArrowRight />
+                                    
+                                    {/* Circular Avatar + Crimson Name Side-by-Side */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                        <div style={{ position: 'relative', width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '3px solid transparent' }} className="group-hover:border-[#d62828] transition-colors duration-300">
+                                            <Image src={instructor.image} alt={instructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center 15%' }} />
                                         </div>
+                                        <div>
+                                            <div className="group-hover:text-white transition-colors duration-300" style={{ color: 'var(--crimson-light)', fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem', lineHeight: 1.2 }}>
+                                                {instructor.name}
+                                            </div>
+                                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                                                {instructor.branch} <br />
+                                                <span style={{ fontSize: '0.8rem', marginTop: '0.4rem', display: 'inline-block', fontStyle: 'italic' }}>({instructor.rank || instructor.dan})</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Language / Spec Pills (Mimicking WKF ENG ESP FRA) */}
+                                    <div style={{ display: 'flex', gap: '0.8rem', marginTop: '2rem' }}>
+                                        <div className="group-hover:bg-[#d62828] transition-colors duration-300" style={{ background: '#730000', color: '#fff', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 1rem', borderRadius: '100px' }}>PROFILE</div>
+                                        <div style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 1rem', borderRadius: '100px' }}>ACHIEVEMENTS</div>
                                     </div>
                                 </div>
                             </Link>
