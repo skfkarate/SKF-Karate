@@ -1,12 +1,8 @@
 import { getAllEvents } from '../../lib/data/events'
-import {
-  getAllTournaments,
-  getAvailableYears,
-  getTournamentStats,
-} from '../../lib/data/tournaments'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
-import '@/app/results/results.css'
+
+
 
 function formatDisplayDate(date: string) {
     return new Date(date).toLocaleDateString('en-US', {

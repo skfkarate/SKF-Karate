@@ -7,11 +7,11 @@ import ResultsPageClient from '../_components/results/ResultsPageClient'
 import '@/app/results/results.css'
 
 export const metadata = {
-    title: 'Tournaments | SKF Karate',
-    description: 'Past SKF Karate tournament results and statistics.',
+    title: 'Results | SKF Karate',
+    description: 'Past SKF Karate competition results and statistics.',
 }
 
-export default function TournamentsPage() {
+export default function ResultsPage() {
     const allTournaments = getAllTournaments()
     const stats = getTournamentStats()
     const availableYears = getAvailableYears()

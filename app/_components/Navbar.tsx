@@ -4,62 +4,50 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { FaBars, FaTimes, FaChevronRight, FaChevronDown, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
+import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
 import { useTrialModal } from './TrialModalContext'
 
-/* ── Drawer nav structure ── */
-interface DrawerLink {
+/* ── WKF-style drawer menu structure ── */
+interface MenuItem {
     label: string
     href?: string
-    external?: boolean
-    subLinks?: { label: string, href: string }[]
+    children?: MenuItem[]
 }
 
-interface DrawerGroup {
-    heading: string
-    links: DrawerLink[]
-}
-
-const drawerGroups: DrawerGroup[] = [
+const menuItems: MenuItem[] = [
     {
-        heading: 'For Parents',
-        links: [
-            { label: 'Classes', href: '/classes' },
+        label: 'Events',
+        children: [
+            { label: 'Upcoming Events', href: '/events' },
+            { label: 'Results', href: '/results' },
+        ],
+    },
+    { label: 'Rankings', href: '/rankings' },
+    {
+        label: 'Classes',
+        children: [
+            { label: 'Find a Class', href: '/classes' },
+            { label: 'Summer Camp 2026', href: '/summer-camp' },
+        ],
+    },
+    { label: 'Gallery', href: '/gallery' },
+    {
+        label: 'About',
+        children: [
             { label: 'About SKF', href: '/about' },
             { label: 'Contact & FAQ', href: '/contact' },
-            { label: 'Gallery', href: '/gallery' },
-        ],
-    },
-    {
-        heading: 'For Students',
-        links: [
-            { 
-                label: 'Events & Tournaments',
-                subLinks: [
-                    { label: 'Upcoming Events', href: '/events' },
-                    { label: 'Past Tournaments', href: '/tournaments' }
-                ]
-            },
-            { label: 'Belt Grading', href: '/grading' },
-            { label: 'Summer Camp 2026', href: '/summer-camp' },
-            { label: 'Student Portal', href: '/portal' },
-        ],
-    },
-    {
-        heading: 'For Athletes',
-        links: [
-            { label: 'Rankings', href: '/rankings' },
-            { label: 'Search Profiles', href: '/athlete' },
-            { label: 'Verify Certificate', href: '/verify' },
-            { label: 'Honours Board', href: '/honours' },
-        ],
-    },
-    {
-        heading: 'More',
-        links: [
             { label: 'News', href: '/news' },
-            { label: 'Shop', href: '/shop' },
+        ],
+    },
+    { label: 'Shop', href: '/shop' },
+    {
+        label: 'Student Zone',
+        children: [
+            { label: 'Student Portal', href: '/portal' },
+            { label: 'Belt Grading', href: '/grading' },
+            { label: 'Search Athletes', href: '/athlete' },
+            { label: 'Verify Certificate', href: '/verify' },
         ],
     },
 ]
@@ -67,13 +55,13 @@ const drawerGroups: DrawerGroup[] = [
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false)
     const [drawerOpen, setDrawerOpen] = useState(false)
-    const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
+    const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
     const pathname = usePathname()
     const { cartTotalCount } = useCart()
     const { openModal } = useTrialModal()
 
     // Close drawer on route change
-    useEffect(() => { setDrawerOpen(false) }, [pathname])
+    useEffect(() => { setDrawerOpen(false); setExpandedMenus(new Set()) }, [pathname])
 
     // Scroll detection
     useEffect(() => {
@@ -88,20 +76,23 @@ export default function Navbar() {
         return () => { document.body.style.overflow = '' }
     }, [drawerOpen])
 
-    const handleLinkClick = (link: DrawerLink, e: React.MouseEvent) => {
-        if (link.subLinks) {
-            e.preventDefault()
-            setExpandedMenu(expandedMenu === link.label ? null : link.label)
-        } else {
-            setDrawerOpen(false)
-        }
+    const toggleSubmenu = (label: string) => {
+        setExpandedMenus(prev => {
+            const next = new Set(prev)
+            if (next.has(label)) {
+                next.delete(label)
+            } else {
+                next.add(label)
+            }
+            return next
+        })
     }
 
     return (
         <>
             <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
                 <div className="container nav__inner">
-                    {/* ── Brand: Logo stacked above text ── */}
+                    {/* ── Brand ── */}
                     <Link href="/" className="nav__brand">
                         <div className="nav__brand-stack">
                             <Image src="/logo/SKF logo.png" alt="SKF Karate" width={42} height={42} className="nav__brand-logo" />
@@ -128,14 +119,12 @@ export default function Navbar() {
                         </Link>
                     </nav>
 
-                    {/* ── Right side: CTA + icons + hamburger ── */}
+                    {/* ── Right side ── */}
                     <div className="nav__right">
-                        {/* CTA — desktop only */}
                         <button onClick={() => openModal()} className="btn btn-primary nav__cta">
                             Book Free Trial
                         </button>
 
-                        {/* Cart icon (only when items exist) */}
                         {cartTotalCount > 0 && (
                             <Link href="/shop/cart" className="nav__icon" aria-label="Cart">
                                 <FaShoppingCart />
@@ -143,8 +132,7 @@ export default function Navbar() {
                             </Link>
                         )}
 
-                        {/* Utility icons */}
-                        <Link href="/events" className={`nav__icon ${pathname?.startsWith('/events') ? 'nav__icon--active' : ''}`} aria-label="Events" title="Events">
+                        <Link href="/events" className={`nav__icon ${pathname?.startsWith('/events') || pathname?.startsWith('/results') ? 'nav__icon--active' : ''}`} aria-label="Events" title="Events">
                             <FaCalendarAlt />
                         </Link>
                         <Link href="/rankings" className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`} aria-label="Rankings" title="Rankings">
@@ -154,7 +142,6 @@ export default function Navbar() {
                             <FaSearch />
                         </Link>
 
-                        {/* Hamburger — ALWAYS LAST */}
                         <button
                             className="nav__hamburger"
                             onClick={() => setDrawerOpen(!drawerOpen)}
@@ -174,7 +161,7 @@ export default function Navbar() {
                 aria-hidden="true"
             />
 
-            {/* ── Right-side drawer ── */}
+            {/* ── WKF-style right-side drawer ── */}
             <aside className={`drawer ${drawerOpen ? 'drawer--open' : ''}`} aria-label="Navigation menu">
                 <div className="drawer__header">
                     <button
@@ -187,48 +174,46 @@ export default function Navbar() {
                 </div>
 
                 <nav className="drawer__nav">
-                    {drawerGroups.map((group) => (
-                        <div key={group.heading} className="drawer__group">
-                            <span className="drawer__group-heading">{group.heading}</span>
-                            {group.links.map((link) => (
-                                <div key={link.label}>
-                                    <Link
-                                        href={link.href || '#'}
-                                        className={`drawer__link ${pathname === link.href || (link.href && pathname?.startsWith(link.href + '/')) ? 'drawer__link--active' : ''}`}
-                                        onClick={(e) => handleLinkClick(link, e)}
+                    {menuItems.map((item) => (
+                        <div key={item.label} className="wkf-menu-item">
+                            {item.children ? (
+                                <>
+                                    <button
+                                        className={`wkf-menu-link ${expandedMenus.has(item.label) ? 'wkf-menu-link--expanded' : ''}`}
+                                        onClick={() => toggleSubmenu(item.label)}
                                     >
-                                        <span>{link.label}</span>
-                                        {link.subLinks ? (
-                                            expandedMenu === link.label ? <FaChevronDown className="drawer__link-arrow" /> : <FaChevronRight className="drawer__link-arrow" />
-                                        ) : (
-                                            <FaChevronRight className="drawer__link-arrow" />
-                                        )}
-                                    </Link>
-                                    
-                                    {/* SubMenu Expansion */}
-                                    {link.subLinks && expandedMenu === link.label && (
-                                        <div className="drawer__submenu" style={{ display: 'flex', flexDirection: 'column', paddingLeft: '1.5rem', marginTop: '-0.5rem', marginBottom: '1rem', gap: '0.5rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
-                                            {link.subLinks.map(subLink => (
-                                                <Link 
-                                                    key={subLink.href} 
-                                                    href={subLink.href}
-                                                    className={`drawer__sublink ${pathname === subLink.href ? 'drawer__sublink--active' : ''}`}
+                                        <span>{item.label}</span>
+                                        <span className="wkf-menu-arrow">▸</span>
+                                    </button>
+                                    <div className={`wkf-submenu ${expandedMenus.has(item.label) ? 'wkf-submenu--open' : ''}`}>
+                                        <div>
+                                            {item.children.map(child => (
+                                                <Link
+                                                    key={child.href}
+                                                    href={child.href!}
+                                                    className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
                                                     onClick={() => setDrawerOpen(false)}
-                                                    style={{ color: pathname === subLink.href ? 'var(--gold)' : 'var(--text-muted)', fontSize: '0.9rem', padding: '0.5rem 0', display: 'block', transition: 'color 0.2s' }}
                                                 >
-                                                    {subLink.label}
+                                                    {child.label}
                                                 </Link>
                                             ))}
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <Link
+                                    href={item.href!}
+                                    className={`wkf-menu-link ${pathname === item.href || pathname?.startsWith(item.href + '/') ? 'wkf-menu-link--active' : ''}`}
+                                    onClick={() => setDrawerOpen(false)}
+                                >
+                                    <span>{item.label}</span>
+                                </Link>
+                            )}
                         </div>
                     ))}
                 </nav>
 
                 <div className="drawer__footer">
-                    {/* Social icons */}
                     <div className="drawer__socials">
                         <a href="https://www.facebook.com/skfkarate" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
@@ -244,7 +229,6 @@ export default function Navbar() {
                         </a>
                     </div>
 
-                    {/* CTA in drawer */}
                     <button
                         className="btn btn-primary drawer__cta"
                         onClick={() => { setDrawerOpen(false); openModal() }}
