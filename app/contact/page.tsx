@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { FaEnvelope } from 'react-icons/fa'
+import { FaEnvelope, FaArrowRight } from 'react-icons/fa'
 import ContactFormCard from '@/app/_components/contact/ContactFormCard'
 import ContactInfoPanel from '@/app/_components/contact/ContactInfoPanel'
-import FreeTrialForm from '@/components/FreeTrialForm'
+import { useTrialModal } from '@/app/_components/TrialModalContext'
 import {
   INITIAL_CONTACT_FORM_STATE,
   persistQueue,
@@ -15,11 +15,11 @@ import {
 import './contact.css'
 
 export default function ContactPage() {
+    const { openModal } = useTrialModal()
     const [formData, setFormData] = useState({ ...INITIAL_CONTACT_FORM_STATE })
-    const [status, setStatus] = useState('idle') // idle | loading | success
+    const [status, setStatus] = useState('idle')
     const [errorMsg, setErrorMsg] = useState('')
 
-    // On mount: try to flush any queued submissions from localStorage
     const flushQueue = useCallback(async () => {
         try {
             const queue = readQueue()
@@ -46,7 +46,6 @@ export default function ContactPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    // Email: auto-suggest gmail.com when user types @
     const emailRef = useRef(null)
     const handleEmailChange = (e) => {
         const val = e.target.value
@@ -66,7 +65,6 @@ export default function ContactPage() {
         }
     }
 
-    // Phone: strip everything except digits, cap at 10, format with +91
     const handlePhoneChange = (e) => {
         let raw = e.target.value
         raw = raw.replace(/^\+91\s*/, '')
@@ -86,7 +84,6 @@ export default function ContactPage() {
         setStatus('loading')
         setErrorMsg('')
 
-        // Client-side phone validation — must have exactly 10 digits
         const phoneDigits = formData.phone.replace(/\D/g, '')
         const digitsOnly = phoneDigits.startsWith('91') ? phoneDigits.slice(2) : phoneDigits
         if (digitsOnly.length !== 10) {
@@ -99,7 +96,6 @@ export default function ContactPage() {
         const payload = { ...formData, phone: fullPhone }
 
         try {
-            // Single API call — server handles all retries internally
             await sendToAPI(payload)
             setStatus('success')
             setFormData({ ...INITIAL_CONTACT_FORM_STATE })
@@ -114,7 +110,6 @@ export default function ContactPage() {
             setErrorMsg(err.message || 'Something went wrong. If the issue continues, please call us directly.')
         }
     }
-
 
     return (
         <div className="contact-page">
@@ -147,14 +142,20 @@ export default function ContactPage() {
                 </div>
             </section>
 
-            {/* Trial form supplementing existing contact form */}
-            <section className="section" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)' }}>
-                <div className="container" style={{ maxWidth: '700px' }}>
-                    <div className="text-center" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                        <h2 className="section-title">Want to try a class first?</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.05rem' }}>Book a free trial class directly.</p>
+            {/* Trial CTA replacing the heavy inline form */}
+            <section className="section origin-cta section--tint-cool" style={{ padding: '6rem 0' }}>
+                <div className="container">
+                    <div className="origin-cta__card glass-card">
+                        <h2 className="section-title">Ready to train?</h2>
+                        <p className="section-subtitle centered-subtitle mb-standard mx-auto">
+                            Jump straight into the action. Book a free introductory class and discover the SKF difference.
+                        </p>
+                        <div className="flex-center-wrap gap-standard">
+                            <button className="btn btn-primary" onClick={() => openModal()}>
+                                Book Free Trial <FaArrowRight />
+                            </button>
+                        </div>
                     </div>
-                    <FreeTrialForm />
                 </div>
             </section>
         </div>

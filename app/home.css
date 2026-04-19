@@ -252,3 +252,393 @@
         padding: 0.4rem 0.85rem;
     }
 }
+
+/* ══════════════════════════════════════════════ */
+/* ── Homepage: Classes Preview ── */
+/* ══════════════════════════════════════════════ */
+
+.home-classes-preview__header,
+.home-top-athletes__header,
+.home-why-parents__header,
+.home-first-class__header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.home-classes-preview__header .section-subtitle,
+.home-top-athletes__header .section-subtitle,
+.home-first-class__header .section-subtitle {
+    margin: 0 auto;
+}
+
+.home-classes-preview__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.home-city-card {
+    position: relative;
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+
+.home-city-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
+}
+
+.home-city-card__image {
+    position: absolute;
+    inset: 0;
+}
+
+.home-city-card__image img {
+    filter: grayscale(40%) brightness(0.5);
+    transition: all 0.5s var(--ease-out);
+}
+
+.home-city-card:hover .home-city-card__image img {
+    filter: grayscale(0%) brightness(0.45);
+    transform: scale(1.06);
+}
+
+.home-city-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.home-city-card__content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem;
+    z-index: 2;
+}
+
+.home-city-card__name {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.home-city-card__count {
+    font-size: 0.7rem;
+    color: var(--gold);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.home-classes-preview__cta,
+.home-top-athletes__cta,
+.home-first-class__cta {
+    text-align: center;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── Homepage: Top Athletes Podium ── */
+/* ══════════════════════════════════════════════ */
+
+.home-top-athletes__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.athlete-podium-card {
+    position: relative;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+.athlete-podium-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.athlete-podium-card__rank {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: white;
+}
+
+.athlete-podium-card__rank--1 {
+    background: linear-gradient(135deg, #D4AF37, #B8860B);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.athlete-podium-card__rank--2 {
+    background: linear-gradient(135deg, #A9A9A9, #808080);
+    box-shadow: 0 4px 15px rgba(169, 169, 169, 0.3);
+}
+
+.athlete-podium-card__rank--3 {
+    background: linear-gradient(135deg, #CD7F32, #A0522D);
+    box-shadow: 0 4px 15px rgba(205, 127, 50, 0.3);
+}
+
+.athlete-podium-card__avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(214, 40, 40, 0.2), rgba(255, 183, 3, 0.2));
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-white);
+    margin: 0.5rem auto 1rem;
+}
+
+.athlete-podium-card__name {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 0.2rem;
+}
+
+.athlete-podium-card__category {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.athlete-podium-card__branch {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.athlete-podium-card__medals {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.medal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+}
+
+.medal--gold {
+    background: rgba(212, 175, 55, 0.15);
+    color: #D4AF37;
+}
+
+.medal--silver {
+    background: rgba(169, 169, 169, 0.15);
+    color: #A9A9A9;
+}
+
+.medal--bronze {
+    background: rgba(205, 127, 50, 0.15);
+    color: #CD7F32;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── Homepage: Why Parents Choose SKF ── */
+/* ══════════════════════════════════════════════ */
+
+.home-why-parents__grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+
+.why-card {
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 14px;
+    text-align: center;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    transition: transform 0.3s var(--ease-out), border-color 0.3s;
+}
+
+.why-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 183, 3, 0.2);
+}
+
+.why-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(214, 40, 40, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--crimson-light);
+    font-size: 1.1rem;
+    margin: 0 auto 1rem;
+}
+
+.why-card__title {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.why-card__desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── Homepage: Your First Class ── */
+/* ══════════════════════════════════════════════ */
+
+.home-first-class__steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.first-class-step {
+    position: relative;
+    padding: 2rem 1.25rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 14px;
+    text-align: center;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+}
+
+.first-class-step__number {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.04);
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    line-height: 1;
+}
+
+.first-class-step__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(255, 183, 3, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 1rem;
+    margin: 0 auto 1rem;
+}
+
+.first-class-step__title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.first-class-step__desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* ── Homepage sections responsive ── */
+
+@media (max-width: 1024px) {
+    .home-why-parents__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .home-classes-preview__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .home-city-card {
+        aspect-ratio: 4/5;
+    }
+
+    .home-top-athletes__grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+    }
+
+    .home-why-parents__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .home-first-class__steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .home-classes-preview__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .home-city-card__name {
+        font-size: 1.1rem;
+    }
+
+    .home-why-parents__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-first-class__steps {
+        grid-template-columns: 1fr;
+    }
+}

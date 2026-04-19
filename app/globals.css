@@ -750,3 +750,47 @@ nextjs-portal,
 .z-2 { z-index: 2; }
 .contained-subtitle-lg { max-width: 700px; margin: 0 auto; font-size: 1.2rem; }
 .flex-center { display: flex; justify-content: center; }
+
+/* ============================================================
+   MOBILE STICKY CTA
+   ============================================================ */
+.mobile-sticky-cta {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: linear-gradient(135deg, var(--crimson) 0%, #a51c1c 100%);
+    color: white;
+    padding: 1rem;
+    z-index: 9999;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    transform: translateY(100%);
+    transition: transform 0.4s var(--ease-out);
+    cursor: pointer;
+}
+
+.mobile-sticky-cta.visible {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .mobile-sticky-cta {
+        display: flex;
+    }
+    
+    /* Give main content some padding so it doesn't get hidden behind the CTA */
+    #main-content {
+        padding-bottom: 3.5rem;
+    }
+}

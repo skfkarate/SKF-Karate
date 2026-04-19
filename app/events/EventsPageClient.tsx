@@ -1,28 +1,40 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { FaCalendarAlt, FaMapMarkerAlt, FaTrophy, FaArrowRight, FaUsers, FaFilter } from 'react-icons/fa'
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaArrowRight, FaFilter, FaTrophy } from 'react-icons/fa'
 import ScrollReveal from '@/app/_components/ScrollReveal'
+import ResultsPageClient from '@/app/_components/results/ResultsPageClient'
+import '@/app/rankings/rankings.css' // Reuse tab UI styling
 
-const typeBadgeClass = {
+const typeBadgeClass: Record<string, string> = {
     Camp: 'tag-camp',
     Grading: 'tag-grading',
     Tournament: 'tag-tournament',
-    'PELT Exam': 'tag-seminar',
+    'pelt-exam': 'tag-seminar',
     Seminar: 'tag-seminar',
     Fun: 'tag-fun',
 }
 
+const getEventLabel = (type: string) => {
+    if (type === 'tournament') return 'Tournament'
+    if (type === 'seminar') return 'Seminar'
+    if (type === 'pelt-exam') return 'PELT Exam'
+    if (type === 'grading') return 'Grading'
+    if (type === 'camp') return 'Camp'
+    return type
+}
+
 const filterOptions = ['All', 'Camp', 'Grading', 'Tournament', 'PELT Exam', 'Seminar', 'Fun']
 
-export default function EventsPageClient({ upcomingEvents, pastEvents }) {
+export default function EventsPageClient({ upcomingEvents, resultsData }: any) {
+    const [activeMainTab, setActiveMainTab] = useState<'upcoming' | 'results'>('upcoming')
     const [activeFilter, setActiveFilter] = useState('All')
 
     const filteredEvents = activeFilter === 'All'
         ? upcomingEvents
-        : upcomingEvents.filter((e) => e.type === activeFilter)
+        : upcomingEvents.filter((e: any) => getEventLabel(e.type) === activeFilter)
 
-    const renderDate = (dateString) => {
+    const renderDate = (dateString: string) => {
         const parts = dateString.split(' ')
         if (parts.length >= 2) {
             return (
@@ -37,127 +49,119 @@ export default function EventsPageClient({ upcomingEvents, pastEvents }) {
 
     return (
         <div className="events-page">
-            {/* HERO */}
-            <section className="events-hero">
-                <div className="events-hero__background">
-                    <div className="events-hero__glow events-hero__glow--1"></div>
-                    <div className="events-hero__glow events-hero__glow--2"></div>
+            {/* HERO & TABS */}
+            <section className="rankings-hero" style={{ background: 'linear-gradient(180deg, #111 0%, #1a1a2e 100%)' }}>
+                <div className="rankings-hero__bg">
+                    <div className="glow glow-red rankings-hero__glow-1"></div>
+                    <div className="glow glow-gold rankings-hero__glow-2"></div>
                 </div>
-                <div className="container events-hero__content">
-                    <span className="premium-badge"><FaCalendarAlt /> Official Calendar</span>
-                    <h1 className="display-title">SKF <span className="text-gradient-gold">Events</span></h1>
-                    <p className="events-hero__subtitle">Competitions, Gradings, Camps & Seminars</p>
+                
+                <div className="container rankings-hero__content">
+                    <span className="section-label"><FaCalendarAlt /> Calendar & Results</span>
+                    <h1 className="rankings-hero__title">
+                        SKF <span className="text-gradient">Events</span>
+                    </h1>
+                    <p className="rankings-hero__subtitle">
+                        Upcoming schedule and historic competition results.
+                    </p>
+
+                    <div className="rankings-tabs-nav">
+                        <button 
+                            className={`rankings-tab-btn ${activeMainTab === 'upcoming' ? 'active' : ''}`}
+                            onClick={() => setActiveMainTab('upcoming')}
+                        >
+                            <FaCalendarAlt /> Upcoming Schedule
+                        </button>
+                        <button 
+                            className={`rankings-tab-btn ${activeMainTab === 'results' ? 'active' : ''}`}
+                            onClick={() => setActiveMainTab('results')}
+                        >
+                            <FaTrophy /> Past Results
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            {/* UPCOMING */}
-            <section className="section upcoming-section">
-                <div className="container">
-                    <ScrollReveal>
-                        <div className="section-header">
-                            <h2 className="section-title">Upcoming <span className="text-gradient">Schedule</span></h2>
-                            <p className="section-desc">Mark your calendars for these important upcoming academy events.</p>
-                        </div>
-                    </ScrollReveal>
+            {/* TAB: UPCOMING EVENTS */}
+            {activeMainTab === 'upcoming' && (
+                <section className="rankings-tab-content active" style={{ padding: '4rem 0 8rem' }}>
+                    <div className="container">
+                        <ScrollReveal>
+                            <div className="section-header">
+                                <h2 className="section-title">Upcoming <span className="text-gradient">Schedule</span></h2>
+                                <p className="section-desc" style={{ color: 'var(--text-muted)' }}>Mark your calendars for these important upcoming academy events.</p>
+                            </div>
+                        </ScrollReveal>
 
-                    {/* FILTER PILLS */}
-                    <ScrollReveal delay={0.1}>
-                        <div className="filter-bar">
-                            <FaFilter className="filter-bar__icon" />
-                            {filterOptions.map((f) => (
-                                <button
-                                    key={f}
-                                    className={`filter-pill ${activeFilter === f ? 'filter-pill--active' : ''}`}
-                                    onClick={() => setActiveFilter(f)}
-                                >
-                                    {f}
-                                </button>
+                        <ScrollReveal delay={0.1}>
+                            <div className="filter-bar" style={{ justifyContent: 'center', marginBottom: '3rem' }}>
+                                <FaFilter className="filter-bar__icon" />
+                                {filterOptions.map((f) => (
+                                    <button
+                                        key={f}
+                                        className={`filter-pill ${activeFilter === f ? 'filter-pill--active' : ''}`}
+                                        onClick={() => setActiveFilter(f)}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
+                        </ScrollReveal>
+
+                        <div className="events-timeline" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                            {filteredEvents.length === 0 && (
+                                <ScrollReveal>
+                                    <p className="center-text text-muted" style={{ padding: '3rem', textAlign: 'center' }}>
+                                        No upcoming {activeFilter !== 'All' ? activeFilter : ''} events scheduled at this time.
+                                    </p>
+                                </ScrollReveal>
+                            )}
+                            {filteredEvents.map((e: any, i: number) => (
+                                <ScrollReveal key={`${e.title}-${i}`} delay={i * 0.08}>
+                                    <div className="event-row" style={{ background: 'var(--bg-card)', border: 'var(--border-glass)', borderRadius: '16px', padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', gap: '2rem' }}>
+                                        <div className="event-row__date" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px', color: 'var(--gold)' }}>
+                                            {renderDate(e.date)}
+                                        </div>
+                                        <div className="event-row__content" style={{ flex: 1 }}>
+                                            <div className="event-row__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                                <div>
+                                                    <span className={`premium-tag ${typeBadgeClass[getEventLabel(e.type)] || typeBadgeClass[e.type] || 'tag-fun'}`} style={{ display: 'inline-block', marginBottom: '0.5rem', fontSize: '0.7rem' }}>
+                                                        {getEventLabel(e.type)}
+                                                    </span>
+                                                    <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)' }}>{e.title}</h3>
+                                                </div>
+                                                {e.cta && <Link href={e.cta} className="btn-action">View <FaArrowRight /></Link>}
+                                            </div>
+                                            <p className="event-row__desc" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>{e.desc}</p>
+                                            <div className="event-row__footer" style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                                                <div className="event-meta" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                    <FaMapMarkerAlt /> <span>{e.location}</span>
+                                                </div>
+                                                <div className="event-meta" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                    <FaUsers /> <span>All Belt Levels</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
                             ))}
                         </div>
-                    </ScrollReveal>
-
-                    <div className="events-timeline">
-                        {filteredEvents.length === 0 && (
-                            <ScrollReveal>
-                                <p className="center-text text-muted" style={{ padding: '3rem' }}>
-                                    No upcoming {activeFilter} events scheduled at this time.
-                                </p>
-                            </ScrollReveal>
-                        )}
-                        {filteredEvents.map((e, i) => (
-                            <ScrollReveal key={`${e.title}-${i}`} delay={i * 0.08}>
-                                <div className="event-row">
-                                    <div className="event-row__date">
-                                        {renderDate(e.date)}
-                                    </div>
-                                    <div className="event-row__divider">
-                                        <div className="dot"></div>
-                                    </div>
-                                    <div className="event-row__content">
-                                        <div className="event-row__header">
-                                            <div className="event-row__title-group">
-                                                <span className={`premium-tag ${typeBadgeClass[e.type]}`}>{e.type}</span>
-                                                <h3>{e.title}</h3>
-                                            </div>
-                                            {e.cta && <Link href={e.cta} className="btn-action">View Details <FaArrowRight /></Link>}
-                                        </div>
-                                        <p className="event-row__desc">{e.desc}</p>
-                                        <div className="event-row__footer">
-                                            <div className="event-meta">
-                                                <FaMapMarkerAlt className="meta-icon" />
-                                                <span>{e.location}</span>
-                                            </div>
-                                            <div className="event-meta">
-                                                <FaUsers className="meta-icon" />
-                                                <span>All Belt Levels</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ScrollReveal>
-                        ))}
                     </div>
+                </section>
+            )}
+
+            {/* TAB: RESULTS */}
+            {activeMainTab === 'results' && (
+                <div className="rankings-tab-content active view-dashboard-wrapper">
+                    <Suspense fallback={<div>Loading Results...</div>}>
+                        <ResultsPageClient 
+                            allTournaments={resultsData.allTournaments}
+                            stats={resultsData.stats}
+                            availableYears={resultsData.availableYears}
+                        />
+                    </Suspense>
                 </div>
-            </section>
-
-            {/* PAST RESULTS */}
-            <section className="section past-section">
-                <div className="container">
-                    <ScrollReveal>
-                        <div className="section-header text-center">
-                            <span className="premium-badge badge-center"><FaTrophy /> Hall of Fame</span>
-                            <h2 className="section-title">Recent <span className="text-gradient-gold">Results</span></h2>
-                            <p className="section-desc">Celebrating the outstanding achievements of our athletes.</p>
-                        </div>
-                    </ScrollReveal>
-
-                    <div className="past-results-grid">
-                        {pastEvents.map((e, i) => (
-                            <ScrollReveal key={i} delay={i * 0.1}>
-                                <div className="result-plaque">
-                                    <div className="plaque-corner top-left"></div>
-                                    <div className="plaque-corner top-right"></div>
-                                    <div className="plaque-corner bottom-left"></div>
-                                    <div className="plaque-corner bottom-right"></div>
-                                    <FaTrophy className="plaque-bg-icon" />
-                                    <span className="plaque-date">{e.date}</span>
-                                    <h3 className="plaque-title">{e.title}</h3>
-                                    <div className="plaque-divider"></div>
-                                    <p className="plaque-result">{e.result}</p>
-                                </div>
-                            </ScrollReveal>
-                        ))}
-                    </div>
-
-                    <ScrollReveal delay={0.3}>
-                        <div className="section-cta">
-                            <Link href="/results" className="btn-action btn-action--lg">
-                                View All Past Results <FaArrowRight />
-                            </Link>
-                        </div>
-                    </ScrollReveal>
-                </div>
-            </section>
+            )}
         </div>
     )
 }

@@ -3,11 +3,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { FaArrowRight, FaBuilding, FaGlobe, FaInfoCircle, FaCrown } from 'react-icons/fa'
-import FreeTrialForm from '@/components/FreeTrialForm'
-import { GiBlackBelt, GiMeditation, GiPunch, GiYinYang } from 'react-icons/gi'
+import { FaArrowRight, FaBuilding, FaGlobe, FaCrown } from 'react-icons/fa'
+import { GiBlackBelt, GiPunch, GiYinYang } from 'react-icons/gi'
 import HomeStatsCounter from '@/app/_components/pages/home/HomeStatsCounter'
-import HomeSenseisTeaser from '@/app/_components/pages/home/HomeSenseisTeaser'
+import { useTrialModal } from '@/app/_components/TrialModalContext'
 import './about.css'
 
 const leadership = [
@@ -19,6 +18,8 @@ const leadership = [
 ]
 
 export default function AboutPage() {
+    const { openModal } = useTrialModal()
+
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -80,8 +81,8 @@ export default function AboutPage() {
                                 </p>
                             </div>
                             
-                            <Link href="/dojos" className="btn btn-primary zen-cta">
-                                View Branches & Timetables
+                            <Link href="/classes" className="btn btn-primary zen-cta">
+                                Find a Class Near You
                             </Link>
                         </div>
                         
@@ -98,9 +99,6 @@ export default function AboutPage() {
                     </div>
                 </div>
             </section>
-
-            {/* ═══════ HOMEPAGE SENSEIS TEASER (LEGACY) ═══════ */}
-            <HomeSenseisTeaser />
 
             {/* ═══════ THE VANGUARD (LEADERSHIP) ═══════ */}
             <section className="section vanguard-section section--tint-mid">
@@ -127,9 +125,7 @@ export default function AboutPage() {
                                     </div>
                                     <div className="vanguard-meta">
                                         <h3 className="mb-tiny">
-                                            <Link href={leader.id ? `/senseis/${leader.id}` : '/senseis'} className="vanguard-link hover:text-gold transition">
-                                                {leader.name}
-                                            </Link>
+                                            {leader.name}
                                         </h3>
                                         <span className="vanguard-role">{leader.role}</span>
                                         {leader.dan && <span className="vanguard-dan">{leader.dan}</span>}
@@ -157,7 +153,6 @@ export default function AboutPage() {
                     </div>
 
                     <div className="affiliation-showcase reveal-on-scroll">
-                        {/* Left: WKF */}
                         <div className="affil-node">
                             <div className="affil-glass">
                                 <Image src="/affliciation/wkf.png" alt="WKF Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
@@ -165,7 +160,6 @@ export default function AboutPage() {
                             </div>
                         </div>
                         
-                        {/* Center: Primary Affiliation */}
                         <div className="affil-node affil-primary">
                             <div className="affil-glass">
                                 <Image src="/affliciation/akska.png" alt="AKSKA Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
@@ -173,7 +167,6 @@ export default function AboutPage() {
                             </div>
                         </div>
 
-                        {/* Right: KIO */}
                         <div className="affil-node">
                             <div className="affil-glass">
                                 <Image src="/affliciation/kio.png" alt="KIO Logo" width={140} height={100} style={{ objectFit: 'contain' }} />
@@ -184,23 +177,8 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* ═══════ FREE TRIAL FORM ═══════ */}
-            <section className="section section--tint-warm reveal-on-scroll" style={{ padding: '6rem 1rem' }}>
-                <div className="container" style={{ maxWidth: '700px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                        <h2 className="section-title">Ready for Your <span className="text-gradient">First Class?</span></h2>
-                        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem' }}>
-                            Experience our elite training firsthand. Book your free introductory class below.
-                        </p>
-                    </div>
-                    <div style={{ width: '100%' }}>
-                        <FreeTrialForm />
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════ ORIGIN CTA ═══════ */}
-            <section className="section origin-cta section--tint-cool">
+            {/* ═══════ CTA SECTION ═══════ */}
+            <section className="section section--tint-cool origin-cta">
                 <div className="container">
                     <div className="origin-cta__card glass-card reveal-on-scroll">
                         <h2 className="section-title">Write Your History With Us</h2>
@@ -208,8 +186,12 @@ export default function AboutPage() {
                             Whether you are stepping onto the tatami for the first time or returning to the path of mastery, the SKF family welcomes you. Oss!
                         </p>
                         <div className="flex-center-wrap gap-standard">
-                            <Link href="/contact" className="btn btn-primary">Begin Your Journey <FaArrowRight /></Link>
-                            <span className="btn btn-secondary disabled-btn">Find Athlete Profile (Soon)</span>
+                            <button className="btn btn-primary" onClick={() => openModal()}>
+                                Book Free Trial <FaArrowRight />
+                            </button>
+                            <Link href="/classes" className="btn btn-secondary">
+                                View Classes
+                            </Link>
                         </div>
                     </div>
                 </div>
