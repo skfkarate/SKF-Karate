@@ -27,7 +27,7 @@ export default function ResultsPageClient({
     if (filters.search) params.set('q', filters.search)
 
     const queryString = params.toString()
-    const newUrl = queryString ? `/results?${queryString}` : '/results'
+    const newUrl = queryString ? `/tournaments?${queryString}` : '/tournaments'
     router.replace(newUrl, { scroll: false })
   }, [filters, router])
 

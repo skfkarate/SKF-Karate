@@ -31,8 +31,8 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
 
     // Fast cinematic crossfade for regular photos
     const fadeInEnd = start + duration * 0.15;
-    const opacity = index === 0 
-        ? 1 
+    const opacity = index === 0
+        ? 1
         : useTransform(scrollYProgress, [start, fadeInEnd], [0, 1]);
 
     const scale = useTransform(scrollYProgress, [start, end], [1.1, 1]);
@@ -44,19 +44,19 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
         const textReadyFull = start + duration * 0.65;
         const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
         const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["30px", "0px"]); // Shift down to avoid logo overlap
-        
+
         // Background turns to a deep cinematic crimson glow smoothly over the same duration as text
         const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
 
         // Logo starts large and scales into its resting position
         const logoScale = useTransform(scrollYProgress, [start, start + duration * 0.8], [1.2, 1]);
         const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
-        
+
         const trackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
         const letterSpacing = useTransform(trackingProgress, (v) => `calc(${v * 10}px + ${v * 0.5}vw)`);
 
         return (
-            <motion.div 
+            <motion.div
                 style={{
                     position: "absolute",
                     inset: 0,
@@ -81,7 +81,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                 }} />
 
                 <motion.div style={{ position: "relative", width: "65vmin", height: "65vmin", maxWidth: "450px", scale: logoScale, opacity: logoOpacity }}>
-                    <Image 
+                    <Image
                         src={img}
                         alt="SKF Logo"
                         fill
@@ -91,7 +91,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                     />
                 </motion.div>
 
-                <motion.h2 
+                <motion.h2
                     style={{
                         opacity: textOpacity,
                         y: textY,
@@ -118,7 +118,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
 
     // Normal slide rendering
     return (
-        <motion.div 
+        <motion.div
             style={{
                 position: "absolute",
                 inset: 0,
@@ -132,7 +132,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
             }}
         >
             <motion.div style={{ position: "absolute", inset: 0, scale, willChange: "transform" }}>
-                <Image 
+                <Image
                     src={img}
                     alt=""
                     fill
@@ -167,7 +167,7 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) 
 
     const opacity = useTransform(scrollYProgress, opInput, opOutput);
     const y = useTransform(scrollYProgress, yInput, yOutput);
-    
+
     // Dynamic viewport-responsive tracking to ensure text doesn't overflow mobile boundaries
     const trackingProgress = useTransform(scrollYProgress, [start, end], [0.1, 1.2]);
     const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
@@ -181,12 +181,12 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) 
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                zIndex: 100, 
+                zIndex: 100,
                 pointerEvents: "none",
                 padding: "0 5vw"
             }}
         >
-            <motion.h2 
+            <motion.h2
                 style={{
                     opacity,
                     y,
@@ -228,16 +228,16 @@ export default function CinematicValues() {
     return (
         <section ref={containerRef} className="cinematic-values-wrapper" style={{ height: "600vh", position: "relative", background: "#020306" }}>
             <div className="cinematic-values-sticky" style={{ height: "100vh", position: "sticky", top: 0, overflow: "hidden" }}>
-                
+
                 {/* Unified Background Images Ecosystem */}
                 <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
                     {values.map((v, i) => (
-                        <SlideBackground 
-                            key={`bg-${i}`} 
+                        <SlideBackground
+                            key={`bg-${i}`}
                             img={v.img}
                             text={v.text}
-                            index={i} 
-                            total={values.length} 
+                            index={i}
+                            total={values.length}
                             scrollYProgress={scrollYProgress}
                             isLogo={v.isLogo}
                             pos={v.pos}
@@ -246,9 +246,9 @@ export default function CinematicValues() {
                 </div>
 
                 {/* Constant Immersive Deep Vignette Overlay */}
-                <div style={{ 
-                    position: "absolute", 
-                    inset: 0, 
+                <div style={{
+                    position: "absolute",
+                    inset: 0,
                     background: "radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(2,3,6,0.65) 100%), linear-gradient(0deg, rgba(2,3,6,0.95) 0%, transparent 20%, transparent 80%, rgba(2,3,6,0.95) 100%)",
                     zIndex: 2,
                     pointerEvents: "none"
@@ -257,13 +257,12 @@ export default function CinematicValues() {
                 {/* Highly-Organized Distinct Text Layer */}
                 <div style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none" }}>
                     {values.map((v, i) => (
-                        <SlideText 
-                            key={`text-${i}`} 
-                            text={v.text} 
-                            sub={v.sub}
-                            index={i} 
-                            total={values.length} 
-                            scrollYProgress={scrollYProgress} 
+                        <SlideText
+                            key={`text-${i}`}
+                            text={v.text}
+                            index={i}
+                            total={values.length}
+                            scrollYProgress={scrollYProgress}
                             isLogo={v.isLogo}
                         />
                     ))}
@@ -271,7 +270,7 @@ export default function CinematicValues() {
 
                 {/* Scroll Progress Bar */}
                 <div style={{ position: 'absolute', left: 0, bottom: 0, height: '4px', width: '100%', zIndex: 30, background: 'rgba(255,255,255,0.1)' }}>
-                    <motion.div 
+                    <motion.div
                         style={{ height: '100%', background: 'linear-gradient(90deg, var(--gold), var(--crimson))', width: '100%', scaleX: scrollYProgress, transformOrigin: '0% 50%' }}
                     />
                 </div>
@@ -310,26 +309,26 @@ export default function CinematicValues() {
                 </button>
 
                 {/* Refined Geometric Scroll Indicator */}
-                <motion.div 
-                    style={{ 
-                        position: "absolute", 
-                        bottom: "40px", 
-                        left: "50%", 
-                        x: "-50%", 
-                        zIndex: 20, 
-                        color: "#fff", 
-                        display: "flex", 
-                        flexDirection: "column", 
-                        alignItems: "center", 
+                <motion.div
+                    style={{
+                        position: "absolute",
+                        bottom: "40px",
+                        left: "50%",
+                        x: "-50%",
+                        zIndex: 20,
+                        color: "#fff",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                         opacity: indicatorOpacity,
                         pointerEvents: "none"
                     }}
                 >
                     <span style={{ fontSize: "0.75rem", letterSpacing: "4px", opacity: 0.6, marginBottom: "15px", textTransform: "uppercase", fontWeight: 700 }}>Enter the Dojo</span>
-                    <motion.div 
-                        animate={{ y: [0, 10, 0], opacity: [0.4, 1, 0.4] }} 
+                    <motion.div
+                        animate={{ y: [0, 10, 0], opacity: [0.4, 1, 0.4] }}
                         transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        style={{ width: "2px", height: "50px", background: "linear-gradient(to bottom, #d4af37, transparent)" }} 
+                        style={{ width: "2px", height: "50px", background: "linear-gradient(to bottom, #d4af37, transparent)" }}
                     />
                 </motion.div>
             </div>

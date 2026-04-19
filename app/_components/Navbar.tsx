@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { FaBars, FaTimes, FaChevronRight, FaSearch, FaChartLine, FaShoppingCart } from 'react-icons/fa'
+import { FaBars, FaTimes, FaChevronRight, FaChevronDown, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
 import { useTrialModal } from './TrialModalContext'
 
 /* ── Drawer nav structure ── */
 interface DrawerLink {
     label: string
-    href: string
+    href?: string
     external?: boolean
+    subLinks?: { label: string, href: string }[]
 }
 
 interface DrawerGroup {
@@ -33,7 +34,13 @@ const drawerGroups: DrawerGroup[] = [
     {
         heading: 'For Students',
         links: [
-            { label: 'Events & Calendar', href: '/events' },
+            { 
+                label: 'Events & Tournaments',
+                subLinks: [
+                    { label: 'Upcoming Events', href: '/events' },
+                    { label: 'Past Tournaments', href: '/tournaments' }
+                ]
+            },
             { label: 'Belt Grading', href: '/grading' },
             { label: 'Summer Camp 2026', href: '/summer-camp' },
             { label: 'Student Portal', href: '/portal' },
@@ -60,6 +67,7 @@ const drawerGroups: DrawerGroup[] = [
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false)
     const [drawerOpen, setDrawerOpen] = useState(false)
+    const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
     const pathname = usePathname()
     const { cartTotalCount } = useCart()
     const { openModal } = useTrialModal()
@@ -79,6 +87,15 @@ export default function Navbar() {
         document.body.style.overflow = drawerOpen ? 'hidden' : ''
         return () => { document.body.style.overflow = '' }
     }, [drawerOpen])
+
+    const handleLinkClick = (link: DrawerLink, e: React.MouseEvent) => {
+        if (link.subLinks) {
+            e.preventDefault()
+            setExpandedMenu(expandedMenu === link.label ? null : link.label)
+        } else {
+            setDrawerOpen(false)
+        }
+    }
 
     return (
         <>
@@ -104,22 +121,10 @@ export default function Navbar() {
                             Classes
                         </Link>
                         <Link
-                            href="/events"
-                            className={`nav__link ${pathname?.startsWith('/events') ? 'nav__link--active' : ''}`}
-                        >
-                            Events
-                        </Link>
-                        <Link
                             href="/about"
                             className={`nav__link ${pathname?.startsWith('/about') ? 'nav__link--active' : ''}`}
                         >
                             About
-                        </Link>
-                        <Link
-                            href="/portal"
-                            className={`nav__link ${pathname?.startsWith('/portal') ? 'nav__link--active' : ''}`}
-                        >
-                            Portal
                         </Link>
                     </nav>
 
@@ -139,10 +144,13 @@ export default function Navbar() {
                         )}
 
                         {/* Utility icons */}
-                        <Link href="/rankings" className="nav__icon" aria-label="Rankings" title="Rankings">
+                        <Link href="/events" className={`nav__icon ${pathname?.startsWith('/events') ? 'nav__icon--active' : ''}`} aria-label="Events" title="Events">
+                            <FaCalendarAlt />
+                        </Link>
+                        <Link href="/rankings" className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`} aria-label="Rankings" title="Rankings">
                             <FaChartLine />
                         </Link>
-                        <Link href="/athlete" className="nav__icon" aria-label="Search" title="Search Athletes">
+                        <Link href="/athlete" className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`} aria-label="Search" title="Search Athletes">
                             <FaSearch />
                         </Link>
 
@@ -183,15 +191,37 @@ export default function Navbar() {
                         <div key={group.heading} className="drawer__group">
                             <span className="drawer__group-heading">{group.heading}</span>
                             {group.links.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`drawer__link ${pathname === link.href || pathname?.startsWith(link.href + '/') ? 'drawer__link--active' : ''}`}
-                                    onClick={() => setDrawerOpen(false)}
-                                >
-                                    <span>{link.label}</span>
-                                    <FaChevronRight className="drawer__link-arrow" />
-                                </Link>
+                                <div key={link.label}>
+                                    <Link
+                                        href={link.href || '#'}
+                                        className={`drawer__link ${pathname === link.href || (link.href && pathname?.startsWith(link.href + '/')) ? 'drawer__link--active' : ''}`}
+                                        onClick={(e) => handleLinkClick(link, e)}
+                                    >
+                                        <span>{link.label}</span>
+                                        {link.subLinks ? (
+                                            expandedMenu === link.label ? <FaChevronDown className="drawer__link-arrow" /> : <FaChevronRight className="drawer__link-arrow" />
+                                        ) : (
+                                            <FaChevronRight className="drawer__link-arrow" />
+                                        )}
+                                    </Link>
+                                    
+                                    {/* SubMenu Expansion */}
+                                    {link.subLinks && expandedMenu === link.label && (
+                                        <div className="drawer__submenu" style={{ display: 'flex', flexDirection: 'column', paddingLeft: '1.5rem', marginTop: '-0.5rem', marginBottom: '1rem', gap: '0.5rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+                                            {link.subLinks.map(subLink => (
+                                                <Link 
+                                                    key={subLink.href} 
+                                                    href={subLink.href}
+                                                    className={`drawer__sublink ${pathname === subLink.href ? 'drawer__sublink--active' : ''}`}
+                                                    onClick={() => setDrawerOpen(false)}
+                                                    style={{ color: pathname === subLink.href ? 'var(--gold)' : 'var(--text-muted)', fontSize: '0.9rem', padding: '0.5rem 0', display: 'block', transition: 'color 0.2s' }}
+                                                >
+                                                    {subLink.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     ))}
