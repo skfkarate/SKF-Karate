@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal } from 'react-icons/fa'
-import { leadInstructor, supportingInstructors } from '@/lib/leadershipData'
+import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaArrowRight } from 'react-icons/fa'
+import { leadershipData } from '@/lib/leadershipData'
 import BookTrialCTAButton from './_components/BookTrialCTAButton'
 
 export const metadata: Metadata = {
@@ -31,12 +31,16 @@ const jsonLd = {
 }
 
 export default function AboutPage() {
+    const founder = leadershipData[0]
+    const activeCommittee = leadershipData.slice(1)
+
     return (
         <div style={{ background: '#05080f', minHeight: '100vh', paddingBottom: '4rem' }}>
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+            
             {/* ═══════ SECTION 1: THE STORY (TRUST ANCHOR) ═══════ */}
             <section style={{ paddingTop: '8rem', paddingBottom: '4rem', background: 'radial-gradient(circle at 50% 0%, rgba(214,40,40,0.05) 0%, transparent 70%)' }}>
                 <div className="container">
@@ -108,38 +112,61 @@ export default function AboutPage() {
             </section>
 
             {/* ═══════ SECTION 2: OFFICIAL HIERARCHY & CREDENTIALS ═══════ */}
-            <section style={{ padding: '6rem 0', background: '#080c16', borderTop: '1px solid rgba(255,255,255,0.02)' }}>
-                <div className="container">
-                    
-                    {/* Lead Instructor */}
-                    <div style={{ background: '#111', border: '1px solid rgba(214,40,40,0.3)', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexWrap: 'wrap', marginBottom: '2rem' }}>
-                        <div style={{ flex: '1 1 300px', position: 'relative', minHeight: '300px' }}>
-                            <Image src={leadInstructor.image} alt={leadInstructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+            <section style={{ padding: '6rem 0', background: '#080c16', borderTop: '1px solid rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden' }}>
+                
+                {/* Subtle Cinematic Background Watermark */}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '80%', opacity: 0.02, pointerEvents: 'none', zIndex: 0 }}>
+                     <Image src="/logo/SKF logo.png" alt="SKF Watermark" fill style={{ objectFit: 'contain' }} />
+                </div>
+
+                <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+                    <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', color: '#fff', textAlign: 'center', marginBottom: '3rem' }}>
+                        Executive Committee & Verified Instructors
+                    </h2>
+
+                    {/* Featured Founder Card */}
+                    <Link href={`/instructors/${founder.slug}`} style={{ textDecoration: 'none' }}>
+                        <div style={{ background: '#111', border: '1px solid rgba(214,40,40,0.3)', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexWrap: 'wrap', marginBottom: '2rem', transition: 'transform 0.3s ease, border-color 0.3s ease' }} 
+                            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(214,40,40,0.8)' }}
+                            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(214,40,40,0.3)' }}
+                        >
+                            <div style={{ flex: '1 1 300px', position: 'relative', minHeight: '300px' }}>
+                                <Image src={founder.image} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+                            </div>
+                            <div style={{ flex: '2 1 400px', padding: '3rem', display: 'flex', flexDirection: 'column' }}>
+                                <h3 style={{ fontSize: '2.5rem', color: '#fff', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{founder.name}</h3>
+                                <div style={{ color: 'var(--crimson-light)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>{founder.title}</div>
+                                <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '1.1rem', marginBottom: '1.5rem' }}>{founder.dan}</div>
+                                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem' }}>{founder.desc}</p>
+                                <div style={{ marginTop: 'auto', fontWeight: 700, color: 'var(--crimson-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    View Full Profile <FaArrowRight />
+                                </div>
+                            </div>
                         </div>
-                        <div style={{ flex: '2 1 400px', padding: '3rem' }}>
-                            <h3 style={{ fontSize: '2.5rem', color: '#fff', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{leadInstructor.name}</h3>
-                            <div style={{ color: 'var(--crimson-light)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem' }}>{leadInstructor.title}</div>
-                            <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '1.1rem', marginBottom: '1.5rem' }}>{leadInstructor.dan}</div>
-                            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', lineHeight: 1.6 }}>{leadInstructor.desc}</p>
-                        </div>
-                    </div>
+                    </Link>
 
                     {/* Supporting Curriculum Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '5rem' }}>
-                        {supportingInstructors.map((instructor, idx) => (
-                            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
-                                <div style={{ position: 'relative', width: '100%', height: '220px' }}>
-                                    <Image src={instructor.image} alt={instructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center 20%', filter: 'grayscale(20%)' }} />
-                                </div>
-                                <div style={{ padding: '1.5rem' }}>
-                                    <h4 style={{ fontSize: '1.2rem', color: '#fff', marginBottom: '0.2rem' }}>{instructor.name}</h4>
-                                    <div style={{ color: 'var(--gold)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>{instructor.rank}</div>
-                                    <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaBuilding style={{ color: 'rgba(255,255,255,0.3)' }}/> {instructor.branch}</span>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaCheckCircle style={{ color: 'rgba(255,255,255,0.3)' }}/> {instructor.specialty}</span>
+                        {activeCommittee.map((instructor, idx) => (
+                            <Link key={idx} href={`/instructors/${instructor.slug}`} style={{ textDecoration: 'none' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s ease, border-color 0.3s ease' }}
+                                    onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(255,183,3,0.4)' }}
+                                    onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)' }}
+                                >
+                                    <div style={{ position: 'relative', width: '100%', height: '260px' }}>
+                                        <Image src={instructor.image} alt={instructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center 20%', filter: 'grayscale(20%)' }} />
+                                    </div>
+                                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                                        <h4 style={{ fontSize: '1.3rem', color: '#fff', marginBottom: '0.2rem' }}>{instructor.name}</h4>
+                                        <div style={{ color: 'var(--gold)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.2rem' }}>{instructor.rank || instructor.dan}</div>
+                                        <div style={{ color: 'var(--crimson-light)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, marginBottom: '1rem' }}>{instructor.title}</div>
+                                        <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: '1.5rem' }}>{instructor.desc}</p>
+                                        <div style={{ marginTop: 'auto', fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            View Profile <FaArrowRight />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
 
