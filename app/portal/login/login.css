@@ -1,265 +1,215 @@
-.login-wrapper {
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KUROOBI THEME: "The Dojo Gates" Login
+   Deep obsidian black minimalism, glowing crimson, massive typography.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dojo-login {
   min-height: 100vh;
-  background: #05080f;
+  background: #02040a;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 1.5rem;
+  font-family: 'Inter', sans-serif;
 }
 
-.login-bg-glow {
+/* Background effects */
+.dojo-login__bg-glow {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(214, 40, 40, 0.08) 0%, rgba(2, 4, 10, 0) 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.6;
+  z-index: 0;
 }
 
-.login-bg-glow--left {
-  top: -10%;
-  left: -10%;
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, rgba(214, 40, 40, 0.15) 0%, transparent 70%);
+.dojo-login__watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Outfit', sans-serif;
+  font-size: 30vw;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.015);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
 }
 
-.login-bg-glow--right {
-  bottom: -10%;
-  right: -10%;
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, rgba(255, 183, 3, 0.1) 0%, transparent 70%);
-}
-
-.login-card {
+/* ── Content Container ── */
+.dojo-login__content {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 420px;
-  background: rgba(10, 14, 25, 0.65);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 24px;
-  padding: 2.5rem 2rem;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  max-width: 480px;
+  padding: 3rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
 }
 
-.login-header {
-  text-align: center;
+/* ── Header ── */
+.dojo-login__header {
+  margin-bottom: 4rem;
 }
 
-.login-logo-wrap {
-  display: inline-flex;
-  padding: 0.75rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.login-logo {
-  object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-}
-
-.login-title {
-  color: #fff;
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.5rem 0;
-}
-
-.login-subtitle {
-  color: rgba(255,255,255,0.6);
-  font-size: 0.95rem;
-  margin: 0;
-  min-height: 24px;
-}
-
-.login-body {
-  position: relative;
-  min-height: 120px;
+.dojo-login__brand {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.id-form {
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.id-input {
-  width: 100%;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px;
-  padding: 1.25rem;
+.dojo-login__logo {
+  filter: drop-shadow(0 0 15px rgba(255, 183, 3, 0.3));
+}
+
+.dojo-login__brand-text {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dojo-login__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 4rem;
+  font-weight: 900;
   color: #fff;
-  font-size: 1.25rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.dojo-login__subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* ── Form Inputs (Ultra Minimalist) ── */
+.dojo-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.dojo-input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.dojo-input-group label {
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-align: center;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dojo-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
   outline: none;
   transition: all 0.3s ease;
-  font-family: var(--font-body);
 }
 
-.id-input:focus {
-  border-color: rgba(214, 40, 40, 0.4);
-  background: rgba(255,255,255,0.02);
-  box-shadow: 0 0 20px rgba(214, 40, 40, 0.15);
+.dojo-input::placeholder {
+  color: rgba(255, 255, 255, 0.1);
 }
 
-.id-input::placeholder {
-  color: rgba(255,255,255,0.15);
+.dojo-input:focus {
+  border-bottom-color: var(--crimson, #d62828);
 }
 
-.login-btn {
+.dojo-input:focus + label,
+.dojo-input:not(:placeholder-shown) + label {
+  color: var(--crimson, #d62828);
+}
+
+/* ── Submit Button (The Glowing Slash) ── */
+.dojo-login__submit {
+  margin-top: 1rem;
   width: 100%;
-  background: linear-gradient(135deg, #d62828 0%, #ba1818 100%);
-  color: white;
+  background: var(--crimson, #d62828);
+  color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 1.1rem;
+  padding: 1.25rem;
+  border-radius: 4px; /* Sharp corners for martial arts feel */
+  font-family: 'Outfit', sans-serif;
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 800;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 25px rgba(214, 40, 40, 0.25);
-}
-
-.login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(214, 40, 40, 0.4);
-}
-
-.login-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
-
-.pin-form-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  cursor: pointer;
   position: relative;
-  padding: 1rem 0;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.2);
 }
 
-.hidden-pin-input {
-  position: absolute;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  pointer-events: none;
+.dojo-login__submit:hover:not(:disabled) {
+  background: #ff3b3b;
+  box-shadow: 0 15px 40px rgba(214, 40, 40, 0.4);
+  transform: translateY(-2px);
 }
 
-.pin-dots {
-  display: flex;
-  gap: 1.5rem;
-  justify-content: center;
+.dojo-login__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #333;
+  box-shadow: none;
 }
 
-.pin-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,255,255,0.2);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Error message */
+.dojo-login__error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(214, 40, 40, 0.1);
+  border-left: 3px solid var(--crimson, #d62828);
+  color: #ff8787;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0 4px 4px 0;
 }
 
-.pin-dot.filled {
-  background: #d62828;
-  border-color: #ff3c3c;
-  box-shadow: 0 0 15px rgba(214, 40, 40, 0.6);
-  transform: scale(1.1);
-}
-
-.pin-dot.pulse {
-  animation: pulse-ring 1.5s infinite;
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(214, 40, 40, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(214, 40, 40, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(214, 40, 40, 0); }
-}
-
-.loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 14, 25, 0.8);
-  backdrop-filter: blur(5px);
-  border-radius: 16px;
-  z-index: 10;
-  color: var(--gold, #ffb703);
-}
-
-.login-error {
-  color: #ff4a4a;
-  font-size: 0.9rem;
-  font-weight: 500;
+/* ── Testing Bypass ── */
+.dojo-login__test-bypass {
+  margin-top: 3rem;
   text-align: center;
-  margin: 1rem 0 0 0;
-  background: rgba(255, 74, 74, 0.1);
-  padding: 0.75rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 74, 74, 0.2);
 }
 
-.login-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.text-btn {
+.dojo-login__test-btn {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.4);
-  font-size: 0.85rem;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: color 0.2s;
-  padding: 0.5rem;
+  transition: color 0.3s;
 }
 
-.text-btn:hover {
-  color: #fff;
+.dojo-login__test-btn:hover {
+  color: rgba(255, 183, 3, 0.8);
 }
