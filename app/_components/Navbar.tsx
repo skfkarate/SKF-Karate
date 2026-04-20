@@ -7,50 +7,13 @@ import { usePathname } from 'next/navigation'
 import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
 import { useTrialModal } from './TrialModalContext'
+import { PUBLIC_NAV_ITEMS } from '@/data/constants/navigation'
+import type { NavMenuItem } from '@/data/constants/navigation'
 
 /* ── WKF-style drawer menu structure ── */
-interface MenuItem {
-    label: string
-    href?: string
-    children?: MenuItem[]
-}
+type MenuItem = NavMenuItem
 
-const menuItems: MenuItem[] = [
-    {
-        label: 'Events',
-        children: [
-            { label: 'Upcoming Events', href: '/events' },
-            { label: 'Results', href: '/results' },
-        ],
-    },
-    {
-        label: 'Rankings',
-        children: [
-            { label: 'Find Profile', href: '/athlete/search' },
-            { label: 'Official Rankings', href: '/rankings' },
-            { label: 'Honours Board', href: '/honours' },
-        ],
-    },
-    { label: 'Find a Class', href: '/classes' },
-    { label: 'Gallery', href: '/gallery' },
-    {
-        label: 'About',
-        children: [
-            { label: 'About SKF', href: '/about' },
-            { label: 'Contact & FAQ', href: '/contact' },
-            { label: 'News', href: '/news' },
-        ],
-    },
-    { label: 'Shop', href: '/shop' },
-    {
-        label: 'For Athletes',
-        children: [
-            { label: 'Athlete Portal', href: '/portal' },
-            { label: 'Belt Grading', href: '/grading' },
-            { label: 'Verify Certificate', href: '/verify' },
-        ],
-    },
-]
+const menuItems: MenuItem[] = PUBLIC_NAV_ITEMS
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false)
@@ -116,6 +79,12 @@ export default function Navbar() {
                             className={`nav__link ${pathname?.startsWith('/about') ? 'nav__link--active' : ''}`}
                         >
                             About
+                        </Link>
+                        <Link
+                            href="/honours"
+                            className={`nav__link ${pathname?.startsWith('/honours') ? 'nav__link--active' : ''}`}
+                        >
+                            Honours
                         </Link>
                     </nav>
 

@@ -51,7 +51,7 @@ let mockAthletes = [
     gender: 'female',
     photoUrl: '',
     branchName: 'Rajajinagar',
-    currentBelt: 'brown',
+    currentBelt: 'black-1st-dan',
     joinDate: '2022-03-10',
     status: 'active',
     pointsBalance: 850,
@@ -77,7 +77,7 @@ let mockAthletes = [
     gender: 'male',
     photoUrl: '',
     branchName: 'Malleshwaram',
-    currentBelt: 'yellow',
+    currentBelt: 'black-1st-dan',
     joinDate: '2024-01-05',
     status: 'active',
     pointsBalance: 350,
@@ -128,7 +128,7 @@ let mockAthletes = [
     gender: 'male',
     photoUrl: '',
     branchName: 'Rajajinagar',
-    currentBelt: 'green',
+    currentBelt: 'black-1st-dan',
     joinDate: '2023-05-10',
     status: 'active',
     pointsBalance: 600,
@@ -392,6 +392,44 @@ let mockAthletes = [
       { id: 'ach_15_4', type: 'belt-grading', date: '2023-11-10', title: 'Passed Blue Belt Grading', beltEarned: 'blue', pointsAwarded: 200 }
     ],
     pointsHistory: []
+  },
+  {
+    id: 'athlete_16',
+    registrationNumber: 'SKF23HE001',
+    firstName: 'Krishna',
+    lastName: 'C',
+    dateOfBirth: '2005-10-22',
+    gender: 'male',
+    photoUrl: '',
+    branchName: 'Sunkadakatte',
+    currentBelt: 'brown',
+    joinDate: '2023-06-01',
+    status: 'active',
+    pointsBalance: 1850,
+    pointsLifetime: 2750,
+    isPublic: true,
+    isFeatured: true,
+    createdAt: '2023-06-01T00:00:00Z',
+    updatedAt: '2026-04-10T00:00:00Z',
+    achievements: [
+      { id: 'ach_16_1', type: 'enrollment', date: '2023-06-01', title: 'Joined SKF Karate', pointsAwarded: 50 },
+      { id: 'ach_16_2', type: 'belt-grading', date: '2023-08-15', title: 'Passed Yellow Belt Grading', beltEarned: 'yellow', pointsAwarded: 200 },
+      { id: 'ach_16_3', type: 'attendance-milestone', date: '2023-11-20', title: '50 Classes Attended', pointsAwarded: 50 },
+      { id: 'ach_16_4', type: 'belt-grading', date: '2024-01-20', title: 'Passed Orange Belt Grading', beltEarned: 'orange', pointsAwarded: 200 },
+      { id: 'ach_16_5', type: 'tournament-silver', date: '2024-03-10', title: 'Silver Medal — Inter-Branch Tournament', tournamentLevel: 'district', pointsAwarded: 400 },
+      { id: 'ach_16_6', type: 'belt-grading', date: '2024-05-18', title: 'Passed Green Belt Grading', beltEarned: 'green', pointsAwarded: 200 },
+      { id: 'ach_16_7', type: 'attendance-milestone', date: '2024-07-01', title: '150 Classes Attended', pointsAwarded: 100 },
+      { id: 'ach_16_8', type: 'tournament-gold', date: '2024-08-25', title: 'Gold Medal — State Karate Championship', tournamentLevel: 'state', pointsAwarded: 800, filter: 'competitions', meta: ['68.00', 'Male Kumite -61 kg'] },
+      { id: 'ach_16_9', type: 'birthday-bonus', date: '2024-10-22', title: 'Birthday Bonus 2024', pointsAwarded: 100 },
+      { id: 'ach_16_10', type: 'belt-grading', date: '2024-11-10', title: 'Passed Blue Belt Grading', beltEarned: 'blue', pointsAwarded: 200 },
+      { id: 'ach_16_11', type: 'tournament-gold', date: '2025-02-15', title: 'Gold Medal — SKF Open Championship', tournamentLevel: 'state', pointsAwarded: 1000, filter: 'competitions', meta: ['72.00', 'Male Kumite -61 kg'] },
+      { id: 'ach_16_12', type: 'belt-grading', date: '2025-06-20', title: 'Passed Purple Belt Grading', beltEarned: 'purple', pointsAwarded: 200 },
+      { id: 'ach_16_13', type: 'attendance-milestone', date: '2025-09-01', title: '300 Classes Attended', pointsAwarded: 100 },
+      { id: 'ach_16_14', type: 'tournament-bronze', date: '2025-11-08', title: 'Bronze Medal — National Karate Cup', tournamentLevel: 'national', pointsAwarded: 600, filter: 'competitions', meta: ['75.00', 'Male Kumite -61 kg'] },
+      { id: 'ach_16_15', type: 'belt-grading', date: '2026-02-15', title: 'Passed Brown Belt Grading', beltEarned: 'brown', pointsAwarded: 200 },
+      { id: 'ach_16_16', type: 'special-award', date: '2026-03-15', title: 'Most Dedicated Student Award 2026', awardedBy: 'Sensei Rajesh Kumar', pointsAwarded: 150 }
+    ],
+    pointsHistory: []
   }
 ];
 
@@ -408,7 +446,7 @@ function ensureAthletesLoaded() {
   try {
     const stored = readJsonArray(ATHLETES_DATA_FILE);
     if (Array.isArray(stored) && stored.length > 0) {
-      mockAthletes = stored;
+      mockAthletes = stored as any
     }
   } catch (error) {
     console.error('Failed to load athlete store:', error);
