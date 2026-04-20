@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaArrowRight } from 'react-icons/fa'
-import { leadershipData } from '@/lib/leadershipData'
+import { getExecutiveCommittee } from '@/data/seed/instructors'
 import BookTrialCTAButton from './_components/BookTrialCTAButton'
 
 export const metadata: Metadata = {
@@ -10,29 +10,13 @@ export const metadata: Metadata = {
     description: "SKF Karate has trained over 5,100 students in Bangalore since 2011. Meet our instructors, view our affiliations, and learn about our 15-year legacy.",
 }
 
-const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SportsOrganization',
-    name: 'SKF Karate',
-    url: 'https://skfkarate.com',
-    logo: 'https://skfkarate.com/logo/SKF logo.png',
-    foundingDate: '2011',
-    address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Bangalore',
-        addressRegion: 'Karnataka',
-        addressCountry: 'IN'
-    },
-    sameAs: [
-        'https://www.instagram.com/skf_karate/',
-        'https://www.facebook.com/share/1DG1UZ3vKp/?mibextid=wwXIfr',
-        'https://www.youtube.com/@skfkarate'
-    ]
-}
+import { buildOrgJsonLd, ORG_STATS, LEGACY_HIGHLIGHTS } from '@/data/constants/siteConfig'
 
 export default function AboutPage() {
-    const founder = leadershipData[0]
-    const activeCommittee = leadershipData.slice(1)
+    const committee = getExecutiveCommittee()
+    const founder = committee[0]
+    const activeCommittee = committee.slice(1)
+    const jsonLd = buildOrgJsonLd()
 
     return (
         <div style={{ background: '#05080f', minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -69,19 +53,19 @@ export default function AboutPage() {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                     }}>
                         <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>5,100+</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.TOTAL_ATHLETES}</div>
                             <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaUsers style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Athletes</div>
                         </div>
                         <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>20+</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.BLACK_BELTS}</div>
                             <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaMedal style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Black Belts</div>
                         </div>
                         <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>300+</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.CHAMPIONSHIPS}</div>
                             <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaTrophy style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Championships</div>
                         </div>
                         <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>3</div>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.BRANCHES}</div>
                             <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaBuilding style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Branches</div>
                         </div>
                     </div>
@@ -140,13 +124,13 @@ export default function AboutPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-                                        <FaMedal style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>Arjun Raghavendra — National Gold, Kumite Under 67kg, 2025</span>
+                                        <FaMedal style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[0]}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-                                        <FaTrophy style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>87 Official Black Belt Graduations to Date</span>
+                                        <FaTrophy style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[1]}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <FaCheckCircle style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>6 Consecutive State and National Championships Won</span>
+                                        <FaCheckCircle style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[2]}</span>
                                     </div>
                                 </div>
                             </div>

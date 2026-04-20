@@ -2,7 +2,18 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { JWTPayload } from '@/types'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'placeholder_secret'
+// ────────────────────────────────────────────────────────────────
+// JWT_SECRET MUST be set in environment. No fallback allowed.
+// A missing secret would allow anyone to forge session tokens.
+// ────────────────────────────────────────────────────────────────
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  throw new Error(
+    '[SKF Auth] JWT_SECRET env var is not set. ' +
+    'Portal authentication cannot function safely. ' +
+    'Set this in .env.local and Vercel environment variables.'
+  )
+}
 
 export async function hashPin(pin: string): Promise<string> {
   return bcrypt.hash(pin, 12)
@@ -24,4 +35,4 @@ export function verifyStudentJWT(token: string): JWTPayload | null {
   }
 }
 
-export const COOKIE_NAME = 'skf_student_session'
+export const COOKIE_NAME = 'skf_portal_token'

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { checkRateLimit } from './rate-limit'
+import { checkRateLimit } from './rate-limit-redis'
 
 export class ApiError extends Error {
   status: number
@@ -32,11 +32,11 @@ export function getClientIp(request: Request) {
   return request.headers.get('x-real-ip')?.trim() || 'unknown'
 }
 
-export function enforceRateLimit(
+export async function enforceRateLimit(
   request: Request,
   options: { name: string; limit: number; windowMs: number }
 ) {
-  const result = checkRateLimit(options.name, getClientIp(request), {
+  const result = await checkRateLimit(options.name, getClientIp(request), {
     limit: options.limit,
     windowMs: options.windowMs,
   })

@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     try {
         const payload = await request.json()
         const { 
+            paymentBypass,
             razorpay_order_id, 
             razorpay_payment_id, 
             razorpay_signature, 
@@ -18,44 +19,49 @@ export async function POST(request: Request) {
             address
         } = payload
 
-        // Verify Razorpay signature
-        const secret = process.env.RAZORPAY_KEY_SECRET || ''
-        const hmac = crypto.createHmac('sha256', secret)
-        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        const generatedSignature = hmac.digest('hex')
+        // Verify Razorpay signature ONLY if not bypassing
+        if (!paymentBypass) {
+            const secret = process.env.RAZORPAY_KEY_SECRET || ''
+            const hmac = crypto.createHmac('sha256', secret)
+            hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            const generatedSignature = hmac.digest('hex')
 
-        if (generatedSignature !== razorpay_signature) {
-            return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
+            if (generatedSignature !== razorpay_signature) {
+                return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
+            }
         }
 
-        // Write to Sheets
+        // Write to Sheets / Database
         const orderId = `SHOP-${Date.now().toString().slice(-6)}`
         const date = new Date().toISOString()
         
+        // Determine overall intent
+        const requiresInstructorApproval = items.some((item: any) => item.requiresApproval === true)
+        let orderStatus = paymentBypass ? 'Processing (Payment Pending)' : 'Processing'
+        if (requiresInstructorApproval) {
+            orderStatus = 'Pending Instructor Approval'
+        }
+
         await createShopOrder({
             orderId,
             skfId: skfId || 'GUEST',
             itemsJson: JSON.stringify(items),
             total,
             discount,
-            pointsUsed,
+            pointsUsed: pointsUsed || 0,
             date,
-            status: 'Processing',
+            status: orderStatus,
             addressJson: JSON.stringify(address)
         })
 
-        // Gamification Redemption
-        if (pointsUsed > 0 && skfId) {
+        // Gamification Redemption (Deduct points if used natively)
+        if (pointsUsed > 0 && skfId && skfId !== 'GUEST') {
             try {
-                await redeemPoints(skfId, pointsUsed, 'SHOP_REDEMPTION', { orderId, razorpayId: razorpay_payment_id })
+                await redeemPoints(skfId, pointsUsed, 'SHOP_REDEMPTION', { orderId, bypass: paymentBypass })
             } catch (e) {
                 console.error('Failed to redeem points during checkout:', e)
             }
         }
-
-        // Ideally send Email via Resend here 
-        // const { sendEmail } = await import('@/lib/email')
-        // await sendEmail(address.email, `Order Confirmation ${orderId}`)
 
         return NextResponse.json({ success: true, orderId })
     } catch (e: any) {

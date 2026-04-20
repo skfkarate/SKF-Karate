@@ -1,23 +1,21 @@
 import { z } from 'zod'
-
-export const pinLoginSchema = z.object({
-  skfId: z.string().min(3).max(20),
-  pin: z.string().length(4).regex(/^\d{4}$/, 'PIN must be exactly 4 digits')
-})
+import { BRANCH_SLUGS } from '@/data/constants/branches'
 
 export const setPinSchema = z.object({
   skfId: z.string().min(3).max(20),
-  pin: z.string().length(4).regex(/^\d{4}$/),
-  confirmPin: z.string().length(4)
-}).refine(data => data.pin === data.confirmPin, {
-  message: "PINs don't match",
-  path: ['confirmPin']
+  pin: z.string().regex(/^\d{4}$/, 'PIN must be exactly 4 digits'),
+  dob: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'DOB must be DD/MM/YYYY'),
+})
+
+export const pinLoginSchema = z.object({
+  skfId: z.string().min(3).max(20),
+  pin: z.string().regex(/^\d{4}$/, 'PIN must be exactly 4 digits'),
 })
 
 export const createStudentSchema = z.object({
   name: z.string().min(2).max(100),
   dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
-  branch: z.enum(['koramangala', 'whitefield', 'jp-nagar']),
+  branch: z.enum(BRANCH_SLUGS),
   batch: z.string().min(3).max(50),
   belt: z.enum(['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']),
   parentName: z.string().min(2).max(100),

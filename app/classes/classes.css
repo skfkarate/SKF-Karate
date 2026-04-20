@@ -1,6 +1,130 @@
 /* ===== CLASSES PAGES ===== */
 
-/* ── City Grid ── */
+/* ══════════════════════════════════════════════ */
+/* ── Classes Index Hero ── */
+/* ══════════════════════════════════════════════ */
+
+.classes-hero {
+    position: relative;
+    min-height: 55vh;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5rem;
+    overflow: hidden;
+}
+
+.classes-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(170deg, var(--navy-deep) 0%, var(--bg-body) 100%);
+}
+
+.classes-hero__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(220, 20, 60, 0.06) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+.classes-hero__glow-1 {
+    width: 450px;
+    height: 450px;
+    top: -5%;
+    right: 8%;
+    opacity: 0.2;
+}
+
+.classes-hero__glow-2 {
+    width: 380px;
+    height: 380px;
+    bottom: 5%;
+    left: 5%;
+    opacity: 0.25;
+}
+
+.classes-hero__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.classes-hero__title {
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 0.75rem;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+}
+
+.classes-hero__subtitle {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: rgba(255, 255, 255, 0.45);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+}
+
+.classes-hero__stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 2rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 60px;
+    padding: 0.75rem 2rem;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.35s;
+    opacity: 0;
+}
+
+.classes-hero__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1.25rem;
+}
+
+.classes-hero__stat-value {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-white);
+    line-height: 1;
+}
+
+.classes-hero__stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    margin-top: 0.2rem;
+}
+
+.classes-hero__stat-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── City Grid (Enhanced) ── */
+/* ══════════════════════════════════════════════ */
+
 .classes-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -8,7 +132,11 @@
     margin-bottom: 3rem;
 }
 
-/* ── City Card (ICSA-inspired large photo cards) ── */
+.classes-grid--enhanced {
+    gap: 1.5rem;
+}
+
+/* ── City Card (Enhanced photo cards) ── */
 .city-card {
     position: relative;
     display: block;
@@ -20,9 +148,15 @@
     transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
 }
 
+.city-card--enhanced {
+    border-radius: 20px;
+    animation: fadeInUp 0.7s var(--ease-out) forwards;
+    opacity: 0;
+}
+
 .city-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 183, 3, 0.08);
 }
 
 .city-card__image {
@@ -32,19 +166,57 @@
 
 .city-card__img {
     object-fit: cover;
-    filter: grayscale(30%) brightness(0.6);
-    transition: all 0.5s var(--ease-out);
+    filter: grayscale(30%) brightness(0.55);
+    transition: all 0.6s var(--ease-out);
 }
 
 .city-card:hover .city-card__img {
-    filter: grayscale(0%) brightness(0.5);
-    transform: scale(1.05);
+    filter: grayscale(0%) brightness(0.4);
+    transform: scale(1.06);
 }
 
 .city-card__overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+    background: linear-gradient(
+        180deg,
+        rgba(8, 11, 20, 0.1) 0%,
+        rgba(8, 11, 20, 0.3) 40%,
+        rgba(8, 11, 20, 0.85) 100%
+    );
+}
+
+/* Badges */
+.city-card__badges {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    z-index: 3;
+}
+
+.city-card__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(8, 11, 20, 0.7);
+    backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.3rem 0.7rem;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.city-card__badge--hq {
+    background: rgba(214, 40, 40, 0.8);
+    border-color: rgba(214, 40, 40, 0.5);
+    color: white;
 }
 
 .city-card__content {
@@ -63,25 +235,52 @@
     color: var(--text-white);
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.35rem;
 }
 
 .city-card__state {
     display: block;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 500;
-    margin-bottom: 0.4rem;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.city-card__meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
 }
 
 .city-card__meta {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.75rem;
     color: var(--gold);
     font-weight: 600;
     letter-spacing: 0.5px;
+}
+
+.city-card__explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.city-card:hover .city-card__explore {
+    color: var(--gold);
+    gap: 0.55rem;
 }
 
 .city-card__arrow {
@@ -108,7 +307,109 @@
     transform: translateX(3px);
 }
 
-/* ── Personal Training Teaser ── */
+/* ══════════════════════════════════════════════ */
+/* ── Classes CTA Grid (replaces PT teaser) ── */
+/* ══════════════════════════════════════════════ */
+
+.classes-cta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.classes-cta-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 2.5rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 20px;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    overflow: hidden;
+}
+
+.classes-cta-card--primary {
+    border-color: rgba(214, 40, 40, 0.15);
+}
+
+.classes-cta-card__glow {
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(214, 40, 40, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.classes-cta-card__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(255, 183, 3, 0.06);
+    border: 1px solid rgba(255, 183, 3, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--gold);
+    margin-bottom: 1.25rem;
+}
+
+.classes-cta-card__icon--crimson {
+    background: rgba(214, 40, 40, 0.08);
+    border-color: rgba(214, 40, 40, 0.15);
+    color: var(--crimson-light);
+}
+
+.classes-cta-card__title {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-white);
+    margin-bottom: 0.6rem;
+}
+
+.classes-cta-card__text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    flex: 1;
+}
+
+.classes-cta-card__btn {
+    font-size: 0.72rem;
+    padding: 0.7rem 1.5rem;
+}
+
+.classes-cta-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.classes-cta-card__whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #25D366;
+    transition: opacity 0.3s ease;
+}
+
+.classes-cta-card__whatsapp:hover {
+    opacity: 0.8;
+}
+
+/* Legacy PT teaser (kept for backward compat) */
 .pt-teaser {
     display: flex;
     align-items: center;
@@ -145,8 +446,222 @@
     padding: 0.7rem 1.5rem;
 }
 
+
 /* ══════════════════════════════════════════════ */
-/* ── City Page: Branch Cards ── */
+/* ── City Page: Immersive Hero ── */
+/* ══════════════════════════════════════════════ */
+
+.city-hero {
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5rem;
+    overflow: hidden;
+}
+
+.city-hero__bg {
+    position: absolute;
+    inset: 0;
+}
+
+.city-hero__bg-img {
+    object-fit: cover;
+    filter: brightness(0.25) saturate(0.7);
+    transition: transform 8s ease-out;
+}
+
+.city-hero:hover .city-hero__bg-img {
+    transform: scale(1.03);
+}
+
+.city-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(8, 11, 20, 0.3) 0%,
+        rgba(8, 11, 20, 0.5) 40%,
+        rgba(8, 11, 20, 0.95) 85%,
+        var(--bg-body) 100%
+    );
+}
+
+.city-hero__glow-1 {
+    width: 500px;
+    height: 500px;
+    top: -5%;
+    right: 5%;
+    opacity: 0.2;
+}
+
+.city-hero__glow-2 {
+    width: 400px;
+    height: 400px;
+    bottom: 10%;
+    left: 3%;
+    opacity: 0.25;
+}
+
+.city-hero__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.city-hero__title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+}
+
+.city-hero__subtitle {
+    font-size: clamp(0.85rem, 2vw, 1.1rem);
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 550px;
+    margin: 0 auto;
+    line-height: 1.7;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.25s;
+    opacity: 0;
+}
+
+.city-hero .city-back {
+    display: flex;
+    width: fit-content;
+    margin: 0 auto 1rem;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0s;
+    opacity: 0;
+}
+
+.city-hero .section-label {
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+    animation-delay: 0.05s;
+    opacity: 0;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── City Stats Ribbon ── */
+/* ══════════════════════════════════════════════ */
+
+.city-stats-ribbon {
+    position: relative;
+    z-index: 3;
+    margin-top: -2.5rem;
+    padding-bottom: 1rem;
+}
+
+.city-stats-ribbon__grid {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.city-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    min-width: 160px;
+    animation: fadeInUp 0.6s var(--ease-out) forwards;
+    opacity: 0;
+}
+
+.city-stat:nth-child(1) { animation-delay: 0.3s; }
+.city-stat:nth-child(2) { animation-delay: 0.4s; }
+.city-stat:nth-child(3) { animation-delay: 0.5s; }
+.city-stat:nth-child(4) { animation-delay: 0.6s; }
+
+.city-stat__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: rgba(255, 183, 3, 0.08);
+    color: var(--gold);
+    border: 1px solid rgba(255, 183, 3, 0.15);
+}
+
+.city-stat__icon--gold {
+    background: rgba(255, 183, 3, 0.08);
+    color: var(--gold);
+    border-color: rgba(255, 183, 3, 0.15);
+}
+
+.city-stat__icon--crimson {
+    background: rgba(214, 40, 40, 0.08);
+    color: var(--crimson-light);
+    border-color: rgba(214, 40, 40, 0.15);
+}
+
+.city-stat__icon--hq {
+    background: linear-gradient(135deg, rgba(255, 183, 3, 0.12), rgba(214, 40, 40, 0.12));
+    color: var(--gold);
+    border-color: rgba(255, 183, 3, 0.2);
+}
+
+.city-stat__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.city-stat__value {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-white);
+    line-height: 1;
+}
+
+.city-stat__label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    margin-top: 0.2rem;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── Section Headers ── */
+/* ══════════════════════════════════════════════ */
+
+.city-section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.city-section-header .section-title {
+    margin-bottom: 0.75rem;
+}
+
+.city-section-header .section-subtitle {
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── City Page: Branch Cards (Enhanced) ── */
 /* ══════════════════════════════════════════════ */
 
 .city-back {
@@ -154,7 +669,7 @@
     align-items: center;
     gap: 0.4rem;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.5);
     margin-bottom: 1rem;
     transition: color 0.2s;
 }
@@ -170,6 +685,10 @@
     margin-bottom: 3rem;
 }
 
+.branch-grid--enhanced {
+    gap: 1.75rem;
+}
+
 .branch-card {
     position: relative;
     display: flex;
@@ -180,12 +699,18 @@
     overflow: hidden;
     backdrop-filter: var(--card-blur);
     -webkit-backdrop-filter: var(--card-blur);
-    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), border-color 0.4s ease;
+}
+
+.branch-card--enhanced {
+    animation: fadeInUp 0.7s var(--ease-out) forwards;
+    opacity: 0;
+    border-radius: 20px;
 }
 
 .branch-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 183, 3, 0.1);
 }
 
 .branch-card__image {
@@ -194,13 +719,28 @@
     overflow: hidden;
 }
 
+.branch-card__image--tall {
+    height: 240px;
+}
+
 .branch-card__image img {
     object-fit: cover;
-    transition: transform 0.5s var(--ease-out);
+    transition: transform 0.6s var(--ease-out);
 }
 
 .branch-card:hover .branch-card__image img {
-    transform: scale(1.05);
+    transform: scale(1.08);
+}
+
+.branch-card__image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        transparent 40%,
+        rgba(8, 11, 20, 0.6) 100%
+    );
+    pointer-events: none;
 }
 
 .branch-card__hq-badge {
@@ -211,15 +751,37 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    background: var(--crimson);
+    background: linear-gradient(135deg, var(--crimson), #a51c1c);
     color: white;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3rem 0.85rem;
     border-radius: 50px;
     z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 4px 15px rgba(214, 40, 40, 0.3);
+}
+
+.branch-card__time-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(8, 11, 20, 0.8);
+    backdrop-filter: blur(10px);
+    color: var(--gold);
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(255, 183, 3, 0.15);
 }
 
 .branch-card__body {
-    padding: 1.25rem;
+    padding: 1.5rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -227,17 +789,28 @@
 
 .branch-card__name {
     font-family: var(--font-heading);
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-white);
     margin-bottom: 0.5rem;
 }
 
+.branch-card__description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .branch-card__info {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
     flex: 1;
 }
 
@@ -249,11 +822,55 @@
     color: var(--text-light);
 }
 
+.branch-card__info-item strong {
+    color: var(--text-white);
+    font-weight: 600;
+}
+
 .branch-card__info-icon {
     color: var(--gold);
-    font-size: 0.8rem;
-    margin-top: 3px;
+    font-size: 0.75rem;
+    margin-top: 4px;
     flex-shrink: 0;
+}
+
+.branch-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.branch-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--crimson-light);
+    transition: all 0.3s ease;
+}
+
+.branch-card:hover .branch-card__cta {
+    color: var(--gold);
+    gap: 0.65rem;
+}
+
+.branch-card__whatsapp-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.25);
+    transition: color 0.3s ease;
+}
+
+.branch-card:hover .branch-card__whatsapp-hint {
+    color: #25D366;
 }
 
 .branch-card__actions {
@@ -268,7 +885,183 @@
     text-align: center;
 }
 
-/* ── Schools Section ── */
+/* ══════════════════════════════════════════════ */
+/* ── School Programs Grid ── */
+/* ══════════════════════════════════════════════ */
+
+.school-programs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.school-program-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 14px;
+    overflow: hidden;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    animation: fadeInUp 0.6s var(--ease-out) forwards;
+    opacity: 0;
+}
+
+.school-program-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.school-program-card__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 183, 3, 0.06);
+    border: 1px solid rgba(255, 183, 3, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.school-program-card__content {
+    flex: 1;
+}
+
+.school-program-card__name {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 0.2rem;
+}
+
+.school-program-card__city {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.school-program-card__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--gold), var(--crimson));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.school-program-card:hover .school-program-card__accent {
+    opacity: 1;
+}
+
+.school-programs-cta {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.school-programs-cta__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--gold);
+    font-weight: 600;
+    transition: gap 0.3s ease, color 0.3s ease;
+}
+
+.school-programs-cta__link:hover {
+    color: var(--gold-light);
+    gap: 0.65rem;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ── City CTA Section ── */
+/* ══════════════════════════════════════════════ */
+
+.city-cta-section {
+    position: relative;
+    padding: 4rem 0 5rem;
+    overflow: hidden;
+}
+
+.city-cta-section__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at 50% 100%,
+        rgba(214, 40, 40, 0.06) 0%,
+        transparent 60%
+    );
+}
+
+.city-cta-card {
+    position: relative;
+    text-align: center;
+    padding: 4rem 3rem;
+    background: var(--bg-card);
+    border: var(--border-glass);
+    border-radius: 24px;
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    overflow: hidden;
+}
+
+.city-cta-card__glow {
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(214, 40, 40, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.city-cta-card__content {
+    position: relative;
+    z-index: 2;
+}
+
+.city-cta-card__title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 800;
+    color: var(--text-white);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: -0.3px;
+}
+
+.city-cta-card__text {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 500px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+}
+
+.city-cta-card__actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Legacy schools section (kept for backward compat) */
 .schools-section {
     margin-top: 2rem;
 }
@@ -738,6 +1531,122 @@
     .branch-final-cta__actions {
         flex-direction: column;
     }
+
+    /* City Hero */
+    .city-hero {
+        min-height: 45vh;
+        padding-bottom: 3.5rem;
+    }
+
+    .city-hero__title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .city-hero__glow-1 {
+        width: 250px;
+        height: 250px;
+        opacity: 0.12;
+    }
+
+    .city-hero__glow-2 {
+        width: 200px;
+        height: 200px;
+        opacity: 0.15;
+    }
+
+    /* Stats Ribbon */
+    .city-stats-ribbon {
+        margin-top: -1.5rem;
+    }
+
+    .city-stats-ribbon__grid {
+        gap: 0.6rem;
+    }
+
+    .city-stat {
+        padding: 0.75rem 1rem;
+        min-width: 140px;
+        flex: 1 1 calc(50% - 0.6rem);
+    }
+
+    .city-stat__icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .city-stat__value {
+        font-size: 1.3rem;
+    }
+
+    /* School Programs */
+    .school-programs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* CTA Section */
+    .city-cta-card {
+        padding: 2.5rem 1.5rem;
+        border-radius: 18px;
+    }
+
+    .city-cta-card__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .city-cta-card__actions .btn {
+        justify-content: center;
+    }
+
+    /* Classes Index Hero */
+    .classes-hero {
+        min-height: 45vh;
+        padding-bottom: 3.5rem;
+    }
+
+    .classes-hero__title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .classes-hero__glow-1 {
+        width: 250px;
+        height: 250px;
+        opacity: 0.12;
+    }
+
+    .classes-hero__glow-2 {
+        width: 200px;
+        height: 200px;
+        opacity: 0.15;
+    }
+
+    .classes-hero__stats {
+        padding: 0.6rem 1.25rem;
+    }
+
+    .classes-hero__stat {
+        padding: 0 0.75rem;
+    }
+
+    .classes-hero__stat-value {
+        font-size: 1.3rem;
+    }
+
+    /* Classes CTA Grid */
+    .classes-cta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .classes-cta-card {
+        padding: 2rem 1.5rem;
+    }
+
+    /* City card badges */
+    .city-card__badges {
+        top: 0.6rem;
+        left: 0.6rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -750,7 +1659,92 @@
         font-size: 1.5rem;
     }
 
-    .branch-card__image {
-        height: 160px;
+    .branch-card__image,
+    .branch-card__image--tall {
+        height: 180px;
+    }
+
+    .city-hero {
+        min-height: 38vh;
+        padding-bottom: 2.5rem;
+    }
+
+    .city-hero__title {
+        font-size: 1.6rem;
+    }
+
+    .city-hero__subtitle {
+        font-size: 0.8rem;
+    }
+
+    .city-stat {
+        flex: 1 1 calc(50% - 0.4rem);
+        min-width: 120px;
+        gap: 0.6rem;
+    }
+
+    .city-stat__value {
+        font-size: 1.15rem;
+    }
+
+    .city-stat__label {
+        font-size: 0.6rem;
+    }
+
+    .branch-card__footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .city-cta-card {
+        padding: 2rem 1.25rem;
+    }
+
+    .city-cta-card__title {
+        font-size: 1.3rem;
+    }
+
+    .classes-hero {
+        min-height: 35vh;
+        padding-bottom: 2.5rem;
+    }
+
+    .classes-hero__title {
+        font-size: 1.6rem;
+    }
+
+    .classes-hero__subtitle {
+        font-size: 0.8rem;
+    }
+
+    .classes-hero__stats {
+        padding: 0.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .classes-hero__stat {
+        padding: 0 0.6rem;
+    }
+
+    .classes-hero__stat-value {
+        font-size: 1.1rem;
+    }
+
+    .classes-hero__stat-label {
+        font-size: 0.55rem;
+        letter-spacing: 1px;
+    }
+
+    .classes-hero__stat-divider {
+        height: 24px;
+    }
+
+    .classes-cta-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .city-card__explore {
+        display: none;
     }
 }

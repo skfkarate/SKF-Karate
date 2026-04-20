@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wallet, ArrowUpRight, ArrowDownRight, CreditCard, ShieldCheck, CheckCircle2, History } from 'lucide-react'
+import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 // Mock Data
 const feeHistory = [
@@ -12,25 +13,15 @@ const feeHistory = [
 ]
 
 export default function KuroobiTreasuryPage() {
+  usePortalAuth()
   const [isProcessing, setIsProcessing] = useState(false)
 
   const handlePayment = async () => {
     setIsProcessing(true)
-    try {
-      const res = await fetch('/api/portal/fees/pay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 1500, receipt_id: 'rcpt_mock_123' })
-      })
-      const order = await res.json()
-      if (order.error) { alert(order.error); return }
-      alert(`Payment gateway (Razorpay) will open here in production.\nOrder: ${order.id}\nAmount: ₹1,500`)
-    } catch (err) {
-      console.error(err)
-      alert('Payment initialization failed')
-    } finally {
+    setTimeout(() => {
+      alert(`Payment gateway (Razorpay) will open here in production.\nAmount: ₹1,500`)
       setIsProcessing(false)
-    }
+    }, 1000)
   }
 
   return (
@@ -114,7 +105,7 @@ export default function KuroobiTreasuryPage() {
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '2rem' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#fff' }}>Monthly Contribution</h3>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-              Your dues support Dojo maintenance, master classes, and ongoing digital infrastructure like this Athletic Hub.
+              Your dues support Dojo maintenance, master classes, and ongoing digital infrastructure like this Athlete Portal.
             </p>
             
             <button

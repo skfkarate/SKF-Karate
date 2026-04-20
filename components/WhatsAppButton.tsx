@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { FaWhatsapp } from 'react-icons/fa'
+import { BRANCH_WHATSAPP_NUMBERS } from '@/data/constants/contact'
 
 type Props = {
     branch?: string
 }
 
-const BRANCH_NUMBERS: Record<string, string> = {
-    koramangala: '910000000000',
-    whitefield: '910000000001',
-    'jp-nagar': '910000000002',
-    default: '910000000000' // Main SKF number placeholder
-}
+const BRANCH_NUMBERS = BRANCH_WHATSAPP_NUMBERS
 
 export default function WhatsAppButton({ branch }: Props) {
     const [isVisible, setIsVisible] = useState(false)

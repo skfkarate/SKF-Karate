@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { FaCalendarCheck, FaArrowRight, FaPhoneAlt } from 'react-icons/fa'
+import { homeBookTrialCTAFeatures } from '@/data/constants/homeContent'
 
 export default function HomeBookTrialCTA() {
   return (
@@ -24,15 +25,11 @@ export default function HomeBookTrialCTA() {
           </p>
 
           <div className="trial-cta__features">
-            <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span> No commitment required
-            </div>
-            <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span> All ages and skill levels welcome
-            </div>
-            <div className="trial-cta__feature">
-              <span className="trial-cta__feature-dot"></span> Train under Grandmasters
-            </div>
+            {homeBookTrialCTAFeatures.map((feature, idx) => (
+               <div key={idx} className="trial-cta__feature">
+                 <span className="trial-cta__feature-dot"></span> {feature}
+               </div>
+            ))}
           </div>
 
           <div className="trial-cta__actions">

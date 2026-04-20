@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { updateTournament, deleteTournament } from '@/lib/data/tournaments'
+import { updateTournament, deleteTournament } from '@/lib/server/repositories/tournaments'
 import { createErrorResponse, readJsonBody } from '@/lib/server/api'
 import { validateTournamentPayload } from '@/lib/server/validation'
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'

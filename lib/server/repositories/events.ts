@@ -17,6 +17,7 @@ import type {
 } from "./tournaments"
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from "../data-store"
 import { ApiError } from "../api"
+import { events as seedEvents } from "../../../data/seed/events"
 
 const EVENTS_DATA_FILE = resolveDataFile("events.json")
 
@@ -44,131 +45,22 @@ type EventRecord = {
   affiliatedBody: string
   isPublished: boolean
   isFeatured: boolean
+  isResultsPublished: boolean
+  hostingBranch: string
   participants: EventParticipant[]
   results: EventResult[]
   resultsAppliedAt: string
+  winners?: EventWinner[]
   createdAt: string
   updatedAt: string
-  winners?: EventWinner[]
 }
 
-let events: EventRecord[] = [
-  {
-    id: "evt_summer_camp_2026",
-    slug: "summer-camp-2026",
-    name: "Summer Camp 2026",
-    shortName: "Summer Camp 2026",
-    type: "camp",
-    status: "upcoming",
-    date: "2026-04-01",
-    endDate: "2026-05-31",
-    venue: "M P Sports Club",
-    city: "Bengaluru",
-    state: "Karnataka",
-    description: "Intensive two-month training camp for all levels, from beginner to advanced.",
-    coverImageUrl: "",
-    affiliatedBody: "",
-    isPublished: true,
-    isFeatured: true,
-    participants: [],
-    results: [],
-    resultsAppliedAt: "",
-    createdAt: "2026-01-10T00:00:00Z",
-    updatedAt: "2026-01-10T00:00:00Z",
-  },
-  {
-    id: "evt_kyu_grading_2026",
-    slug: "kyu-grading-examination-2026",
-    name: "Kyu Grading Examination",
-    shortName: "Kyu Grading 2026",
-    type: "grading",
-    status: "upcoming",
-    date: "2026-05-10",
-    endDate: "",
-    venue: "M P Sports Club",
-    city: "Bengaluru",
-    state: "Karnataka",
-    description: "Belt examination for all Kyu grades from white to yellow.",
-    coverImageUrl: "",
-    affiliatedBody: "",
-    isPublished: true,
-    isFeatured: false,
-    participants: [],
-    results: [],
-    resultsAppliedAt: "",
-    createdAt: "2026-01-12T00:00:00Z",
-    updatedAt: "2026-01-12T00:00:00Z",
-  },
-  {
-    id: "evt_bring_your_buddy_2026",
-    slug: "bring-your-buddy-2026",
-    name: "Bring Your Buddy",
-    shortName: "Bring Your Buddy",
-    type: "fun",
-    status: "upcoming",
-    date: "2026-06-15",
-    endDate: "",
-    venue: "M P Sports Club",
-    city: "Bengaluru",
-    state: "Karnataka",
-    description: "Bring your friend to the dojo and show them what you love about training.",
-    coverImageUrl: "",
-    affiliatedBody: "",
-    isPublished: true,
-    isFeatured: false,
-    participants: [],
-    results: [],
-    resultsAppliedAt: "",
-    createdAt: "2026-01-15T00:00:00Z",
-    updatedAt: "2026-01-15T00:00:00Z",
-  },
-  {
-    id: "evt_kata_masterclass_2026",
-    slug: "kata-masterclass-seminar-2026",
-    name: "Kata Masterclass Seminar",
-    shortName: "Kata Masterclass",
-    type: "seminar",
-    status: "upcoming",
-    date: "2026-10-05",
-    endDate: "",
-    venue: "SKF Headquarters",
-    city: "Bengaluru",
-    state: "Karnataka",
-    description: "Special seminar by a visiting Shihan covering advanced kata techniques and bunkai analysis.",
-    coverImageUrl: "",
-    affiliatedBody: "",
-    isPublished: true,
-    isFeatured: true,
-    participants: [],
-    results: [],
-    resultsAppliedAt: "",
-    createdAt: "2026-01-20T00:00:00Z",
-    updatedAt: "2026-01-20T00:00:00Z",
-  },
-  {
-    id: "evt_dan_grading_2026",
-    slug: "dan-grading-examination-2026",
-    name: "Dan Grading Examination",
-    shortName: "Dan Grading 2026",
-    type: "grading",
-    status: "upcoming",
-    date: "2026-12-14",
-    endDate: "",
-    venue: "Central Dojo",
-    city: "Bengaluru",
-    state: "Karnataka",
-    description: "Black belt examination for Shodan, Nidan, and Sandan candidates.",
-    coverImageUrl: "",
-    affiliatedBody: "",
-    isPublished: true,
-    isFeatured: false,
-    participants: [],
-    results: [],
-    resultsAppliedAt: "",
-    createdAt: "2026-01-25T00:00:00Z",
-    updatedAt: "2026-01-25T00:00:00Z",
-  },
-]
+let events: EventRecord[] = seedEvents.map(e => ({
+  ...e,
+  participants: [],
+  results: [],
+  resultsAppliedAt: "",
+}))
 
 let eventsLoadedFromDisk = false
 
@@ -189,7 +81,7 @@ function ensureEventsLoaded() {
   try {
     const stored = readJsonArray(EVENTS_DATA_FILE)
     if (Array.isArray(stored) && stored.length > 0) {
-      events = sortByDateDesc(stored)
+      events = sortByDateDesc(stored as EventRecord[])
     }
   } catch (error) {
     console.error("Failed to load event store:", error)
@@ -232,6 +124,11 @@ function normaliseEventPayload(
       typeof input.isFeatured === "boolean"
         ? input.isFeatured
         : existing?.isFeatured ?? false,
+    isResultsPublished:
+      typeof input.isResultsPublished === "boolean"
+        ? input.isResultsPublished
+        : existing?.isResultsPublished ?? false,
+    hostingBranch: input.hostingBranch || existing?.hostingBranch || "",
     participants: Array.isArray(input.participants)
       ? input.participants
       : existing?.participants || [],

@@ -54,7 +54,8 @@ export default function NewStudentPage() {
     }
 
     const handleCopy = () => {
-        const msg = `Welcome to SKF Karate! Your child's SKF ID is ${createdSkfId}.\nTo access the student portal, visit skfkarate.com/portal\nand set up your PIN using this ID.`
+        const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/portal`
+        const msg = `Welcome to SKF Karate! Your child's SKF ID is ${createdSkfId}.\nTo access the student portal, visit ${portalUrl}\nand set up your PIN using this ID.`
         navigator.clipboard.writeText(msg)
         setCopySuccess(true)
         setTimeout(() => setCopySuccess(false), 3000)
@@ -82,7 +83,7 @@ export default function NewStudentPage() {
                             <p style={{ margin: 0, color: '#aaa', fontSize: '0.9rem', marginBottom: '0.5rem' }}>WhatsApp Template:</p>
                             <p style={{ color: '#fff', lineHeight: 1.5, margin: 0 }}>
                                 Welcome to SKF Karate! Your child's SKF ID is <strong>{createdSkfId}</strong>.<br/>
-                                To access the student portal, visit skfkarate.com/portal<br/>
+                                To access the student portal, visit {process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/portal<br/>
                                 and set up your PIN using this ID.
                             </p>
                         </div>
@@ -131,9 +132,11 @@ export default function NewStudentPage() {
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', color: '#aaa', fontSize: '0.9rem' }}>Branch *</label>
                                 <select {...register('branch')} style={{ width: '100%', padding: '0.8rem', background: '#000', border: errors.branch ? '1px solid #ff4444' : '1px solid #333', color: '#fff', borderRadius: '6px' }}>
-                                    <option value="koramangala">Koramangala HQ</option>
-                                    <option value="whitefield">Whitefield</option>
-                                    <option value="jp-nagar">JP Nagar</option>
+                                    <option value="mp-sports-club">M P Sports Club</option>
+                                    <option value="herohalli">Herohalli</option>
+                                    <option value="kunigal-main">Kunigal</option>
+                                    <option value="tumkur-main">Tumkur</option>
+                                    <option value="udupi-main">Udupi</option>
                                 </select>
                                 {errors.branch && <span style={{ color: '#ff4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{errors.branch.message}</span>}
                             </div>

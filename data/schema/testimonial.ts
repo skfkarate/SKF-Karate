@@ -1,0 +1,1 @@
+export { testimonialSchema } from './localEntities'

@@ -1,8 +1,10 @@
+import { BranchSlug } from '@/data/constants/branches'
+
 /* ── SKF Karate Classes Data ── */
 /* Central data source for all cities, branches, and class info */
 
 export interface Branch {
-    slug: string
+    slug: BranchSlug
     name: string
     isHQ?: boolean
     city: string
@@ -41,34 +43,35 @@ export const cities: City[] = [
         photo: '/gallery/In Dojo.jpeg',
         branches: [
             {
-                slug: 'koramangala',
-                name: 'Koramangala',
+                slug: 'mp-sports-club',
+                name: 'M P Sports Club',
                 isHQ: true,
                 city: 'bangalore',
-                address: '14/1, 2nd Main Rd, M P M Layout, Mallathahalli, Bengaluru 560056',
+                address: '35/4, MP SPORTS CLUB Mallathahalli Nagarbhavi, Ullal Junction, Kengeri Ring Road, MP Sports Club Rd, Jnananjyothinagar, Srirama Layout, Jnana Ganga Nagar, Bengaluru, Karnataka 560056',
                 phone: '+91 90199 71726',
                 whatsapp: '919019971726',
-                sensei: 'Sensei Akira',
-                senseiDan: '4th Dan Black Belt',
-                classDays: [2, 3, 5], // Tue, Wed, Fri
+                sensei: 'Sensei Usha C',
+                senseiDan: 'Black Belt',
+                classDays: [2, 3, 5],
                 classTime: '5:30 PM – 7:00 PM',
-                mapUrl: 'https://maps.google.com/?q=14/1,+2nd+Main+Rd,+M+P+M+Layout,+Mallathahalli,+Bengaluru+560056',
+                mapUrl: 'https://maps.app.goo.gl/ZsgVX25nyK27oCZ17',
                 photos: ['/gallery/In Dojo.jpeg'],
                 description: 'The headquarters of SKF Karate. World-class WKF-approved tatami mats, elite conditioning equipment, and an atmosphere of pure discipline.',
             },
             {
-                slug: 'whitefield',
-                name: 'Whitefield',
+                slug: 'herohalli',
+                name: 'Herohalli',
                 city: 'bangalore',
-                address: 'Whitefield Main Road, Bengaluru',
+                address: 'BBMP SAMUDAYA BHAVANA, Herohalli, Tunganagara, Bengaluru, Karnataka 560091',
                 phone: '+91 90199 71726',
                 whatsapp: '919019971726',
-                sensei: 'Sensei Ravi',
-                senseiDan: '3rd Dan Black Belt',
+                sensei: 'Sensei Krishna C',
+                senseiDan: 'Black Belt',
                 classDays: [2, 3, 5], // Tue, Wed, Fri
                 classTime: '4:30 PM – 6:00 PM',
+                mapUrl: 'https://maps.app.goo.gl/mQQhiQYSNR7bhQ3eA',
                 photos: ['/gallery/In Dojo.jpeg'],
-                description: 'A thriving branch serving East Bangalore with the same standards and discipline as our headquarters.',
+                description: 'A thriving SKF Karate branch bringing championship-level training to Herohalli.',
             },
         ],
         schools: [
@@ -78,24 +81,24 @@ export const cities: City[] = [
         ],
     },
     {
-        slug: 'pondicherry',
-        name: 'Pondicherry',
-        state: 'Puducherry',
+        slug: 'kunigal',
+        name: 'Kunigal',
+        state: 'Karnataka',
         photo: '/gallery/In Dojo.jpeg',
         branches: [
             {
-                slug: 'pondicherry-main',
-                name: 'Pondicherry',
-                city: 'pondicherry',
-                address: 'MG Road, Pondicherry',
+                slug: 'kunigal-main',
+                name: 'Kunigal',
+                city: 'kunigal',
+                address: 'Kunigal, Karnataka',
                 phone: '+91 90199 71726',
                 whatsapp: '919019971726',
-                sensei: 'Sensei Meera',
-                senseiDan: '2nd Dan Black Belt',
+                sensei: 'To be updated',
+                senseiDan: 'Black Belt',
                 classDays: [2, 3, 5],
                 classTime: '5:00 PM – 6:30 PM',
                 photos: ['/gallery/In Dojo.jpeg'],
-                description: 'SKF Karate\'s presence in the Union Territory, bringing championship-level training to Pondicherry.',
+                description: 'SKF Karate Kunigal branch. Details to be updated soon.',
             },
         ],
         schools: [],

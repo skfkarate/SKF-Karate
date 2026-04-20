@@ -1,0 +1,491 @@
+/* ===========================================================
+   AWWWARDS IMMERSIVE CINEMATIC DARK COMMERCE
+   Deep obsidian textures, glowing crimson/gold accents, 
+   complex frost-glass paneling, and massive fluid typography.
+   =========================================================== */
+
+/* ── CORE STORE CONTAINER ── */
+.obsidian-store {
+  min-height: 100vh;
+  background-color: #050505;
+  color: #fff;
+  font-family: var(--font-body), sans-serif;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ambient Ambient Glow */
+.obsidian-store::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100vw; height: 100vh;
+  background: radial-gradient(circle at 50% 0%, rgba(214, 40, 40, 0.08) 0%, rgba(0,0,0,0) 60%),
+              radial-gradient(circle at 100% 100%, rgba(255, 183, 3, 0.05) 0%, rgba(0,0,0,0) 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.obsidian-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8rem 2rem 6rem;
+}
+
+/* ── HEADER ── */
+.obsidian-header {
+  text-align: center;
+  margin-bottom: 6rem;
+  position: relative;
+}
+
+.obsidian-header__title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+  margin: 0;
+  background: linear-gradient(180deg, #fff 0%, #777 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.obsidian-header__subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.4);
+  max-width: 600px;
+  margin: 1rem auto 0;
+  line-height: 1.6;
+}
+
+/* ── GLASS FILTERS ── */
+.obsidian-filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 5rem;
+}
+
+.obsidian-filter-btn {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-family: var(--font-heading), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.obsidian-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.obsidian-filter-btn.active {
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.8) 0%, rgba(214, 40, 40, 0.4) 100%);
+  color: #fff;
+  border-color: rgba(214, 40, 40, 0.5);
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* ── MASONRY-INSPIRED GRID ── */
+.obsidian-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 3rem 2rem;
+}
+
+/* ── PREMIUM GLASS CARDS ── */
+.obsidian-card {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.obsidian-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.obsidian-card:hover {
+  transform: translateY(-10px);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(214, 40, 40, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.obsidian-card:hover::before { opacity: 1; }
+
+.obsidian-card__image-wrapper {
+  aspect-ratio: 4/5;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.obsidian-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s;
+  filter: brightness(0.8) contrast(1.1);
+}
+
+.obsidian-card:hover .obsidian-card__image {
+  transform: scale(1.08);
+  filter: brightness(1) contrast(1.2);
+}
+
+/* Vignette overlay on image */
+.obsidian-card__image-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(5,5,5,1) 0%, rgba(5,5,5,0) 100%);
+  z-index: 1;
+}
+
+.obsidian-card__info {
+  padding: 1.5rem 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
+
+.obsidian-card__category {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold, #ffb703);
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.obsidian-card__title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+.obsidian-card__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.obsidian-card__price {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+.obsidian-badge-soldout {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffb703;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.card-sold-out {
+  opacity: 0.5;
+}
+.card-sold-out:hover {
+  transform: none;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+.card-sold-out .obsidian-card__image {
+  filter: grayscale(100%) brightness(0.5);
+}
+
+/* ── DETAIL PAGE LOGIC ── */
+.obsidian-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.obsidian-gallery {
+  position: sticky;
+  top: 100px;
+  aspect-ratio: 4/5;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+}
+
+.obsidian-gallery__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9) contrast(1.1);
+}
+
+.obsidian-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.obsidian-info__title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+}
+
+.obsidian-info__price {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--gold, #ffb703);
+  margin-bottom: 2rem;
+}
+
+.obsidian-info__desc {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 3rem;
+}
+
+.obsidian-selector-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.obsidian-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.obsidian-variant-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255,255,255,0.8);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.obsidian-variant-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.obsidian-variant-btn.selected {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+.obsidian-variant-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: rgba(255,255,255,0.01);
+}
+
+.obsidian-stepper {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  width: fit-content;
+  overflow: hidden;
+}
+
+.obsidian-stepper__btn {
+  background: transparent;
+  border: none;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #fff;
+  transition: background 0.2s;
+}
+.obsidian-stepper__btn:hover { background: rgba(255,255,255,0.1); }
+.obsidian-stepper__val {
+  padding: 0 1rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.obsidian-btn-add {
+  background: var(--crimson, #d62828);
+  color: #fff;
+  border: none;
+  padding: 1.2rem;
+  width: 100%;
+  border-radius: 12px;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.obsidian-btn-add:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(214, 40, 40, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+  background: #e63946;
+}
+
+.obsidian-btn-add:disabled {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── CART AND CHECKOUT STYLES ── */
+.obsidian-cart-item {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.obsidian-cart-item:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.obsidian-summary-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
+  position: sticky;
+  top: 100px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  backdrop-filter: blur(24px);
+}
+
+.obsidian-input {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.obsidian-input:focus {
+  outline: none;
+  border-color: var(--crimson, #d62828);
+  box-shadow: 0 0 0 4px rgba(214, 40, 40, 0.1);
+  background: rgba(0,0,0,0.6);
+}
+
+.obsidian-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .obsidian-detail-layout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .obsidian-header__title { font-size: 3.5rem; }
+  .obsidian-gallery { position: relative; top: 0; }
+  
+  .obsidian-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .obsidian-container { padding: 6rem 1.5rem 3rem; }
+  .obsidian-header__title { font-size: 2.5rem; }
+  .obsidian-info__title { font-size: 2.2rem; }
+}

@@ -1,5 +1,5 @@
 import { ApiError } from '../api'
-import { BELTS } from '../../data/belts'
+import { BELTS } from '@/data/constants/belts'
 import {
   AGE_GROUPS,
   BELTS as TOURNAMENT_BELTS,

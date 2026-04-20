@@ -1,4 +1,4 @@
-import { getAllTournamentsAdmin } from '../../../lib/data/tournaments'
+import { getAllTournamentsAdmin } from '@/lib/server/repositories/tournaments'
 import { requireAdminSession } from '@/lib/utils/auth'
 import AdminResultsPageClient from '@/app/_components/admin/results/AdminResultsPageClient'
 import './admin-results.css'

@@ -1,4 +1,4 @@
-import { getAllTournaments } from '../lib/data/tournaments'
+import { getAllTournaments } from '@/lib/server/repositories/tournaments'
 
 export default function sitemap() {
     const baseUrl = 'https://skfkarate.org'

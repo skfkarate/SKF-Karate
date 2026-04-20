@@ -3,16 +3,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import Image from 'next/image';
 
-const values = [
-    { text: "DISCIPLINE", img: "/gallery/In Dojo.jpeg", pos: "center 25%" },
-    { text: "INCLUSION", img: "/gallery/IMG_1191.JPG.jpeg", pos: "center 30%" },
-    { text: "SPIRIT", img: "/gallery/Karate Demonstration2 starred.jpeg", pos: "center 20%" },
-    { text: "EXCELLENCE", img: "/gallery/Tournment8 starred.jpeg", pos: "center 20%" },
-    { text: "RESPECT", img: "/gallery/Tournment.jpeg", pos: "center 25%" },
-    { text: "PASSION", img: "/gallery/Train the Elite - Training Camp starred.jpeg", pos: "center 20%" },
-    { text: "FAMILY", img: "/gallery/In dojo 2 starred.jpeg", pos: "center 25%" },
-    { text: "HERE WE ARE", img: "/logo/SKF logo.png", isLogo: true }
-];
+import { cinematicValuesData as values } from '@/data/constants/homeContent';
 
 interface SlideProps {
     img?: string | any;

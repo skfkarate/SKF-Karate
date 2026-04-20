@@ -1,3 +1,5 @@
+-- ⚠️ DEPRECATED: Use /database/schema.sql instead.
+-- This file is kept for reference only. Do not modify.
 -- =======================================================
 -- SKF Karate Certificate System — Supabase Schema
 -- =======================================================

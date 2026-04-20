@@ -1,19 +1,37 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
 import { FaSpinner } from 'react-icons/fa'
 import './login.css'
 
-export default function DojoLogin() {
+function DojoLoginInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/portal/dashboard'
   const [skfId, setSkfId] = useState('')
   const [dob, setDob] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    fetch('/api/auth/portal/session', { method: 'GET', credentials: 'same-origin' })
+      .then(res => {
+        if (res.ok) {
+          router.replace(callbackUrl)
+        } else {
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        setLoading(false)
+      })
+  }, [router, callbackUrl])
+
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -29,7 +47,7 @@ export default function DojoLogin() {
       const data = await res.json()
 
       if (res.ok) {
-        router.push('/portal/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       } else {
         setError(data.error || 'Authentication failed')
@@ -47,14 +65,14 @@ export default function DojoLogin() {
       <div className="dojo-login__bg-glow" />
       <div className="dojo-login__watermark">空手道</div>
 
-      <motion.div 
+      <motion.div
         className="dojo-login__content"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <div className="dojo-login__header">
-          <motion.div 
+          <motion.div
             className="dojo-login__brand"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -69,16 +87,16 @@ export default function DojoLogin() {
             />
             <span className="dojo-login__brand-text">SKF Karate</span>
           </motion.div>
-          
-          <motion.h1 
+
+          <motion.h1
             className="dojo-login__title"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            ATHLETE<br />HUB.
+            ATHLETE<br />PORTAL.
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="dojo-login__subtitle"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -89,7 +107,7 @@ export default function DojoLogin() {
         </div>
 
         <form onSubmit={handleLogin} className="dojo-login__form">
-          <motion.div 
+          <motion.div
             className="dojo-input-group"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -99,7 +117,7 @@ export default function DojoLogin() {
               type="text"
               id="skfId"
               className="dojo-input"
-              placeholder="SKF-XXXX-XXXX"
+              placeholder="SKFXXXXXXX"
               value={skfId}
               onChange={(e) => setSkfId(e.target.value)}
               required
@@ -107,7 +125,7 @@ export default function DojoLogin() {
             <label htmlFor="skfId">Registration ID</label>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="dojo-input-group"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -137,13 +155,13 @@ export default function DojoLogin() {
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                 <FaSpinner className="spin" /> Authenticating...
               </span>
-            ) : 'Access Hub'}
+            ) : 'Access Portal'}
           </motion.button>
         </form>
 
         <AnimatePresence>
           {error && (
-            <motion.div 
+            <motion.div
               className="dojo-login__error"
               initial={{ opacity: 0, height: 0, y: -10 }}
               animate={{ opacity: 1, height: 'auto', y: 0 }}
@@ -158,7 +176,7 @@ export default function DojoLogin() {
         </AnimatePresence>
 
         {process.env.NODE_ENV === 'development' && (
-          <motion.div 
+          <motion.div
             className="dojo-login__test-bypass"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -169,7 +187,7 @@ export default function DojoLogin() {
               className="dojo-login__test-btn"
               onClick={() => {
                 setSkfId('SKF-2018-0001')
-                setDob('1995-04-12')
+                setDob('12-04-1995')
               }}
             >
               Dev Fill (Admin)
@@ -184,3 +202,12 @@ export default function DojoLogin() {
 // Add this to suppress hydration warnings for AnimatePresence
 import { AnimatePresence as FramerAnimatePresence } from 'framer-motion'
 const AnimatePresence = ({ children }) => <FramerAnimatePresence>{children}</FramerAnimatePresence>
+
+// Wrap in Suspense for useSearchParams compatibility
+export default function DojoLogin() {
+  return (
+    <Suspense fallback={<div className="dojo-login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaSpinner className="spin" style={{ fontSize: '2rem', color: '#fff' }} /></div>}>
+      <DojoLoginInner />
+    </Suspense>
+  )
+}

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { 
   SquareTerminal, Users, Trophy, Settings, LogOut, Code, FileDigit, ShieldAlert, Cpu, Circle
 } from "lucide-react"
+import { ADMIN_NAV_ITEMS } from '@/data/constants/navigation'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -14,16 +15,7 @@ export default function AdminSidebar() {
     await signOut({ callbackUrl: '/admin/login' })
   }
 
-  const navItems = [
-    { label: "Dashboard", href: "/admin/dashboard" },
-    { label: "Students", href: "/admin/students" },
-    { label: "Programs", href: "/admin/programs" },
-    { label: "Enrollments", href: "/admin/enrollments" },
-    { label: "Certificates", href: "/admin/certificates" },
-    { label: "Analytics", href: "/admin/analytics" },
-    { label: "Results", href: "/admin/results" },
-    { label: "Settings", href: "/admin/settings" }
-  ]
+  const navItems = ADMIN_NAV_ITEMS
 
   return (
     <div style={{

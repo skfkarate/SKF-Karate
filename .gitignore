@@ -45,6 +45,15 @@ structure.txt
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 
+# Junk files (must never be committed)
+cookies.txt
+*.dump.txt
+*_dump.txt
+contents.txt
+scratch/
+test_sheets_fetch.ts
+get_ids.js
+
 # Auto-generated sitemaps (generated at build time)
 public/sitemap*.xml
 

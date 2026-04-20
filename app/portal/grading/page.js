@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { TrendingUp, Medal, ChevronRight, Award } from 'lucide-react'
+import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 const MOCK_HISTORY = [
   { id: 1, date: 'Oct 2024', belt: 'Orange Belt (8th Kyu)', examiner: 'Sensei Raj', status: 'Passed', score: '88/100', current: false },
@@ -10,6 +11,7 @@ const MOCK_HISTORY = [
 ]
 
 export default function GradingPage() {
+  usePortalAuth()
   return (
     <div style={{ padding: '2rem 1rem', maxWidth: '1420px', margin: '0 auto', width: '100%' }}>
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '3rem' }}>

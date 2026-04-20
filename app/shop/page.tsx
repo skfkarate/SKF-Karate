@@ -1,109 +1,105 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { PRODUCTS } from '@/lib/shop/products'
+import { Lock, ShieldCheck } from 'lucide-react'
+import { SHOP_FILTER_TABS } from '@/data/constants/categories'
+import './shop.css'
 
-const CATEGORIES = [
-    { id: 'all', label: 'All' },
-    { id: 'uniforms', label: 'Uniforms' },
-    { id: 'belts', label: 'Belts' },
-    { id: 'gear', label: 'Gear' },
-    { id: 'merchandise', label: 'Merchandise' }
-]
+const CATEGORIES = SHOP_FILTER_TABS
 
 export default function ShopListingPage() {
     const [activeTab, setActiveTab] = useState('all')
+    const [products, setProducts] = useState<any[]>([])
 
-    const filtered = PRODUCTS.filter(p => activeTab === 'all' || p.category === activeTab)
+    useEffect(() => {
+        fetch('/api/shop/catalog')
+            .then(res => res.json())
+            .then(data => setProducts(data || []))
+            .catch(() => {})
+    }, [])
+
+    const filtered = products.filter((p: any) => activeTab === 'all' || p.category === activeTab)
 
     return (
-        <div style={{ minHeight: '100vh', padding: '120px 2rem 4rem', background: '#050505', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '3rem', fontWeight: 800, margin: 0, color: 'var(--gold, #ffb703)' }}>SKF STORE</h1>
-                    <p style={{ color: '#aaa', marginTop: '0.5rem' }}>Official gear and merchandise</p>
-                </div>
+        <div className="obsidian-store">
+            <div className="obsidian-container">
+                
+                {/* HERO HEADER */}
+                <header className="obsidian-header">
+                    <h1 className="obsidian-header__title">Official Gear</h1>
+                    <p className="obsidian-header__subtitle">
+                        Immersive, battle-tested apparel and equipment. Step into the Armory and equip yourself with the absolute highest standard in martial arts.
+                    </p>
+                </header>
 
-                <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
+                {/* FILTERS */}
+                <div className="obsidian-filters">
                     {CATEGORIES.map(c => (
                         <button
                             key={c.id}
                             onClick={() => setActiveTab(c.id)}
-                            style={{
-                                background: activeTab === c.id ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.05)',
-                                color: activeTab === c.id ? '#000' : '#fff',
-                                border: '1px solid',
-                                borderColor: activeTab === c.id ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.1)',
-                                padding: '0.6rem 1.5rem',
-                                borderRadius: '50px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                whiteSpace: 'nowrap'
-                            }}
+                            className={`obsidian-filter-btn ${activeTab === c.id ? 'active' : ''}`}
                         >
                             {c.label}
                         </button>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
-                    {filtered.map(product => {
-                        const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0)
+                {/* THE GRID */}
+                <div className="obsidian-grid">
+                    {filtered.map((product: any) => {
+                        const totalStock = product.variants.reduce((acc: number, v: any) => acc + v.stock, 0)
                         const outOfStock = totalStock === 0
 
                         return (
-                            <div key={product.id} style={{ 
-                                background: 'rgba(255,255,255,0.02)', 
-                                border: '1px solid rgba(255,255,255,0.05)', 
-                                borderRadius: '12px', 
-                                overflow: 'hidden',
-                                transition: 'transform 0.2s, border-color 0.2s',
-                                position: 'relative',
-                                display: 'flex',
-                                flexDirection: 'column'
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,183,3,0.3)'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                
+                            <Link 
+                                href={`/shop/${product.id}`} 
+                                key={product.id} 
+                                className={`obsidian-card ${outOfStock ? 'card-sold-out' : ''}`}
+                            >
                                 {outOfStock && (
-                                    <div style={{ position: 'absolute', top: '10px', right: '10px', background: '#dc3545', color: '#fff', fontSize: '0.75rem', fontWeight: 'bold', padding: '0.3rem 0.8rem', borderRadius: '50px', zIndex: 10 }}>
-                                        OUT OF STOCK
+                                    <div className="obsidian-badge-soldout">Sold Out</div>
+                                )}
+
+                                {/* Exclusivity Badges */}
+                                {!product.is_public && (
+                                    <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 5, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(214,40,40,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff' }}>
+                                            <ShieldCheck size={10} /> Athletes Only
+                                        </span>
+                                        {product.requires_belt && (
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,183,3,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#000' }}>
+                                                <Lock size={10} /> {product.requires_belt}+
+                                            </span>
+                                        )}
                                     </div>
                                 )}
 
-                                <div style={{ background: '#111', aspectRatio: '1', position: 'relative', padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <div style={{ height: '80%', width: '80%', background: '#222', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
-                                        {/* Mock Image Box */}
-                                        Image Placeholder
+                                <div className="obsidian-card__image-wrapper">
+                                    <Image 
+                                        src={product.images[0] || '/images/placeholder.jpg'} 
+                                        alt={product.name}
+                                        fill
+                                        className="obsidian-card__image"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    />
+                                </div>
+                                
+                                <div className="obsidian-card__info">
+                                    <span className="obsidian-card__category">{product.category.replace('-', ' ')}</span>
+                                    <h3 className="obsidian-card__title">{product.name}</h3>
+                                    
+                                    <div className="obsidian-card__price-row">
+                                        <span className="obsidian-card__price">₹{product.price.toLocaleString()}</span>
                                     </div>
                                 </div>
-                                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                    <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', color: '#fff', flex: 1 }}>{product.name}</h3>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--gold, #ffb703)', marginBottom: '1rem' }}>
-                                        ₹{product.price}
-                                    </div>
-                                    <Link href={`/shop/${product.id}`} style={{
-                                        display: 'block',
-                                        textAlign: 'center',
-                                        background: outOfStock ? '#333' : 'rgba(255,255,255,0.05)',
-                                        color: outOfStock ? '#666' : '#fff',
-                                        padding: '0.8rem',
-                                        borderRadius: '8px',
-                                        textDecoration: 'none',
-                                        fontWeight: 'bold',
-                                        pointerEvents: outOfStock ? 'none' : 'auto',
-                                        border: outOfStock ? 'none' : '1px solid rgba(255,255,255,0.1)'
-                                    }}>
-                                        {outOfStock ? 'Sold Out' : 'View Details'}
-                                    </Link>
-                                </div>
-                            </div>
+                            </Link>
                         )
                     })}
                 </div>
+                
             </div>
         </div>
     )

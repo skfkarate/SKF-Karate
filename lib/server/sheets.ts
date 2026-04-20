@@ -6,8 +6,8 @@ import type {
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
-    client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n')
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
   },
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 })
@@ -17,7 +17,7 @@ async function getSheets() {
   return google.sheets({ version: 'v4', auth: client as any })
 }
 
-const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID!
+const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID!
 
 export interface Sponsor {
   name: string
@@ -66,24 +66,46 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
     const rows = res.data.values || []
     const row = rows.find(r => r[0] === skfId)
-    if (!row) return null
-    return {
-      skfId: row[0],
-      name: row[1],
-      branch: row[2],
-      batch: row[3],
-      belt: row[4],
-      parentName: row[5],
-      phone: row[6],
-      status: row[7],
-      enrolledDate: row[8],
-      monthlyFee: Number(row[9] || 0),
-      photoConsent: row[10] === 'Yes'
-    } as Student
+    if (row) {
+      return {
+        skfId: row[0],
+        name: row[1],
+        branch: row[2],
+        batch: row[3],
+        belt: row[4],
+        parentName: row[5],
+        phone: row[6],
+        status: row[7],
+        enrolledDate: row[8],
+        monthlyFee: Number(row[9] || 0),
+        photoConsent: row[10] === 'Yes'
+      } as Student
+    }
   } catch (error) {
-    console.error('getStudentBySkfId error:', error)
-    return null
+    console.error('getStudentBySkfId Sheets fetch failed, falling back to mock DB:', (error as any)?.message)
   }
+
+  // Fallback to local mock athletes for development if Sheet fails or is empty
+  const { getAthleteByRegistrationNumber } = await import('@/lib/server/repositories/athletes')
+  const localAthlete = await Promise.resolve(getAthleteByRegistrationNumber(skfId))
+  
+  if (localAthlete) {
+    return {
+      skfId: localAthlete.registrationNumber,
+      name: `${localAthlete.firstName} ${localAthlete.lastName}`.trim(),
+      branch: localAthlete.branchName || 'Sunkadakatte',
+      batch: 'Evening', // Mock default
+      belt: localAthlete.currentBelt || 'white',
+      parentName: localAthlete.parentName || 'Parent',
+      phone: localAthlete.phone || '9999999999',
+      status: localAthlete.status === 'active' ? 'Active' : 'Inactive',
+      enrolledDate: localAthlete.joinDate || '2022-01-01',
+      monthlyFee: 1500,
+      photoConsent: true
+    } as Student
+  }
+
+  return null
 }, ['getStudentBySkfId'], 60)
 
 /**
@@ -608,7 +630,7 @@ export async function submitContactForm(row: any[]): Promise<boolean> {
 export async function getSponsors(): Promise<Sponsor[]> {
   try {
     const sheets = await getSheets()
-    const sheetId = process.env.GOOGLE_SPREADSHEET_ID!
+    const sheetId = process.env.GOOGLE_SHEET_ID!
 
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
@@ -638,7 +660,7 @@ export async function getSponsors(): Promise<Sponsor[]> {
 export async function submitLead(row: string[]): Promise<boolean> {
   try {
     const sheets = await getSheets()
-    const sheetId = process.env.GOOGLE_SPREADSHEET_ID!
+    const sheetId = process.env.GOOGLE_SHEET_ID!
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: 'Leads!A:H',

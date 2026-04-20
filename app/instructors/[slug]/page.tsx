@@ -3,18 +3,18 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaArrowLeft, FaAward, FaBuilding, FaCheckCircle, FaStar } from 'react-icons/fa'
-import { leadershipData } from '@/lib/leadershipData'
+import { getExecutiveCommittee } from '@/data/seed/instructors'
 
 // Generate static params for all defined instructors
 export function generateStaticParams() {
-    return leadershipData.map((instructor) => ({
+    return getExecutiveCommittee().map((instructor) => ({
         slug: instructor.slug,
     }))
 }
 
 // Generate dynamic SEO metadata
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-    const instructor = leadershipData.find(i => i.slug === params.slug)
+    const instructor = getExecutiveCommittee().find(i => i.slug === params.slug)
     
     if (!instructor) {
         return { title: 'Instructor Not Found' }
@@ -27,7 +27,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 }
 
 export default function InstructorProfilePage({ params }: { params: { slug: string } }) {
-    const instructor = leadershipData.find(i => i.slug === params.slug)
+    const instructor = getExecutiveCommittee().find(i => i.slug === params.slug)
 
     if (!instructor) {
         notFound()

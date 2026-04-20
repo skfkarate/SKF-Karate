@@ -44,7 +44,11 @@ export class CertificateRenderer {
     const student = await getStudentBySkfId(enrollment.skf_id)
     if (!student) throw new Error('STUDENT_NOT_FOUND')
     
-    const template = enrollment.certificate_templates[0] || enrollment.certificate_templates // handle array or single depending on relation
+    const templates = Array.isArray(enrollment.certificate_templates)
+      ? enrollment.certificate_templates
+      : [enrollment.certificate_templates].filter(Boolean)
+    const template = templates[0]
+    if (!template) throw new Error('TEMPLATE_NOT_FOUND')
     const fieldValues: Record<string, string> = {
       student_name: student.name,
       skf_id: enrollment.skf_id,

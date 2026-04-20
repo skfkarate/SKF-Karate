@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { supabase, isSupabaseReady } from '@/lib/server/supabase'
-import { hashPin, createJWT, buildPortalCookie } from '@/lib/server/auth'
+import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
+import { hashPin, createJWT, buildPortalCookie } from '@/lib/server/auth_legacy'
 import { createErrorResponse, readJsonBody, enforceRateLimit } from '@/lib/server/api'
 import { getStudentBySkfId } from '@/lib/server/sheets'
 
@@ -58,7 +58,7 @@ export async function POST(request) {
     const pinHash = await hashPin(pin)
 
     // Upsert into auth_sessions
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabaseAdmin
       .from('auth_sessions')
       .upsert(
         {

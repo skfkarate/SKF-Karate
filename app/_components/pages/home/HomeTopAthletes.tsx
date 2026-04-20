@@ -1,37 +1,40 @@
-'use client'
-
 import Link from 'next/link'
 import { FaTrophy, FaArrowRight, FaMedal } from 'react-icons/fa'
+import { getFeaturedAthletes } from '@/lib/server/repositories/athletes'
 
-/* ── Top 3 athletes — will be dynamic from admin later ── */
-const topAthletes = [
-    {
-        name: 'Athlete Name',
-        category: 'Junior Kata',
-        branch: 'Koramangala',
-        medals: { gold: 3, silver: 2, bronze: 1 },
-        rank: 1,
-        profileSlug: 'athlete-1',
-    },
-    {
-        name: 'Athlete Name',
-        category: 'Cadet Kumite',
-        branch: 'Whitefield',
-        medals: { gold: 2, silver: 3, bronze: 0 },
-        rank: 2,
-        profileSlug: 'athlete-2',
-    },
-    {
-        name: 'Athlete Name',
-        category: 'Senior Kata',
-        branch: 'Koramangala',
-        medals: { gold: 2, silver: 1, bronze: 2 },
-        rank: 3,
-        profileSlug: 'athlete-3',
-    },
-]
+export default async function HomeTopAthletes() {
+    // Fetch directly from the JSON DB repository
+    const athletes = await Promise.resolve(getFeaturedAthletes())
 
-export default function HomeTopAthletes() {
+    // Map and calculate medals based on achievements
+    const topAthletes = athletes.map(athlete => {
+        let gold = 0, silver = 0, bronze = 0;
+        
+        athlete.achievements?.forEach((ach: any) => {
+            if (ach.type === 'tournament-gold') gold++
+            if (ach.type === 'tournament-silver') silver++
+            if (ach.type === 'tournament-bronze') bronze++
+        })
+
+        const totalPoints = (gold * 10) + (silver * 5) + (bronze * 2)
+
+        return {
+            name: `${athlete.firstName} ${athlete.lastName}`,
+            category: athlete.currentBelt.toUpperCase() + ' BELT',
+            branch: athlete.branchName,
+            medals: { gold, silver, bronze },
+            totalPoints,
+            registrationNumber: athlete.registrationNumber
+        }
+    })
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+    .slice(0, 3) 
+    .map((athlete, index) => ({ ...athlete, rank: index + 1 }))
+
+    if (topAthletes.length === 0) {
+        return null // Hide section if no featured athletes
+    }
+
     return (
         <section className="home-top-athletes section section--tint-mid">
             <div className="container">
@@ -47,13 +50,13 @@ export default function HomeTopAthletes() {
 
                 <div className="home-top-athletes__grid">
                     {topAthletes.map((athlete) => (
-                        <div key={athlete.rank} className="athlete-podium-card">
+                        <Link href={`/athlete/${athlete.registrationNumber}`} key={athlete.rank} className="athlete-podium-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}>
                             <div className={`athlete-podium-card__rank athlete-podium-card__rank--${athlete.rank}`}>
                                 {athlete.rank}
                             </div>
 
                             <div className="athlete-podium-card__avatar">
-                                {athlete.name[0]}
+                                {athlete.name.charAt(0)}
                             </div>
 
                             <h3 className="athlete-podium-card__name">{athlete.name}</h3>
@@ -77,7 +80,7 @@ export default function HomeTopAthletes() {
                                     </span>
                                 )}
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
 

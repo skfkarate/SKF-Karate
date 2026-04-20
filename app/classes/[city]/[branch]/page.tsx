@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getCityBySlug, getBranch, getAllCities } from '@/lib/classesData'
-import { getAllAthletes, getRankSnapshots } from '@/lib/data/athletes'
+import { getAllAthletes, getRankSnapshots } from '@/lib/server/repositories/athletes'
 import BranchDetailClient from './BranchDetailClient'
 import '../../classes.css'
 
