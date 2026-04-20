@@ -1,3 +1,12 @@
+// ⚠️ WARNING: This rate limiter uses in-memory storage.
+// On serverless (Vercel), counters reset per-invocation.
+// This provides NO rate limiting in production.
+// Replace with Redis-backed rate limiting before launch.
+// See: /lib/server/rate-limit-redis.ts for a drop-in replacement
+// using @upstash/ratelimit with a sliding window algorithm.
+// Once UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set,
+// swap the import to use the Redis-backed implementation.
+
 const globalBuckets = globalThis.__skfRateLimitBuckets || new Map()
 
 if (!globalThis.__skfRateLimitBuckets) {

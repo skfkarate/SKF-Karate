@@ -6,23 +6,24 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UserCircle, PlayCircle, Award, CreditCard, LogOut, ChevronRight, Menu, Calendar, Bell, TrendingUp, Flag, Trophy } from 'lucide-react'
 import Image from 'next/image'
+import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
 
-const navLinks = [
-  { href: '/portal/dashboard', label: 'Identity', icon: UserCircle },
-  { href: '/portal/grading', label: 'Grading', icon: TrendingUp },
-  { href: '/portal/trophy-room', label: 'Trophy Room', icon: Trophy },
-  { href: '/portal/events', label: 'Events', icon: Flag },
-  { href: '/portal/videos', label: 'Home Practice', icon: PlayCircle },
-  { href: '/portal/fees', label: 'Treasury', icon: CreditCard },
-  { href: '/portal/timetable', label: 'Timetable', icon: Calendar },
-  { href: '/portal/notices', label: 'Notices', icon: Bell },
-]
+/** Map icon names (from data) → Lucide components (JSX) */
+const ICON_COMPONENTS = { UserCircle, PlayCircle, Award, CreditCard, Calendar, Bell, TrendingUp, Flag, Trophy } as const
+
+const navLinks = PORTAL_NAV_ITEMS.map(item => ({
+  ...item,
+  icon: ICON_COMPONENTS[item.iconName as keyof typeof ICON_COMPONENTS] || UserCircle,
+}))
 
 export default function AthleteHubNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Explicitly hide the entire nav layout when on the portal login page
+  if (pathname === '/portal/login') return null;
 
   async function handleLogout() {
     await fetch('/api/auth/portal/logout', { method: 'POST' })

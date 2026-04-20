@@ -2,122 +2,139 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { Search, ShieldCheck, Fingerprint, DatabaseBackup } from 'lucide-react'
 import { FaSpinner } from 'react-icons/fa'
+import { TbCertificate } from 'react-icons/tb'
+import './verify.css'
 
 export default function CertificateSearchPage() {
-  const router = useRouter()
-  const [query, setQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+    const router = useRouter()
+    const [query, setQuery] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState('')
 
-  async function handleSearch(e) {
-    if (e) e.preventDefault()
-    if (!query.trim()) return
+    async function handleSearch(e: React.FormEvent) {
+        if (e) e.preventDefault()
+        if (!query.trim()) return
 
-    setIsLoading(true)
-    setError('')
-    
-    try {
-      // Name search - fetch from API
-      const res = await fetch(`/api/certificates/search?id=${encodeURIComponent(query.trim())}`)
-      
-      if (!res.ok) {
-        if (res.status === 404) {
-          throw new Error('Certificate not found.')
-        } else {
-          throw new Error('Search failed')
-        }
-      }
-      
-      const data = await res.json()
-      if (data.skfId && data.enrollmentId) {
-        router.push(`/verify/${data.skfId}/${data.enrollmentId}`)
-      } else {
-        throw new Error('Invalid certificate data')
-      }
-    } catch (err) {
-      console.error(err)
-      setError(err.message || 'Could not complete search. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <div className="search-page" style={{ minHeight: '100vh', padding: '8rem 1rem 6rem', background: '#05080f', color: '#fff' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+        setIsLoading(true)
+        setError('')
         
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2rem, 5vw, 3rem)', textTransform: 'uppercase', marginBottom: '1rem', background: 'linear-gradient(90deg, #fff 0%, #ffb703 100%)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
-            Verify Certificate
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.1rem' }}>
-            Enter your Certificate Number to digitally verify and view your authentic SKF Karate award.
-          </p>
+        try {
+            // Enforce a minimum scanning time of 1.5 seconds so the animation is always visible
+            const minDelay = new Promise(resolve => setTimeout(resolve, 1500))
+            const apiReq = fetch(`/api/certificates/search?id=${encodeURIComponent(query.trim())}`)
+            
+            const [, res] = await Promise.all([minDelay, apiReq])
+            
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error('Certificate not found.')
+                } else {
+                    throw new Error('Search failed')
+                }
+            }
+            
+            const data = await res.json()
+            if (data.skfId && data.enrollmentId) {
+                // Wait just an extra split second before shifting pages
+                setTimeout(() => {
+                    router.push(`/verify/${data.skfId}/${data.enrollmentId}`)
+                }, 300)
+            } else {
+                throw new Error('Invalid certificate data from server')
+            }
+        } catch (err: any) {
+            console.error(err)
+            setError(err.message || 'Could not complete search. Please try again.')
+            setIsLoading(false)
+        }
+    }
+
+    return (
+        <div className="verify-page">
+            <div className="verify-bg" />
+            
+            <div className="verify-container">
+                {/* ═══════ HEADER ═══════ */}
+                <div className="verify-header">
+                    <div className="verify-icon-wrapper">
+                        <TbCertificate className="verify-icon" />
+                    </div>
+                    <h1 className="verify-title">
+                        Certificate <span className="text-gradient">Verification</span>
+                    </h1>
+                    <p className="verify-subtitle">
+                        SKF Karate issues mathematically paired certificates linked directly
+                        to student identity. Enter your document ID below to authenticate.
+                    </p>
+                </div>
+
+                {/* ═══════ SEARCH FORM ═══════ */}
+                <form
+                    onSubmit={handleSearch}
+                    className={`verify-form-wrapper ${isLoading ? 'is-scanning' : ''}`}
+                >
+                    <div className="scanner-line" />
+                    
+                    <div className="verify-input-group">
+                        <div className="verify-input-wrapper" style={{ display: 'flex', flex: 1 }}>
+                            <Search className="verify-search-icon" size={24} />
+                            <input 
+                                type="text" 
+                                placeholder="ex. CERT-9821, ach_3_4..."
+                                value={query}
+                                onChange={e => setQuery(e.target.value)}
+                                className="verify-input"
+                                disabled={isLoading}
+                                spellCheck={false}
+                                autoComplete="off"
+                            />
+                        </div>
+                        <button 
+                            type="submit" 
+                            className="verify-btn"
+                            disabled={isLoading || !query.trim()}
+                        >
+                            <span className="btn-content">
+                                {isLoading ? (
+                                    <>
+                                        <FaSpinner className="spin" /> Scanning...
+                                    </>
+                                ) : (
+                                    'Authenticate'
+                                )}
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+                {/* ═══════ ERROR STATE ═══════ */}
+                {error && (
+                    <div className="verify-error">
+                        <div className="error-icon">
+                            <span style={{ position: 'relative', top: '-1px' }}>!</span>
+                        </div>
+                        <div className="error-content">
+                            <h3>{error}</h3>
+                            <p>Please double-check the ID from your physical document or email. Certificate IDs are case-sensitive.</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* ═══════ TRUST BADGES ═══════ */}
+                <div className="verify-trust-badges">
+                    <div className="trust-badge gold">
+                        <ShieldCheck size={16} /> Official Records
+                    </div>
+                    <div className="trust-badge blue">
+                        <DatabaseBackup size={16} /> Digitally Signed
+                    </div>
+                    <div className="trust-badge green">
+                        <Fingerprint size={16} /> Identity Linked
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <form onSubmit={handleSearch} style={{ position: 'relative', marginBottom: '3rem' }}>
-          <div style={{ 
-            background: 'rgba(255,255,255,0.03)', 
-            border: '1px solid rgba(255,183,3,0.3)', 
-            borderRadius: 16, 
-            padding: '0.5rem',
-            display: 'flex',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            transition: 'border-color 0.3s'
-          }}>
-            <Search size={24} style={{ margin: 'auto 1rem', color: 'rgba(255,183,3,0.8)' }} />
-            <input 
-              type="text" 
-              placeholder="e.g. ach_2_1, CERT-9021..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                color: '#fff',
-                fontSize: '1.1rem',
-                padding: '1rem 0',
-                outline: 'none',
-                fontFamily: 'var(--font-body)'
-              }}
-            />
-            <button 
-              type="submit" 
-              disabled={isLoading || !query.trim()}
-              style={{
-                background: 'linear-gradient(135deg, #d62828 0%, #c0392b 100%)',
-                color: '#fff',
-                border: 'none',
-                padding: '0 2rem',
-                borderRadius: 12,
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading || !query.trim() ? 0.7 : 1,
-                transition: 'all 0.3s'
-              }}
-            >
-              {isLoading ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FaSpinner className="spin" /> Verifying...
-                </span>
-              ) : 'Verify'}
-            </button>
-          </div>
-        </form>
-
-        {error && (
-          <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: 20, border: '1px dashed rgba(239, 68, 68, 0.2)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.8 }}>❌</div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#ef4444' }}>{error}</h3>
-            <p style={{ color: 'rgba(255,255,255,0.5)' }}>Please ensure the certificate number is typed exactly as it appears on the printed copy.</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+    )
 }

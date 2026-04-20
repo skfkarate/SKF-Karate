@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Trophy, Medal, Star, Shield, Award } from 'lucide-react'
+import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 // Mock Data for the Trophy Room
 const ACHIEVEMENTS = [
@@ -17,6 +18,8 @@ const STATS = [
 ]
 
 export default function TrophyRoomPage() {
+  usePortalAuth()
+  
   const getMedalStyle = (medal) => {
     switch(medal) {
       case 'Gold': return { color: '#ffcf33', bg: 'rgba(255, 207, 51, 0.1)', border: 'rgba(255, 207, 51, 0.3)' }

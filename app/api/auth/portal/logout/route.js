@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { buildPortalCookieClear } from '@/lib/server/auth'
+import { buildPortalCookieClear } from '@/lib/server/auth_legacy'
 
 /**
  * POST /api/auth/portal/logout

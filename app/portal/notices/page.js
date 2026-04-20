@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, CalendarRange, MapPin, AlertCircle, Info, Flame, ChevronRight, Trophy } from 'lucide-react'
+import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 // Mock Data
 const ANNOUNCEMENTS = [
@@ -48,6 +49,7 @@ const UPCOMING_EVENTS = [
 ]
 
 export default function NoticesPage() {
+  usePortalAuth()
   const [activeTab, setActiveTab] = useState('all')
 
   const getIconForType = (type) => {
@@ -145,7 +147,7 @@ export default function NoticesPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
             <CalendarRange color="var(--gold, #ffb703)" size={24} />
             <h2 style={{ fontFamily: 'var(--font-heading, "Outfit")', fontSize: '1.8rem', fontWeight: 800, color: '#fff', margin: 0 }}>
-              Event Hub
+              Event Portal
             </h2>
           </div>
 

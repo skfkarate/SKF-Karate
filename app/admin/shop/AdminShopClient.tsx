@@ -39,6 +39,9 @@ export default function AdminShopClient({ rawOrders }: { rawOrders: ShopOrder[] 
                 >
                     <option value="All">All Statuses</option>
                     <option value="Processing">Processing</option>
+                    <option value="Processing (Payment Pending)">Payment Pending</option>
+                    <option value="Pending Instructor Approval">Instructor Approval</option>
+                    <option value="Approved">Approved</option>
                     <option value="Shipped">Shipped</option>
                     <option value="Delivered">Delivered</option>
                 </select>
@@ -92,14 +95,17 @@ export default function AdminShopClient({ rawOrders }: { rawOrders: ShopOrder[] 
                                             style={{ 
                                                 padding: '0.5rem', 
                                                 background: '#000', 
-                                                border: `1px solid ${order.status === 'Delivered' ? '#4caf50' : order.status === 'Shipped' ? '#4facfe' : '#ffb703'}`, 
-                                                color: order.status === 'Delivered' ? '#4caf50' : order.status === 'Shipped' ? '#4facfe' : '#ffb703', 
+                                                border: `1px solid ${order.status === 'Delivered' ? '#4caf50' : order.status === 'Shipped' ? '#4facfe' : order.status.includes('Approval') ? '#ff4444' : '#ffb703'}`, 
+                                                color: order.status === 'Delivered' ? '#4caf50' : order.status === 'Shipped' ? '#4facfe' : order.status.includes('Approval') ? '#ff4444' : '#ffb703', 
                                                 borderRadius: '4px',
                                                 fontWeight: 'bold',
                                                 cursor: 'pointer'
                                             }}
                                         >
                                             <option value="Processing">Processing</option>
+                                            <option value="Processing (Payment Pending)">Payment Pending</option>
+                                            <option value="Pending Instructor Approval">Instructor Approval</option>
+                                            <option value="Approved">Approved</option>
                                             <option value="Shipped">Shipped</option>
                                             <option value="Delivered">Delivered</option>
                                         </select>

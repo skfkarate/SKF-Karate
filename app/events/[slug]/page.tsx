@@ -1,10 +1,13 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { getEventBySlug } from "@/lib/data/events"
+import { FaCalendarAlt, FaMapMarkerAlt, FaCity, FaUsers, FaArrowRight, FaMedal } from "react-icons/fa"
+import { getEventBySlug } from "@/lib/server/repositories/events"
+import "../events.css"
 
 export const dynamic = "force-dynamic"
 
-function formatDate(date) {
+function formatDate(date: string) {
+  if (!date) return null
   return new Date(date).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
@@ -12,7 +15,13 @@ function formatDate(date) {
   })
 }
 
-function getResultLabel(result) {
+function getResultLabel(result: any) {
+  if (result.medal) {
+    if (result.medal === 'gold') return 'Gold Medal'
+    if (result.medal === 'silver') return 'Silver Medal'
+    if (result.medal === 'bronze') return 'Bronze Medal'
+  }
+  if (result.award) return result.award
   if (result.result === "completed") return "Completed"
   if (result.result === "attended") return "Attended"
   if (result.result === "pass") return "Passed"
@@ -20,7 +29,7 @@ function getResultLabel(result) {
   return result.result || "Recorded"
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params }: any) {
   const { slug } = await params
   const event = getEventBySlug(slug)
 
@@ -55,7 +64,7 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default async function EventDetailPage({ params }) {
+export default async function EventDetailPage({ params }: any) {
   const { slug } = await params
   const event = getEventBySlug(slug)
 
@@ -72,113 +81,151 @@ export default async function EventDetailPage({ params }) {
     "@type": "SportsEvent",
     "name": event.name,
     "startDate": event.date,
-    "location": { "@type": "Place", "name": event.venue, "address": event.city },
+    ...(event.venue && { "location": { "@type": "Place", "name": event.venue, "address": event.city } }),
     "organizer": { "@type": "Organization", "name": "SKF Karate" }
   }
 
+  const hasParticipants = event.participants && event.participants.length > 0
+  const hasResults = event.results && event.results.length > 0
+  
+  // Decide if we should split the screen or go full width
+  const showSplit = event.isResultsPublished && hasParticipants && hasResults
+
   return (
-    <div className="min-h-screen bg-[#070b14] px-4 py-14 text-white">
+    <div className="ev-detail">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
       />
-      <div className="mx-auto max-w-6xl">
-        <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold">{event.type}</p>
-          <h1 className="mt-3 text-4xl font-black uppercase tracking-tight text-white md:text-5xl">
-            {event.name}
-          </h1>
-          <p className="mt-4 max-w-3xl text-base text-white/65">{event.description}</p>
+      
+      {/* ═══════ HERO ═══════ */}
+      <section className="ev-detail-hero">
+        <div className="ev-detail-hero__bg" />
+        <div className="container ev-detail-hero__content">
+            <span className="ev-detail-hero__type">
+                {event.type.replace(/-/g, ' ')}
+            </span>
+            <h1 className="ev-detail-hero__title">
+                {event.name}
+            </h1>
+            {event.description && (
+                <p className="ev-detail-hero__desc">
+                    {event.description}
+                </p>
+            )}
+        </div>
+      </section>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-white/45">Date</p>
-              <p className="mt-2 text-lg font-semibold text-white">{formatDate(event.date)}</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-white/45">Venue</p>
-              <p className="mt-2 text-lg font-semibold text-white">{event.venue}</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-white/45">City</p>
-              <p className="mt-2 text-lg font-semibold text-white">{event.city}</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-white/45">Participants</p>
-              <p className="mt-2 text-lg font-semibold text-white">{event.participants?.length || 0}</p>
-            </div>
-          </div>
+      {/* ═══════ META INFO GRID ═══════ */}
+      <div className="container">
+        <div className="ev-detail-meta">
+            {event.date && (
+                <div className="ev-meta-card">
+                    <div className="ev-meta-card__icon"><FaCalendarAlt /></div>
+                    <div className="ev-meta-card__label">Date</div>
+                    <div className="ev-meta-card__value">{formatDate(event.date)}</div>
+                </div>
+            )}
+            {event.venue && (
+                <div className="ev-meta-card">
+                    <div className="ev-meta-card__icon"><FaMapMarkerAlt /></div>
+                    <div className="ev-meta-card__label">Venue</div>
+                    <div className="ev-meta-card__value">{event.venue}</div>
+                </div>
+            )}
+            {event.city && (
+                <div className="ev-meta-card">
+                    <div className="ev-meta-card__icon"><FaCity /></div>
+                    <div className="ev-meta-card__label">City</div>
+                    <div className="ev-meta-card__value">{event.city}</div>
+                </div>
+            )}
+            {event.isResultsPublished && hasParticipants && (
+                <div className="ev-meta-card">
+                    <div className="ev-meta-card__icon"><FaUsers /></div>
+                    <div className="ev-meta-card__label">Participants</div>
+                    <div className="ev-meta-card__value">{event.participants.length}</div>
+                </div>
+            )}
         </div>
 
-        <div className="mt-10 grid gap-10 xl:grid-cols-[1fr_0.95fr]">
-          <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-brand-red">Participants</p>
-            <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">
-              Assigned Athletes
-            </h2>
+        {/* ═══════ ROSTER & RESULTS ═══════ */}
+        {event.isResultsPublished && (hasParticipants || hasResults) && (
+            <div className={`ev-detail-content ${showSplit ? 'ev-detail-content--split' : ''}`}>
+                
+                {/* Roster Section */}
+                {hasParticipants && (
+                    <section className="ev-section">
+                        <div className="ev-section__bg-glow" />
+                        <div className="ev-section__header">
+                            <span className="ev-section__label">Roster</span>
+                            <h2 className="ev-section__title">Assigned Athletes</h2>
+                        </div>
 
-            <div className="mt-6 space-y-3">
-              {(event.participants || []).length === 0 ? (
-                <p className="text-sm text-white/50">No participants assigned yet.</p>
-              ) : (
-                event.participants.map((participant) => (
-                  <Link
-                    key={participant.registrationNumber}
-                    href={`/athlete/${participant.registrationNumber}`}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-gold/50 hover:bg-black/30"
-                  >
-                    <div>
-                      <p className="font-bold uppercase tracking-wide text-white">
-                        {participant.athleteName}
-                      </p>
-                      <p className="mt-1 text-xs text-white/45">
-                        {participant.registrationNumber} · {participant.branchName}
-                      </p>
-                    </div>
-                    <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-                      View Profile
-                    </span>
-                  </Link>
-                ))
-              )}
+                        <div className="ev-list">
+                            {event.participants.map((participant: any) => (
+                                <Link
+                                    key={participant.registrationNumber}
+                                    href={`/athlete/${participant.registrationNumber}`}
+                                    className="ev-list-item"
+                                >
+                                    <div className="ev-list-item__left">
+                                        <h3 className="ev-list-item__name">{participant.athleteName}</h3>
+                                        <span className="ev-list-item__meta">
+                                            {participant.registrationNumber} · {participant.branchName}
+                                        </span>
+                                    </div>
+                                    <div className="ev-list-item__action">
+                                        View <FaArrowRight />
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Results Section */}
+                {hasResults && (
+                    <section className="ev-section">
+                        <div className="ev-section__bg-glow" style={{ background: 'radial-gradient(circle, rgba(255, 183, 3, 0.05) 0%, transparent 70%)' }} />
+                        <div className="ev-section__header">
+                            <span className="ev-section__label" style={{ color: 'var(--gold)' }}>Results</span>
+                            <h2 className="ev-section__title">Outcomes & Awards</h2>
+                        </div>
+
+                        <div className="ev-list">
+                            {event.results.map((result: any) => (
+                                <div
+                                    key={`${result.registrationNumber}-${result.id || result.award || result.medal}`}
+                                    className="ev-list-item"
+                                >
+                                    <div className="ev-list-item__left">
+                                        <Link href={`/athlete/${result.registrationNumber}`}>
+                                            <h3 className="ev-list-item__name">{result.athleteName}</h3>
+                                        </Link>
+                                        <span className="ev-list-item__meta">
+                                            {result.registrationNumber}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="ev-list-item__right">
+                                        <span className="ev-result-badge">
+                                            <FaMedal style={{ display: 'inline-block', marginRight: '4px', position: 'relative', top: '-1px' }} />
+                                            {getResultLabel(result)}
+                                        </span>
+                                        {result.promotion && (
+                                            <span className="ev-promotion-badge">
+                                                Promoted to {result.promotion.replace(/-/g, ' ')}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold">Results</p>
-            <h2 className="mt-2 text-3xl font-black uppercase tracking-tight text-white">
-              Outcome Summary
-            </h2>
-
-            <div className="mt-6 space-y-3">
-              {(event.results || []).length === 0 ? (
-                <p className="text-sm text-white/50">Results have not been recorded yet.</p>
-              ) : (
-                event.results.map((result) => (
-                  <div
-                    key={`${result.registrationNumber}-${result.id || result.result}`}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-4"
-                  >
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                      <Link href={`/athlete/${result.registrationNumber}`} className="no-underline">
-                        <p className="font-bold uppercase tracking-wide text-white hover:text-gold transition link-underline">
-                          {result.athleteName}
-                        </p>
-                        <p className="mt-1 text-xs text-white/45 hover:text-white transition">{result.registrationNumber}</p>
-                      </Link>
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/70">
-                        {getResultLabel(result)}
-                      </span>
-                    </div>
-                    {result.notes ? (
-                      <p className="mt-3 text-sm text-white/55">{result.notes}</p>
-                    ) : null}
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
+        )}
       </div>
     </div>
   )

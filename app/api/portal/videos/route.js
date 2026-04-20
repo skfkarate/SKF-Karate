@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPortalSession } from '@/lib/server/auth'
+import { getPortalSession } from '@/lib/server/auth_legacy'
 import { getVideosByBranchAndBatch } from '@/lib/server/sheets'
 
 export async function GET(request) {

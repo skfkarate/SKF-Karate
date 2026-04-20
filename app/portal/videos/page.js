@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { PlayCircle, Lock, X, ChevronRight, Clock, Trophy, Flame } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 // Mock Data removed for production readiness.
 const FALLBACK_THUMBNAIL = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=600'
 const FALLBACK_VIDEO = 'https://vjs.zencdn.net/v/oceans.mp4'
 
 export default function CinematicDojoVideos() {
+  usePortalAuth()
   const [videos, setVideos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [playingVideo, setPlayingVideo] = useState(null)

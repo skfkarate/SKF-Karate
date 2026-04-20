@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BELTS } from '@/lib/data/belts';
+import { BELTS } from '@/data/constants/belts';
 import { DEFAULT_POINTS, calculateTournamentPoints } from '@/lib/utils/points';
 
 export default function AdminStudentForm({ initialData = null, isEditing = false, onSave }) {

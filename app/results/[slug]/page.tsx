@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import ResultsDetailPageClient from './ResultsDetailPageClient'
-import { getAllTournaments, getTournamentBySlug } from '../../../lib/data/tournaments'
+import { getAllTournaments, getTournamentBySlug } from '@/lib/server/repositories/tournaments'
 
 export async function generateStaticParams() {
   return getAllTournaments()

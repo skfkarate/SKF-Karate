@@ -2,7 +2,7 @@ import {
   getAllTournaments,
   getAvailableYears,
   getTournamentStats,
-} from '../../lib/data/tournaments'
+} from '@/lib/server/repositories/tournaments'
 import ResultsPageClient from '../_components/results/ResultsPageClient'
 import '@/app/results/results.css'
 

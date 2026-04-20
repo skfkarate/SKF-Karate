@@ -1,3 +1,5 @@
+-- ⚠️ DEPRECATED: Use /database/schema.sql instead.
+-- This file is kept for reference only. Do not modify.
 -- 1. auth_sessions
 CREATE TABLE auth_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

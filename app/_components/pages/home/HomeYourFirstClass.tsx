@@ -2,33 +2,17 @@
 
 import { FaArrowRight, FaCalendarCheck, FaChild, FaTshirt, FaSmile } from 'react-icons/fa'
 import { useTrialModal } from '@/app/_components/TrialModalContext'
+import { homeYourFirstClassData } from '@/data/constants/homeContent'
 
-const steps = [
-    {
-        icon: <FaCalendarCheck />,
-        number: '01',
-        title: 'Book Your Trial',
-        desc: 'Fill out a quick form or WhatsApp us. We\'ll confirm your slot within 24 hours.',
-    },
-    {
-        icon: <FaTshirt />,
-        number: '02',
-        title: 'Show Up',
-        desc: 'Wear comfortable clothes. No special gear needed for your first class.',
-    },
-    {
-        icon: <FaChild />,
-        number: '03',
-        title: 'Train with Champions',
-        desc: 'A 60-minute guided session with a certified black belt instructor.',
-    },
-    {
-        icon: <FaSmile />,
-        number: '04',
-        title: 'Join the Family',
-        desc: 'Loved it? Pick a plan that fits. No long-term contracts required.',
-    },
-]
+const renderIcon = (type: string) => {
+    switch(type) {
+        case 'calendar': return <FaCalendarCheck />;
+        case 'tshirt': return <FaTshirt />;
+        case 'child': return <FaChild />;
+        case 'smile': return <FaSmile />;
+        default: return <FaSmile />;
+    }
+}
 
 export default function HomeYourFirstClass() {
     const { openModal } = useTrialModal()
@@ -47,10 +31,10 @@ export default function HomeYourFirstClass() {
                 </div>
 
                 <div className="home-first-class__steps">
-                    {steps.map((step, i) => (
+                    {homeYourFirstClassData.map((step, i) => (
                         <div key={i} className="first-class-step">
                             <div className="first-class-step__number">{step.number}</div>
-                            <div className="first-class-step__icon">{step.icon}</div>
+                            <div className="first-class-step__icon">{renderIcon(step.iconType)}</div>
                             <h3 className="first-class-step__title">{step.title}</h3>
                             <p className="first-class-step__desc">{step.desc}</p>
                         </div>

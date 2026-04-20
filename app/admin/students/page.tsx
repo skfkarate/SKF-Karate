@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { getAllStudents } from '../../../lib/server/sheets';
-import { getBelt } from '../../../lib/data/belts';
+import { getAllStudents } from '@/lib/server/sheets';
+import { BELTS, getBelt } from '@/data/constants/belts';
 import { requireAdminSession } from '@/lib/utils/auth';
 import StudentCsvImportClient from './StudentCsvImportClient';
 import { reactivateStudent } from './actions';

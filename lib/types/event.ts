@@ -1,4 +1,4 @@
-import { BELTS } from '../data/belts'
+import { BELTS } from '@/data/constants/belts'
 
 export const EVENT_TYPES = [
   'tournament',

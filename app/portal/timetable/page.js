@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth'
+import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth_legacy'
 import TimetableClient from './TimetableClient'
 import { getTimetableByBranch } from '@/lib/server/sheets'
 

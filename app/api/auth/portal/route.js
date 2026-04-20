@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createJWT, buildPortalCookie } from '@/lib/server/auth'
-import { getAthleteByRegistrationNumber } from '@/lib/data/athletes'
+import { createJWT, buildPortalCookie } from '@/lib/server/auth_legacy'
+import { getAthleteByRegistrationNumber } from '@/lib/server/repositories/athletes'
 
 /**
  * POST /api/auth/portal

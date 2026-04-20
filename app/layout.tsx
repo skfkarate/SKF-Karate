@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 
 import { Providers } from '@/app/providers'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
-import CookieConsent from '@/app/_components/CookieConsent'
+import CookieConsent from '@/components/CookieConsent'
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>

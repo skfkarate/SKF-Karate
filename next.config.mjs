@@ -71,3 +71,4 @@ export default withSentryConfig(withPWA(nextConfig), {
   disableLogger: true,
   automaticVercelMonitors: true,
 });
+// Trigger restart

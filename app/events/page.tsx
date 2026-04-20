@@ -1,4 +1,4 @@
-import { getAllEvents } from '../../lib/data/events'
+import { getAllEvents } from '@/lib/server/repositories/events'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
 
@@ -20,12 +20,13 @@ export const metadata = {
 export default function EventsPage() {
     const events = getAllEvents()
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    const upcomingEvents = events
+    const mappedEvents = events
         .filter((event) => event.status !== 'archived')
-        .filter((event) => new Date(event.date) >= today)
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map((event) => ({
+            id: event.id,
+            rawDate: new Date(event.date).getTime(),
             date: formatDisplayDate(event.date),
             title: event.name,
             location: `${event.venue}, ${event.city}`,
@@ -34,9 +35,18 @@ export default function EventsPage() {
             cta: event.type === 'tournament' ? `/results/${event.slug}` : `/events/${event.slug}`,
         }))
 
+    const upcomingEvents = mappedEvents
+        .filter((event) => event.rawDate >= today.getTime())
+        .sort((a, b) => a.rawDate - b.rawDate)
+
+    const pastEvents = mappedEvents
+        .filter((event) => event.rawDate < today.getTime())
+        .sort((a, b) => b.rawDate - a.rawDate) // Sort past events descending
+
     return (
         <EventsPageClient 
             upcomingEvents={upcomingEvents}
+            pastEvents={pastEvents}
         />
     )
 }

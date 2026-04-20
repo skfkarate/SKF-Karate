@@ -3,12 +3,14 @@ import { z } from 'zod'
 import { submitLead } from '@/lib/server/sheets'
 import { Resend } from 'resend'
 
+import { BRANCH_SLUGS } from '@/data/constants/branches'
+
 // The schema matching FreeTrialForm.tsx
 const leadSchema = z.object({
   studentName: z.string().min(2).max(100),
   parentPhone: z.string().regex(/^\+91[0-9]{10}$/),
   childAge: z.number().min(5).max(60),
-  branch: z.enum(['koramangala', 'whitefield', 'jp-nagar']),
+  branch: z.enum(BRANCH_SLUGS),
   preferredBatch: z.string().min(2),
   hearAboutUs: z.string().optional()
 })

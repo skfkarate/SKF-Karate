@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { createAthlete } from '@/lib/data/athletes'
+import { createAthlete } from '@/lib/server/repositories/athletes'
 import { createErrorResponse, readJsonBody } from '@/lib/server/api'
 import { validateAthletePayload } from '@/lib/server/validation'
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'

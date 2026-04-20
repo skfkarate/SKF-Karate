@@ -1,5 +1,5 @@
-import { getAllEvents } from "../data/events"
-import { getBelt, getNextBelt, BELTS } from "../data/belts"
+import { getAllEvents } from '@/lib/server/repositories/events'
+import { getBelt, getNextBelt, BELTS } from "@/data/constants/belts"
 import { calculateResultPoints, normaliseEventTier } from "./points"
 import { getAgeCategory, getAthleteRankingCategory } from "./rankings"
 

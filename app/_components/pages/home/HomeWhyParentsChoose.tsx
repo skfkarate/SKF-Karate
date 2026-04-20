@@ -1,32 +1,16 @@
 import { FaShieldAlt, FaUserGraduate, FaTrophy, FaUsers, FaAward } from 'react-icons/fa'
+import { homeWhyParentsChooseData } from '@/data/constants/homeContent'
 
-const reasons = [
-    {
-        icon: <FaShieldAlt />,
-        title: 'WKF Certified',
-        desc: 'World Karate Federation-affiliated. Every belt, every grade is internationally recognized.',
-    },
-    {
-        icon: <FaUserGraduate />,
-        title: 'Black Belt Instructors',
-        desc: 'All classes led by certified Dan-graded black belt instructors with competition experience.',
-    },
-    {
-        icon: <FaTrophy />,
-        title: 'Competition Ready',
-        desc: 'From local tournaments to international championships — we prepare champions at every level.',
-    },
-    {
-        icon: <FaUsers />,
-        title: 'Small Class Sizes',
-        desc: 'Personal attention guaranteed. Every student gets the coaching they deserve.',
-    },
-    {
-        icon: <FaAward />,
-        title: 'Character First',
-        desc: 'Discipline, respect, confidence — values that go far beyond the dojo.',
-    },
-]
+const renderIcon = (type: string) => {
+    switch(type) {
+        case 'shield': return <FaShieldAlt />;
+        case 'graduate': return <FaUserGraduate />;
+        case 'trophy': return <FaTrophy />;
+        case 'users': return <FaUsers />;
+        case 'award': return <FaAward />;
+        default: return <FaAward />;
+    }
+}
 
 export default function HomeWhyParentsChoose() {
     return (
@@ -40,9 +24,9 @@ export default function HomeWhyParentsChoose() {
                 </div>
 
                 <div className="home-why-parents__grid">
-                    {reasons.map((reason, i) => (
+                    {homeWhyParentsChooseData.map((reason, i) => (
                         <div key={i} className="why-card">
-                            <div className="why-card__icon">{reason.icon}</div>
+                            <div className="why-card__icon">{renderIcon(reason.iconType)}</div>
                             <h3 className="why-card__title">{reason.title}</h3>
                             <p className="why-card__desc">{reason.desc}</p>
                         </div>

@@ -1,4 +1,6 @@
-export const EVENT_TYPES = ["competition", "grading", "camp", "seminar", "training"]
+import { EVENT_TYPES } from '@/lib/types/event'
+
+export { EVENT_TYPES }
 
 export function normaliseEventType(value) {
   if (!value) return "competition"

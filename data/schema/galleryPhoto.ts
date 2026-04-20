@@ -1,0 +1,1 @@
+export { galleryPhotoSchema } from './localEntities'

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { searchAthletesByName } from '../../../../lib/data/athletes';
+import { searchAthletesByName } from '@/lib/server/repositories/athletes';
 import { enforceRateLimit } from '@/lib/server/api';
 
-export async function GET(request) {
+export async function GET(request: Request) {
   try {
-    enforceRateLimit(request, {
-      name: 'athlete-search',
-      limit: 60,
-      windowMs: 5 * 60 * 1000,
+    await enforceRateLimit(request, {
+      name: 'athlete_search',
+      limit: 10,
+      windowMs: 60000, // 1 minute
     });
   } catch (error) {
     return NextResponse.json(

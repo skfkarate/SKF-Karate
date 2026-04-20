@@ -132,9 +132,11 @@ export default function EditStudentClient({ student }: { student: any }) {
                         <div>
                             <label style={{ display: 'block', marginBottom: '0.5rem', color: '#aaa', fontSize: '0.9rem' }}>Branch *</label>
                             <select {...register('branch')} style={{ width: '100%', padding: '0.8rem', background: '#000', border: errors.branch ? '1px solid #ff4444' : '1px solid #333', color: '#fff', borderRadius: '6px' }}>
-                                <option value="koramangala">Koramangala HQ</option>
-                                <option value="whitefield">Whitefield</option>
-                                <option value="jp-nagar">JP Nagar</option>
+                                <option value="mp-sports-club">M P Sports Club</option>
+                                <option value="herohalli">Herohalli</option>
+                                <option value="kunigal-main">Kunigal</option>
+                                <option value="tumkur-main">Tumkur</option>
+                                <option value="udupi-main">Udupi</option>
                             </select>
                             {errors.branch && <span style={{ color: '#ff4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{errors.branch.message}</span>}
                         </div>

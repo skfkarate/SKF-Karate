@@ -47,6 +47,8 @@ export type TournamentResultRecord = {
   ageGroup?: string
   weightCategory?: string
   notes?: string
+  award?: string
+  promotion?: string
 }
 
 export type TournamentRecord = {
@@ -79,6 +81,7 @@ export type TournamentRecord = {
   winners: TournamentWinner[]
   results?: TournamentResultRecord[]
   resultsAppliedAt?: string
+  isResultsPublished?: boolean
 }
 
 let tournaments: TournamentRecord[] = [

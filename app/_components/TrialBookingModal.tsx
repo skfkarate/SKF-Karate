@@ -7,11 +7,11 @@ import { useTrialModal } from './TrialModalContext'
 
 /* ── Branch options ── */
 const BRANCHES = [
-    { value: 'koramangala', label: 'Koramangala HQ — Bangalore', batch: 'Tue/Wed/Fri 5:30–7:00 PM' },
-    { value: 'whitefield', label: 'Whitefield — Bangalore', batch: 'Tue/Wed/Fri 4:30–6:00 PM' },
-    { value: 'pondicherry', label: 'Pondicherry', batch: 'Tue/Wed/Fri 5:00–6:30 PM' },
-    { value: 'tumkur', label: 'Tumkur', batch: 'Tue/Wed/Fri 5:00–6:30 PM' },
-    { value: 'udupi', label: 'Udupi', batch: 'Tue/Wed/Fri 5:00–6:30 PM' },
+    { value: 'mp-sports-club', label: 'M P Sports Club — Bangalore', batch: 'Tue/Wed/Fri 5:30–7:00 PM' },
+    { value: 'herohalli', label: 'Herohalli — Bangalore', batch: 'Tue/Wed/Fri 4:30–6:00 PM' },
+    { value: 'kunigal-main', label: 'Kunigal', batch: 'To be updated' },
+    { value: 'tumkur-main', label: 'Tumkur', batch: 'Tue/Wed/Fri 5:00–6:30 PM' },
+    { value: 'udupi-main', label: 'Udupi', batch: 'Tue/Wed/Fri 5:00–6:30 PM' },
 ] as const
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'

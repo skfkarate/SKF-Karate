@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { supabase, isSupabaseReady } from '@/lib/server/supabase'
-import { getPortalSession } from '@/lib/server/auth'
+import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
+import { getPortalSession } from '@/lib/server/auth_legacy'
 
 export async function POST(request) {
   try {
@@ -22,7 +22,7 @@ export async function POST(request) {
     }
 
     // 2. Upsert progress into Supabase
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('video_progress')
       .upsert(
         {

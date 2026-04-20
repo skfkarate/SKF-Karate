@@ -6,11 +6,11 @@ import { retryWithBackoff } from '@/lib/utils/retry'
 
 
 
-export async function POST(request) {
+export async function POST(request: Request) {
     try {
-        enforceRateLimit(request, {
-            name: 'contact-form',
-            limit: 5,
+        await enforceRateLimit(request, {
+            name: 'contact_form',
+            limit: 3,
             windowMs: 15 * 60 * 1000,
         })
 

@@ -2,93 +2,33 @@ import Link from 'next/link'
 import { FaArrowRight, FaQuoteLeft, FaTrophy } from 'react-icons/fa'
 import { GiBlackBelt, GiKatana, GiMeditation, GiYinYang, GiPunch } from 'react-icons/gi'
 import './senseis.css'
+import { getSenseis } from '@/data/seed/instructors'
+import type { ReactNode } from 'react'
 
-const allSenseis = [
-    {
-        id: 'akira',
-        name: 'Sensei Akira',
-        dan: '5th Dan — Godan',
-        role: 'Chief Instructor & Founder',
-        spec: 'Kata & Kumite Mastery',
-        dojos: 'SKF Headquarters',
-        dojoSlug: 'koramangala',
-        exp: '20+ years of relentless dedication',
-        achievements: 'National Champion (3x), State Kata Champion, WKF-certified Elite Coach',
-        quote: "True mastery is not found in the defeat of an opponent, but in the perfection of the self through tireless discipline.",
-        icon: <GiKatana />,
-        color: 'gold'
-    },
-    {
-        id: 'ravi',
-        name: 'Sensei Ravi',
-        dan: '4th Dan — Yondan',
-        role: 'Senior Instructor',
-        spec: 'Advanced Kumite',
-        dojos: 'Central Dojo',
-        dojoSlug: 'central',
-        exp: '15+ years',
-        achievements: 'State Kumite Champion (5x) • National Team Coach • Elite Tactic Specialist',
-        quote: "The mat is a mirror. It reflects your fears, but more importantly, it shows you the warrior you can become.",
-        icon: <GiBlackBelt />,
-        color: 'crimson'
-    },
-    {
-        id: 'meera',
-        name: 'Sensei Meera',
-        dan: '3rd Dan — Sandan',
-        role: 'Instructor',
-        spec: 'Technical Kata',
-        dojos: 'East District Dojo',
-        dojoSlug: 'east',
-        exp: '12+ years',
-        achievements: 'State Kata Champion (2x) • Certified Kata Judge • Form Correction Expert',
-        quote: "Every form contains a thousand battles. Precision is the ultimate weapon against chaos.",
-        icon: <GiYinYang />,
-        color: 'blue'
-    },
-    {
-        id: 'arjun',
-        name: 'Sensei Arjun',
-        dan: '3rd Dan — Sandan',
-        role: 'Instructor',
-        spec: 'Kumite & Self-Defence',
-        dojos: 'North District Dojo',
-        dojoSlug: 'north',
-        exp: '10+ years',
-        achievements: 'National Kumite Bronze • Self-Defence Program Director • Street-Ready Tactical Lead',
-        quote: "We train for the fights we never wish to have. Preparedness brings peace.",
-        icon: <GiPunch />,
-        color: 'gold'
-    },
-    {
-        id: 'priya',
-        name: 'Sensei Priya',
-        dan: '2nd Dan — Nidan',
-        role: 'Assistant Instructor',
-        spec: 'Junior Training',
-        dojos: 'SKF Headquarters',
-        dojoSlug: 'koramangala',
-        exp: '8+ years',
-        achievements: 'Junior Development Lead • State Medalist • Child Psychology inside the Dojo',
-        quote: "The hardest belt to earn is the white belt. My duty is to turn that first step into a lifelong journey.",
-        icon: <GiMeditation />,
-        color: 'crimson'
-    },
-    {
-        id: 'karthik',
-        name: 'Sensei Karthik',
-        dan: '2nd Dan — Nidan',
-        role: 'Assistant Instructor',
-        spec: 'Fitness Conditioning',
-        dojos: 'South District Dojo',
-        dojoSlug: 'south',
-        exp: '7+ years',
-        achievements: 'Conditioning Specialist • Core Strengthening • Agility & Reflex Mastery',
-        quote: "Fatigue makes cowards of us all. I forge bodies so the spirit never has to surrender.",
-        icon: <GiBlackBelt />,
-        color: 'blue'
-    }
-];
+/** Icon map — JSX elements can't live in data files */
+const ICON_MAP: Record<string, ReactNode> = {
+  akira: <GiKatana />,
+  ravi: <GiBlackBelt />,
+  meera: <GiYinYang />,
+  arjun: <GiPunch />,
+  priya: <GiMeditation />,
+  karthik: <GiBlackBelt />,
+}
+
+const allSenseis = getSenseis().map(s => ({
+  id: s.slug,
+  name: s.name,
+  dan: s.dan,
+  role: s.role || s.title,
+  spec: s.specialty || 'General Karate',
+  dojos: s.dojos || '',
+  dojoSlug: s.dojoSlug || '',
+  exp: s.experience || '',
+  achievements: s.achievements.join(' • '),
+  quote: s.quote || '',
+  icon: ICON_MAP[s.slug] || <GiBlackBelt />,
+  color: s.color || 'gold',
+}))
 
 export default function SenseisPage() {
     return (

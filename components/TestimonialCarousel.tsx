@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { TESTIMONIALS } from '@/lib/shop/testimonials'
+import { testimonials } from '@/data/seed/testimonials'
 import { FaStar, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 
 export default function TestimonialCarousel() {
@@ -39,7 +39,7 @@ export default function TestimonialCarousel() {
         return () => observer.disconnect()
     }, [])
 
-    const maxIndex = Math.max(0, TESTIMONIALS.length - cardsPerView)
+    const maxIndex = Math.max(0, testimonials.length - cardsPerView)
 
     useEffect(() => {
         if (!isVisible || isHovered) return
@@ -100,7 +100,7 @@ export default function TestimonialCarousel() {
                     transform: `translateX(calc(-${currentIndex * (100 / cardsPerView)}% - ${currentIndex * (2 / cardsPerView)}rem))`
                 }}
             >
-                {TESTIMONIALS.map((t, idx) => (
+                {testimonials.map((t, idx) => (
                     <div className="t-card" key={t.id} style={{ opacity: (idx >= currentIndex && idx < currentIndex + cardsPerView) ? 1 : 0.4 }}>
                         <div style={{ display: 'flex', gap: '0.2rem', color: 'var(--gold, #ffb703)', marginBottom: '1.2rem' }}>
                             {[...Array(t.rating)].map((_, i) => <FaStar key={i} />)}
