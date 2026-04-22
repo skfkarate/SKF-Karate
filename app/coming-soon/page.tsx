@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FaArrowLeft } from 'react-icons/fa'
+import '../error-pages.css'
 
 export default function ComingSoonPage() {
   const [email, setEmail] = useState('')
@@ -13,7 +13,6 @@ export default function ComingSoonPage() {
     e.preventDefault()
     if(!email) return
     setLoading(true)
-    // mock API call
     setTimeout(() => {
       setSubmitted(true)
       setLoading(false)
@@ -21,88 +20,57 @@ export default function ComingSoonPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#05080f',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem',
-      color: '#fff',
-      textAlign: 'center',
-      backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(214, 40, 40, 0.15), transparent 50%)'
-    }}>
-      <div style={{ maxWidth: '500px', width: '100%', padding: '3rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <span style={{ 
-          display: 'inline-block', 
-          padding: '0.5rem 1rem', 
-          backgroundColor: 'rgba(255, 183, 3, 0.1)', 
-          color: '#ffb703', 
-          borderRadius: '100px', 
-          fontSize: '0.8rem', 
-          fontWeight: 800, 
-          letterSpacing: '0.1em', 
-          textTransform: 'uppercase',
-          marginBottom: '1.5rem'
-        }}>
-          Currently in Development
-        </span>
-        
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', textTransform: 'uppercase' }}>
-          Coming Soon
+    <div className="system-page">
+      <div className="system-orb system-orb--1" />
+      <div className="system-orb system-orb--2" />
+      <div className="system-watermark">近日公開</div>
+
+      <div className="system-content container">
+        <span className="system-badge">Evolution in Progress</span>
+        <h1 className="system-code" style={{ fontSize: 'clamp(3rem, 15vw, 8rem)', letterSpacing: '-2px' }}>
+          COMING <span className="text-gradient">SOON</span>
         </h1>
+        <h2 className="system-title" style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.6)', textTransform: 'none', fontWeight: 400 }}>
+          We are currently crafting a premium experience for this section.
+        </h2>
         
-        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2.5rem', lineHeight: 1.6 }}>
-          We are putting the final touches on this experience. Join the waitlist to be notified the moment it launches.
-        </p>
+        <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
+          {submitted ? (
+            <div className="contact-success" style={{ padding: '2rem', background: 'rgba(37, 211, 102, 0.05)', borderRadius: '24px', border: '1px solid rgba(37, 211, 102, 0.2)' }}>
+              <div className="contact-success-icon" style={{ fontSize: '2rem', marginBottom: '1rem' }}>✓</div>
+              <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>You're on the list!</h3>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>We'll notify you the moment this Dojo expansion launches.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="contact-input-wrap">
+                <input 
+                  type="email" 
+                  placeholder="Enter your email for early access" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="contact-input"
+                  style={{ paddingLeft: '1.5rem' }}
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary"
+                style={{ width: '100%', padding: '1.2rem' }}
+              >
+                {loading ? 'Registering...' : 'Join the Waitlist'}
+              </button>
+            </form>
+          )}
+        </div>
 
-        {submitted ? (
-          <div style={{ padding: '1.5rem', backgroundColor: 'rgba(45, 212, 191, 0.1)', border: '1px solid rgba(45, 212, 191, 0.3)', borderRadius: '12px', color: '#2dd4bf', fontWeight: 600 }}>
-            You're on the list! Oss.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.5rem', marginBottom: '2.5rem', flexDirection: 'column' }}>
-            <input 
-              type="email" 
-              placeholder="Enter your email address" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '1rem 1.5rem',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '12px',
-                color: '#fff',
-                outline: 'none'
-              }}
-            />
-            <button 
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '1rem',
-                backgroundColor: '#d62828',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                cursor: 'pointer',
-                opacity: loading ? 0.7 : 1
-              }}
-            >
-              {loading ? 'Joining...' : 'Notify Me'}
-            </button>
-          </form>
-        )}
-
-        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>
-          <FaArrowLeft /> Back to Home
-        </Link>
+        <div className="system-actions" style={{ marginTop: '2rem' }}>
+          <Link href="/" className="system-link" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px' }}>
+            ← Return to Homepage
+          </Link>
+        </div>
       </div>
     </div>
   )
