@@ -1,0 +1,117 @@
+/* ═════════════════════════════════════════════════════════════
+   SYSTEM PAGES — OBSIDIAN REDESIGN
+   404, Error, and Coming Soon pages
+   ═════════════════════════════════════════════════════════════ */
+
+.system-page {
+  min-height: 100vh;
+  background: #030508;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* ── AMBIENT ── */
+.system-orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.system-orb--1 { top: -100px; left: -100px; background: rgba(214,40,40,0.2); animation: systemFloat 20s infinite alternate; }
+.system-orb--2 { bottom: -100px; right: -100px; background: rgba(255,183,3,0.15); animation: systemFloat 25s infinite alternate-reverse; }
+
+@keyframes systemFloat {
+  from { transform: translate(0,0) scale(1); }
+  to { transform: translate(50px, 50px) scale(1.1); }
+}
+
+.system-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Noto Sans JP", var(--font-heading);
+  font-size: 40vw;
+  font-weight: 900;
+  color: rgba(255,255,255,0.01);
+  z-index: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── CONTENT ── */
+.system-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+}
+
+.system-badge {
+  display: inline-flex;
+  padding: 0.5rem 1.25rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--gold, #ffb703);
+  margin-bottom: 2rem;
+}
+
+.system-code {
+  font-family: var(--font-heading);
+  font-size: clamp(6rem, 25vw, 15rem);
+  font-weight: 900;
+  line-height: 0.8;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+  letter-spacing: -5px;
+}
+
+.system-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  letter-spacing: -1px;
+}
+
+.system-text {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  margin-bottom: 3rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.system-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .system-code { letter-spacing: -2px; }
+  .system-actions .btn { width: 100%; }
+}

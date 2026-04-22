@@ -121,6 +121,10 @@ export default function EventsPageClient({
 
     return (
         <div className="events-page">
+            <div className="ev-orb ev-orb--1" />
+            <div className="ev-orb ev-orb--2" />
+            <div className="ev-watermark">行事</div>
+
             {/* ═══════ HERO WITH COUNTDOWN ═══════ */}
             <section className="ev-hero">
                 <div className="ev-hero__bg" />
@@ -130,13 +134,13 @@ export default function EventsPageClient({
 
                 <div className="container ev-hero__content">
                     <span className="section-label">
-                        <FaCalendarAlt /> Event Calendar
+                        <FaCalendarAlt /> SKF Calendar
                     </span>
                     <h1 className="ev-hero__title">
                         SKF <span className="text-gradient">Events</span>
                     </h1>
                     <p className="ev-hero__subtitle">
-                        Competitions, gradings, training camps, and seminars.
+                        Elite competitions, technical gradings, and masterclass seminars.
                     </p>
 
                     {/* Countdown to next event */}
