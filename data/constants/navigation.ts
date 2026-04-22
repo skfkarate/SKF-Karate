@@ -7,6 +7,7 @@ export interface NavMenuItem {
   label: string
   href?: string
   children?: NavMenuItem[]
+  disabled?: boolean
 }
 
 export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
@@ -32,7 +33,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
     children: [
       { label: 'About SKF', href: '/about' },
       { label: 'Contact & FAQ', href: '/contact' },
-      { label: 'News', href: '/news' },
+      { label: 'Blogs', href: '#', disabled: true },
     ],
   },
   { label: 'Shop', href: '/shop' },

@@ -1,3 +1,5 @@
+import '../legal.css'
+
 export const metadata = {
   title: 'Privacy Policy | SKF Karate',
   description: 'Privacy Policy for Sports Karate-do Fitness & Self Defence Association®',
@@ -5,54 +7,86 @@ export const metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <div className="page-wrapper">
-      <div className="page-hero" style={{ minHeight: '40vh' }}>
-        <div className="page-hero__bg">
-          <div className="glow glow-red page-hero__glow-1"></div>
-          <div className="glow glow-blue page-hero__glow-2"></div>
-        </div>
-        <div className="page-hero__content container">
-          <span className="section-label">Legal</span>
-          <h1 className="page-hero__title">Privacy <span className="text-gradient">Policy</span></h1>
-        </div>
-      </div>
+    <div className="privacy-page">
+      {/* Ambient effects */}
+      <div className="privacy-orb privacy-orb--1" />
+      <div className="privacy-orb privacy-orb--2" />
 
-      <section className="section" style={{ paddingTop: '4rem', paddingBottom: '7rem' }}>
-        <div className="container" style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--text-light)', lineHeight: '1.8' }}>
-          
-          <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>1. Information We Collect</h2>
-          <p style={{ marginBottom: '1.5rem' }}>
-            We collect information you provide directly to us when you fill out forms, register for classes, or contact us. This includes your name, email address, phone number, and any other details you choose to provide.
-          </p>
-
-          <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>2. How We Use Your Information</h2>
-          <p style={{ marginBottom: '1.5rem' }}>
-            We use the information we collect to communicate with you, process registrations for classes or camps, respond to your inquiries, and improve our services.
-          </p>
-
-          <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>3. Information Sharing & Third-Party Processors</h2>
-          <p style={{ marginBottom: '1.5rem' }}>
-            We do not sell, trade, or otherwise transfer your personally identifiable information to outside marketing parties. However, your data is securely processed by trusted industry-standard infrastructure providers to deliver our services. This includes:<br/><br/>
-            • <b>Supabase:</b> Securely stores student credentials, belt progression records, event enrollments, and encrypted rankings.<br/>
-            • <b>Google Sheets:</b> Used transparently by our administrative backend to sync legacy timetable updates and manual registrations.<br/>
-            • <b>Razorpay:</b> Securely handles all payment gateway activities. We do not store or process your credit card mappings.
-          </p>
-
-          <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>4. Data Security</h2>
-          <p style={{ marginBottom: '1.5rem' }}>
-            We implement reasonable security measures to maintain the safety of your personal information when you enter, submit, or access your personal information.
-          </p>
-
-          <h2 style={{ color: 'white', marginTop: '2rem', marginBottom: '1rem' }}>5. Contact Us</h2>
-          <p style={{ marginBottom: '1.5rem' }}>
-            If there are any questions regarding this privacy policy, you may contact us at contact@skfkarate.org or +91 90199 71726.
-          </p>
-
-          <p style={{ marginTop: '3rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            Last updated: March 2026
-          </p>
+      {/* HERO */}
+      <section className="privacy-hero">
+        <div className="container">
+          <span className="section-label">Legal Documentation</span>
+          <h1 className="privacy-hero__title">
+            Privacy <span className="text-gradient">Policy</span>
+          </h1>
         </div>
       </section>
+
+      {/* CONTENT */}
+      <div className="privacy-container">
+        <div className="privacy-glass-card">
+          
+          <section className="privacy-section">
+            <h2 className="privacy-section__title">1. Information We Collect</h2>
+            <p className="privacy-text">
+              We collect information you provide directly to us when you interact with our platform. This includes personal identifiers provided during registration, form submissions, or direct inquiries.
+            </p>
+            <ul className="privacy-list">
+              <li className="privacy-list-item">Name and Contact Information</li>
+              <li className="privacy-list-item">Enrollment and Belt Progression Data</li>
+              <li className="privacy-list-item">Payment and Transaction Records</li>
+            </ul>
+          </section>
+
+          <section className="privacy-section">
+            <h2 className="privacy-section__title">2. How We Use Your Information</h2>
+            <p className="privacy-text">
+              Our primary goal is to provide a seamless training and administrative experience. We use your data to manage class schedules, track student progress, and facilitate secure communications regarding events and association updates.
+            </p>
+          </section>
+
+          <section className="privacy-section">
+            <h2 className="privacy-section__title">3. Infrastructure & Partners</h2>
+            <p className="privacy-text">
+              We utilize enterprise-grade infrastructure to ensure your data remains secure. Your information is processed through the following trusted platforms:
+            </p>
+            <ul className="privacy-list">
+              <li className="privacy-list-item">
+                <span className="privacy-strong">Supabase:</span> Manages authenticated access, student records, and encrypted rankings.
+              </li>
+              <li className="privacy-list-item">
+                <span className="privacy-strong">Google Cloud:</span> Used for backend automation and real-time timetable synchronization.
+              </li>
+              <li className="privacy-list-item">
+                <span className="privacy-strong">Razorpay:</span> Handles all financial transactions with end-to-end encryption. We do not store card details.
+              </li>
+            </ul>
+          </section>
+
+          <section className="privacy-section">
+            <h2 className="privacy-section__title">4. Data Sovereignty</h2>
+            <p className="privacy-text">
+              We do not sell, trade, or distribute your personal data to third-party marketing entities. Your data exists solely for the purpose of your association with Sports Karate-do Fitness.
+            </p>
+          </section>
+
+          <section className="privacy-section">
+            <h2 className="privacy-section__title">5. Contact Legal</h2>
+            <p className="privacy-text">
+              For any clarifications regarding our data practices or to request data deletion, please reach out to our administrative team:
+            </p>
+            <div className="privacy-text" style={{ marginTop: '1rem', color: '#fff', fontWeight: 600 }}>
+              Email: contact@skfkarate.org<br/>
+              Phone: +91 90199 71726
+            </div>
+          </section>
+
+          <div className="privacy-footer">
+            <p className="privacy-updated">Document Revision: March 2026</p>
+          </div>
+
+        </div>
+      </div>
     </div>
   )
 }

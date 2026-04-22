@@ -63,7 +63,7 @@ const cacheRead = <T extends (...args: any[]) => Promise<any>>(
 export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Student | null> => {
   try {
     const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     const row = rows.find(r => r[0] === skfId)
     if (row) {
@@ -78,7 +78,8 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
         status: row[7],
         enrolledDate: row[8],
         monthlyFee: Number(row[9] || 0),
-        photoConsent: row[10] === 'Yes'
+        photoConsent: row[10] === 'Yes',
+        dob: row[11] || undefined
       } as Student
     }
   } catch (error) {
@@ -114,7 +115,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
 export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
   try {
     const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     return rows.slice(1).map(row => ({
       skfId: row[0],
@@ -127,7 +128,8 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
       status: row[7],
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
-      photoConsent: row[10] === 'Yes'
+      photoConsent: row[10] === 'Yes',
+      dob: row[11] || undefined
     } as Student))
   } catch (error) {
     console.error('getAllStudents error:', error)
@@ -138,7 +140,7 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
 export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Student[]> => {
   try {
     const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     // Skip header row
     return rows.slice(1).filter(r => r[2] === branch).map(row => ({
@@ -152,7 +154,8 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
       status: row[7],
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
-      photoConsent: row[10] === 'Yes'
+      photoConsent: row[10] === 'Yes',
+      dob: row[11] || undefined
     } as Student))
   } catch (error) {
     console.error('getStudentsByBranch error:', error)
@@ -166,7 +169,7 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
 export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Student[]> => {
   try {
     const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     return rows.slice(1).filter(r => r[6] === phone).map(row => ({
       skfId: row[0],
@@ -179,7 +182,8 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
       status: row[7],
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
-      photoConsent: row[10] === 'Yes'
+      photoConsent: row[10] === 'Yes',
+      dob: row[11] || undefined
     } as Student))
   } catch (error) {
     console.error('getStudentsByPhone error:', error)

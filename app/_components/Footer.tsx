@@ -1,106 +1,88 @@
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaEnvelope, FaPhoneAlt, FaArrowRight, FaMapMarkerAlt } from 'react-icons/fa'
+import { FaInstagram, FaYoutube, FaWhatsapp, FaFacebookF } from 'react-icons/fa'
 import Image from 'next/image'
 import { CONTACT, SOCIAL_LINKS } from '@/data/constants/contact'
-import { FOOTER_QUICK_LINKS } from '@/data/constants/navigation'
-
+import { getAllCities } from '@/lib/classesData'
 
 export default function Footer() {
+    const cities = getAllCities()
+    const allBranches = cities.flatMap(c => c.branches)
+
     return (
-        <footer className="footer">
+        <footer className="ft">
+            {/* Animated accent line */}
+            <div className="ft__accent" />
+
+            {/* Watermark */}
+            <div className="ft__kanji" aria-hidden="true">武</div>
+
             <div className="container">
 
-                
-                <div className="footer__main">
-                    {/* Brand */}
-                    <div className="footer__brand">
-                        <Link href="/" className="footer__logo">
-                            <Image src="/logo/SKF logo.png" alt="SKF Karate" width={60} height={60} className="footer__logo-img" />
-                            <div className="footer__logo-text">
-                                <span>SKF</span> <span className="text-gradient">KARATE</span>
-                            </div>
+                {/* ── MONUMENT: Big typographic brand statement ── */}
+                <div className="ft__monument">
+                    <Link href="/" className="ft__monument-logo">
+                        <Image src="/logo/SKF logo.png" alt="SKF" width={44} height={44} className="ft__monument-img" />
+                    </Link>
+                    <h2 className="ft__monument-type">
+                        <span className="ft__monument-skf">SKF</span>
+                        <span className="ft__monument-karate">KARATE</span>
+                    </h2>
+                    <p className="ft__monument-motto">Nothing is Impossible</p>
+                </div>
+
+                {/* ── LINK RIVER: Compact horizontal nav ── */}
+                <nav className="ft__river" aria-label="Footer navigation">
+                    <Link href="/classes" className="ft__river-link">Classes</Link>
+                    <Link href="/about" className="ft__river-link">About</Link>
+                    <Link href="/rankings" className="ft__river-link">Rankings</Link>
+                    <Link href="/events" className="ft__river-link">Events</Link>
+                    <Link href="/results" className="ft__river-link">Results</Link>
+                    <Link href="/gallery" className="ft__river-link">Gallery</Link>
+                    <Link href="/grading" className="ft__river-link">Belt Grading</Link>
+                    <Link href="/shop" className="ft__river-link">Shop</Link>
+                    <Link href="/contact" className="ft__river-link">Contact</Link>
+                    <Link href="/portal" className="ft__river-link ft__river-link--portal">Athlete Portal</Link>
+                </nav>
+
+                {/* ── DOJOS: Location chips ── */}
+                <div className="ft__dojos">
+                    {allBranches.map(branch => (
+                        <Link
+                            key={branch.slug}
+                            href={`/classes/${cities.find(c => c.branches.includes(branch))?.slug || 'bangalore'}/${branch.slug}`}
+                            className="ft__dojo-chip"
+                        >
+                            <span className="ft__dojo-pulse" />
+                            {branch.name}
                         </Link>
-                        <p className="footer__tagline">Sports Karate-do Fitness &amp; Self Defence Association®</p>
-                        <p className="footer__motto">&ldquo;Nothing is Impossible&rdquo;</p>
-                    </div>
+                    ))}
+                </div>
 
-                    {/* Quick Links */}
-                    <div className="footer__section">
-                        <h4 className="footer__heading">Quick Links</h4>
-                        <div className="footer__links-list">
-                            {FOOTER_QUICK_LINKS.map(link => (
-                                <Link key={link.label} href={link.href!} className="footer__link">{link.label}</Link>
-                            ))}
-                        </div>
+                {/* ── CONTACT + SOCIAL: Single elegant row ── */}
+                <div className="ft__connect">
+                    <div className="ft__connect-info">
+                        <a href={`tel:${CONTACT.PHONE_RAW}`} className="ft__connect-item">{CONTACT.PHONE}</a>
+                        <span className="ft__connect-dot" />
+                        <a href={`mailto:${CONTACT.EMAIL}`} className="ft__connect-item">{CONTACT.EMAIL}</a>
+                        <span className="ft__connect-dot" />
+                        <span className="ft__connect-item ft__connect-item--addr">{CONTACT.HQ_ADDRESS}</span>
                     </div>
-
-                    {/* Contact */}
-                    <div className="footer__section">
-                        <h4 className="footer__heading">Contact Us</h4>
-                        <div className="footer__contact-list">
-                            <a href={`tel:${CONTACT.PHONE_RAW}`} className="footer__contact-item">
-                                <FaPhoneAlt className="footer__contact-icon" />
-                                <span>{CONTACT.PHONE}</span>
-                            </a>
-                            <a href={`https://wa.me/${CONTACT.PHONE_RAW}`} className="footer__contact-item" target="_blank" rel="noopener noreferrer">
-                                <FaWhatsapp className="footer__contact-icon" />
-                                <span>WhatsApp Us</span>
-                            </a>
-                            <div className="footer__contact-item">
-                                <FaEnvelope className="footer__contact-icon" />
-                                <span>{CONTACT.EMAIL}</span>
-                            </div>
-                            <div className="footer__contact-item footer__contact-item--address">
-                                <FaMapMarkerAlt className="footer__contact-icon" />
-                                <span>
-                                    {CONTACT.ADDRESS.line1}<br />
-                                    {CONTACT.ADDRESS.line2}<br />
-                                    {CONTACT.ADDRESS.line3}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Follow + CTA */}
-                    <div className="footer__section footer__section--right">
-                        <h4 className="footer__heading">Follow Us</h4>
-                        <div className="footer__social">
-                            <a href={`https://wa.me/${CONTACT.PHONE_RAW}`} className="footer__social-icon footer__social-icon--wa" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><FaWhatsapp /></a>
-                            <a href={SOCIAL_LINKS.INSTAGRAM} className="footer__social-icon footer__social-icon--ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-                            <a href={SOCIAL_LINKS.FACEBOOK} className="footer__social-icon footer__social-icon--fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><FaFacebookF /></a>
-                            <a href={SOCIAL_LINKS.YOUTUBE} className="footer__social-icon footer__social-icon--yt" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
-                        </div>
-                        <div className="footer__cta-group">
-                            <Link href="/classes" className="footer__cta footer__cta--outline">
-                                <FaMapMarkerAlt />
-                                <span>Find Classes</span>
-                                <FaArrowRight className="footer__cta-arrow" />
-                            </Link>
-                            <Link href="/contact" className="footer__cta footer__cta--primary">
-                                <FaPhoneAlt />
-                                <span>Get in Touch</span>
-                                <FaArrowRight className="footer__cta-arrow" />
-                            </Link>
-                        </div>
+                    <div className="ft__socials">
+                        <a href={SOCIAL_LINKS.INSTAGRAM} className="ft__soc ft__soc--ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
+                        <a href={SOCIAL_LINKS.YOUTUBE} className="ft__soc ft__soc--yt" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
+                        <a href={SOCIAL_LINKS.FACEBOOK} className="ft__soc ft__soc--fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><FaFacebookF /></a>
+                        <a href={`https://wa.me/${CONTACT.PHONE_RAW}`} className="ft__soc ft__soc--wa" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><FaWhatsapp /></a>
                     </div>
                 </div>
 
-                {/* Divider */}
-                <div className="footer__divider"></div>
-
-                {/* Bottom Bar */}
-                <div className="footer__bottom">
-                    <p className="footer__copyright">
-                        &copy; {new Date().getFullYear()} Sports Karate-do Fitness &amp; Self Defence Association®. All rights reserved.
-                    </p>
-                    <div className="footer__legal-links">
-                        <Link href="/privacy-policy" className="footer__legal-link">Privacy Policy</Link>
-                        <Link href="/cookie-policy" className="footer__legal-link">Cookie Policy</Link>
-                        <Link href="/terms-of-service" className="footer__legal-link">Terms of Service</Link>
+                {/* ── LEGAL BAR ── */}
+                <div className="ft__legal-bar">
+                    <span className="ft__legal-copy">&copy; {new Date().getFullYear()} SKF Karate</span>
+                    <div className="ft__legal-links">
+                        <Link href="/privacy-policy">Privacy</Link>
+                        <Link href="/cookie-policy">Cookies</Link>
+                        <Link href="/terms-of-service">Terms</Link>
                     </div>
-                    <p className="footer__credit">
-                        Designed &amp; developed with ❤️ for the karate community
-                    </p>
                 </div>
             </div>
         </footer>

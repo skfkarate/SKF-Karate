@@ -17,7 +17,7 @@
 .classes-hero__bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(170deg, var(--navy-deep) 0%, var(--bg-body) 100%);
+    background: transparent;
 }
 
 .classes-hero__bg::after {
@@ -481,9 +481,9 @@
     inset: 0;
     background: linear-gradient(
         180deg,
-        rgba(8, 11, 20, 0.3) 0%,
-        rgba(8, 11, 20, 0.5) 40%,
-        rgba(8, 11, 20, 0.95) 85%,
+        rgba(3, 5, 8, 0.3) 0%,
+        rgba(3, 5, 8, 0.5) 40%,
+        rgba(3, 5, 8, 0.95) 85%,
         var(--bg-body) 100%
     );
 }

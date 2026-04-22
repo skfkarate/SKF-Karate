@@ -22,15 +22,15 @@ export default function ContactFormCard({
   status,
 }) {
   return (
-    <div className="glass-card contact-form-wrapper">
-      <h3>Schedule Your Call</h3>
+    <div className="contact-glass-pane contact-glass-pane--prime">
+      <h3 className="contact-form-title">Request a Callback</h3>
 
       {status === 'success' ? (
-        <div className="contact-form__success">
-          <FaCheckCircle className="contact-form__success-icon" />
-          <h4>Message Sent!</h4>
-          <p>Thank you for reaching out. Our team will get back to you shortly.</p>
-          <button className="btn btn-secondary" onClick={onReset}>
+        <div className="contact-success">
+          <FaCheckCircle className="contact-success-icon" />
+          <h4 className="contact-success-title">Message Sent!</h4>
+          <p className="contact-success-text">Thank you for reaching out. Our team will get back to you shortly.</p>
+          <button className="btn btn-primary" onClick={onReset}>
             Send Another Message
           </button>
         </div>
@@ -47,11 +47,11 @@ export default function ContactFormCard({
             style={{ display: 'none' }}
           />
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="contact-name">Full Name *</label>
-              <div className="form-input-wrapper">
-                <FaUser className="form-icon" />
+          <div className="contact-form-row">
+            <div className="contact-form-group">
+              <label className="contact-label" htmlFor="contact-name">Full Name *</label>
+              <div className="contact-input-wrap">
+                <FaUser className="contact-input-icon" />
                 <input
                   id="contact-name"
                   type="text"
@@ -59,16 +59,16 @@ export default function ContactFormCard({
                   value={formData.name}
                   onChange={onFieldChange}
                   placeholder="Your name"
-                  className="form-input"
+                  className="contact-input"
                   required
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="contact-email">Email</label>
-              <div className="form-input-wrapper">
-                <FaEnvelope className="form-icon" />
+            <div className="contact-form-group">
+              <label className="contact-label" htmlFor="contact-email">Email</label>
+              <div className="contact-input-wrap">
+                <FaEnvelope className="contact-input-icon" />
                 <input
                   id="contact-email"
                   type="email"
@@ -77,17 +77,17 @@ export default function ContactFormCard({
                   value={formData.email}
                   onChange={onEmailChange}
                   placeholder="your@gmail.com"
-                  className="form-input"
+                  className="contact-input"
                 />
               </div>
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="contact-phone">Phone *</label>
-              <div className="form-input-wrapper">
-                <FaPhoneAlt className="form-icon" />
+          <div className="contact-form-row">
+            <div className="contact-form-group">
+              <label className="contact-label" htmlFor="contact-phone">Phone *</label>
+              <div className="contact-input-wrap">
+                <FaPhoneAlt className="contact-input-icon" />
                 <input
                   id="contact-phone"
                   type="tel"
@@ -95,17 +95,17 @@ export default function ContactFormCard({
                   value={formData.phone}
                   onChange={onPhoneChange}
                   placeholder="+91 XXXXX XXXXX"
-                  className="form-input"
+                  className="contact-input"
                   required
                   maxLength={16}
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="contact-preferredTime">Preferred Time (Optional)</label>
-              <div className="form-input-wrapper">
-                <FaClock className="form-icon" />
+            <div className="contact-form-group">
+              <label className="contact-label" htmlFor="contact-preferredTime">Preferred Time</label>
+              <div className="contact-input-wrap">
+                <FaClock className="contact-input-icon" />
                 <input
                   id="contact-preferredTime"
                   type="text"
@@ -113,24 +113,23 @@ export default function ContactFormCard({
                   value={formData.preferredTime}
                   onChange={onFieldChange}
                   placeholder="e.g. 5 PM, Any evening"
-                  className="form-input"
+                  className="contact-input"
                 />
               </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="contact-interest">Interest</label>
-            <div className="form-input-wrapper">
-              <FaTag className="form-icon" />
+          <div className="contact-form-group">
+            <label className="contact-label" htmlFor="contact-interest">Interest</label>
+            <div className="contact-input-wrap">
+              <FaTag className="contact-input-icon" />
               <select
                 id="contact-interest"
                 name="interest"
                 value={formData.interest}
                 onChange={onFieldChange}
-                className="form-input"
+                className="contact-input contact-select"
               >
-
                 <option>Regular Classes</option>
                 <option>Private Training</option>
                 <option>General Inquiry</option>
@@ -138,32 +137,36 @@ export default function ContactFormCard({
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="contact-message">Any specific questions? (Optional)</label>
-            <div className="form-input-wrapper form-input-wrapper--textarea">
-              <FaPen className="form-icon form-icon--textarea" />
+          <div className="contact-form-group">
+            <label className="contact-label" htmlFor="contact-message">Your Message (Optional)</label>
+            <div className="contact-input-wrap">
+              <FaPen className="contact-input-icon contact-input-icon--top" />
               <textarea
                 id="contact-message"
                 name="message"
                 rows={4}
                 value={formData.message}
                 onChange={onFieldChange}
-                placeholder="Let us know what you'd like to discuss on the call..."
-                className="form-input"
+                placeholder="Let us know what you'd like to discuss..."
+                className="contact-input"
               ></textarea>
             </div>
           </div>
 
-          {status === 'error' ? <p className="contact-form__error">{errorMsg}</p> : null}
+          {status === 'error' && (
+            <div className="contact-error">
+                {errorMsg}
+            </div>
+          )}
 
-          <button type="submit" className="btn btn-primary contact-form__submit" disabled={status === 'loading'}>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={status === 'loading'}>
             {status === 'loading' ? (
               <>
-                <FaSpinner className="spin" /> Requesting Call...
+                <FaSpinner className="contact-spinner" /> Sending...
               </>
             ) : (
               <>
-                Request Callback <FaArrowRight className="btn-icon-right" />
+                Request Callback <FaArrowRight />
               </>
             )}
           </button>

@@ -31,17 +31,21 @@ export default function WhatsAppButton({ branch }: Props) {
     const waLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`
 
     return (
+        <>
+        <style dangerouslySetInnerHTML={{__html: `
+            .wa-btn-override { bottom: 2rem; right: 2rem; }
+            @media (max-width: 768px) { .wa-btn-override { bottom: 5rem !important; } }
+        `}} />
         <a 
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            className="wa-btn-override"
             style={{
                 position: 'fixed',
-                bottom: '2rem',
-                right: '2rem',
-                zIndex: 100,
+                zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 textDecoration: 'none',
@@ -83,5 +87,6 @@ export default function WhatsAppButton({ branch }: Props) {
                 <FaWhatsapp size={32} />
             </div>
         </a>
+        </>
     )
 }

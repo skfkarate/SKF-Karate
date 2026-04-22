@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaArrowRight } from 'react-icons/fa'
+import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaShieldAlt, FaCertificate, FaMapMarkerAlt } from 'react-icons/fa'
 import { getExecutiveCommittee } from '@/data/seed/instructors'
 import BookTrialCTAButton from './_components/BookTrialCTAButton'
 
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     description: "SKF Karate has trained over 5,100 students in Bangalore since 2011. Meet our instructors, view our affiliations, and learn about our 15-year legacy.",
 }
 
-import { buildOrgJsonLd, ORG_STATS, LEGACY_HIGHLIGHTS } from '@/data/constants/siteConfig'
+import { buildOrgJsonLd, ORG_STATS, LEGACY_HIGHLIGHTS, AFFILIATIONS, SITE_CONFIG } from '@/data/constants/siteConfig'
+import './about.css'
 
 export default function AboutPage() {
     const committee = getExecutiveCommittee()
@@ -19,210 +20,176 @@ export default function AboutPage() {
     const jsonLd = buildOrgJsonLd()
 
     return (
-        <div style={{ background: '#05080f', minHeight: '100vh', paddingBottom: '4rem' }}>
+        <div className="abt-page">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             
-            {/* ═══════ HEADER: LOGO & STATS ═══════ */}
-            <section style={{ paddingTop: '8rem', paddingBottom: '2rem', position: 'relative' }}>
-                <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            {/* AMBIENT EFFECTS */}
+            <div className="abt-orb abt-orb--1" />
+            <div className="abt-orb abt-orb--2" />
+            <div className="abt-watermark">伝統</div>
+
+            {/* ═══════ HERO & DASHBOARD ═══════ */}
+            <header className="abt-hero">
+                <Image 
+                    src={SITE_CONFIG.LOGO_PATH} 
+                    alt="SKF Official Logo" 
+                    width={100} 
+                    height={100} 
+                    className="abt-hero__logo"
+                    priority 
+                />
+                <h1 className="abt-hero__title">15 Years of Excellence</h1>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
+                    Established in {SITE_CONFIG.FOUNDED_YEAR}. Forging elite martial artists through rigorous WKF-certified discipline.
+                </p>
+
+                {/* Floating Fast-Stats Bento */}
+                <div className="abt-stats-bento">
+                    <div className="abt-stat-card">
+                        <div className="abt-stat-val">{ORG_STATS.TOTAL_ATHLETES}</div>
+                        <div className="abt-stat-lbl"><FaUsers style={{ color: 'var(--gold)' }}/> Athletes</div>
+                    </div>
+                    <div className="abt-stat-card">
+                        <div className="abt-stat-val">{ORG_STATS.BLACK_BELTS}</div>
+                        <div className="abt-stat-lbl"><FaMedal style={{ color: 'var(--gold)' }}/> Black Belts</div>
+                    </div>
+                    <div className="abt-stat-card">
+                        <div className="abt-stat-val">{ORG_STATS.CHAMPIONSHIPS}</div>
+                        <div className="abt-stat-lbl"><FaTrophy style={{ color: 'var(--gold)' }}/> Championships</div>
+                    </div>
+                    <div className="abt-stat-card">
+                        <div className="abt-stat-val">{ORG_STATS.BRANCHES}</div>
+                        <div className="abt-stat-lbl"><FaBuilding style={{ color: 'var(--gold)' }}/> Branches</div>
+                    </div>
+                </div>
+            </header>
+
+            {/* ═══════ THE ESTABLISHMENT (Cinematic Dual-Column) ═══════ */}
+            <section className="abt-section" style={{ marginTop: '2rem' }}>
+                <div className="abt-legacy-grid">
+                    <div className="abt-legacy-text">
+                        <h2>The Establishment</h2>
+                        <h3>Founder & Technical Director: {founder.name}</h3>
+                        <p>
+                            Founded in {SITE_CONFIG.FOUNDED_YEAR}, SKF Karate has carefully structured a world-class martial arts curriculum deeply rooted in authentic WKF standards. What began as a single dojo has rapidly expanded into a premier coaching establishment dedicated to tactical mastery, self-defense, and elite tournament performance.
+                        </p>
+                        <p>
+                            We operate strictly as an educational institution with verified coaching methodologies. Under elite guidance, we prioritize bio-mechanics and fight intelligence, ensuring our athletes dominate on the competitive stage.
+                        </p>
+                        <div style={{ marginTop: '3rem', borderLeft: '4px solid var(--crimson-light)', paddingLeft: '1.5rem' }}>
+                            <div style={{ fontSize: '1.4rem', color: '#fff', fontStyle: 'italic', fontWeight: 600, lineHeight: 1.4, marginBottom: '0.8rem' }}>
+                                "Our singular mission is to build highly resilient, confident athletes equipped completely for the real world."
+                            </div>
+                            <div style={{ color: 'var(--crimson-light)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.8rem', fontWeight: 800 }}>
+                                — {founder.name}
+                            </div>
+                        </div>
+                    </div>
                     
-                    {/* Official Crown Logo */}
-                    <div style={{ marginBottom: '2rem' }}>
-                        <Image src="/logo/SKF logo.png" alt="SKF Official Logo" width={120} height={120} style={{ objectFit: 'contain', margin: '0 auto', filter: 'drop-shadow(0 0 20px rgba(214,40,40,0.5))' }} priority />
-                    </div>
-
-                    {/* Headline */}
-                    <div style={{ marginBottom: '4rem' }}>
-                        <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#fff', margin: 0, letterSpacing: '-1px' }}>
-                            15 Years of Excellence — Est. 2011
-                        </h1>
-                    </div>
-
-                    {/* Floating Dashboard Stats */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', 
-                        justifyContent: 'space-between', 
-                        background: 'rgba(255,255,255,0.02)', 
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderRadius: '24px',
-                        padding: '2.5rem 4rem',
-                        marginBottom: '4rem',
-                        gap: '2rem',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
-                    }}>
-                        <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.TOTAL_ATHLETES}</div>
-                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaUsers style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Athletes</div>
-                        </div>
-                        <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.BLACK_BELTS}</div>
-                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaMedal style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Black Belts</div>
-                        </div>
-                        <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.CHAMPIONSHIPS}</div>
-                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaTrophy style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Championships</div>
-                        </div>
-                        <div style={{ textAlign: 'center', flex: 1, minWidth: '150px' }}>
-                            <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff', marginBottom: '0.2rem', lineHeight: 1 }}>{ORG_STATS.BRANCHES}</div>
-                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}><FaBuilding style={{ marginRight:'0.5rem', color: 'var(--gold)' }}/> Branches</div>
+                    <div className="abt-focus-image">
+                        <Image src={founder.image} alt={founder.name} fill priority />
+                        <div className="abt-focus-overlay">
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ color: 'var(--gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.3rem' }}>{founder.title}</div>
+                                <div style={{ color: '#fff', fontWeight: 800, fontSize: '1.5rem', textTransform: 'uppercase', marginBottom: '0.3rem' }}>{founder.name}</div>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaCertificate style={{ color: 'var(--gold)' }} /> {founder.dan}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ═══════ CINEMATIC ZIG-ZAG: THE NARRATIVE FLOW ═══════ */}
-            <section style={{ padding: '4rem 0 6rem 0', background: '#080c16', position: 'relative', overflow: 'hidden' }}>
-                
-                {/* Subtle Cinematic Background Watermark */}
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '80%', opacity: 0.02, pointerEvents: 'none', zIndex: 0 }}>
-                     <Image src="/logo/SKF logo.png" alt="SKF Watermark" fill style={{ objectFit: 'contain' }} />
+            {/* ═══════ THE LEGACY (Accolades & Plaque Cards) ═══════ */}
+            <section className="abt-section">
+                <div className="abt-legacy-grid" style={{ direction: 'rtl' }}>
+                    <div className="abt-legacy-text" style={{ direction: 'ltr' }}>
+                        <h2 style={{ color: 'var(--gold)' }}>The Champions' Legacy</h2>
+                        <p>
+                            Over a decade of rigorous training has yielded unparalleled results cross multiple national and state platforms. Our athletes consistently break barriers and redefine combat excellence.
+                        </p>
+                        
+                        <div className="abt-plaque-list">
+                            {LEGACY_HIGHLIGHTS.map((hl, i) => (
+                                <div className="abt-plaque" key={i}>
+                                    <FaTrophy style={{ color: 'var(--gold)', fontSize: '1.5rem', flexShrink: 0 }} />
+                                    <div className="abt-plaque-text">{hl}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="abt-focus-image" style={{ borderColor: 'rgba(255,183,3,0.2)' }}>
+                        <Image src="/gallery/In Dojo.jpeg" alt="SKF Training" fill style={{ objectPosition: 'center 40%' }} />
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══════ EXECUTIVE COMMITTEE ═══════ */}
+            <section className="abt-section">
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2rem, 4vw, 3rem)', textTransform: 'uppercase', color: '#fff', margin: 0 }}>Executive Committee</h2>
+                    <p style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '1rem auto 0', fontSize: '1.1rem' }}>
+                        Composed of our most senior Masters, the Executive Committee ensures an unparalleled standard of education, tactical mastery, and athlete safety.
+                    </p>
                 </div>
 
-                <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="abt-roster-grid">
+                    {activeCommittee.map((instructor, idx) => (
+                        <Link key={idx} href={`/instructors/${instructor.slug}`} style={{ textDecoration: 'none' }}>
+                            <div className="abt-roster-card">
+                                <div className="abt-roster-card__imgwrap">
+                                    <Image src={instructor.image} alt={instructor.name} fill />
+                                </div>
+                                <div className="abt-roster-card__gradient" />
+                                
+                                <div className="abt-roster-card__content">
+                                    <div className="abt-roster-title">{instructor.title}</div>
+                                    <div className="abt-roster-name">{instructor.name}</div>
+                                    
+                                    <div className="abt-roster-meta">
+                                        <div className="abt-roster-pill"><FaCertificate style={{ color: 'var(--gold)' }} /> {instructor.rank || instructor.dan}</div>
+                                        <div className="abt-roster-pill"><FaMapMarkerAlt style={{ color: 'var(--crimson-light)' }} /> {instructor.branch}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══════ AFFILIATIONS & TRUST CENTER ═══════ */}
+            <section className="abt-section" style={{ paddingTop: '2rem' }}>
+                <div className="abt-trust-center">
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', color: '#fff', textTransform: 'uppercase', marginBottom: '3rem' }}>Global & National Affiliates</h3>
                     
-                    {/* LOOK 1: THE ESTABLISHMENT (Text Left, Image Right) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '3rem', marginBottom: '8rem', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--crimson-light)', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 800 }}>THE ESTABLISHMENT</h2>
-                            <div style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 600, marginBottom: '2rem' }}>
-                                Founder & Technical Director: {founder.name}
-                            </div>
-                            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem', lineHeight: 1.7 }}>
-                                <p style={{ marginBottom: '1.5rem' }}>Founded in 2011, SKF Karate has carefully structured a world-class martial arts curriculum deeply rooted in authentic WKF (World Karate Federation) standards. What began as a single dojo has expanded into a premier coaching establishment dedicated to physical mastery, self-defense, and elite tournament performance.</p>
-                                <p style={{ marginBottom: '1.5rem' }}>We operate strictly as an educational institution with verified coaching methodologies. Under elite guidance, technology and sports science play a crucial role in how our athletes prepare, engage, and dominate on the global stage.</p>
-                                <p>More than just an academy, SKF reflects a commitment to innovation while preserving the classical values of WKF Karate in a modern, highly engaging environment.</p>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <Link href={`/instructors/${founder.slug}`} style={{ textDecoration: 'none', display: 'block', width: '100%' }}>
-                                <div className="hover:-translate-y-1 transition-all duration-300" style={{ position: 'relative', width: '100%', maxWidth: '380px', margin: '0 auto', aspectRatio: '3/4', borderRadius: '8px', overflow: 'hidden', borderBottom: '5px solid var(--crimson-light)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-                                    <Image src={founder.image} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center 10%' }} />
-                                </div>
-                            </Link>
-                            <div style={{ marginTop: '2rem', maxWidth: '380px', margin: '0 auto', textAlign: 'center' }}>
-                                <blockquote style={{ fontSize: '1.25rem', color: 'var(--crimson-light)', fontWeight: 600, lineHeight: 1.5, fontStyle: 'italic' }}>
-                                    "Our singular mission is to build highly resilient, confident athletes equipped completely for the real world."
-                                </blockquote>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* LOOK 2: THE LEGACY (Image Left, Text Right) - Flipping the layout */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap-reverse', gap: '4rem', alignItems: 'center', marginBottom: '8rem' }}>
-                        <div style={{ flex: '1 1 400px' }}>
-                            <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: '8px', overflow: 'hidden', borderBottom: '5px solid var(--gold)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
-                                <Image src="/gallery/In Dojo.jpeg" alt="SKF Karate Training Dojo" fill style={{ objectFit: 'cover', objectPosition: 'center 40%' }} />
-                            </div>
-                        </div>
-                        
-                        <div style={{ flex: '1 1 400px' }}>
-                            <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '2rem', fontWeight: 800 }}>THE LEGACY</h2>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-                                        <FaMedal style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[0]}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-                                        <FaTrophy style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[1]}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <FaCheckCircle style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> <span style={{ color: '#fff', fontSize: '1.05rem', fontWeight: 600 }}>{LEGACY_HIGHLIGHTS[2]}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* WKF Style Executive Committee Text & Photo */}
-                    <div style={{ marginBottom: '4rem' }}>
-                        <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--crimson-light)', textTransform: 'uppercase', marginBottom: '2rem', fontWeight: 800 }}>SKF EXECUTIVE COMMITTEE</h2>
-                        
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem', alignItems: 'flex-start', marginBottom: '5rem' }}>
-                            <div style={{ flex: '1 1 400px', color: 'rgba(255,255,255,0.8)', fontSize: '1.05rem', lineHeight: 1.7 }}>
-                                <p style={{ marginBottom: '1rem' }}>The Executive Committee is responsible for leading, managing, and administering all SKF activities by developing programs following the strict directives approved by the global certifying bodies.</p>
-                                <p>Composed of our most senior Masters, the Executive Committee ensures an unparalleled standard of education, tactical mastery, and athlete safety across all official Dojo branches.</p>
-                            </div>
-                            <div style={{ flex: '1 1 500px' }}>
-                                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', borderBottom: '5px solid var(--crimson-light)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                                    <Image src="/gallery/In Dojo.jpeg" alt="SKF Executive Committee" fill style={{ objectFit: 'cover' }} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* WKF 3-Column Roster Grid with Circular Avatars */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '5rem 2.5rem', marginBottom: '6rem' }}>
-                        {activeCommittee.map((instructor, idx) => (
-                            <Link key={idx} href={`/instructors/${instructor.slug}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit' }} className="group">
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    {/* Structural Title Above */}
-                                    <div style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', color: '#fff', textTransform: 'uppercase', fontWeight: 800, marginBottom: '2rem', paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                        {instructor.title}
-                                    </div>
-                                    
-                                    {/* Circular Avatar + Crimson Name Side-by-Side */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                        <div style={{ position: 'relative', width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '3px solid transparent' }} className="group-hover:border-[#d62828] transition-colors duration-300">
-                                            <Image src={instructor.image} alt={instructor.name} fill style={{ objectFit: 'cover', objectPosition: 'center 15%' }} />
-                                        </div>
-                                        <div>
-                                            <div className="group-hover:text-white transition-colors duration-300" style={{ color: 'var(--crimson-light)', fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.6rem', lineHeight: 1.2 }}>
-                                                {instructor.name}
-                                            </div>
-                                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                                                {instructor.branch} <br />
-                                                <span style={{ fontSize: '0.8rem', marginTop: '0.4rem', display: 'inline-block', fontStyle: 'italic' }}>({instructor.rank || instructor.dan})</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Language / Spec Pills (Mimicking WKF ENG ESP FRA) */}
-                                    <div style={{ display: 'flex', gap: '0.8rem', marginTop: '2rem' }}>
-                                        <div className="group-hover:bg-[#d62828] transition-colors duration-300" style={{ background: '#730000', color: '#fff', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 1rem', borderRadius: '100px' }}>PROFILE</div>
-                                        <div style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.75rem', fontWeight: 700, padding: '0.4rem 1rem', borderRadius: '100px' }}>ACHIEVEMENTS</div>
-                                    </div>
-                                </div>
-                            </Link>
+                    <div className="abt-affil-grid">
+                        {AFFILIATIONS.map((logo, i) => (
+                            <Image key={i} src={logo.src} alt={logo.alt} width={logo.width} height={logo.height} />
                         ))}
                     </div>
 
-                    {/* Affiliations & Safety Block */}
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                            <Image src="/affliciation/wkf.png" alt="WKF Logo" width={120} height={120} style={{ objectFit: 'contain' }} />
-                            <Image src="/affliciation/akska.png" alt="AKSKA Logo" width={110} height={110} style={{ objectFit: 'contain' }} />
-                            <Image src="/affliciation/kio.png" alt="KIO Logo" width={120} height={120} style={{ objectFit: 'contain' }} />
+                    <div className="abt-trust-badges">
+                        <div className="abt-trust-badge">
+                            <FaShieldAlt />
+                            <div style={{ color: '#fff', fontWeight: 700 }}>VERIFIED SAFETY</div>
+                            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>All instructors hold government background clearances & First Aid certs.</div>
                         </div>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4rem' }}>
-                            WKF-Affiliated Karate Academy Since 2011
-                        </p>
-
-                        <div style={{ maxWidth: '700px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ background: 'rgba(46, 204, 113, 0.05)', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.2)', padding: '1.2rem 2rem', borderRadius: '12px', fontSize: '1rem', lineHeight: 1.5, textAlign: 'left' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-                                    <FaCheckCircle /> Safety Standard Verified
-                                </div>
-                                <span style={{ color: 'rgba(255,255,255,0.8)' }}>All SKF Karate instructors hold government-verified background clearances and current first aid certifications.</span>
-                            </div>
-                            
-                            <div style={{ background: 'rgba(255, 255, 255, 0.02)', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '1.2rem 2rem', borderRadius: '12px', fontSize: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                                <span style={{ color: 'rgba(255,255,255,0.8)' }}>All SKF certificates are digitally verifiable.</span> 
-                                <Link href="/verify" style={{ color: 'var(--gold)', fontWeight: 600, textDecoration: 'none' }}>Verify a certificate →</Link>
-                            </div>
+                        <div className="abt-trust-badge">
+                            <FaCheckCircle />
+                            <div style={{ color: '#fff', fontWeight: 700 }}>DIGITAL INTEGRITY</div>
+                            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>All issued SKF certificates are strictly and digitally cross-verifiable online.</div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            {/* ═══════ SECTION 3: CALL TO ACTION (Minimal) ═══════ */}
-            <section style={{ padding: '6rem 0 2rem', background: 'transparent', textAlign: 'center' }}>
-                <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.8rem', color: '#fff', fontWeight: 500, fontFamily: 'var(--font-heading)' }}>Ready to join the SKF Karate family?</h3>
+            {/* ═══════ CALL TO ACTION ═══════ */}
+            <section style={{ padding: '4rem 0 6rem', textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+                    <h3 style={{ fontSize: '2rem', color: '#fff', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>READY TO JOIN THE LEGACY?</h3>
                     <BookTrialCTAButton />
                 </div>
             </section>

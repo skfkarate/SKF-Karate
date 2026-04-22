@@ -3,7 +3,7 @@ import './globals.css'
 import './profile.css'
 import './_components/Footer.css'
 import './_components/Navbar.css'
-import './_components/TrialBookingModal.css'
+
 import './_components/pages/home/HomeBookTrialCTA.css'
 import './_components/pages/home/HomeContactPopup.css'
 import './_components/pages/home/HomeSenseisTeaser.css'
@@ -14,7 +14,7 @@ import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import BackToTop from '@/components/BackToTop'
-import TrialBookingModal from '@/app/_components/TrialBookingModal'
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -60,6 +60,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>
       <body>
+        {/* Global Cinematic Orbs */}
+        <div className="amb-orb amb-orb--1" />
+        <div className="amb-orb amb-orb--2" />
+        <div className="amb-orb amb-orb--3" />
+
         <Providers>
           <SessionProvider>
             <a href="#main-content" className="skip-to-content">
@@ -73,7 +78,7 @@ export default function RootLayout({ children }) {
             >
               {children}
             </ClientLayoutWrapper>
-            <TrialBookingModal />
+
             <CookieConsent />
           </SessionProvider>
         </Providers>

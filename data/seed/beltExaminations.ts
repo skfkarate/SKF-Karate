@@ -25,4 +25,4 @@ export const beltExaminations: BeltExamination[] = [
 
 /** Athlete profile default images */
 export const DEFAULT_PROFILE_PHOTO = '/default-athlete.png'
-export const DEFAULT_COUNTRY_FLAG  = '/flags/in.png'
+export const DEFAULT_COUNTRY_FLAG  = 'https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg'

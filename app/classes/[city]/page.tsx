@@ -6,18 +6,17 @@ import {
     FaArrowRight,
     FaMapMarkerAlt,
     FaClock,
-    FaPhoneAlt,
     FaSchool,
     FaUserTie,
     FaStar,
     FaWhatsapp,
     FaGraduationCap,
     FaFistRaised,
-    FaUsers,
     FaCalendarAlt,
 } from 'react-icons/fa'
 import { getCityBySlug, getAllCities, formatClassDays } from '@/lib/classesData'
-import '../classes.css'
+import '../obsidian.css' // Import Obsidian styles instead of legacy classes.css
+
 
 export async function generateStaticParams() {
     return getAllCities().map((city) => ({ city: city.slug }))
@@ -28,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
     const city = getCityBySlug(citySlug)
     if (!city) return {}
     return {
-        title: `Karate Classes in ${city.name}`,
+        title: `Karate Classes in ${city.name} | SKF`,
         description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}. Group classes and personal training. Book a free trial.`,
     }
 }
@@ -46,255 +45,158 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
     const hasHQ = city.branches.some((b) => b.isHQ)
 
     return (
-        <div className="classes-page">
-            {/* ═══════ HERO WITH CITY PHOTO ═══════ */}
-            <section className="city-hero">
-                <div className="city-hero__bg">
-                    <Image
-                        src={city.photo}
-                        alt={`SKF Karate training in ${city.name}`}
-                        fill
-                        sizes="100vw"
-                        priority
-                        className="city-hero__bg-img"
-                    />
-                    <div className="city-hero__overlay" />
+        <div className="obs-page">
+            <div className="obs-orb obs-orb--1" />
+            <div className="obs-orb obs-orb--2" />
+            <div className="obs-orb obs-orb--3" />
+            <div className="obs-watermark">道場</div>
+
+            {/* HERO */}
+            <section className="obs-hero">
+                <Link href="/classes" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2rem', textDecoration: 'none' }}>
+                    <FaArrowLeft /> ALL LOCATIONS
+                </Link>
+                <div className="obs-hero__badge">
+                    <div className="obs-hero__badge-dot" /> {city.state}
                 </div>
-                <div className="glow glow-red city-hero__glow-1" />
-                <div className="glow glow-gold city-hero__glow-2" />
+                <h1 className="obs-hero__title" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
+                    <span className="obs-hero__line1">{city.name}</span>
+                </h1>
+                <p className="obs-hero__sub">
+                    Traditional WKF karate training across {city.branches.length} {city.branches.length === 1 ? 'location' : 'locations'}
+                    {city.schools.length > 0 && ` and ${city.schools.length} school programs`}
+                </p>
 
-                <div className="container city-hero__content">
-                    <Link href="/classes" className="city-back">
-                        <FaArrowLeft /> All Locations
-                    </Link>
-
-                    <span className="section-label">
-                        <FaMapMarkerAlt /> {city.state}
-                    </span>
-                    <h1 className="city-hero__title">
-                        Karate Classes in{' '}
-                        <span className="text-gradient">{city.name}</span>
-                    </h1>
-                    <p className="city-hero__subtitle">
-                        Traditional WKF karate training across {city.branches.length}{' '}
-                        {city.branches.length === 1 ? 'location' : 'locations'}
-                        {city.schools.length > 0 && ` and ${city.schools.length} school programs`}
-                    </p>
+                {/* Hero Stats */}
+                <div className="obs-hstats">
+                    <div className="obs-hstat">
+                        <span className="obs-hstat__val">{city.branches.length}</span>
+                        <span className="obs-hstat__lbl">{city.branches.length === 1 ? 'Branch' : 'Branches'}</span>
+                    </div>
+                    <div className="obs-hstat">
+                        <span className="obs-hstat__val">{totalClassDays}</span>
+                        <span className="obs-hstat__lbl">Days / Week</span>
+                    </div>
+                    {city.schools.length > 0 && (
+                        <div className="obs-hstat">
+                            <span className="obs-hstat__val">{city.schools.length}</span>
+                            <span className="obs-hstat__lbl">School Programs</span>
+                        </div>
+                    )}
+                    {hasHQ && (
+                        <div className="obs-hstat">
+                            <span className="obs-hstat__val">HQ</span>
+                            <span className="obs-hstat__lbl">Headquarters</span>
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/* ═══════ STATS RIBBON ═══════ */}
-            <section className="city-stats-ribbon">
-                <div className="container">
-                    <div className="city-stats-ribbon__grid">
-                        <div className="city-stat">
-                            <div className="city-stat__icon">
-                                <FaMapMarkerAlt />
-                            </div>
-                            <div className="city-stat__content">
-                                <span className="city-stat__value">{city.branches.length}</span>
-                                <span className="city-stat__label">
-                                    {city.branches.length === 1 ? 'Branch' : 'Branches'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="city-stat">
-                            <div className="city-stat__icon city-stat__icon--gold">
-                                <FaCalendarAlt />
-                            </div>
-                            <div className="city-stat__content">
-                                <span className="city-stat__value">{totalClassDays}</span>
-                                <span className="city-stat__label">Days / Week</span>
-                            </div>
-                        </div>
-                        <div className="city-stat">
-                            <div className="city-stat__icon city-stat__icon--crimson">
-                                <FaGraduationCap />
-                            </div>
-                            <div className="city-stat__content">
-                                <span className="city-stat__value">{city.schools.length}</span>
-                                <span className="city-stat__label">School Programs</span>
-                            </div>
-                        </div>
-                        {hasHQ && (
-                            <div className="city-stat">
-                                <div className="city-stat__icon city-stat__icon--hq">
-                                    <FaStar />
-                                </div>
-                                <div className="city-stat__content">
-                                    <span className="city-stat__value">HQ</span>
-                                    <span className="city-stat__label">Headquarters</span>
+            {/* BRANCHES (Bento Cards - 1 per row) */}
+            <section className="obs-section">
+                <div className="obs-sec-head">
+                    <div className="obs-sec-head__bar" />
+                    <h2>TRAINING CENTRES</h2>
+                </div>
+
+                <div className="obs-grid">
+                    {city.branches.map((branch) => (
+                        <div
+                            key={branch.slug}
+                            className="obs-card"
+                            style={{ cursor: 'default' }}
+                        >
+                            <div className="obs-card__img-wrap">
+                                <Image
+                                    src={branch.photos[0] || '/gallery/In Dojo.jpeg'}
+                                    alt={`SKF Karate ${branch.name}`}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                    className="obs-card__img"
+                                />
+                                <div className="obs-card__img-overlay" />
+
+                                <div className="obs-card__badges">
+                                    {branch.isHQ && <span className="obs-badge obs-badge--hq"><FaStar size={10} /> Headquarters</span>}
+                                    <span className="obs-badge"><FaClock size={10} /> {branch.classTime}</span>
                                 </div>
                             </div>
-                        )}
-                    </div>
+
+                            <div className="obs-card__content">
+                                <span className="obs-card__state">DOJO</span>
+                                <h3 className="obs-card__name" style={{ fontSize: '1.6rem' }}>{branch.name}</h3>
+
+                                <div className="obs-card-branch-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                        <FaUserTie style={{ color: 'var(--gold, #ffb703)' }} /> <strong>{branch.sensei}</strong> · {branch.senseiDan}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                        <FaCalendarAlt style={{ color: 'var(--gold, #ffb703)' }} /> {formatClassDays(branch.classDays)}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                        <FaMapMarkerAlt style={{ color: 'var(--gold, #ffb703)' }} /> {branch.address.split(',').slice(0, 2).join(',')}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.8rem', marginTop: 'auto' }}>
+                                    <Link href={`/classes/${citySlug}/${branch.slug}`} className="obs-cta-btn" style={{flex: 1, justifyContent: 'center', background: 'rgba(255,255,255,0.05)'}}>
+                                        View Details
+                                    </Link>
+                                    <Link 
+                                        href={`/book-trial?branch=${branch.slug}`} 
+                                        className="obs-cta-btn obs-cta-btn--prime" 
+                                        style={{ flex: 1, justifyContent: 'center' }}
+                                    >
+                                        Book Trial
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </section>
 
-            {/* ═══════ BRANCHES ═══════ */}
-            <section className="section section--tint-cool">
-                <div className="container">
-                    <div className="city-section-header">
-                        <span className="section-label">
-                            <FaFistRaised /> Training Centres
-                        </span>
-                        <h2 className="section-title">
-                            Our <span className="text-gradient">Dojos</span>
-                        </h2>
-                        <p className="section-subtitle">
-                            Each branch features certified black belt instructors and structured
-                            WKF-standard training programs.
-                        </p>
-                    </div>
-
-                    <div className="branch-grid branch-grid--enhanced">
-                        {city.branches.map((branch, index) => (
-                            <Link
-                                key={branch.slug}
-                                href={`/classes/${citySlug}/${branch.slug}`}
-                                className="branch-card branch-card--enhanced"
-                                style={{ animationDelay: `${index * 0.1}s` }}
-                            >
-                                {/* Card Image */}
-                                <div className="branch-card__image branch-card__image--tall">
-                                    <Image
-                                        src={branch.photos[0] || '/gallery/In Dojo.jpeg'}
-                                        alt={`SKF Karate ${branch.name}`}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                    />
-                                    <div className="branch-card__image-overlay" />
-                                    {branch.isHQ && (
-                                        <span className="branch-card__hq-badge">
-                                            <FaStar /> Headquarters
-                                        </span>
-                                    )}
-                                    {/* Floating class time badge */}
-                                    <div className="branch-card__time-badge">
-                                        <FaClock />
-                                        <span>{branch.classTime}</span>
-                                    </div>
-                                </div>
-
-                                {/* Card Body */}
-                                <div className="branch-card__body">
-                                    <h2 className="branch-card__name">{branch.name}</h2>
-                                    <p className="branch-card__description">{branch.description}</p>
-
-                                    <div className="branch-card__info">
-                                        <div className="branch-card__info-item">
-                                            <FaUserTie className="branch-card__info-icon" />
-                                            <span>
-                                                <strong>{branch.sensei}</strong> · {branch.senseiDan}
-                                            </span>
-                                        </div>
-                                        <div className="branch-card__info-item">
-                                            <FaCalendarAlt className="branch-card__info-icon" />
-                                            <span>{formatClassDays(branch.classDays)}</span>
-                                        </div>
-                                        <div className="branch-card__info-item">
-                                            <FaMapMarkerAlt className="branch-card__info-icon" />
-                                            <span>{branch.address.split(',').slice(0, 2).join(',')}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="branch-card__footer">
-                                        <span className="branch-card__cta">
-                                            View Details & Schedule <FaArrowRight />
-                                        </span>
-                                        <span className="branch-card__whatsapp-hint">
-                                            <FaWhatsapp /> Quick Enquiry
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════ SCHOOL PROGRAMS ═══════ */}
+            {/* SCHOOL PROGRAMS */}
             {city.schools.length > 0 && (
-                <section className="section section--tint-warm">
-                    <div className="container">
-                        <div className="city-section-header">
-                            <span className="section-label">
-                                <FaSchool /> Partnered Institutions
-                            </span>
-                            <h2 className="section-title">
-                                School <span className="text-gradient">Programs</span>
-                            </h2>
-                            <p className="section-subtitle">
-                                We bring world-class karate training directly to educational institutions,
-                                building discipline, fitness, and confidence in students.
-                            </p>
-                        </div>
-
-                        <div className="school-programs-grid">
-                            {city.schools.map((school, index) => (
-                                <div
-                                    key={school.name}
-                                    className="school-program-card"
-                                    style={{ animationDelay: `${index * 0.08}s` }}
-                                >
-                                    <div className="school-program-card__icon">
-                                        <FaGraduationCap />
+                <section className="obs-section">
+                    <div className="obs-sec-head">
+                        <div className="obs-sec-head__bar" />
+                        <h2>SCHOOL PROGRAMS</h2>
+                    </div>
+                    <div className="obs-grid">
+                        {city.schools.map((school) => (
+                            <div key={school.name} className="obs-card" style={{ padding: '0', background: 'rgba(255,255,255,0.02)' }}>
+                                <div style={{ padding: '2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,183,3,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold, #ffb703)' }}>
+                                        <FaGraduationCap size={20} />
                                     </div>
-                                    <div className="school-program-card__content">
-                                        <h3 className="school-program-card__name">{school.name}</h3>
-                                        <span className="school-program-card__city">
+                                    <div>
+                                        <h3 style={{ margin: 0, fontFamily: 'var(--font-heading), sans-serif', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{school.name}</h3>
+                                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <FaMapMarkerAlt /> {city.name}
-                                        </span>
+                                        </div>
                                     </div>
-                                    <div className="school-program-card__accent" />
                                 </div>
-                            ))}
-                        </div>
-
-                        <div className="school-programs-cta">
-                            <p>
-                                Want to bring SKF Karate to your school?{' '}
-                                <Link href="/contact?subject=School%20Programs" className="school-programs-cta__link">
-                                    Get in touch with us <FaArrowRight />
-                                </Link>
-                            </p>
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}
 
-            {/* ═══════ BOTTOM CTA ═══════ */}
-            <section className="city-cta-section">
-                <div className="city-cta-section__bg" />
-                <div className="container">
-                    <div className="city-cta-card">
-                        <div className="city-cta-card__glow" />
-                        <div className="city-cta-card__content">
-                            <h2 className="city-cta-card__title">
-                                Ready to Start Your{' '}
-                                <span className="text-gradient">Karate Journey</span>?
-                            </h2>
-                            <p className="city-cta-card__text">
-                                Book a free trial class at any of our {city.name} branches.
-                                No experience needed — all ages welcome.
-                            </p>
-                            <div className="city-cta-card__actions">
-                                <Link
-                                    href="/contact?subject=Free%20Trial%20Class"
-                                    className="btn btn-primary"
-                                >
-                                    Book Free Trial <FaArrowRight />
-                                </Link>
-                                <a
-                                    href={`https://wa.me/${city.branches[0].whatsapp}?text=Hi,%20I'm%20interested%20in%20karate%20classes%20in%20${city.name}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn btn-secondary"
-                                >
-                                    <FaWhatsapp /> WhatsApp Us
-                                </a>
-                            </div>
-                        </div>
+            {/* CTA SECTION */}
+            <section className="obs-section obs-cta-wrapper">
+                <div className="obs-cta-card obs-cta-card--prime" style={{ maxWidth: '850px', margin: '0 auto' }}>
+                    <div className="obs-cta-card__glow" />
+                    <div className="obs-cta-card__icon obs-cta-card__icon--prime"><FaFistRaised size={24} /></div>
+                    <h3 className="obs-cta-card__title">Confused about which branch to choose?</h3>
+                    <p className="obs-cta-card__text">Contact us to find the nearest branch and book your free trial classes.</p>
+                    <div className="obs-cta-card__actions">
+                        <Link href="/contact?subject=Free%20Trial%20Class" className="obs-cta-btn obs-cta-btn--prime">
+                            Contact Us <FaArrowRight size={12} />
+                        </Link>
+                        <a href={`https://wa.me/${city.branches[0].whatsapp}?text=Hi,%20I'm%20interested%20in%20karate%20classes%20in%20${city.name}`} target="_blank" rel="noopener noreferrer" className="obs-cta-wa">
+                            <FaWhatsapp size={16} /> WhatsApp Us
+                        </a>
                     </div>
                 </div>
             </section>

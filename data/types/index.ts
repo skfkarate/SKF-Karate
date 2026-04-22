@@ -284,6 +284,7 @@ export interface Student {
   enrolledDate: string
   monthlyFee: number
   photoConsent: boolean
+  dob?: string // YYYY-MM-DD, column L in Google Sheet
 }
 
 export interface FeeRow {

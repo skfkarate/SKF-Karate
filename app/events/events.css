@@ -19,7 +19,7 @@
 .ev-hero__bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(170deg, #0f0816 0%, var(--bg-body) 100%);
+    background: transparent;
 }
 
 .ev-hero__grid-overlay {
@@ -192,7 +192,7 @@
     position: sticky;
     top: 70px;
     z-index: 20;
-    background: rgba(8, 11, 20, 0.85);
+    background: rgba(3, 5, 8, 0.85); /* Deep obsidian blur */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -310,7 +310,7 @@
 
 .ev-content {
     padding: 3rem 0 8rem;
-    background: var(--bg-body);
+    background: transparent;
     min-height: 60vh;
 }
 

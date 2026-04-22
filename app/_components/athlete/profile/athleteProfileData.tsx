@@ -82,7 +82,7 @@ export function buildAthleteProfileData(athlete: any, rankInfo: any) {
     athlete: {
       name: `${athlete.firstName} ${athlete.lastName}`.trim().toUpperCase(),
       shortName: `${athlete.firstName} ${athlete.lastName}`.trim(),
-      photo: athlete.photoUrl || DEFAULT_PROFILE_PHOTO,
+      photo: athlete.photoUrl || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'),
       country: 'INDIA',
       countryFlag: DEFAULT_COUNTRY_FLAG,
       id: athlete.registrationNumber,
