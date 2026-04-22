@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
-import { useTrialModal } from './TrialModalContext'
+
 import { PUBLIC_NAV_ITEMS } from '@/data/constants/navigation'
 import type { NavMenuItem } from '@/data/constants/navigation'
 
@@ -21,7 +21,7 @@ export default function Navbar() {
     const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
     const pathname = usePathname()
     const { cartTotalCount } = useCart()
-    const { openModal } = useTrialModal()
+
 
     // Close drawer on route change
     useEffect(() => { setDrawerOpen(false); setExpandedMenus(new Set()) }, [pathname])
@@ -90,9 +90,7 @@ export default function Navbar() {
 
                     {/* ── Right side ── */}
                     <div className="nav__right">
-                        <button onClick={() => openModal()} className="btn btn-primary nav__cta">
-                            Book Free Trial
-                        </button>
+
 
                         {cartTotalCount > 0 && (
                             <Link href="/shop/cart" className="nav__icon" aria-label="Cart">
@@ -157,14 +155,25 @@ export default function Navbar() {
                                     <div className={`wkf-submenu ${expandedMenus.has(item.label) ? 'wkf-submenu--open' : ''}`}>
                                         <div>
                                             {item.children.map(child => (
-                                                <Link
-                                                    key={child.href}
-                                                    href={child.href!}
-                                                    className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
-                                                    onClick={() => setDrawerOpen(false)}
-                                                >
-                                                    {child.label}
-                                                </Link>
+                                                child.disabled ? (
+                                                    <span 
+                                                        key={child.label}
+                                                        className="wkf-submenu-link" 
+                                                        style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                                                        title="Coming Soon"
+                                                    >
+                                                        {child.label} <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>SOON</span>
+                                                    </span>
+                                                ) : (
+                                                    <Link
+                                                        key={child.href}
+                                                        href={child.href!}
+                                                        className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
+                                                        onClick={() => setDrawerOpen(false)}
+                                                    >
+                                                        {child.label}
+                                                    </Link>
+                                                )
                                             ))}
                                         </div>
                                     </div>
@@ -198,21 +207,12 @@ export default function Navbar() {
                         </a>
                     </div>
 
-                    <button
-                        className="btn btn-primary drawer__cta"
-                        onClick={() => { setDrawerOpen(false); openModal() }}
-                    >
-                        Book Free Trial
-                    </button>
+
                 </div>
             </aside>
 
             {/* ── Mobile sticky CTA bar ── */}
-            <div className="mobile-sticky-cta">
-                <button onClick={() => openModal()} className="btn btn-primary mobile-sticky-cta__btn">
-                    Book Free Trial
-                </button>
-            </div>
+
         </>
     )
 }

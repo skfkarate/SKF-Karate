@@ -71,12 +71,15 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
         }
     }).filter(Boolean)
 
+    const isDirectSkipBranch = city.branches.length === 1 && city.schools.length === 0;
+
     return (
         <BranchDetailClient
             branch={branch}
             cityName={city.name}
             citySlug={city.slug}
             topPerformers={topPerformers}
+            isDirectSkipBranch={isDirectSkipBranch}
         />
     )
 }

@@ -1,69 +1,136 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { submitLead } from '@/lib/server/sheets'
-import { Resend } from 'resend'
-
-import { BRANCH_SLUGS } from '@/data/constants/branches'
+import { retryWithBackoff } from '@/lib/utils/retry'
+import { BRANCH_SLUGS, BRANCH_LABELS, type BranchSlug } from '@/data/constants/branches'
 
 // The schema matching FreeTrialForm.tsx
 const leadSchema = z.object({
   studentName: z.string().min(2).max(100),
   parentPhone: z.string().regex(/^\+91[0-9]{10}$/),
-  childAge: z.number().min(5).max(60),
-  branch: z.enum(BRANCH_SLUGS),
+  childAge: z.number().min(4).max(60),
+  branch: z.union([z.enum(BRANCH_SLUGS), z.literal('not-sure')]),
   preferredBatch: z.string().min(2),
   hearAboutUs: z.string().optional()
 })
-
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder')
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const validatedData = leadSchema.parse(body)
 
-    const dateStr = new Date().toISOString()
+    const timestamp = new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+    
     const status = 'New'
 
-    // Columns: Name | Phone | Age | Branch | Batch | Source | Date | Status
+    // 1. Prepare Google Sheet Row
     const row = [
-      validatedData.studentName,
-      validatedData.parentPhone,
+      validatedData.studentName.trim(),
+      validatedData.parentPhone.trim(),
       String(validatedData.childAge),
       validatedData.branch,
       validatedData.preferredBatch,
       validatedData.hearAboutUs || '',
-      dateStr,
+      timestamp,
       status
     ]
 
-    const success = await submitLead(row)
-    if (!success) {
-      throw new Error('Failed to save lead to Sheets')
+    let sheetOk = false
+    let telegramOk = false
+    let sheetError = null
+    let telegramError = null
+
+    // --- Channel 1: Google Sheets ---
+    try {
+      await retryWithBackoff(async () => {
+        const success = await submitLead(row)
+        if (!success) throw new Error('submitLead returned false')
+      }, 2, 1000)
+      sheetOk = true
+    } catch (err: any) {
+      sheetError = err
+      console.error('Leads Sheets Error:', err?.message || err)
     }
 
-    // Send email to admin
-    if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: 'SKF Karate <noreply@skfkarate.com>',
-        to: process.env.ADMIN_EMAIL || 'admin@skfkarate.com',
-        subject: `New trial request — ${validatedData.branch} — ${validatedData.studentName}`,
-        html: `
-          <h3>New Free Trial Request</h3>
-          <p><strong>Student Name:</strong> ${validatedData.studentName}</p>
-          <p><strong>Parent Phone:</strong> ${validatedData.parentPhone}</p>
-          <p><strong>Age:</strong> ${validatedData.childAge}</p>
-          <p><strong>Branch:</strong> ${validatedData.branch}</p>
-          <p><strong>Preferred Batch:</strong> ${validatedData.preferredBatch}</p>
-          <p><strong>Source:</strong> ${validatedData.hearAboutUs || 'Not provided'}</p>
-          <p><strong>Submitted At:</strong> ${dateStr}</p>
-        `
-      }).catch(err => console.error('Failed to send Resend email:', err)) // fire and forget
+    // --- Channel 2: Telegram ---
+    const escapeTelegramMarkdown = (value: any) =>
+      String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
+
+    const branchLabel = validatedData.branch === 'not-sure' 
+      ? 'Not Sure / Contact Me' 
+      : (BRANCH_LABELS[validatedData.branch as BranchSlug] || validatedData.branch)
+
+    const telegramMessage = [
+      `🥋 *New Free Trial Request*`,
+      ``,
+      `👤 *Student:* ${escapeTelegramMarkdown(validatedData.studentName.trim())}`,
+      `📞 *Phone:* ${escapeTelegramMarkdown(validatedData.parentPhone.trim())}`,
+      `🎂 *Age:* ${escapeTelegramMarkdown(validatedData.childAge)}`,
+      `🏢 *Branch:* ${escapeTelegramMarkdown(branchLabel)}`,
+      `⏰ *Batch:* ${escapeTelegramMarkdown(validatedData.preferredBatch)}`,
+      validatedData.hearAboutUs ? `📣 *Source:* ${escapeTelegramMarkdown(validatedData.hearAboutUs)}` : '',
+      ``,
+      `🕐 ${escapeTelegramMarkdown(timestamp)}`,
+    ].filter(Boolean).join('\n')
+
+    try {
+      if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+        await retryWithBackoff(async () => {
+          const res = await fetch(
+            `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: process.env.TELEGRAM_CHAT_ID,
+                text: telegramMessage,
+                parse_mode: 'Markdown',
+              }),
+            }
+          )
+          if (!res.ok) {
+            const errorBody = await res.text()
+            throw new Error(`Telegram HTTP ${res.status}: ${errorBody}`)
+          }
+        }, 2, 800)
+        telegramOk = true
+      } else {
+        console.warn('Telegram credentials missing in leads API')
+      }
+    } catch (err: any) {
+      telegramError = err
+      console.error('Leads Telegram Error:', err?.message || err)
     }
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
+    // Return success if AT LEAST ONE channel worked
+    if (sheetOk || telegramOk) {
+      return NextResponse.json({ 
+        success: true, 
+        captured: { sheets: sheetOk, telegram: telegramOk } 
+      })
+    }
+
+    // Both failed
+    throw new Error(`Submission failed. Sheets: ${sheetError?.message}, Telegram: ${telegramError?.message}`)
+
+  } catch (error: any) {
     console.error('Leads API Error:', error)
-    return NextResponse.json({ error: 'Failed to submit lead' }, { status: 400 })
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ 
+        error: 'Please check your inputs.',
+        retryable: false,
+        details: error.errors 
+      }, { status: 400 })
+    }
+    
+    return NextResponse.json({ 
+      error: 'Could not submit booking. Please try again.',
+      retryable: true
+    }, { status: 503 })
   }
 }

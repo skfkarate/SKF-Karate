@@ -19,11 +19,13 @@
 .obsidian-store::before {
   content: '';
   position: fixed;
-  top: 0; left: 50%;
+  top: 0;
+  left: 50%;
   transform: translateX(-50%);
-  width: 100vw; height: 100vh;
-  background: radial-gradient(circle at 50% 0%, rgba(214, 40, 40, 0.08) 0%, rgba(0,0,0,0) 60%),
-              radial-gradient(circle at 100% 100%, rgba(255, 183, 3, 0.05) 0%, rgba(0,0,0,0) 50%);
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 0%, rgba(214, 40, 40, 0.08) 0%, rgba(0, 0, 0, 0) 60%),
+    radial-gradient(circle at 100% 100%, rgba(255, 183, 3, 0.05) 0%, rgba(0, 0, 0, 0) 50%);
   pointer-events: none;
   z-index: -1;
 }
@@ -56,7 +58,7 @@
 
 .obsidian-header__subtitle {
   font-size: 1.1rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   max-width: 600px;
   margin: 1rem auto 0;
   line-height: 1.6;
@@ -75,7 +77,7 @@
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.8rem 2rem;
   border-radius: 50px;
@@ -86,7 +88,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .obsidian-filter-btn:hover {
@@ -100,7 +102,7 @@
   background: linear-gradient(135deg, rgba(214, 40, 40, 0.8) 0%, rgba(214, 40, 40, 0.4) 100%);
   color: #fff;
   border-color: rgba(214, 40, 40, 0.5);
-  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* ── MASONRY-INSPIRED GRID ── */
@@ -122,16 +124,19 @@
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .obsidian-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 24px;
   padding: 1px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -144,11 +149,13 @@
 .obsidian-card:hover {
   transform: translateY(-10px);
   background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(214, 40, 40, 0.1);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(214, 40, 40, 0.1);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-.obsidian-card:hover::before { opacity: 1; }
+.obsidian-card:hover::before {
+  opacity: 1;
+}
 
 .obsidian-card__image-wrapper {
   aspect-ratio: 4/5;
@@ -174,9 +181,11 @@
 .obsidian-card__image-wrapper::after {
   content: '';
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 50%;
-  background: linear-gradient(to top, rgba(5,5,5,1) 0%, rgba(5,5,5,0) 100%);
+  background: linear-gradient(to top, rgba(5, 5, 5, 1) 0%, rgba(5, 5, 5, 0) 100%);
   z-index: 1;
 }
 
@@ -219,7 +228,7 @@
 .obsidian-card__price {
   font-size: 1.25rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .obsidian-badge-soldout {
@@ -238,16 +247,18 @@
   padding: 0.6rem 1.2rem;
   border-radius: 50px;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .card-sold-out {
   opacity: 0.5;
 }
+
 .card-sold-out:hover {
   transform: none;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
+
 .card-sold-out .obsidian-card__image {
   filter: grayscale(100%) brightness(0.5);
 }
@@ -267,7 +278,7 @@
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
 }
 
 .obsidian-gallery__image {
@@ -303,7 +314,7 @@
 .obsidian-info__desc {
   font-size: 1.1rem;
   line-height: 1.8;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 3rem;
 }
 
@@ -329,7 +340,7 @@
 .obsidian-variant-btn {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 600;
@@ -347,19 +358,19 @@
   background: #fff;
   color: #000;
   border-color: #fff;
-  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .obsidian-variant-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
-  background: rgba(255,255,255,0.01);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .obsidian-stepper {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   width: fit-content;
@@ -375,7 +386,11 @@
   color: #fff;
   transition: background 0.2s;
 }
-.obsidian-stepper__btn:hover { background: rgba(255,255,255,0.1); }
+
+.obsidian-stepper__btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .obsidian-stepper__val {
   padding: 0 1rem;
   font-weight: 600;
@@ -399,18 +414,18 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 10px 30px rgba(214, 40, 40, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .obsidian-btn-add:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(214, 40, 40, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow: 0 15px 40px rgba(214, 40, 40, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   background: #e63946;
 }
 
 .obsidian-btn-add:disabled {
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.3);
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
@@ -429,26 +444,26 @@
 }
 
 .obsidian-cart-item:hover {
-  background: rgba(255,255,255,0.04);
-  border-color: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .obsidian-summary-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 2.5rem;
   position: sticky;
   top: 100px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(24px);
 }
 
 .obsidian-input {
   width: 100%;
   padding: 1rem 1.2rem;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   border-radius: 12px;
   font-size: 1rem;
@@ -459,13 +474,13 @@
   outline: none;
   border-color: var(--crimson, #d62828);
   box-shadow: 0 0 0 4px rgba(214, 40, 40, 0.1);
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .obsidian-label {
   display: block;
   margin-bottom: 0.5rem;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -478,14 +493,31 @@
     grid-template-columns: 1fr;
     gap: 3rem;
   }
-  .obsidian-header__title { font-size: 3.5rem; }
-  .obsidian-gallery { position: relative; top: 0; }
-  
-  .obsidian-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+  .obsidian-header__title {
+    font-size: 3.5rem;
+  }
+
+  .obsidian-gallery {
+    position: relative;
+    top: 0;
+  }
+
+  .obsidian-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
-  .obsidian-container { padding: 6rem 1.5rem 3rem; }
-  .obsidian-header__title { font-size: 2.5rem; }
-  .obsidian-info__title { font-size: 2.2rem; }
+  .obsidian-container {
+    padding: 6rem 1.5rem 3rem;
+  }
+
+  .obsidian-header__title {
+    font-size: 2.5rem;
+  }
+
+  .obsidian-info__title {
+    font-size: 2.2rem;
+  }
 }

@@ -17,22 +17,20 @@ type AthleteCardProps = {
   belt: string
   branch: string
   photoUrl?: string
+  gender?: string
   category?: string
   medal?: 'gold' | 'silver' | 'bronze'
   href?: string
 }
 
-export default function AthleteCard({ name, belt, branch, photoUrl, category, medal, href }: AthleteCardProps) {
+export default function AthleteCard({ name, belt, branch, photoUrl, gender, category, medal, href }: AthleteCardProps) {
   const medalColor = medal === 'gold' ? '#ffd700' : medal === 'silver' ? '#c0c0c0' : medal === 'bronze' ? '#cd7f32' : '#ffb703'
+  const fallbackPhoto = gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'
 
   const card = (
     <div className="ath-card" style={{ '--ath-accent': medalColor } as any}>
       <div className="ath-card__photo-wrap">
-        {photoUrl ? (
-          <img className="ath-card__img" src={photoUrl} alt={name} />
-        ) : (
-          <div className="ath-card__icon"><ProfileSvg size={56} /></div>
-        )}
+        <img className="ath-card__img" src={photoUrl || fallbackPhoto} alt={name} />
       </div>
       {medal && (
         <span className="ath-card__medal">

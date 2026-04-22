@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaClock, FaPhoneAlt, FaWhatsapp, FaTrophy, FaCheckCircle, FaUserTie } from 'react-icons/fa'
+import { 
+    FaArrowLeft, FaMapMarkerAlt, FaClock, FaPhoneAlt, 
+    FaWhatsapp, FaTrophy, FaCheckCircle, FaUserTie 
+} from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
-import { useTrialModal } from '@/app/_components/TrialModalContext'
-import { type Branch, formatClassDays, formatClassDaysFull, generateCalendar, getMonthName } from '@/lib/classesData'
+import { type Branch, formatClassDaysFull, generateCalendar } from '@/lib/classesData'
 
 interface TopPerformer {
     name: string
@@ -20,234 +22,205 @@ interface BranchDetailClientProps {
     cityName: string
     citySlug: string
     topPerformers?: TopPerformer[]
+    isDirectSkipBranch?: boolean
 }
 
-export default function BranchDetailClient({ branch, cityName, citySlug, topPerformers = [] }: BranchDetailClientProps) {
-    const { openModal } = useTrialModal()
+export default function BranchDetailClient({ branch, cityName, citySlug, topPerformers = [], isDirectSkipBranch = false }: BranchDetailClientProps) {
     const now = new Date()
-    const [calYear, setCalYear] = useState(now.getFullYear())
-    const [calMonth, setCalMonth] = useState(now.getMonth())
+    const [calYear] = useState(now.getFullYear())
+    const [calMonth] = useState(now.getMonth())
 
     const calendarWeeks = generateCalendar(calYear, calMonth, branch.classDays)
 
-    const prevMonth = () => {
-        if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) }
-        else setCalMonth(calMonth - 1)
-    }
-
-    const nextMonth = () => {
-        if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) }
-        else setCalMonth(calMonth + 1)
-    }
-
-    // Force exactly 3 photos for the bento layout
-    const bentoPhotos = [
-        branch.photos[0] || '/gallery/In Dojo.jpeg',
-        branch.photos[1] || branch.photos[0] || '/gallery/In Dojo.jpeg',
-        branch.photos[2] || branch.photos[1] || branch.photos[0] || '/gallery/In Dojo.jpeg'
-    ]
-
     return (
-        <div style={{ background: '#05080f', minHeight: '100vh', paddingBottom: '4rem' }}>
-            {/* Scoped CSS for responsive bento and cinematic blocks */}
-            <style jsx>{`
-                .bento-gallery {
-                    display: grid;
-                    grid-template-columns: 3fr 2fr;
-                    gap: 8px;
-                    height: 70vh;
-                    min-height: 500px;
-                    max-height: 800px;
-                    width: 100%;
-                }
-                .bento-left {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    background: #111;
-                }
-                .bento-right {
-                    display: grid;
-                    grid-template-rows: 1fr 1fr;
-                    gap: 8px;
-                    height: 100%;
-                }
-                .bento-right-item {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    background: #111;
-                }
-                
-                .cinematic-section {
-                    display: flex;
-                    align-items: center;
-                    gap: 4rem;
-                    padding: 8rem 0;
-                }
-                .cinematic-section.reverse {
-                    flex-direction: row-reverse;
-                }
-                .cinematic-content {
-                    flex: 1;
-                }
-                .cinematic-visual {
-                    flex: 1;
-                    /* Visual anchor for the right side */
-                    background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.05);
-                    border-radius: 24px;
-                    padding: 3rem;
-                    position: relative;
-                    overflow: hidden;
-                }
-                
-                @media (max-width: 992px) {
-                    .cinematic-section, .cinematic-section.reverse {
-                        flex-direction: column;
-                        padding: 4rem 0;
-                        gap: 3rem;
-                    }
-                    .cinematic-visual {
-                        width: 100%;
-                    }
-                    .bento-gallery {
-                        grid-template-columns: 1fr;
-                        grid-template-rows: 2fr 1fr 1fr;
-                        height: 100vh;
-                    }
-                    .bento-right {
-                        display: contents; /* unwrap the nested grid on mobile if desired, or keep it */
-                    }
-                }
-            `}</style>
-
-            {/* ═══════ HEADER (Minimalist) ═══════ */}
-            <header className="container" style={{ paddingTop: '8rem', paddingBottom: '2rem' }}>
-                <Link 
-                    href={`/classes/${citySlug}`} 
-                    style={{ 
-                        color: 'rgba(255,255,255,0.5)', 
-                        textDecoration: 'none', 
-                        fontSize: '0.9rem', 
-                        letterSpacing: '1px',
-                        display: 'inline-flex', 
-                        alignItems: 'center',
-                        marginBottom: '1.5rem',
-                        transition: 'color 0.2s ease'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
-                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
-                >
-                    <FaArrowLeft style={{ marginRight: '0.5rem' }} /> BACK TO {cityName.toUpperCase()}
-                </Link>
-                <h1 style={{ 
-                    fontSize: 'clamp(3.5rem, 6vw, 6rem)', 
-                    fontWeight: 900, 
-                    lineHeight: 1, 
-                    margin: 0, 
-                    fontFamily: 'var(--font-heading)',
-                    letterSpacing: '-1px',
-                    color: '#fff'
-                }}>
-                    {branch.name}
-                </h1>
-                {branch.isHQ && (
-                    <div style={{ marginTop: '1rem', display: 'inline-block', border: '1px solid var(--gold)', color: 'var(--gold)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.8rem', letterSpacing: '2px', fontWeight: 700, textTransform: 'uppercase' }}>
-                        National Headquarters
-                    </div>
-                )}
-            </header>
-
-            {/* ═══════ BENTO GALLERY ═══════ */}
-            <div className="bento-gallery">
-                <div className="bento-left">
+        <div className="obs-page" style={{ paddingBottom: 0 }}>
+            {/* Cinematic Full-Bleed Hero */}
+            <header className="obs-bdetail-hero">
+                <div className="obs-bdetail-hero__bg">
                     <Image 
-                        src={bentoPhotos[0]} 
-                        alt={`${branch.name} main view`} 
-                        fill 
-                        sizes="(max-width: 992px) 100vw, 60vw"
-                        style={{ objectFit: 'cover' }}
-                        priority 
+                        src={branch.photos[0] || '/gallery/In Dojo.jpeg'}
+                        alt={branch.name}
+                        fill
+                        sizes="100vw"
+                        priority
                     />
                 </div>
-                <div className="bento-right">
-                    <div className="bento-right-item">
-                        <Image 
-                            src={bentoPhotos[1]} 
-                            alt={`${branch.name} secondary view`} 
-                            fill 
-                            sizes="(max-width: 992px) 100vw, 40vw"
-                            style={{ objectFit: 'cover' }}
-                        />
+                <div className="obs-bdetail-hero__overlay" />
+                
+                <div className="obs-bdetail-hero__content">
+                    {/* Left: Branding & Core Nav */}
+                    <div style={{ flex: 1 }}>
+                        <Link 
+                            href={isDirectSkipBranch ? "/classes" : `/classes/${citySlug}`} 
+                            style={{ 
+                                display: 'inline-flex', alignItems: 'center', gap: '8px', 
+                                color: 'var(--gold, #ffb703)', fontSize: '0.8rem', 
+                                fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', 
+                                textDecoration: 'none', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.4)',
+                                padding: '0.4rem 1rem', borderRadius: '50px', border: '1px solid rgba(255,183,3,0.3)'
+                            }}
+                        >
+                            <FaArrowLeft /> {isDirectSkipBranch ? "ALL LOCATIONS" : `BACK TO ${cityName}`}
+                        </Link>
+                        {branch.isHQ && (
+                            <div style={{ display: 'table', marginBottom: '1rem', background: 'var(--crimson, #d62828)', color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                                National Headquarters
+                            </div>
+                        )}
+                        <h1 className="obs-bdetail-hero__title">{branch.name}</h1>
+                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '600px' }}>
+                            {branch.description || `Premier WKF Karate training program in ${cityName}.`}
+                        </p>
                     </div>
-                    <div className="bento-right-item">
-                        <Image 
-                            src={bentoPhotos[2]} 
-                            alt={`${branch.name} details view`} 
-                            fill 
-                            sizes="(max-width: 992px) 100vw, 40vw"
-                            style={{ objectFit: 'cover' }}
-                        />
+
+                    {/* Right: Floating Quick-Action Stats/Bento Overlay */}
+                    <div className="obs-bdetail-hero__action-bento">
+                        <div className="obs-bdetail-hero__action-row">
+                            <FaClock size={20} style={{ color: 'var(--gold)' }} />
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '1px' }}>Schedule</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{branch.classTime}</div>
+                            </div>
+                        </div>
+                        <div className="obs-bdetail-hero__action-row">
+                            <FaMapMarkerAlt size={20} style={{ color: 'var(--gold)' }} />
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '1px' }}>Location</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{branch.address.split(',')[0]}</div>
+                            </div>
+                        </div>
+                        <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.1)', margin: '1.5rem 0' }} />
+                        <Link 
+                            href={`/book-trial?branch=${branch.slug}`}
+                            className="obs-cta-btn obs-cta-btn--prime" 
+                            style={{ width: '100%', justifyContent: 'center', padding: '1rem', textDecoration: 'none', textAlign: 'center' }}
+                        >
+                            BOOK A TRIAL CLASS
+                        </Link>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* ═══════ CINEMATIC TRAINING BLOCKS ═══════ */}
-            
-            {/* --- GROUP TRAINING MODULE --- */}
-            <section style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div className="container cinematic-section">
-                    <div className="cinematic-content">
-                        <span style={{ color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>
-                            Community Learning
-                        </span>
-                        <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>
-                            Group Training
-                        </h2>
-                        <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: '2rem', maxWidth: '600px' }}>
-                            Experience the raw energy of collective progression. Our group classes follow the structured WKF syllabus led meticulously by {branch.sensei}. Test your skills in kumite sparring cycles and ascend the belt ranks alongside dedicated martial artists pursuing the same mastery.
+            {/* Asymmetric Floating Bento Matrix */}
+            <div className="obs-bdetail-grid">
+                
+                {/* ── LEFT COLUMN (Main Content) ── */}
+                <div className="obs-bdetail-main">
+                    
+                    {/* Visual Gallery Carousels/Modules */}
+                    <div className="obs-glass-pane" style={{ padding: 0 }}>
+                        <div style={{ position: 'relative', width: '100%', height: '350px' }}>
+                             <Image 
+                                src={branch.photos[1] || branch.photos[0] || '/gallery/In Dojo.jpeg'}
+                                alt="Dojo Interior"
+                                fill
+                                style={{ objectFit: 'cover' }}
+                            />
+                            <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 100px rgba(0,0,0,0.8)' }} />
+                            <h3 style={{ position: 'absolute', bottom: '2rem', left: '2rem', margin: 0, fontFamily: 'var(--font-heading)', fontSize: '2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                Community Learning
+                            </h3>
+                        </div>
+                        <div style={{ padding: '2.5rem' }}>
+                            <p style={{ fontSize: '1.05rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '2rem' }}>
+                                Experience the raw energy of collective progression. Our group classes follow the structured WKF syllabus led meticulously by {branch.sensei}. Test your skills in kumite sparring cycles and ascend the belt ranks alongside dedicated martial artists pursuing the same mastery.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <FaCheckCircle style={{ color: 'var(--gold)' }}/> WKF Syllabus
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <FaCheckCircle style={{ color: 'var(--gold)' }}/> Kata & Kumite
+                                </div>
+                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <FaCheckCircle style={{ color: 'var(--gold)' }}/> Belt Graded
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Map & Location Glass Card */}
+                    <div className="obs-glass-pane" style={{ padding: 0, display: 'flex', flexWrap: 'wrap' }}>
+                        <div style={{ flex: '1 1 300px', padding: '2.5rem' }}>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.5rem' }}>Navigate</h3>
+                            
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <FaMapMarkerAlt style={{ color: 'var(--gold)', fontSize: '1.2rem', flexShrink: 0, marginTop: '0.2rem' }} />
+                                <div>
+                                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, marginBottom: '0.3rem' }}>Address</div>
+                                    <div style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, fontSize: '0.95rem' }}>{branch.address}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <FaPhoneAlt style={{ color: 'var(--gold)', fontSize: '1.2rem', flexShrink: 0, marginTop: '0.2rem' }} />
+                                <div>
+                                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, marginBottom: '0.3rem' }}>Contact Desk</div>
+                                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem' }}>
+                                        <a href={`tel:${branch.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{branch.phone}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ flex: '1 1 300px', minHeight: '300px', position: 'relative' }}>
+                            <iframe 
+                                width="100%" 
+                                height="100%" 
+                                style={{ border: 0, position: 'absolute', inset: 0 }} 
+                                loading="lazy" 
+                                allowFullScreen 
+                                referrerPolicy="no-referrer-when-downgrade"
+                                src={`https://www.google.com/maps?q=${encodeURIComponent(branch.address)}&output=embed`}
+                            ></iframe>
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* ── RIGHT COLUMN (Sidebar Modules) ── */}
+                <div className="obs-bdetail-aside">
+                    
+                    {/* Sensei Spotlight Card */}
+                    <div className="obs-glass-pane obs-glass-pane--prime" style={{ position: 'relative', overflow: 'hidden' }}>
+                        <GiBlackBelt style={{ fontSize: '8rem', color: 'var(--gold)', opacity: 0.1, position: 'absolute', top: '-1rem', right: '-1rem' }} />
+                        <FaUserTie style={{ fontSize: '2rem', color: 'var(--gold)', marginBottom: '1.5rem' }} />
+                        
+                        <h4 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: '0 0 0.2rem' }}>
+                            {branch.sensei}
+                        </h4>
+                        <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '1.5rem' }}>
+                            {branch.senseiDan} · Lead Instructor
+                        </div>
+                        
+                        <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: '2rem' }}>
+                            "True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential."
                         </p>
                         
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.8rem 1.2rem', borderRadius: '100px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <FaCheckCircle style={{ color: 'var(--gold)' }}/> WKF Syllabus
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.8rem 1.2rem', borderRadius: '100px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <FaCheckCircle style={{ color: 'var(--gold)' }}/> Kata & Kumite
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.8rem 1.2rem', borderRadius: '100px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <FaCheckCircle style={{ color: 'var(--gold)' }}/> Belt Graded
-                            </div>
-                        </div>
-
-                        <button className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }} onClick={() => openModal(branch.slug)}>
-                            Book a Trial Class
-                        </button>
+                        <a 
+                            href={`https://wa.me/${branch.whatsapp}?text=Hi! I am interested in inquiring about exclusive Personal Training availability directly with Sensei ${branch.sensei}.`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="obs-cta-btn"
+                            style={{ width: '100%', justifyContent: 'center', background: 'transparent', borderColor: 'var(--gold)', color: '#fff' }}
+                        >
+                            <FaWhatsapp size={16} style={{ color: 'var(--gold)' }}/> Request 1-on-1 Training
+                        </a>
                     </div>
-                    
-                    {/* Visual Anchor: The interactive Calendar / Schedule widget */}
-                    <div className="cinematic-visual">
-                        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '300px', height: '300px', background: 'var(--gold)', filter: 'blur(100px)', opacity: 0.1, borderRadius: '50%' }}></div>
+
+                    {/* Obsidian Schedule Calendar Widget */}
+                    <div className="obs-glass-pane">
+                        <h4 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: '0 0 1rem' }}>
+                            Dojo Calendar
+                        </h4>
                         
-                        <h3 className="branch-calendar__title" style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
-                            Dojo Schedule
-                        </h3>
-                        
-                        <div style={{ marginBottom: '2rem' }}>
-                            <p style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.8rem', fontSize: '1.1rem' }}>
-                                <FaClock style={{ color: 'var(--gold)', fontSize: '1.2rem' }}/> 
-                                <strong>{formatClassDaysFull(branch.classDays)}</strong>
-                            </p>
-                            <p style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)' }}>
-                                <span style={{ width: '1.2rem' }}></span>{branch.classTime}
-                            </p>
-                        </div>
-                        
-                        {/* Beautifully integrated minimalist calendar */}
-                        <div className="cal-grid" style={{ gap: '6px' }}>
+                        <p style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)', marginBottom: '1.5rem' }}>
+                            <FaClock style={{ color: 'var(--gold)' }}/> 
+                            {formatClassDaysFull(branch.classDays)}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
                             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-                                <div key={i} style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', paddingBottom: '0.5rem' }}>{d}</div>
+                                <div key={i} style={{ textAlign: 'center', fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', paddingBottom: '0.5rem', fontWeight: 700 }}>{d}</div>
                             ))}
                             {calendarWeeks.flat().map((cell, i) => {
                                 if (!cell.isCurrentMonth) return <div key={i} />
@@ -258,14 +231,12 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                                 return (
                                     <div key={i} style={{
                                         aspectRatio: '1/1',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.9rem',
-                                        borderRadius: '50%',
-                                        background: isToday ? 'var(--gold)' : (isClass ? 'rgba(255,255,255,0.1)' : 'transparent'),
-                                        color: isToday ? '#000' : (isClass ? '#fff' : 'rgba(255,255,255,0.3)'),
-                                        fontWeight: (isClass || isToday) ? 700 : 400
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '0.85rem', borderRadius: '8px',
+                                        background: isToday ? 'var(--gold)' : (isClass ? 'rgba(255,255,255,0.08)' : 'transparent'),
+                                        color: isToday ? '#000' : (isClass ? '#fff' : 'rgba(255,255,255,0.2)'),
+                                        fontWeight: (isClass || isToday) ? 700 : 400,
+                                        border: isClass && !isToday ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
                                     }}>
                                         {cell.date}
                                     </div>
@@ -273,168 +244,40 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                             })}
                         </div>
                     </div>
-                </div>
-            </section>
 
-            {/* --- PERSONAL TRAINING MODULE --- */}
-            <section style={{ background: 'radial-gradient(circle at 70% 50%, rgba(214,40,40,0.08) 0%, #05080f 60%)' }}>
-                <div className="container cinematic-section reverse">
-                    <div className="cinematic-content">
-                        <span style={{ color: 'var(--crimson-light)', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>
-                            Exclusive 1-on-1 Coaching
-                        </span>
-                        <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>
-                            Personal Training
-                        </h2>
-                        <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: '2rem', maxWidth: '600px' }}>
-                            Accelerate your technical mastery. Personal training offers undivided attention from our certified Black Belt instructors. Perfect for athletes aiming for rapid grading progression, intense tournament preparation, or specialized self-defense mechanics. 
-                        </p>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '3rem' }}>
-                            <div>
-                                <h4 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Tailored Syllabus</h4>
-                                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.5 }}>Customized approach isolating your targeted weaknesses in Kata or Kumite.</p>
+                    {/* Top Performers / Elite Roster Widget */}
+                    {topPerformers && topPerformers.length > 0 && (
+                        <div className="obs-glass-pane" style={{ padding: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
+                                <FaTrophy style={{ color: 'var(--gold)' }} />
+                                <h4 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: 0 }}>
+                                    Elite Roster
+                                </h4>
                             </div>
-                            <div>
-                                <h4 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Flexible Timing</h4>
-                                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', lineHeight: 1.5 }}>Train securely on your own optimal schedule directly with the Sensei.</p>
-                            </div>
-                        </div>
-
-                        <a 
-                            href={`https://wa.me/${branch.whatsapp}?text=Hi! I am interested in inquiring about exclusive Personal Training availability at the ${branch.name} branch.`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-secondary" 
-                            style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', background: 'transparent', borderColor: 'var(--crimson)', color: '#fff' }}
-                        >
-                            <FaWhatsapp style={{ marginRight: '0.5rem', color: 'var(--crimson-light)' }}/> Enquire for PT
-                        </a>
-                    </div>
-                    
-                    {/* Visual Anchor: The Sensei Plate */}
-                    <div className="cinematic-visual" style={{ background: 'transparent', border: 'none', padding: 0, position: 'relative' }}>
-                        <div style={{ position: 'absolute', top: '20%', left: '10%', width: '60%', height: '80%', border: '1px solid rgba(214,40,40,0.3)', borderRadius: '24px', zIndex: 1 }}></div>
-                        <div style={{ position: 'relative', zIndex: 2, background: '#111', padding: '3rem', borderRadius: '24px', marginLeft: '10%', marginBottom: '10%', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.8)' }}>
-                            <GiBlackBelt style={{ fontSize: '4rem', color: 'var(--crimson-light)', opacity: 0.2, position: 'absolute', top: '1rem', right: '1rem' }} />
                             
-                            <h4 style={{ fontSize: '1.5rem', color: '#fff', marginBottom: '0.5rem' }}>{branch.sensei}</h4>
-                            <p style={{ color: 'var(--crimson-light)', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 700, marginBottom: '2rem' }}>{branch.senseiDan} · Lead Instructor</p>
-                            
-                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '2rem' }}>
-                                "True martial arts mastery requires precise mechanical correction. In a one-on-one environment, we eliminate bad habits instantly and unlock your true physical potential."
-                            </p>
-                            
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'rgba(255,255,255,0.8)' }}>
-                                <FaPhoneAlt style={{ color: 'rgba(255,255,255,0.4)' }}/> {branch.phone}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {topPerformers.slice(0, 3).map((p, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                                        <div style={{ width: '40px', height: '40px', background: 'rgba(255,183,3,0.1)', color: 'var(--gold)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                                            {i + 1}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>{p.name}</div>
+                                            <div style={{ color: 'var(--gold)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{p.points} PTS</div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            {/* ═══════ LOCATION & MAP MODULE ═══════ */}
-            <section style={{ padding: '6rem 0', background: '#0a0d14' }}>
-                <div className="container">
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem' }}>
-                        
-                        <div style={{ flex: '1 1 300px' }}>
-                            <h3 className="section-title" style={{ fontSize: '2rem', marginBottom: '2rem' }}>Branch Details</h3>
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'flex', gap: '1.2rem', marginBottom: '2rem' }}>
-                                    <FaMapMarkerAlt style={{ color: 'var(--gold)', fontSize: '1.5rem', flexShrink: 0, marginTop: '0.2rem' }} />
-                                    <div>
-                                        <h4 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Address</h4>
-                                        <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{branch.address}</p>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1.2rem' }}>
-                                    <FaPhoneAlt style={{ color: 'var(--gold)', fontSize: '1.3rem', flexShrink: 0, marginTop: '0.2rem' }} />
-                                    <div>
-                                        <h4 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Contact</h4>
-                                        <p style={{ color: 'rgba(255,255,255,0.6)' }}><a href={`tel:${branch.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{branch.phone}</a></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ flex: '2 1 500px' }}>
-                            <div style={{ width: '100%', height: '100%', minHeight: '300px', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <iframe 
-                                    width="100%" 
-                                    height="100%" 
-                                    style={{ border: 0 }} 
-                                    loading="lazy" 
-                                    allowFullScreen 
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    src={`https://www.google.com/maps?q=${encodeURIComponent(branch.address)}&output=embed`}
-                                ></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════ TOP PERFORMERS (Honours Integration) ═══════ */}
-            {topPerformers && topPerformers.length > 0 && (
-                <section style={{ padding: '6rem 0' }}>
-                    <div className="container">
-                        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                            <span className="section-label" style={{ justifyContent: 'center' }}><FaTrophy /> Branch Standing</span>
-                            <h2 className="section-title" style={{ fontSize: '3rem' }}>Elite Roster — {branch.name}</h2>
-                            <p style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '500px', margin: '0 auto' }}>Recognizing the highest point holders and medalists rigorously training at this academy.</p>
-                        </div>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                            {topPerformers.map((p, i) => (
-                                <div key={i} style={{ 
-                                    background: 'var(--bg-card)', 
-                                    border: '1px solid rgba(255,255,255,0.05)', 
-                                    borderRadius: '24px', 
-                                    padding: '2.5rem 2rem', 
-                                    textAlign: 'center',
-                                    transition: 'transform 0.3s ease',
-                                }} className="hover-lift">
-                                    <div style={{ 
-                                        width: 80, height: 80, 
-                                        margin: '0 auto 1.5rem', 
-                                        background: 'rgba(255,183,3,0.1)', 
-                                        color: 'var(--gold)', 
-                                        borderRadius: '50%', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center', 
-                                        fontSize: '2rem', 
-                                        fontWeight: 900 
-                                    }}>
-                                        {p.name.charAt(0)}
-                                    </div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', marginBottom: '0.4rem' }}>{p.name}</div>
-                                    <div style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{p.category}</div>
-                                    <div style={{ fontSize: '1.5rem', letterSpacing: '6px', marginBottom: '1rem' }}>{p.medals}</div>
-                                    <div style={{ display: 'inline-block', background: 'rgba(0,0,0,0.5)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
-                                        <strong style={{ color: '#fff' }}>{p.points.toFixed(0)}</strong> Points
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        
-                        <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-                            <Link href="/honours" className="btn btn-secondary" style={{ padding: '1rem 3rem' }}>
-                                View Full Academy Honours Board
+                            <Link href="/honours" style={{ display: 'block', textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '1.5rem', textDecoration: 'none' }}>
+                                VIEW FULL BOARD &rarr;
                             </Link>
                         </div>
-                    </div>
-                </section>
-            )}
+                    )}
+
+                </div>
+            </div>
             
-            {/* Global hover utility added dynamically */}
-            <style jsx global>{`
-                .hover-lift:hover {
-                    transform: translateY(-5px);
-                    border-color: rgba(255,183,3,0.3) !important;
-                }
-            `}</style>
         </div>
     )
 }

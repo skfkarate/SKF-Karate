@@ -1,7 +1,7 @@
 'use client'
 
+import Link from 'next/link'
 import { FaArrowRight, FaCalendarCheck, FaChild, FaTshirt, FaSmile } from 'react-icons/fa'
-import { useTrialModal } from '@/app/_components/TrialModalContext'
 import { homeYourFirstClassData } from '@/data/constants/homeContent'
 
 const renderIcon = (type: string) => {
@@ -15,8 +15,6 @@ const renderIcon = (type: string) => {
 }
 
 export default function HomeYourFirstClass() {
-    const { openModal } = useTrialModal()
-
     return (
         <section className="home-first-class section section--tint-cool">
             <div className="container">
@@ -42,9 +40,9 @@ export default function HomeYourFirstClass() {
                 </div>
 
                 <div className="home-first-class__cta">
-                    <button className="btn btn-primary" onClick={() => openModal()}>
+                    <Link href="/book-trial" className="btn btn-primary">
                         Book Free Trial <FaArrowRight />
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>

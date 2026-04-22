@@ -84,11 +84,10 @@ export default function DanCarousel({ danHolders }: { danHolders: any[] }) {
             className={`hon-ccard hon-ccard--d${Math.min(depth, 2)}`}
           >
             <div className="hon-ccard__photo">
-              {athlete.photoUrl ? (
-                <img src={athlete.photoUrl} alt={`${athlete.firstName} ${athlete.lastName}`} />
-              ) : (
-                <ProfileSvg size={depth === 0 ? 70 : depth === 1 ? 55 : 42} />
-              )}
+              <img 
+                src={athlete.photoUrl || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png')} 
+                alt={`${athlete.firstName} ${athlete.lastName}`} 
+              />
             </div>
             <div className="hon-ccard__badge">{beltLabel(athlete.currentBelt)}</div>
             <h3 className="hon-ccard__name">{athlete.firstName} {athlete.lastName}</h3>

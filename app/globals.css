@@ -28,31 +28,31 @@
   --gold-glow: rgba(255, 183, 3, 0.3);
 
   /* Surfaces */
-  --bg-body: #080b14;
-  --bg-card: rgba(20, 33, 61, 0.4);
-  --bg-card-hover: rgba(20, 33, 61, 0.65);
-  --bg-glass: rgba(8, 11, 20, 0.75);
-  --border-subtle: rgba(255, 183, 3, 0.08);
+  --bg-body: #030508;
+  --bg-card: rgba(255, 255, 255, 0.02);
+  --bg-card-hover: rgba(255, 255, 255, 0.04);
+  --bg-glass: rgba(3, 5, 8, 0.75);
+  --border-subtle: rgba(255, 255, 255, 0.05);
   --border-active: rgba(255, 183, 3, 0.25);
 
   /* Text */
   --text-white: #ffffff;
-  --text-light: #c8cdd8;
-  --text-muted: #6b7a94;
+  --text-light: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
 
   /* Typography */
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
 
   /* SKF Universal Tokens */
-  --bg-primary: #05080f;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --border-glass: 1px solid rgba(255, 255, 255, 0.08);
-  --border-gold: 1px solid rgba(243, 156, 18, 0.3);
-  --accent-crimson: #c0392b;
-  --accent-gold: #f39c12;
-  --glow-red: 0 0 60px rgba(192, 57, 43, 0.3);
-  --glow-gold: 0 0 60px rgba(243, 156, 18, 0.2);
+  --bg-primary: #030508;
+  --bg-card: rgba(255, 255, 255, 0.02);
+  --border-glass: 1px solid rgba(255, 255, 255, 0.06);
+  --border-gold: 1px solid rgba(255, 183, 3, 0.25);
+  --accent-crimson: #d62828;
+  --accent-gold: #ffb703;
+  --glow-red: 0 0 60px rgba(214, 40, 40, 0.25);
+  --glow-gold: 0 0 60px rgba(255, 183, 3, 0.15);
   --card-blur: blur(30px);
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
@@ -155,6 +155,13 @@ button {
 
 .text-gradient {
   background: linear-gradient(135deg, var(--crimson), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cinematic {
+  background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.5) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -272,20 +279,7 @@ button {
 .glow-red { box-shadow: var(--glow-red); }
 .glow-gold { box-shadow: var(--glow-gold); }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-crimson), #96281b);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--glow-red);
-}
+
 
 .btn-outline {
   background: transparent;
@@ -340,6 +334,23 @@ button {
 .glow-blue {
   background: rgba(20, 33, 61, 0.6);
 }
+
+/* ── AMBIENT ORBS (Global Obsidian Layout) ── */
+.amb-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.4;
+  will-change: transform;
+}
+.amb-orb--1 { width: 600px; height: 600px; background: rgba(214,40,40,0.12); top: -200px; left: -100px; animation: orbD1 18s ease-in-out infinite; }
+.amb-orb--2 { width: 500px; height: 500px; background: rgba(255,183,3,0.08); bottom: -150px; right: -100px; animation: orbD2 22s ease-in-out infinite; }
+.amb-orb--3 { width: 400px; height: 400px; background: rgba(52,152,219,0.06); top: 50%; left: 60%; animation: orbD3 25s ease-in-out infinite; }
+@keyframes orbD1 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(60px,40px)} 66%{transform:translate(-30px,60px)} }
+@keyframes orbD2 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-40px,-50px)} 66%{transform:translate(50px,-30px)} }
+@keyframes orbD3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-80px,40px)} }
 
 /* ===== ANIMATIONS ===== */
 .fade-in-up {
@@ -462,7 +473,7 @@ button {
 .page-hero__bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(170deg, var(--navy-deep) 0%, var(--bg-body) 100%);
+  background: transparent;
 }
 
 /* Subtle radial glow on top — like the contact hero */
@@ -792,5 +803,26 @@ nextjs-portal,
     /* Give main content some padding so it doesn't get hidden behind the CTA */
     #main-content {
         padding-bottom: 3.5rem;
+    }
+}
+
+/* ============================================================
+   WHATSAPP FLOATING CTA
+   ============================================================ */
+.wa-floating-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-family: system-ui, sans-serif;
+}
+
+@media (max-width: 768px) {
+    .wa-floating-btn {
+        bottom: 5rem;
+        right: 1.5rem;
     }
 }

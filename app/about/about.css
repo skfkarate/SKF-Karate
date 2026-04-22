@@ -1,0 +1,510 @@
+/* ═════════════════════════════════════════════════════════════
+   ABOUT PAGE — THE OBSIDIAN ARCHITECTURE
+   ═════════════════════════════════════════════════════════════ */
+
+.abt-page {
+  min-height: 100vh;
+  background: #030508;
+  color: #fff;
+  position: relative;
+  overflow-x: hidden;
+  font-family: var(--font-body), system-ui, sans-serif;
+  padding-bottom: 5rem;
+}
+
+/* ── AMBIENT ORBS ── */
+.abt-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.abt-orb--1 {
+  width: 600px;
+  height: 600px;
+  background: rgba(214, 40, 40, 0.15);
+  top: -200px;
+  right: -200px;
+  animation: abtD1 25s ease-in-out infinite;
+}
+
+.abt-orb--2 {
+  width: 700px;
+  height: 700px;
+  background: rgba(255, 183, 3, 0.08);
+  bottom: -100px;
+  left: -200px;
+  animation: abtD2 30s ease-in-out infinite;
+}
+
+@keyframes abtD1 {
+
+  0%,
+  100% {
+    transform: translate(0, 0)
+  }
+
+  33% {
+    transform: translate(-60px, 80px)
+  }
+
+  66% {
+    transform: translate(40px, 50px)
+  }
+}
+
+@keyframes abtD2 {
+
+  0%,
+  100% {
+    transform: translate(0, 0)
+  }
+
+  33% {
+    transform: translate(50px, -80px)
+  }
+
+  66% {
+    transform: translate(-30px, -40px)
+  }
+}
+
+/* ── WATERMARK (伝統 - TRADITION) ── */
+.abt-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Noto Sans JP", var(--font-heading), system-ui;
+  font-size: clamp(8rem, 30vw, 35rem);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.012);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   HERO & STATS DASHBOARD
+   ═════════════════════════════════════════════════════════════ */
+.abt-hero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8rem 2rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.abt-hero__logo {
+  filter: drop-shadow(0 0 40px rgba(214, 40, 40, 0.4));
+  margin-bottom: 2rem;
+  animation: floatLogo 6s ease-in-out infinite;
+}
+
+@keyframes floatLogo {
+
+  0%,
+  100% {
+    transform: translateY(0)
+  }
+
+  50% {
+    transform: translateY(-10px)
+  }
+}
+
+.abt-hero__title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(3rem, 7vw, 5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  margin: 0 0 1.5rem;
+  background: linear-gradient(135deg, #FFD166 0%, #F48C06 50%, #DC2F02 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Immersive Fast-Stats Bento */
+.abt-stats-bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 4rem;
+}
+
+.abt-stat-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 2.5rem 1.5rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+
+.abt-stat-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 183, 3, 0.3);
+}
+
+.abt-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 183, 3, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.abt-stat-card:hover::after {
+  opacity: 1;
+}
+
+.abt-stat-val {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.abt-stat-lbl {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 800;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   THE LEGACY (Cinematic Dual-Column)
+   ═════════════════════════════════════════════════════════════ */
+.abt-section {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+.abt-legacy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.abt-focus-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+}
+
+.abt-focus-image img {
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.abt-focus-image:hover img {
+  transform: scale(1.05);
+}
+
+.abt-focus-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(3, 5, 8, 0.9) 0%, transparent 50%);
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+}
+
+.abt-legacy-text h2 {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  color: #fff;
+  margin: 0 0 1rem;
+}
+
+.abt-legacy-text h3 {
+  font-size: 1.1rem;
+  color: var(--gold, #ffb703);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 2rem;
+  font-weight: 800;
+}
+
+.abt-legacy-text p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+/* Plaque Cards for Highlights */
+.abt-plaque-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.abt-plaque {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s, background 0.3s;
+}
+
+.abt-plaque:hover {
+  transform: translateX(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 2px solid var(--gold);
+}
+
+.abt-plaque-text {
+  font-size: 1.05rem;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   EXECUTIVE COMMITTEE ROSTER
+   ═════════════════════════════════════════════════════════════ */
+.abt-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.abt-roster-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  overflow: hidden;
+  height: 480px;
+  cursor: pointer;
+}
+
+.abt-roster-card__imgwrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.abt-roster-card__imgwrap img {
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s;
+  filter: grayscale(40%) brightness(0.7);
+}
+
+.abt-roster-card:hover .abt-roster-card__imgwrap img {
+  transform: scale(1.05);
+  filter: grayscale(0%) brightness(0.9);
+}
+
+.abt-roster-card__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(3, 5, 8, 0.95) 100%);
+  z-index: 2;
+  transition: opacity 0.4s;
+}
+
+.abt-roster-card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+.abt-roster-title {
+  font-size: 0.7rem;
+  color: var(--gold, #ffb703);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.abt-roster-name {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0px;
+  margin-bottom: 1rem;
+}
+
+/* The hover reveal */
+.abt-roster-meta {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.abt-roster-card:hover .abt-roster-meta {
+  max-height: 100px;
+  /* arbitrary height to reveal */
+  opacity: 1;
+  margin-top: 0.5rem;
+}
+
+.abt-roster-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
+  width: fit-content;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   AFFILIATIONS / TRUST CENTER
+   ═════════════════════════════════════════════════════════════ */
+.abt-trust-center {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6rem;
+}
+
+.abt-affil-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4rem;
+  margin-bottom: 3rem;
+}
+
+.abt-affil-grid img {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+.abt-trust-badges {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+}
+
+.abt-trust-badge {
+  flex: 1;
+  min-width: 250px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.5rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.8rem;
+}
+
+.abt-trust-badge svg {
+  font-size: 1.8rem;
+  color: #2ecc71;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS
+   ═════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .abt-legacy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ensure image goes after text on mobile for flow */
+  .abt-focus-image {
+    order: 2;
+    height: 500px;
+  }
+
+  .abt-legacy-text {
+    order: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .abt-watermark {
+    font-size: 50vw;
+  }
+
+  .abt-hero {
+    padding: 6rem 1rem 3rem;
+  }
+
+  .abt-trust-center {
+    padding: 3rem 1.5rem;
+  }
+
+  .abt-roster-card {
+    height: 400px;
+  }
+}

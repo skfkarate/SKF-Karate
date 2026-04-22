@@ -1,11 +1,8 @@
-"use client"
-
-import { useTrialModal } from './TrialModalContext'
+import Link from 'next/link'
 import { FaCalendarPlus } from 'react-icons/fa'
 import { useEffect, useState } from 'react'
 
 export default function MobileStickyCTA() {
-    const { openModal } = useTrialModal()
     const [isVisible, setIsVisible] = useState(false)
 
     useEffect(() => {
@@ -25,16 +22,13 @@ export default function MobileStickyCTA() {
     }, [])
 
     return (
-        <button
+        <Link
+            href="/book-trial"
             className={`mobile-sticky-cta ${isVisible ? 'visible' : ''}`}
-            onClick={(e) => {
-                e.preventDefault();
-                openModal();
-            }}
             aria-label="Book Free Trial"
         >
             <FaCalendarPlus />
             <span>Book Free Trial</span>
-        </button>
+        </Link>
     )
 }

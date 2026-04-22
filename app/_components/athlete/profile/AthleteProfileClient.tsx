@@ -10,6 +10,7 @@ import {
   Calendar, MapPin, Trophy, Flame, Shield, Star, Zap, Users, Download
 } from 'lucide-react'
 import '@/app/athlete-profile.css'
+import '@/app/rankings/rankings.css'
 import { CertificateModal } from '@/components/CertificateModal'
 import { CertificateCard } from '@/components/CertificateCard'
 
@@ -77,7 +78,7 @@ function SectionHeader({ icon, label }) {
 /* ═══════════════════════════════════════════════════════════════════════
    HERO — clean 2-column: photo+name left | stats+rank right
    ═══════════════════════════════════════════════════════════════════════ */
-function AthleteHero({ athleteInfo, categories }) {
+function AthleteHero({ athleteInfo, categories, onShareCard, isExporting }) {
   const primary = categories.find((c) => c.isPrimary) || categories[0]
   const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
   const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
@@ -86,94 +87,120 @@ function AthleteHero({ athleteInfo, categories }) {
 
   return (
     <section className="ap-hero ap-animate-in">
-      <div className="ap-hero-card">
-        {/* Left: photo + name */}
-        <div className="ap-hero__left">
-          <div className="ap-hero__portrait">
+      <div className="ap-hero-bento">
+        {/* Bento Grid layout */}
+        <div className="ap-hero-bento__grid">
+          {/* Portrait Card */}
+          <div className="ap-bento-card ap-bento-portrait">
             <Image
               src={athleteInfo.photo}
               alt={athleteInfo.name}
-              className="ap-hero__portrait-img"
               fill
+              crossOrigin="anonymous"
               style={{ objectFit: 'cover' }}
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 300"><rect fill="%23192038" width="260" height="300"/></svg>'
               }}
             />
-            <div className="ap-hero__portrait-overlay">
-              <div className="ap-hero__name-block">
-                <h1 className="ap-hero__name">{athleteInfo.name}</h1>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className="ap-hero__id">{athleteInfo.id}</span>
-                  {athleteInfo.branchName && (
-                    <Link href={`/dojos/${athleteInfo.branchSlug}`} className="ap-hero__id" style={{ color: 'var(--gold)', textDecoration: 'underline', padding: '0.2rem 0.6rem', background: 'rgba(255,183,3,0.1)', cursor: 'pointer' }}>
-                      Trains at SKF {athleteInfo.branchName}
-                    </Link>
-                  )}
+            {/* Ambient Background Glow inside portrait */}
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at bottom right, rgba(255,183,3,0.15) 0%, transparent 60%)', left: 0, bottom: 0, pointerEvents: 'none' }} />
+            
+            <div className="ap-hero__id-watermark">
+              <span style={{ fontSize: '0.45rem', opacity: 0.6, display: 'block', marginBottom: '2px' }}>SKF ID</span>
+              {athleteInfo.id}
+            </div>
+          </div>
+
+          {/* Right side data grid */}
+          <div className="ap-bento-data">
+            {/* Integrated Premium Header */}
+            <div className="ap-bento-header">
+              <span className="ap-bento-header-pretitle">Official SKF Athlete</span>
+              <h1 className="ap-hero__name">{athleteInfo.name}</h1>
+              <div className="ap-hero-meta-row">
+                <span className="ap-hero__id">{athleteInfo.id}</span>
+                {athleteInfo.branchName && (
+                  <Link href={`/dojos/${athleteInfo.branchSlug}`} className="ap-hero__branch-link">
+                    Trains at SKF {athleteInfo.branchName}
+                  </Link>
+                )}
+              </div>
+            </div>
+            {/* Rank Box */}
+            <div className="ap-bento-card ap-bento-rank">
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, background: 'rgba(255,183,3,0.12)', filter: 'blur(40px)', borderRadius: '50%' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+                <div>
+                  <span className="ap-bento-label">World Ranking</span>
+                  <div className="ap-bento-cat">{primary.name}</div>
+                  <div className="ap-bento-pts">{primary.points?.toLocaleString()} pts</div>
+                </div>
+                <div className="ap-bento-rank-num">
+                  {primary.rank ? `#${primary.rank}` : '—'}
                 </div>
               </div>
             </div>
+
+            {/* Stats Box */}
+            <div className="ap-bento-card ap-bento-stats">
+              <div className="ap-bento-stat">
+                <span className="val">{athleteInfo.age}</span>
+                <span className="lbl">Age</span>
+              </div>
+              <div className="ap-bento-stat">
+                <span className="val" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {athleteInfo.countryFlag && <Image src={athleteInfo.countryFlag} alt={athleteInfo.country} width={22} height={16} crossOrigin="anonymous" style={{ borderRadius: '2px' }} />}
+                  {athleteInfo.country}
+                </span>
+                <span className="lbl">Country</span>
+              </div>
+              <div className="ap-bento-stat">
+                <span className="val">{athleteInfo.totalBouts}</span>
+                <span className="lbl">Bouts</span>
+              </div>
+              <div className="ap-bento-stat">
+                <span className="val">{athleteInfo.winRate}</span>
+                <span className="lbl">Win Rate</span>
+              </div>
+            </div>
+
+            {/* Medals Box */}
+            <div className="ap-bento-card ap-bento-medals">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="ap-hero__medal ap-hero__medal--gold">
+                  <div className="ap-hero__medal-circle">{totalG}</div>
+                  <span>Gold</span>
+                </div>
+                <div className="ap-hero__medal ap-hero__medal--silver">
+                  <div className="ap-hero__medal-circle">{totalS}</div>
+                  <span>Silver</span>
+                </div>
+                <div className="ap-hero__medal ap-hero__medal--bronze">
+                  <div className="ap-hero__medal-circle">{totalB}</div>
+                  <span>Bronze</span>
+                </div>
+                <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }} />
+                <div className="ap-hero__medal-total">
+                  <span className="ap-hero__medal-total-num">{totalMedals}</span>
+                  <span>Total</span>
+                </div>
+              </div>
+
+              {onShareCard && (
+                <button
+                  onClick={onShareCard}
+                  disabled={isExporting}
+                  className="ap-hero__share-btn"
+                  title="Share Ranking Card"
+                  style={{ marginLeft: 'auto' }}
+                >
+                  <Share2 size={16} />
+                  <span>{isExporting ? 'Generating…' : 'Share Ranking Card'}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Right: Stats grid + Rank + Medals */}
-        <div className="ap-hero__right">
-          {/* Rank highlight */}
-          <div className="ap-hero__rank-row">
-            <div className="ap-hero__rank-num">
-              {primary.rank ? `#${primary.rank}` : '—'}
-            </div>
-            <div className="ap-hero__rank-meta">
-              <span className="ap-hero__rank-label">World Ranking</span>
-              <span className="ap-hero__rank-cat">{primary.name}</span>
-              <span className="ap-hero__rank-pts">{primary.points.toLocaleString()} pts</span>
-            </div>
-            <Image src={athleteInfo.countryFlag} alt="Country flag" className="ap-hero__rank-flag" width={28} height={20} />
-          </div>
-
-          {/* Quick stats */}
-          <div className="ap-hero__stats-row">
-            <div className="ap-hero__stat">
-              <span className="ap-hero__stat-val">{athleteInfo.age}</span>
-              <span className="ap-hero__stat-lbl">Age</span>
-            </div>
-            <div className="ap-hero__stat-sep" />
-            <div className="ap-hero__stat">
-              <span className="ap-hero__stat-val">{athleteInfo.country}</span>
-              <span className="ap-hero__stat-lbl">Country</span>
-            </div>
-            <div className="ap-hero__stat-sep" />
-            <div className="ap-hero__stat">
-              <span className="ap-hero__stat-val">{athleteInfo.totalBouts}</span>
-              <span className="ap-hero__stat-lbl">Bouts</span>
-            </div>
-            <div className="ap-hero__stat-sep" />
-            <div className="ap-hero__stat">
-              <span className="ap-hero__stat-val">{athleteInfo.winRate}</span>
-              <span className="ap-hero__stat-lbl">Win Rate</span>
-            </div>
-          </div>
-
-          {/* Medal tally */}
-          <div className="ap-hero__medals">
-            <div className="ap-hero__medal ap-hero__medal--gold">
-              <div className="ap-hero__medal-circle">{totalG}</div>
-              <span>Gold</span>
-            </div>
-            <div className="ap-hero__medal ap-hero__medal--silver">
-              <div className="ap-hero__medal-circle">{totalS}</div>
-              <span>Silver</span>
-            </div>
-            <div className="ap-hero__medal ap-hero__medal--bronze">
-              <div className="ap-hero__medal-circle">{totalB}</div>
-              <span>Bronze</span>
-            </div>
-            <div className="ap-hero__medal-total">
-              <span className="ap-hero__medal-total-num">{totalMedals}</span>
-              <span>Total</span>
-            </div>
-          </div>
-          </div>
       </div>
     </section>
   )
@@ -192,7 +219,6 @@ function NextEventsSection({ nextEvents }) {
           <div key={`${ev.dateRange}-${ev.name}`} className="ap-ev-card">
             <div className="ap-ev-card__date">{ev.dateRange}</div>
             <div className="ap-ev-card__body">
-              <Image src={ev.flag} alt="Event flag" className="ap-ev-card__flag" width={24} height={16} />
               <span className="ap-ev-card__name">{ev.name}</span>
             </div>
             <ChevronRight size={15} className="ap-ev-card__arrow" />
@@ -206,7 +232,7 @@ function NextEventsSection({ nextEvents }) {
 /* ═══════════════════════════════════════════════════════════════════════
    TABBED COMPETITION RESULTS — sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function TabbedCompetitions({ categories }) {
+function TabbedCompetitions({ categories, isDashboardContext = false }) {
   const [activeTab, setActiveTab] = useState(0)
   const [filter, setFilter] = useState('')
 
@@ -236,22 +262,19 @@ function TabbedCompetitions({ categories }) {
       <SectionHeader icon={<Trophy size={16} />} label="Competition Results" />
       <div className="ap-panel">
         {/* Tabs */}
-        <div className="ap-tabs">
+        <div className="lb-tabs" style={{ marginBottom: '1.5rem', justifyContent: 'flex-start', overflowX: 'auto', paddingBottom: '0.5rem' }}>
           {sortedCategories.map((c, i) => (
-            <button key={c.name} type="button" className={`ap-tab ${activeTab === i ? 'ap-tab--on' : ''}`}
+            <button key={c.name} type="button" className={`lb-tab ${activeTab === i ? 'lb-tab--on' : ''}`}
               onClick={() => { setActiveTab(i); setFilter('') }}>
               {c.name}
-              {c.rank ? <span className="ap-tab__badge">#{c.rank}</span> : null}
+              {c.rank ? <span className="ap-tab__badge" style={{ marginLeft: '4px', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em' }}>#{c.rank}</span> : null}
             </button>
           ))}
         </div>
 
         {/* Category overview */}
         <div className="ap-cat-overview">
-          {/* Category title */}
           <h3 className="ap-cat-overview__title">{cat.name}</h3>
-
-          {/* Rank row */}
           <div className="ap-cat-overview__rank">
             {cat.rank ? (
               <span className="ap-cat-overview__rank-circle">{cat.rank}</span>
@@ -293,21 +316,18 @@ function TabbedCompetitions({ categories }) {
           <Search size={16} className="ap-filter__icon" />
         </div>
 
-        {/* Table */}
+        {/* Table — columns: Date, Event, Type, Category, Rank, Wins, Points */}
         <div className="ap-tbl-wrap">
           <table className="ap-tbl">
             <thead>
               <tr>
-                <th style={{ width: '9%' }}>Date</th>
-                <th style={{ width: '24%' }}>Event</th>
-                <th style={{ width: '14%' }}>Type</th>
-                <th style={{ width: '11%' }}>Category</th>
-                <th style={{ width: '7%' }} className="ctr">Factor</th>
-                <th style={{ width: '5%' }} className="ctr">View</th>
-                <th style={{ width: '7%' }} className="ctr">Rank</th>
-                <th style={{ width: '6%' }} className="ctr">Wins</th>
-                <th style={{ width: '8%' }} className="ctr">Points</th>
-                <th style={{ width: '9%' }} className="ctr">Actual</th>
+                <th style={{ width: '12%' }}>Date</th>
+                <th style={{ width: '30%' }}>Event</th>
+                <th style={{ width: '16%' }}>Type</th>
+                <th style={{ width: '14%' }}>Category</th>
+                <th className="ctr" style={{ width: '10%' }}>Rank</th>
+                <th className="ctr" style={{ width: '8%' }}>Wins</th>
+                <th className="ctr" style={{ width: '10%' }}>Points</th>
               </tr>
             </thead>
             <tbody>
@@ -315,31 +335,24 @@ function TabbedCompetitions({ categories }) {
                 <tr key={`${r.date}-${r.event}`}>
                   <td className="ap-tbl__date">{r.date}</td>
                   <td>
-                    <div className="ap-tbl__ev">
-                      <Image src={r.flag} alt="Country flag" className="ap-tbl__fl" width={20} height={14} />
-                      <span>{r.event}</span>
-                    </div>
+                    <span className="ap-tbl__ev">{r.event}</span>
                   </td>
                   <td>{r.type}</td>
                   <td>{r.category}</td>
-                  <td className="ctr">{r.factor}</td>
-                  <td className="ctr">{r.hasView ? <Eye size={15} className="ap-eye" aria-label="View details" /> : null}</td>
                   <td className="ctr"><MedalBadge rank={r.rank} /></td>
                   <td className="ctr">{r.wins}</td>
-                  <td className="ctr">{r.points}</td>
-                  <td className={`ctr ${r.actual > 0 ? 'ap-tbl__gold-text' : 'ap-tbl__dim'}`}>{r.actual}</td>
+                  <td className={`ctr ${r.actual > 0 ? 'ap-tbl__gold-text' : ''}`}>{r.points}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="ap-tbl__empty">No results found for &ldquo;{filter}&rdquo;</td>
+                  <td colSpan={7} className="ap-tbl__empty ctr">No results found for &ldquo;{filter}&rdquo;</td>
                 </tr>
               )}
             </tbody>
             <tfoot>
               <tr className="ap-tbl__foot">
-                <td colSpan={8}>Total: <strong className="ap-tbl__accent">{cat.totalPoints?.toLocaleString()}</strong></td>
-                <td colSpan={2} className="ctr">Actual: <strong className="ap-tbl__accent">{cat.points?.toLocaleString()}</strong></td>
+                <td colSpan={7}>Total Points: <strong className="ap-tbl__accent">{cat.points?.toLocaleString()}</strong></td>
               </tr>
             </tfoot>
           </table>
@@ -350,9 +363,9 @@ function TabbedCompetitions({ categories }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   BELT JOURNEY — table with View column, sorted descending
+   BELT JOURNEY — table with View column (portal only), sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
+function BeltJourney({ beltExaminations, beltColors, onOpenCertificate, isDashboardContext = false }) {
   if (!beltExaminations || beltExaminations.length === 0) return null
   const sorted = [...beltExaminations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -364,13 +377,13 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
           <table className="ap-tbl">
             <thead>
               <tr>
-                <th style={{ width: '12%' }}>Date</th>
-                <th style={{ width: '18%' }}>Belt</th>
-                <th style={{ width: '10%' }}>Grade</th>
-                <th style={{ width: '22%' }}>Examiner</th>
-                <th style={{ width: '22%' }}>Dojo</th>
-                <th style={{ width: '7%' }} className="ctr">View</th>
-                <th style={{ width: '9%' }} className="ctr">Result</th>
+                <th>Date</th>
+                <th>Belt</th>
+                <th>Grade</th>
+                <th>Examiner</th>
+                <th>Dojo</th>
+                {isDashboardContext && <th className="ctr">View</th>}
+                <th className="ctr">Result</th>
               </tr>
             </thead>
             <tbody>
@@ -388,30 +401,32 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
                     <td style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
                     <td>{ex.examiner}</td>
                     <td>{ex.dojo}</td>
-                    <td className="ctr">
-                      {ex.result === 'Pass' ? (
-                        <button 
-                          onClick={() => onOpenCertificate(ex)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--gold)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '100%',
-                            padding: '0.25rem'
-                          }}
-                          aria-label="View Certificate"
-                          title="View Digital Certificate"
-                        >
-                          <Download size={16} />
-                        </button>
-                      ) : (
-                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>
-                      )}
-                    </td>
+                    {isDashboardContext && (
+                      <td className="ctr">
+                        {ex.result === 'Pass' ? (
+                          <button 
+                            onClick={() => onOpenCertificate(ex)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--gold)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%',
+                              padding: '0.25rem'
+                            }}
+                            aria-label="View Certificate"
+                            title="View Digital Certificate"
+                          >
+                            <Download size={16} />
+                          </button>
+                        ) : (
+                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>
+                        )}
+                      </td>
+                    )}
                     <td className="ctr">
                       <span className={`ap-pill ${ex.result === 'Pass' ? 'ap-pill--pass' : 'ap-pill--fail'}`}>{ex.result}</span>
                     </td>
@@ -427,9 +442,9 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SPECIAL EVENTS — compact table (not large cards), with View column
+   SPECIAL EVENTS — compact table, View column portal-only
    ═══════════════════════════════════════════════════════════════════════ */
-function SpecialEventsSection({ specialEvents }) {
+function SpecialEventsSection({ specialEvents, isDashboardContext = false }) {
   if (!specialEvents || specialEvents.length === 0) return null
   const sorted = [...specialEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -445,11 +460,11 @@ function SpecialEventsSection({ specialEvents }) {
           <table className="ap-tbl">
             <thead>
               <tr>
-                <th style={{ width: '12%' }}>Date</th>
-                <th style={{ width: '15%' }}>Type</th>
-                <th style={{ width: '38%' }}>Event</th>
-                <th style={{ width: '28%' }}>Location</th>
-                <th style={{ width: '7%' }} className="ctr">View</th>
+                <th style={{ width: isDashboardContext ? '12%' : '15%' }}>Date</th>
+                <th style={{ width: isDashboardContext ? '15%' : 'auto' }}>Type</th>
+                <th style={{ width: isDashboardContext ? '38%' : 'auto' }}>Event</th>
+                <th style={{ width: isDashboardContext ? '28%' : 'auto' }}>Location</th>
+                {isDashboardContext && <th className="ctr" style={{ width: '7%' }}>View</th>}
               </tr>
             </thead>
             <tbody>
@@ -471,7 +486,7 @@ function SpecialEventsSection({ specialEvents }) {
                       <MapPin size={13} /> {ev.location}
                     </span>
                   </td>
-                  <td className="ctr"><Eye size={15} className="ap-eye" aria-label="View details" /></td>
+                  {isDashboardContext && <td className="ctr"><Eye size={15} className="ap-eye" aria-label="View details" /></td>}
                 </tr>
               ))}
             </tbody>
@@ -530,25 +545,25 @@ export default function AthleteProfileClient({
   
   return (
     <div className={`ap-page ${isDashboardContext ? 'kuroobi-dashboard' : ''}`} style={isDashboardContext ? { background: 'transparent', minHeight: 'auto' } : {}}>
+      {!isDashboardContext && (
+        <div className="ap-page-watermark">
+          空手道
+        </div>
+      )}
+
       <div className="ap-container">
-        <AthleteHero athleteInfo={athleteInfo} categories={categories} />
-        
-        {!isDashboardContext && (
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap', justifyContent: 'center' }} className="ap-animate-in">
-            <button onClick={handleShareCard} disabled={isExporting} className="ap-pill" style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <Share2 size={16} /> {isExporting ? 'Generating...' : 'Share Ranking Card'}
-            </button>
-            <a href="#ap-competition-section" className="ap-pill" style={{ textDecoration: 'none', background: 'rgba(255,183,3,0.1)', color: '#ffb703', border: '1px solid rgba(255,183,3,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600 }}>🏆 Tournaments</a>
-            <a href="#verified-certificates" className="ap-pill" style={{ textDecoration: 'none', background: 'rgba(46,204,113,0.1)', color: '#2ecc71', border: '1px solid rgba(46,204,113,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600 }}>🌟 Digital Certificates</a>
-            <a href="#certifications" className="ap-pill" style={{ textDecoration: 'none', background: 'rgba(214,40,40,0.1)', color: '#ff6b6b', border: '1px solid rgba(214,40,40,0.2)', padding: '0.5rem 1.5rem', fontWeight: 600 }}>📜 Legacy Belt Journey</a>
-          </div>
-        )}
+        <AthleteHero
+          athleteInfo={athleteInfo}
+          categories={categories}
+          onShareCard={!isDashboardContext ? handleShareCard : undefined}
+          isExporting={isExporting}
+        />
 
         <NextEventsSection nextEvents={nextEvents} />
-        <TabbedCompetitions categories={categories} />
-        <PublicCertificates skfId={athleteInfo.id} onOpenCertificate={handleOpenCertificate} />
-        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} onOpenCertificate={(r) => alert('Legacy certificates are handled directly via the Digital Certificates tab above.')} />
-        <SpecialEventsSection specialEvents={specialEvents} />
+        <TabbedCompetitions categories={categories} isDashboardContext={isDashboardContext} />
+        {isDashboardContext && <PublicCertificates skfId={athleteInfo.id} onOpenCertificate={handleOpenCertificate} />}
+        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} isDashboardContext={isDashboardContext} onOpenCertificate={(r) => alert('Legacy certificates are handled directly via the Digital Certificates tab above.')} />
+        <SpecialEventsSection specialEvents={specialEvents} isDashboardContext={isDashboardContext} />
       </div>
 
       <CertificateModal 
