@@ -10,16 +10,18 @@ import {
     FaStar,
     FaSchool,
 } from 'react-icons/fa'
-import { getAllCities } from '@/lib/classesData'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import './obsidian.css' // Import the unified Obsidian styling instead of classes.css
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: 'Karate Classes Across Karnataka | SKF',
     description: 'Find SKF Karate classes in Bangalore, Kunigal, Tumkur, and Udupi.',
 }
 
-export default function ClassesPage() {
-    const cities = getAllCities()
+export default async function ClassesPage() {
+    const cities = await getAllCitiesLive()
 
     // Aggregate stats
     const totalBranches = cities.reduce((sum, c) => sum + c.branches.length, 0)

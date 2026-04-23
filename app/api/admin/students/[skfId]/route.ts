@@ -1,58 +1,105 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/server/requireRole'
+
+import {
+  buildAthleteAdminFormDefaults,
+  buildAthletePayloadFromAdminForm,
+} from '@/lib/admin/athlete-records'
+import { createErrorResponse, readJsonBody } from '@/lib/server/api'
+import { getAuthorizedApiSession } from '@/lib/server/auth/session'
+import {
+  getAthleteByRegistrationNumberLive,
+  updateAthleteLive,
+} from '@/lib/server/repositories/athletes-live'
+import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
+import { validateAthletePayload } from '@/lib/server/validation'
 import { editStudentSchema } from '@/lib/validators'
-import { updateStudent, deactivateStudent } from '@/lib/server/sheets'
+import { normaliseRegistrationNumber } from '@/lib/utils/registration'
 
 export async function PUT(request: Request, props: { params: Promise<{ skfId: string }> }) {
-  let skfIdResolved = ''
   try {
-    await requireRole(['admin', 'branch_admin', 'super_admin'] as any)
-    const { skfId } = await props.params
-    skfIdResolved = skfId
-    const body = await request.json()
-    const validatedUpdates = editStudentSchema.parse(body)
-
-    const ok = await updateStudent(skfId.toUpperCase(), validatedUpdates)
-    if (!ok) {
-        return NextResponse.json({ error: 'Student not found or sheet edit failed' }, { status: 404 })
+    const session = await getAuthorizedApiSession(['admin', 'instructor'])
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    return NextResponse.json({ success: true })
+    const { skfId } = await props.params
+    const registrationNumber = normaliseRegistrationNumber(skfId)
+    const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+
+    if (!existingAthlete) {
+      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+    }
+
+    const requestBody = await readJsonBody(request)
+    const partialFormValues = editStudentSchema.parse(requestBody)
+    const mergedFormValues = {
+      ...buildAthleteAdminFormDefaults(existingAthlete),
+      ...partialFormValues,
+      skfId: existingAthlete.registrationNumber,
+      registrationNumber: existingAthlete.registrationNumber,
+    }
+
+    const athlete = await updateAthleteLive(
+      existingAthlete.id,
+      validateAthletePayload({
+        ...existingAthlete,
+        ...buildAthletePayloadFromAdminForm(mergedFormValues),
+        achievements: existingAthlete.achievements || [],
+        pointsHistory: existingAthlete.pointsHistory || [],
+        pointsBalance: existingAthlete.pointsBalance || 0,
+        pointsLifetime: existingAthlete.pointsLifetime || 0,
+      })
+    )
+
+    if (!athlete) {
+      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+    }
+
+    revalidateAthleteSitePaths(existingAthlete.registrationNumber)
+    revalidateAthleteSitePaths(athlete.registrationNumber)
+
+    return NextResponse.json({ success: true, athlete })
   } catch (error: any) {
-    if (error.name === 'ZodError') {
+    if (error?.name === 'ZodError') {
       return NextResponse.json({ error: error.errors }, { status: 400 })
     }
-    console.error(`PUT /api/admin/students/${skfIdResolved} error:`, error)
-    if (error.message === 'UNAUTHORIZED' || error.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: error.message }, { status: error.message === 'UNAUTHORIZED' ? 401 : 403 })
-    }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+
+    return createErrorResponse(error, 'Unable to update the athlete profile.')
   }
 }
 
 export async function DELETE(request: Request, props: { params: Promise<{ skfId: string }> }) {
-    let skfIdResolved = ''
-    try {
-        await requireRole(['admin', 'branch_admin', 'super_admin'] as any)
-        const { skfId } = await props.params
-        skfIdResolved = skfId
-        const body = await request.json()
-        
-        if (!body.confirm) {
-            return NextResponse.json({ error: 'Confirmation required' }, { status: 400 })
-        }
-        
-        const ok = await deactivateStudent(skfId.toUpperCase())
-        if (!ok) {
-            return NextResponse.json({ error: 'Student not found or deactivation failed' }, { status: 404 })
-        }
-        
-        return NextResponse.json({ success: true })
-    } catch (error: any) {
-        console.error(`DELETE /api/admin/students/${skfIdResolved} error:`, error)
-        if (error.message === 'UNAUTHORIZED' || error.message === 'FORBIDDEN') {
-            return NextResponse.json({ error: error.message }, { status: error.message === 'UNAUTHORIZED' ? 401 : 403 })
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  try {
+    const session = await getAuthorizedApiSession(['admin', 'instructor'])
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { skfId } = await props.params
+    const registrationNumber = normaliseRegistrationNumber(skfId)
+    const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+
+    if (!existingAthlete) {
+      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+    }
+
+    const body = await readJsonBody(request)
+    if (!body?.confirm) {
+      return NextResponse.json({ error: 'Confirmation required.' }, { status: 400 })
+    }
+
+    const athlete = await updateAthleteLive(existingAthlete.id, {
+      ...existingAthlete,
+      status: 'inactive',
+    })
+
+    if (!athlete) {
+      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+    }
+
+    revalidateAthleteSitePaths(athlete.registrationNumber)
+    return NextResponse.json({ success: true, athlete })
+  } catch (error) {
+    return createErrorResponse(error, 'Unable to deactivate the athlete profile.')
+  }
 }

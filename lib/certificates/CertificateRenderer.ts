@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getStudentBySkfId } from '@/lib/server/sheets'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 export interface TemplateField {
   id: string
@@ -41,16 +41,17 @@ export class CertificateRenderer {
     if (enrollment.status !== 'completed' && !isAdmin) throw new Error('NOT_COMPLETED')
     if (enrollment.skf_id !== requestingSkfId && !isAdmin) throw new Error('FORBIDDEN')
     
-    const student = await getStudentBySkfId(enrollment.skf_id)
-    if (!student) throw new Error('STUDENT_NOT_FOUND')
+    const athlete = await getAthleteByRegistrationNumberLive(enrollment.skf_id)
+    if (!athlete) throw new Error('STUDENT_NOT_FOUND')
     
     const templates = Array.isArray(enrollment.certificate_templates)
       ? enrollment.certificate_templates
       : [enrollment.certificate_templates].filter(Boolean)
     const template = templates[0]
     if (!template) throw new Error('TEMPLATE_NOT_FOUND')
+    const studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || 'Athlete'
     const fieldValues: Record<string, string> = {
-      student_name: student.name,
+      student_name: studentName,
       skf_id: enrollment.skf_id,
       belt_level: enrollment.belt_level || '',
       completion_date: new Date(enrollment.completion_date).toLocaleDateString('en-IN', { 
@@ -68,7 +69,7 @@ export class CertificateRenderer {
     return {
       enrollmentId,
       skfId: enrollment.skf_id,
-      studentName: student.name,
+      studentName,
       programName: enrollment.programs.name,
       beltLevel: enrollment.belt_level,
       completionDate: enrollment.completion_date,

@@ -1,6 +1,9 @@
 import EventForm from '../_components/EventForm'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 
-export default function NewEventPage() {
+export default async function NewEventPage() {
+  const classCities = await getAllCitiesLive()
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -23,7 +26,7 @@ export default function NewEventPage() {
       </div>
 
       <div style={{ padding: '2rem 2.5rem' }}>
-        <EventForm />
+        <EventForm classCities={classCities} />
       </div>
     </div>
   )

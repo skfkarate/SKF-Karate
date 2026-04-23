@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createJWT, buildPortalCookie } from '@/lib/server/auth_legacy'
-import { getAthleteByRegistrationNumber } from '@/lib/server/repositories/athletes'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { extractClientIp, recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 
 /**
  * POST /api/auth/portal
@@ -14,6 +15,16 @@ export async function POST(request) {
     const { skfId, dob } = body
 
     if (!skfId || typeof skfId !== 'string') {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: request.headers.get('referer'),
+        metadata: { reason: 'missing-skf-id' },
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
+      })
+
       return NextResponse.json(
         { error: 'SKF ID is required.' },
         { status: 400 }
@@ -21,6 +32,16 @@ export async function POST(request) {
     }
 
     if (!dob || typeof dob !== 'string') {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: request.headers.get('referer'),
+        metadata: { reason: 'missing-dob', skfId: skfId?.trim?.().toUpperCase?.() || null },
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
+      })
+
       return NextResponse.json(
         { error: 'Date of Birth is required.' },
         { status: 400 }
@@ -32,6 +53,16 @@ export async function POST(request) {
     // Parse DD/MM/YYYY, DD-MM-YYYY, DD MM YYYY → YYYY-MM-DD
     const dobParts = dob.split(/[-/\s.]+/).filter(Boolean)
     if (dobParts.length !== 3) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: request.headers.get('referer'),
+        metadata: { reason: 'invalid-dob-format', skfId: normalizedId },
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
+      })
+
       return NextResponse.json(
         { error: 'Invalid date format. Use DD/MM/YYYY or DD-MM-YYYY.' },
         { status: 400 }
@@ -40,10 +71,19 @@ export async function POST(request) {
     const [day, month, year] = dobParts
     const normalizedDob = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
 
-    // Look up athlete from the local JSON data store
-    const athlete = getAthleteByRegistrationNumber(normalizedId)
+    const athlete = await getAthleteByRegistrationNumberLive(normalizedId)
 
     if (!athlete) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: request.headers.get('referer'),
+        metadata: { reason: 'athlete-not-found', skfId: normalizedId },
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
+      })
+
       return NextResponse.json(
         { error: 'No athlete found with this SKF ID.' },
         { status: 404 }
@@ -52,6 +92,16 @@ export async function POST(request) {
 
     // Verify Date of Birth
     if (athlete.dateOfBirth !== normalizedDob) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: request.headers.get('referer'),
+        metadata: { reason: 'dob-mismatch', skfId: normalizedId },
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
+      })
+
       return NextResponse.json(
         { error: 'Date of Birth does not match our records.' },
         { status: 401 }
@@ -63,8 +113,24 @@ export async function POST(request) {
       skfId: normalizedId,
       role: 'student',
       branch: athlete.branchName || null,
+      batch: athlete.batch || null,
       belt: athlete.currentBelt || null,
       name: athlete.firstName || null,
+    })
+
+    await recordSiteAnalyticsEvent({
+      eventType: 'portal_login_success',
+      path: '/portal/login',
+      pageTitle: 'Athlete Portal Login',
+      referrer: request.headers.get('referer'),
+      skfId: normalizedId,
+      metadata: {
+        branch: athlete.branchName || null,
+        batch: athlete.batch || null,
+        belt: athlete.currentBelt || null,
+      },
+      userAgent: request.headers.get('user-agent'),
+      ipAddress: extractClientIp(request.headers),
     })
 
     const response = NextResponse.json({ success: true })
@@ -73,6 +139,15 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('[Portal Auth] Error:', error)
+    await recordSiteAnalyticsEvent({
+      eventType: 'portal_login_failed',
+      path: '/portal/login',
+      pageTitle: 'Athlete Portal Login',
+      referrer: request.headers.get('referer'),
+      metadata: { reason: 'server-error' },
+      userAgent: request.headers.get('user-agent'),
+      ipAddress: extractClientIp(request.headers),
+    })
     return NextResponse.json(
       { error: 'Authentication failed. Please try again.' },
       { status: 500 }

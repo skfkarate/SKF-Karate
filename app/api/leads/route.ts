@@ -2,14 +2,16 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { submitLead } from '@/lib/server/sheets'
 import { retryWithBackoff } from '@/lib/utils/retry'
-import { BRANCH_SLUGS, BRANCH_LABELS, type BranchSlug } from '@/data/constants/branches'
+import { resolveClassBranchLabel } from '@/lib/classes/catalog'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import { extractClientIp, recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 
 // The schema matching FreeTrialForm.tsx
 const leadSchema = z.object({
   studentName: z.string().min(2).max(100),
   parentPhone: z.string().regex(/^\+91[0-9]{10}$/),
   childAge: z.number().min(4).max(60),
-  branch: z.union([z.enum(BRANCH_SLUGS), z.literal('not-sure')]),
+  branch: z.string().min(1).max(160),
   preferredBatch: z.string().min(2),
   hearAboutUs: z.string().optional()
 })
@@ -24,15 +26,20 @@ export async function POST(req: Request) {
       dateStyle: 'medium',
       timeStyle: 'short',
     })
+    const classes = await getAllCitiesLive()
     
     const status = 'New'
+    const branchLabel =
+      validatedData.branch === 'not-sure'
+        ? 'Not Sure / Contact Me'
+        : resolveClassBranchLabel(classes, validatedData.branch) || validatedData.branch
 
     // 1. Prepare Google Sheet Row
     const row = [
       validatedData.studentName.trim(),
       validatedData.parentPhone.trim(),
       String(validatedData.childAge),
-      validatedData.branch,
+      branchLabel,
       validatedData.preferredBatch,
       validatedData.hearAboutUs || '',
       timestamp,
@@ -59,10 +66,6 @@ export async function POST(req: Request) {
     // --- Channel 2: Telegram ---
     const escapeTelegramMarkdown = (value: any) =>
       String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
-
-    const branchLabel = validatedData.branch === 'not-sure' 
-      ? 'Not Sure / Contact Me' 
-      : (BRANCH_LABELS[validatedData.branch as BranchSlug] || validatedData.branch)
 
     const telegramMessage = [
       `🥋 *New Free Trial Request*`,
@@ -108,6 +111,20 @@ export async function POST(req: Request) {
 
     // Return success if AT LEAST ONE channel worked
     if (sheetOk || telegramOk) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'lead_submit_success',
+        path: '/book-trial',
+        pageTitle: 'Book Trial',
+        referrer: req.headers.get('referer'),
+        metadata: {
+          branch: branchLabel,
+          sheets: sheetOk,
+          telegram: telegramOk,
+        },
+        userAgent: req.headers.get('user-agent'),
+        ipAddress: extractClientIp(req.headers),
+      })
+
       return NextResponse.json({ 
         success: true, 
         captured: { sheets: sheetOk, telegram: telegramOk } 
@@ -121,12 +138,37 @@ export async function POST(req: Request) {
     console.error('Leads API Error:', error)
     
     if (error instanceof z.ZodError) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'lead_submit_failed',
+        path: '/book-trial',
+        pageTitle: 'Book Trial',
+        referrer: req.headers.get('referer'),
+        metadata: {
+          reason: 'validation',
+          fields: error.issues.map((issue) => issue.path.join('.')).filter(Boolean),
+        },
+        userAgent: req.headers.get('user-agent'),
+        ipAddress: extractClientIp(req.headers),
+      })
+
       return NextResponse.json({ 
         error: 'Please check your inputs.',
         retryable: false,
-        details: error.errors 
+        details: error.issues 
       }, { status: 400 })
     }
+
+    await recordSiteAnalyticsEvent({
+      eventType: 'lead_submit_failed',
+      path: '/book-trial',
+      pageTitle: 'Book Trial',
+      referrer: req.headers.get('referer'),
+      metadata: {
+        reason: 'delivery',
+      },
+      userAgent: req.headers.get('user-agent'),
+      ipAddress: extractClientIp(req.headers),
+    })
     
     return NextResponse.json({ 
       error: 'Could not submit booking. Please try again.',

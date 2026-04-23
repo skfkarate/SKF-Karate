@@ -41,7 +41,7 @@ export default function FindProfilePage() {
 
   // Load featured athletes on mount
   useEffect(() => {
-    fetch('/api/athletes/search?q=a')
+    fetch('/api/athletes/search?featured=1&limit=4')
       .then(res => res.json())
       .then(data => {
         const athletes = data.results || data.athletes || []

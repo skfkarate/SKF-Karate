@@ -579,6 +579,12 @@ function normaliseAthletePayload(
     parentName: input.parentName || existing?.parentName || '',
     phone: input.phone || existing?.phone || '',
     email: input.email || existing?.email || '',
+    batch: input.batch || existing?.batch || '',
+    monthlyFee: Number.isFinite(input.monthlyFee) ? input.monthlyFee : existing?.monthlyFee || 0,
+    photoConsent:
+      typeof input.photoConsent === 'boolean'
+        ? input.photoConsent
+        : existing?.photoConsent ?? false,
     isPublic: typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured: typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
     achievements: Array.isArray(input.achievements) ? input.achievements : existing?.achievements || [],

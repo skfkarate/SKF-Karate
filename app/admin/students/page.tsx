@@ -1,288 +1,431 @@
-import Link from 'next/link';
-import { getAllStudents } from '@/lib/server/sheets';
-import { BELTS, getBelt } from '@/data/constants/belts';
-import { requireAdminSession } from '@/lib/utils/auth';
-import StudentCsvImportClient from './StudentCsvImportClient';
-import { reactivateStudent } from './actions';
+import type { CSSProperties } from 'react'
+import Link from 'next/link'
 
-export const dynamic = 'force-dynamic';
+import { getBelt } from '@/data/constants/belts'
+import {
+  buildAdminAthleteRecord,
+  buildAthleteAutomationSummary,
+} from '@/lib/admin/athlete-records'
+import { requireAdminSession } from '@/lib/server/auth/session'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 
-export default async function AdminStudentsPage({ searchParams }) {
-  const session = await requireAdminSession()
-  const canManage = session.user.role === 'admin' || session.user.role === 'super_admin'
+import { reactivateStudent } from './actions'
+import StudentCsvImportClient from './StudentCsvImportClient'
 
-  const params = await searchParams;
-  let athletes = await getAllStudents();
-  
-  if (params?.q) {
-    const query = params.q.toLowerCase();
-    athletes = athletes.filter(athlete => 
-      athlete.name.toLowerCase().includes(query) ||
-      athlete.skfId.toLowerCase().includes(query)
-    );
+export const dynamic = 'force-dynamic'
+
+const PAGE_BG = '#050505'
+const PANEL_BG = '#0b0b0b'
+const BORDER = '#171717'
+
+export default async function AdminStudentsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const session = await requireAdminSession(['admin', 'instructor'])
+  const canManage = session.user.role === 'admin' || session.user.role === 'instructor'
+  const params = (await searchParams) || {}
+
+  const allAthletes = await getAllAthletesLive()
+  let athletes = allAthletes.map(buildAdminAthleteRecord)
+
+  const query = String(params?.q || '').trim().toLowerCase()
+  const branchFilter = String(params?.branch || '').trim()
+  const stateFilter = String(params?.state || '').trim().toLowerCase()
+
+  if (query) {
+    athletes = athletes.filter((athlete) =>
+      [athlete.displayName, athlete.skfId, athlete.branch, athlete.batch]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query)
+    )
   }
 
-  if (params?.branch) {
-    athletes = athletes.filter(athlete => athlete.branch === params.branch);
+  if (branchFilter) {
+    athletes = athletes.filter((athlete) => athlete.branch === branchFilter)
   }
 
-  const inActiveCount = athletes.filter(a => a.status === 'Inactive').length;
+  if (stateFilter === 'public') {
+    athletes = athletes.filter((athlete) => athlete.isPublic)
+  } else if (stateFilter === 'private') {
+    athletes = athletes.filter((athlete) => !athlete.isPublic)
+  } else if (stateFilter === 'inactive') {
+    athletes = athletes.filter((athlete) => athlete.status === 'Inactive')
+  }
+
+  const totalProfiles = allAthletes.length
+  const inactiveCount = allAthletes.filter(
+    (athlete) => String(athlete.status || '').toLowerCase() === 'inactive'
+  ).length
+  const publicCount = allAthletes.filter((athlete) => athlete.isPublic).length
+  const featuredCount = allAthletes.filter((athlete) => athlete.isFeatured).length
+
+  const branchOptions = Array.from(
+    new Set(allAthletes.map((athlete) => String(athlete.branchName || '').trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b))
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: '#000',
-      color: '#fff',
-      paddingBottom: '4rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      
-      {/* Header */}
-      <header style={{ 
-        borderBottom: '1px solid #111', 
-        padding: '2rem 2.5rem', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-end' 
-      }}>
-        <div>
-          <span style={{ 
-            color: '#666', 
-            fontSize: '0.8rem', 
-            fontFamily: 'monospace', 
-            letterSpacing: '0.1em', 
-            display: 'block', 
-            marginBottom: '1rem',
-            textTransform: 'uppercase'
-          }}>
-            Database
-          </span>
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: 400, 
-            margin: 0, 
-            letterSpacing: '-0.03em' 
-          }}>
-            Athlete Records
-          </h1>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          {canManage && <StudentCsvImportClient />}
-          {canManage && (
-            <Link href="/admin/students/new" style={{
-              background: '#111',
-              color: '#fff',
-              border: '1px solid #333',
-              padding: '0.75rem 1.5rem',
-              textDecoration: 'none',
-              fontSize: '0.9rem',
-              borderRadius: '4px',
-              display: 'inline-block'
-            }}>
-              Add Record
-            </Link>
-          )}
+    <div
+      style={{
+        minHeight: '100vh',
+        background: PAGE_BG,
+        color: '#fff',
+        paddingBottom: '4rem',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      <header
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          padding: '2.25rem 2.5rem',
+          background: '#000',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: '1.5rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <span
+              style={{
+                color: '#666',
+                fontSize: '0.8rem',
+                fontFamily: 'monospace',
+                letterSpacing: '0.1em',
+                display: 'block',
+                marginBottom: '0.9rem',
+                textTransform: 'uppercase',
+              }}
+            >
+              Training Network / Athletes
+            </span>
+            <h1 style={{ fontSize: '2.6rem', fontWeight: 500, margin: 0, letterSpacing: '-0.04em' }}>
+              Athlete Profiles
+            </h1>
+            <p style={{ margin: '0.8rem 0 0', color: '#777', maxWidth: '780px', lineHeight: 1.6 }}>
+              This is now the single live athlete directory. Identity, branch assignment, portal login,
+              public profile visibility, rankings, and event-driven achievements all connect here.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {canManage ? <StudentCsvImportClient /> : null}
+            {canManage ? (
+              <Link
+                href="/admin/students/new"
+                style={{
+                  background: '#fff',
+                  color: '#000',
+                  border: '1px solid #fff',
+                  padding: '0.85rem 1.35rem',
+                  textDecoration: 'none',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                }}
+              >
+                Add Athlete
+              </Link>
+            ) : null}
+          </div>
         </div>
       </header>
 
-      <div style={{ padding: '2rem 2.5rem' }}>
-        
-        {/* Controls */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '1rem', 
-          alignItems: 'center', 
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          background: '#050505',
-          border: '1px solid #111'
-        }}>
-          <form style={{ display: 'flex', gap: '1rem', width: '100%' }}>
-            <input 
-              name="q" 
-              defaultValue={params?.q || ''} 
-              type="text" 
-              placeholder="Search ID, Name..." 
+      <div style={{ padding: '2rem 2.5rem', display: 'grid', gap: '1.5rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+          }}
+        >
+          {[
+            ['Athletes', totalProfiles],
+            ['Public Profiles', publicCount],
+            ['Featured', featuredCount],
+            ['Inactive', inactiveCount],
+          ].map(([label, value]) => (
+            <div
+              key={label}
               style={{
-                flex: 1,
-                background: '#000',
-                border: '1px solid #222',
-                color: '#fff',
-                padding: '0.75rem 1rem',
-                fontFamily: 'system-ui, sans-serif',
-                fontSize: '0.9rem',
-                outline: 'none',
-                borderRadius: '4px'
-              }}
-            />
-            <select 
-              name="branch" 
-              defaultValue={params?.branch || ''}
-              style={{
-                background: '#000',
-                border: '1px solid #222',
-                color: '#fff',
-                padding: '0.75rem 1rem',
-                fontFamily: 'system-ui, sans-serif',
-                fontSize: '0.9rem',
-                outline: 'none',
-                borderRadius: '4px',
-                minWidth: '150px'
+                padding: '1.15rem 1.2rem',
+                border: `1px solid ${BORDER}`,
+                background: PANEL_BG,
+                borderRadius: '18px',
               }}
             >
+              <div
+                style={{
+                  color: '#666',
+                  fontSize: '0.74rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {label}
+              </div>
+              <div style={{ marginTop: '0.55rem', fontSize: '2rem', fontWeight: 600 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            border: `1px solid ${BORDER}`,
+            background: PANEL_BG,
+            borderRadius: '20px',
+            padding: '1.25rem',
+          }}
+        >
+          <form
+            style={{
+              display: 'grid',
+              gap: '0.9rem',
+              gridTemplateColumns: 'minmax(240px, 1.6fr) repeat(2, minmax(180px, 0.9fr)) auto auto',
+            }}
+          >
+            <input
+              name="q"
+              defaultValue={String(params?.q || '')}
+              type="text"
+              placeholder="Search athlete ID, name, branch, or batch"
+              style={filterFieldStyle}
+            />
+            <select name="branch" defaultValue={branchFilter} style={filterFieldStyle}>
               <option value="">All Branches</option>
-              {Array.from(new Set(athletes.map(a => a.branch))).filter(Boolean).map(b => (
-                <option key={b} value={b}>{b}</option>
+              {branchOptions.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
               ))}
             </select>
-            <button type="submit" style={{
-              background: '#fff',
-              color: '#000',
-              border: 'none',
-              padding: '0 1.5rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              borderRadius: '4px',
-              fontFamily: 'system-ui, sans-serif'
-            }}>
-              Filter
+            <select name="state" defaultValue={stateFilter} style={filterFieldStyle}>
+              <option value="">All States</option>
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <button type="submit" style={primaryActionStyle}>
+              Apply Filters
             </button>
-            {(params?.q || params?.branch) && (
-              <Link href="/admin/students" style={{
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 1rem',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                border: '1px solid #222',
-                borderRadius: '4px'
-              }}>
+            {query || branchFilter || stateFilter ? (
+              <Link href="/admin/students" style={secondaryLinkStyle}>
                 Clear
               </Link>
-            )}
+            ) : null}
           </form>
         </div>
 
-        {/* Data Table */}
-        <div style={{ 
-          border: '1px solid #111', 
-          background: '#050505', 
-          overflowX: 'auto' 
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ borderBottom: '1px solid #222' }}>
-              <tr>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Athlete</th>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Rank</th>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Location</th>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Joined</th>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase' }}>State</th>
-                <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 500, color: '#666', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {athletes.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ padding: '4rem', textAlign: 'center', color: '#666' }}>
-                    No records found
-                  </td>
-                </tr>
-              ) : (
-                athletes.map((athlete) => {
-                  const beltInfo = getBelt(athlete.belt)
-                  const beltColorMap: Record<string, string> = {
-                    white: '#f5f5f5',
-                    yellow: '#facc15',
-                    orange: '#fb923c',
-                    green: '#22c55e',
-                    blue: '#3b82f6',
-                    brown: '#92400e',
-                    black: '#171717',
-                  }
-                  const isInactive = athlete.status === 'Inactive'
-                  return (
-                    <tr key={athlete.skfId} style={{ 
-                        borderBottom: '1px solid #111', 
-                        opacity: isInactive ? 0.6 : 1, 
-                        background: isInactive ? 'rgba(214, 40, 40, 0.05)' : 'transparent' 
-                    }}>
-                      <td style={{ padding: '1rem 1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <div style={{ 
-                            width: 32, height: 32, borderRadius: '50%', background: '#111', 
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            color: '#666', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace' 
-                          }}>
-                            {athlete.name[0]}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 500, color: isInactive ? '#999' : '#fff', fontSize: '0.95rem' }}>
-                              {athlete.name}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#666', fontFamily: 'monospace', marginTop: '0.2rem' }}>
-                              {athlete.skfId}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div style={{ width: 12, height: 12, borderRadius: 2, background: beltColorMap[athlete.belt] || '#fff' }} />
-                          <span style={{ fontSize: '0.9rem', color: '#ccc', textTransform: 'capitalize' }}>{beltInfo?.label || athlete.belt}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', color: '#ccc', fontSize: '0.9rem', textTransform: 'capitalize' }}>
-                        {athlete.branch || '—'}
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', color: '#666', fontSize: '0.85rem' }}>
-                        {new Date(athlete.enrolledDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ 
-                          padding: '0.25rem 0.6rem', 
-                          fontSize: '0.7rem', 
-                          background: isInactive ? 'rgba(214, 40, 40, 0.1)' : 'rgba(255,255,255,0.1)',
-                          color: isInactive ? '#ff4444' : '#fff',
-                          border: `1px solid ${isInactive ? '#ff4444' : '#333'}`,
-                          borderRadius: '4px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em'
-                        }}>
-                          {athlete.status || 'Active'}
+        <div
+          style={{
+            border: `1px solid ${BORDER}`,
+            background: PANEL_BG,
+            borderRadius: '20px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(260px, 1.4fr) repeat(4, minmax(120px, 0.6fr)) minmax(220px, 1fr)',
+              gap: '1rem',
+              padding: '1rem 1.4rem',
+              borderBottom: `1px solid ${BORDER}`,
+              color: '#666',
+              fontSize: '0.74rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span>Athlete</span>
+            <span>Belt</span>
+            <span>Branch</span>
+            <span>Batch</span>
+            <span>Automation</span>
+            <span style={{ textAlign: 'right' }}>Actions</span>
+          </div>
+
+          {athletes.length === 0 ? (
+            <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#666' }}>
+              No athlete profiles matched the current filters.
+            </div>
+          ) : (
+            athletes.map((athlete) => {
+              const beltInfo = getBelt(athlete.belt)
+              const isInactive = athlete.status === 'Inactive'
+              const automation = buildAthleteAutomationSummary(
+                allAthletes.find((entry) => entry.registrationNumber === athlete.registrationNumber)
+              )
+
+              return (
+                <div
+                  key={athlete.skfId}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(260px, 1.4fr) repeat(4, minmax(120px, 0.6fr)) minmax(220px, 1fr)',
+                    gap: '1rem',
+                    padding: '1rem 1.4rem',
+                    alignItems: 'center',
+                    borderBottom: `1px solid ${BORDER}`,
+                    opacity: isInactive ? 0.62 : 1,
+                    background: isInactive ? 'rgba(214, 40, 40, 0.04)' : 'transparent',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.95rem', minWidth: 0 }}>
+                    <div
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: '50%',
+                        background: '#111',
+                        display: 'grid',
+                        placeItems: 'center',
+                        color: '#888',
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {athlete.displayName.charAt(0)}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '0.98rem',
+                          color: isInactive ? '#aaa' : '#fff',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {athlete.displayName}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.55rem',
+                          flexWrap: 'wrap',
+                          marginTop: '0.32rem',
+                          color: '#666',
+                          fontSize: '0.76rem',
+                        }}
+                      >
+                        <span style={{ fontFamily: 'monospace' }}>{athlete.skfId}</span>
+                        <span style={{ color: athlete.isPublic ? '#ffb703' : '#666' }}>
+                          {athlete.isPublic ? 'PUBLIC' : 'PRIVATE'}
                         </span>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                        {canManage ? (
-                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                              {isInactive && (
-                                <form action={async () => { 'use server'; await reactivateStudent(athlete.skfId); }}>
-                                    <button type="submit" style={{ background: 'transparent', color: '#4caf50', border: '1px solid #4caf50', padding: '0.4rem 0.75rem', fontSize: '0.8rem', borderRadius: '4px', cursor: 'pointer' }}>Reactivate</button>
-                                </form>
-                              )}
-                              <Link href={`/admin/students/${athlete.skfId}/edit`} style={{
-                                color: '#fff',
-                                border: '1px solid #333',
-                                padding: '0.4rem 0.75rem',
-                                fontSize: '0.8rem',
-                                textDecoration: 'none',
-                                borderRadius: '4px'
-                              }}>
-                                Edit
-                              </Link>
-                          </div>
-                        ) : (
-                          <span style={{ color: '#666', fontSize: '0.8rem' }}>Read Only</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                        {athlete.isFeatured ? <span style={{ color: '#fff' }}>FEATURED</span> : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.92rem', color: '#d3d3d3', textTransform: 'capitalize' }}>
+                    {beltInfo?.label || athlete.belt}
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: '#cfcfcf' }}>{athlete.branch || '—'}</div>
+                  <div style={{ fontSize: '0.88rem', color: '#9c9c9c' }}>{athlete.batch || '—'}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#9c9c9c', lineHeight: 1.6 }}>
+                    {automation.achievementCount} synced entries
+                    <br />
+                    {automation.lifetimePoints} lifetime pts
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.55rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    {isInactive ? (
+                      <form
+                        action={async () => {
+                          'use server'
+                          await reactivateStudent(athlete.skfId)
+                        }}
+                      >
+                        <button type="submit" style={reactivateButtonStyle}>
+                          Reactivate
+                        </button>
+                      </form>
+                    ) : null}
+                    {athlete.publicProfileHref ? (
+                      <Link href={athlete.publicProfileHref} target="_blank" style={publicViewLinkStyle}>
+                        Public View
+                      </Link>
+                    ) : null}
+                    <Link href={`/admin/students/${athlete.skfId}/edit`} style={editLinkStyle}>
+                      Edit
+                    </Link>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </div>
   )
+}
+
+const filterFieldStyle: CSSProperties = {
+  width: '100%',
+  minWidth: 0,
+  padding: '0.9rem 1rem',
+  borderRadius: '14px',
+  border: '1px solid #252525',
+  background: '#050505',
+  color: '#fff',
+  outline: 'none',
+  fontSize: '0.92rem',
+}
+
+const primaryActionStyle: CSSProperties = {
+  padding: '0.9rem 1.2rem',
+  borderRadius: '14px',
+  border: 'none',
+  background: '#fff',
+  color: '#000',
+  fontWeight: 700,
+  cursor: 'pointer',
+}
+
+const secondaryLinkStyle: CSSProperties = {
+  padding: '0.9rem 1.2rem',
+  borderRadius: '14px',
+  border: '1px solid #252525',
+  background: '#050505',
+  color: '#cfcfcf',
+  textDecoration: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const editLinkStyle: CSSProperties = {
+  color: '#fff',
+  border: '1px solid #333',
+  padding: '0.5rem 0.9rem',
+  fontSize: '0.8rem',
+  textDecoration: 'none',
+  borderRadius: '999px',
+}
+
+const publicViewLinkStyle: CSSProperties = {
+  color: '#ffb703',
+  border: '1px solid rgba(255, 183, 3, 0.35)',
+  padding: '0.5rem 0.9rem',
+  fontSize: '0.8rem',
+  textDecoration: 'none',
+  borderRadius: '999px',
+}
+
+const reactivateButtonStyle: CSSProperties = {
+  background: 'transparent',
+  color: '#4caf50',
+  border: '1px solid #2f7e45',
+  padding: '0.5rem 0.9rem',
+  fontSize: '0.8rem',
+  borderRadius: '999px',
+  cursor: 'pointer',
 }

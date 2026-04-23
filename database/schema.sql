@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS otp_attempts (
 -- SECTION 3: Programs & Certificates
 -- NOTE: programs.type is for CERTIFICATE PROGRAMS only.
 -- It is NOT the same as calendar event types.
--- Calendar event types: tournament|seminar|pelt-exam|grading|camp|fun
+-- Calendar event types: tournament|seminar|belt-exam|grading|camp|fun
 -- ══════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS programs (
@@ -135,7 +135,195 @@ CREATE POLICY "service_role_full_cert_events" ON certificate_events
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 4: Portal Features
+-- SECTION 3B: Website Analytics
+-- First-party operational analytics for visits, lead failures,
+-- portal login failures, and traffic intelligence.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS site_analytics_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_type TEXT NOT NULL CHECK (
+    event_type IN (
+      'page_view',
+      'lead_submit_success',
+      'lead_submit_failed',
+      'portal_login_success',
+      'portal_login_failed'
+    )
+  ),
+  path TEXT,
+  page_title TEXT,
+  referrer TEXT,
+  visitor_id TEXT,
+  session_id TEXT,
+  skf_id TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  user_agent TEXT,
+  ip_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_site_analytics_created_at
+  ON site_analytics_events (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_site_analytics_event_type
+  ON site_analytics_events (event_type);
+CREATE INDEX IF NOT EXISTS idx_site_analytics_path
+  ON site_analytics_events (path);
+CREATE INDEX IF NOT EXISTS idx_site_analytics_session_id
+  ON site_analytics_events (session_id);
+
+ALTER TABLE site_analytics_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_site_analytics_events" ON site_analytics_events
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- ══════════════════════════════════════
+-- SECTION 4: Athlete Profiles & Search
+-- Powers the public athlete pages, rankings, honours board, and
+-- the mirrored admin-athlete records that must survive deployment.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS athletes (
+  id TEXT PRIMARY KEY,
+  registration_number TEXT UNIQUE NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  date_of_birth DATE NOT NULL,
+  gender TEXT NOT NULL DEFAULT 'male'
+    CHECK (gender IN ('male', 'female', 'other')),
+  photo_url TEXT,
+  branch_name TEXT NOT NULL,
+  current_belt TEXT NOT NULL,
+  join_date DATE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active', 'inactive', 'alumni')),
+  parent_name TEXT,
+  phone TEXT,
+  email TEXT,
+  batch TEXT,
+  monthly_fee NUMERIC DEFAULT 0,
+  photo_consent BOOLEAN DEFAULT false,
+  is_public BOOLEAN DEFAULT true,
+  is_featured BOOLEAN DEFAULT false,
+  achievements JSONB DEFAULT '[]',
+  points_history JSONB DEFAULT '[]',
+  points_balance NUMERIC DEFAULT 0,
+  points_lifetime NUMERIC DEFAULT 0,
+  attendance_rate NUMERIC,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_athletes_registration ON athletes(registration_number);
+CREATE INDEX IF NOT EXISTS idx_athletes_branch_status ON athletes(branch_name, status);
+CREATE INDEX IF NOT EXISTS idx_athletes_public ON athletes(is_public, is_featured);
+
+ALTER TABLE athletes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_athletes" ON athletes
+  FOR ALL USING (auth.role() = 'service_role');
+
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS batch TEXT;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS monthly_fee NUMERIC DEFAULT 0;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN DEFAULT false;
+
+-- ══════════════════════════════════════
+-- SECTION 5: Classes, Cities & Training Centres
+-- Powers the public classes pages and the admin classes management flow.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS class_cities (
+  slug TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'Karnataka',
+  photo_url TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS senseis (
+  id TEXT PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  title TEXT NOT NULL,
+  dan TEXT NOT NULL,
+  role TEXT NOT NULL,
+  specialty TEXT NOT NULL DEFAULT 'Karate Instruction',
+  experience TEXT DEFAULT '',
+  description TEXT NOT NULL,
+  full_bio TEXT NOT NULL,
+  achievements JSONB DEFAULT '[]',
+  quote TEXT DEFAULT '',
+  image_url TEXT,
+  accent_color TEXT NOT NULL DEFAULT 'gold'
+    CHECK (accent_color IN ('gold', 'crimson', 'blue', 'neutral')),
+  is_founder BOOLEAN DEFAULT false,
+  is_executive_committee BOOLEAN DEFAULT false,
+  is_public BOOLEAN DEFAULT true,
+  is_active BOOLEAN DEFAULT true,
+  is_assignable BOOLEAN DEFAULT true,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_senseis_public ON senseis(is_public, is_active, sort_order);
+CREATE INDEX IF NOT EXISTS idx_senseis_assignable ON senseis(is_assignable, is_active, sort_order);
+
+CREATE TABLE IF NOT EXISTS class_branches (
+  slug TEXT PRIMARY KEY,
+  city_slug TEXT NOT NULL REFERENCES class_cities(slug) ON DELETE CASCADE ON UPDATE CASCADE,
+  lead_sensei_id TEXT REFERENCES senseis(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  name TEXT NOT NULL,
+  is_hq BOOLEAN DEFAULT false,
+  address TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  whatsapp TEXT NOT NULL,
+  sensei TEXT NOT NULL,
+  sensei_dan TEXT NOT NULL,
+  class_days JSONB DEFAULT '[]',
+  class_time TEXT NOT NULL,
+  map_url TEXT,
+  photos JSONB DEFAULT '[]',
+  description TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE class_branches
+  ADD COLUMN IF NOT EXISTS lead_sensei_id TEXT REFERENCES senseis(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_class_branches_city ON class_branches(city_slug, sort_order);
+CREATE INDEX IF NOT EXISTS idx_class_branches_sensei ON class_branches(lead_sensei_id, city_slug, sort_order);
+
+CREATE TABLE IF NOT EXISTS class_schools (
+  id TEXT PRIMARY KEY,
+  city_slug TEXT NOT NULL REFERENCES class_cities(slug) ON DELETE CASCADE ON UPDATE CASCADE,
+  city TEXT NOT NULL,
+  name TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_class_schools_city ON class_schools(city_slug, sort_order);
+
+ALTER TABLE class_cities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE senseis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE class_branches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE class_schools ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "service_role_full_class_cities" ON class_cities
+  FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "service_role_full_senseis" ON senseis
+  FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "service_role_full_class_branches" ON class_branches
+  FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "service_role_full_class_schools" ON class_schools
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- ══════════════════════════════════════
+-- SECTION 6: Portal Features
 -- ══════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS video_progress (
@@ -154,6 +342,59 @@ ALTER TABLE video_progress ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_video_progress" ON video_progress
   FOR ALL USING (auth.role() = 'service_role');
 
+CREATE TABLE IF NOT EXISTS portal_videos (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  category TEXT NOT NULL DEFAULT 'techniques',
+  duration_label TEXT DEFAULT '',
+  provider TEXT NOT NULL DEFAULT 'google-drive',
+  source_url TEXT NOT NULL,
+  playback_url TEXT,
+  thumbnail_url TEXT,
+  branch_slugs JSONB DEFAULT '[]',
+  batch_names JSONB DEFAULT '[]',
+  belt_levels JSONB DEFAULT '[]',
+  is_featured BOOLEAN DEFAULT false,
+  is_published BOOLEAN DEFAULT true,
+  show_in_techniques BOOLEAN DEFAULT false,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE portal_videos
+  ADD COLUMN IF NOT EXISTS show_in_techniques BOOLEAN DEFAULT false;
+
+CREATE INDEX IF NOT EXISTS idx_portal_videos_published
+  ON portal_videos (is_published, is_featured, sort_order);
+
+ALTER TABLE portal_videos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_portal_videos" ON portal_videos
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS branch_timetables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch_slug TEXT NOT NULL REFERENCES class_branches(slug) ON DELETE CASCADE ON UPDATE CASCADE,
+  title TEXT NOT NULL DEFAULT 'Official Timetable',
+  drive_url TEXT NOT NULL,
+  image_url TEXT,
+  month_label TEXT,
+  effective_from DATE,
+  effective_to DATE,
+  is_active BOOLEAN DEFAULT true,
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_branch_timetables_branch_active
+  ON branch_timetables (branch_slug, is_active, effective_from DESC, created_at DESC);
+
+ALTER TABLE branch_timetables ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_branch_timetables" ON branch_timetables
+  FOR ALL USING (auth.role() = 'service_role');
+
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   skf_id TEXT NOT NULL,
@@ -168,7 +409,7 @@ CREATE POLICY "service_role_full_push_subs" ON push_subscriptions
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 5: Events & Tournaments
+-- SECTION 7: Events & Tournaments
 -- These replace the .data/*.json file-based storage
 -- which silently fails on Vercel (read-only filesystem).
 -- ══════════════════════════════════════
@@ -248,7 +489,7 @@ CREATE POLICY "service_role_full_tournaments" ON tournaments
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 6: Points & Rewards
+-- SECTION 8: Points & Rewards
 -- Used by lib/points/pointsService.ts
 -- ══════════════════════════════════════
 
@@ -284,7 +525,7 @@ CREATE POLICY "service_role_full_point_tx" ON point_transactions
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 7: Notifications
+-- SECTION 9: Notifications
 -- ══════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS notifications (
@@ -307,7 +548,7 @@ CREATE POLICY "service_role_full_notifications" ON notifications
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 8: Leads
+-- SECTION 10: Leads
 -- ══════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS leads (
@@ -333,7 +574,23 @@ CREATE POLICY "service_role_full_leads" ON leads
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════
--- SECTION 9: Shop Products (E-Commerce)
+-- SECTION 11: Event Categories
+-- Stores admin-created event type options so event forms are not backed
+-- by local JSON files in production.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS event_categories (
+  slug TEXT PRIMARY KEY,
+  label TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE event_categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_event_categories" ON event_categories
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- ══════════════════════════════════════
+-- SECTION 12: Shop Products (E-Commerce)
 -- ══════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS skf_products (
@@ -357,3 +614,169 @@ CREATE POLICY "public_read_products" ON skf_products
   FOR SELECT USING (true);
 CREATE POLICY "service_role_full_products" ON skf_products
   FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS skf_shop_orders (
+  order_id TEXT PRIMARY KEY,
+  skf_id TEXT,
+  customer_name TEXT NOT NULL,
+  customer_phone TEXT,
+  customer_type TEXT NOT NULL CHECK (customer_type IN ('athlete', 'guest')),
+  items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  subtotal INTEGER NOT NULL DEFAULT 0,
+  shipping_fee INTEGER NOT NULL DEFAULT 0,
+  total INTEGER NOT NULL DEFAULT 0,
+  discount INTEGER NOT NULL DEFAULT 0,
+  points_used INTEGER NOT NULL DEFAULT 0,
+  promo_code TEXT,
+  status TEXT NOT NULL DEFAULT 'processing' CHECK (
+    status IN (
+      'processing',
+      'payment-pending',
+      'pending-approval',
+      'approved',
+      'shipped',
+      'delivered',
+      'cancelled'
+    )
+  ),
+  fulfillment_method TEXT NOT NULL DEFAULT 'shipping' CHECK (
+    fulfillment_method IN ('shipping', 'dojo-pickup')
+  ),
+  address JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_skf_shop_orders_customer ON skf_shop_orders(skf_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_skf_shop_orders_status ON skf_shop_orders(status, created_at DESC);
+
+ALTER TABLE skf_shop_orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_shop_orders" ON skf_shop_orders
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE OR REPLACE FUNCTION place_shop_order(
+  p_order_id TEXT,
+  p_skf_id TEXT,
+  p_customer_name TEXT,
+  p_customer_phone TEXT,
+  p_customer_type TEXT,
+  p_items JSONB,
+  p_subtotal INTEGER,
+  p_shipping_fee INTEGER,
+  p_total INTEGER,
+  p_discount INTEGER,
+  p_points_used INTEGER,
+  p_promo_code TEXT,
+  p_status TEXT,
+  p_fulfillment_method TEXT,
+  p_address JSONB
+)
+RETURNS skf_shop_orders
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  requested_item JSONB;
+  current_product RECORD;
+  current_variant JSONB;
+  next_variants JSONB;
+  variant_found BOOLEAN;
+  requested_quantity INTEGER;
+  created_order skf_shop_orders;
+BEGIN
+  FOR requested_item IN
+    SELECT value FROM jsonb_array_elements(COALESCE(p_items, '[]'::jsonb))
+  LOOP
+    requested_quantity := COALESCE((requested_item->>'quantity')::INTEGER, 0);
+
+    IF requested_quantity <= 0 THEN
+      RAISE EXCEPTION 'Invalid quantity supplied for shop order.';
+    END IF;
+
+    SELECT id, variants
+    INTO current_product
+    FROM skf_products
+    WHERE id = requested_item->>'productId'
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Shop product % was not found.', requested_item->>'productId';
+    END IF;
+
+    next_variants := '[]'::jsonb;
+    variant_found := FALSE;
+
+    FOR current_variant IN
+      SELECT value FROM jsonb_array_elements(COALESCE(current_product.variants, '[]'::jsonb))
+    LOOP
+      IF current_variant->>'id' = requested_item->>'variantId' THEN
+        variant_found := TRUE;
+
+        IF COALESCE((current_variant->>'stock')::INTEGER, 0) < requested_quantity THEN
+          RAISE EXCEPTION 'Insufficient stock for variant %.', requested_item->>'variantId';
+        END IF;
+
+        current_variant := jsonb_set(
+          current_variant,
+          '{stock}',
+          to_jsonb(COALESCE((current_variant->>'stock')::INTEGER, 0) - requested_quantity)
+        );
+      END IF;
+
+      next_variants := next_variants || jsonb_build_array(current_variant);
+    END LOOP;
+
+    IF NOT variant_found THEN
+      RAISE EXCEPTION 'Shop variant % was not found.', requested_item->>'variantId';
+    END IF;
+
+    UPDATE skf_products
+    SET
+      variants = next_variants,
+      updated_at = NOW()
+    WHERE id = current_product.id;
+  END LOOP;
+
+  INSERT INTO skf_shop_orders (
+    order_id,
+    skf_id,
+    customer_name,
+    customer_phone,
+    customer_type,
+    items,
+    subtotal,
+    shipping_fee,
+    total,
+    discount,
+    points_used,
+    promo_code,
+    status,
+    fulfillment_method,
+    address,
+    created_at,
+    updated_at
+  ) VALUES (
+    p_order_id,
+    NULLIF(p_skf_id, ''),
+    p_customer_name,
+    p_customer_phone,
+    p_customer_type,
+    COALESCE(p_items, '[]'::jsonb),
+    COALESCE(p_subtotal, 0),
+    COALESCE(p_shipping_fee, 0),
+    COALESCE(p_total, 0),
+    COALESCE(p_discount, 0),
+    COALESCE(p_points_used, 0),
+    NULLIF(p_promo_code, ''),
+    p_status,
+    p_fulfillment_method,
+    COALESCE(p_address, '{}'::jsonb),
+    NOW(),
+    NOW()
+  )
+  RETURNING * INTO created_order;
+
+  RETURN created_order;
+END;
+$$;

@@ -2,10 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { 
-  SquareTerminal, Users, Trophy, Settings, LogOut, Code, FileDigit, ShieldAlert, Cpu, Circle
-} from "lucide-react"
-import { ADMIN_NAV_ITEMS } from '@/data/constants/navigation'
+import { LogOut } from "lucide-react"
+import { ADMIN_NAV_GROUPS } from '@/data/constants/navigation'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -15,11 +13,9 @@ export default function AdminSidebar() {
     await signOut({ callbackUrl: '/admin/login' })
   }
 
-  const navItems = ADMIN_NAV_ITEMS
-
   return (
     <div style={{
-      width: '220px',
+      width: '280px',
       height: '100vh',
       background: '#050505',
       display: 'flex',
@@ -43,49 +39,81 @@ export default function AdminSidebar() {
         }}>
           SKF_ADMIN
         </h2>
+        <p style={{ margin: '0.9rem 0 0', color: '#6f6f6f', fontSize: '0.82rem', lineHeight: 1.5 }}>
+          Structured around live operations, not isolated screens.
+        </p>
       </div>
 
       {/* Navigation Menu */}
-      <div style={{ flex: 1, padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-          
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
+      <div style={{ flex: 1, padding: '1.5rem 1rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto' }}>
+        {ADMIN_NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0.75rem 1rem',
-                color: isActive ? '#fff' : '#666',
-                textDecoration: 'none',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                fontSize: '0.9rem',
-                fontWeight: isActive ? 600 : 400,
-                letterSpacing: '0.02em',
-                transition: 'color 0.2s',
-                position: 'relative'
-              }}
-              onMouseOver={(e) => {
-                if (!isActive) e.currentTarget.style.color = '#ccc'
-              }}
-              onMouseOut={(e) => {
-                if (!isActive) e.currentTarget.style.color = '#666'
+                padding: '0 1rem 0.5rem',
+                color: '#6a6a6a',
+                fontSize: '0.72rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                fontFamily: 'monospace',
               }}
             >
-              {isActive && (
-                <span style={{ 
-                  position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
-                  width: '4px', height: '4px', background: '#fff', borderRadius: '50%'
-                }} />
-              )}
-              <span style={{ marginLeft: isActive ? '0.75rem' : '0' }}>
-                {item.label}
-              </span>
-            </Link>
-          )
-        })}
+              {group.label}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              {group.items.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    style={{
+                      display: 'block',
+                      padding: '0.85rem 1rem',
+                      color: isActive ? '#fff' : '#8a8a8a',
+                      textDecoration: 'none',
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                      border: `1px solid ${isActive ? '#2a2a2a' : 'transparent'}`,
+                      borderRadius: '12px',
+                      background: isActive ? '#0d0d0d' : 'transparent',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = '#090909'
+                        e.currentTarget.style.borderColor = '#171717'
+                        e.currentTarget.style.color = '#f4f4f4'
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.borderColor = 'transparent'
+                        e.currentTarget.style.color = '#8a8a8a'
+                      }
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                      <span style={{ fontSize: '0.93rem', fontWeight: isActive ? 600 : 500, letterSpacing: '0.01em' }}>
+                        {item.label}
+                      </span>
+                      {isActive ? (
+                        <span style={{ width: '6px', height: '6px', borderRadius: '999px', background: '#fff', flexShrink: 0 }} />
+                      ) : null}
+                    </div>
+                    {item.description ? (
+                      <div style={{ marginTop: '0.3rem', fontSize: '0.76rem', color: isActive ? '#8d8d8d' : '#666', lineHeight: 1.45 }}>
+                        {item.description}
+                      </div>
+                    ) : null}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Footer / User Area */}

@@ -91,9 +91,9 @@ export const events: SeedEvent[] = [
     hostingBranch: 'koramangala', createdAt: '2026-06-01T00:00:00Z', updatedAt: '2026-06-01T00:00:00Z',
   },
   {
-    id: 'evt_pelt_exam_2027', slug: 'pelt-examination-2027',
-    name: 'PELT Examination 2027', shortName: 'PELT Exam 2027',
-    type: "pelt-exam", status: "upcoming", date: '2027-03-15', endDate: '',
+    id: 'evt_belt_exam_2027', slug: 'belt-examination-2027',
+    name: 'Belt Examination 2027', shortName: 'Belt Exam 2027',
+    type: "belt-exam", status: "upcoming", date: '2027-03-15', endDate: '',
     venue: 'M P Sports Club', city: 'Bengaluru', state: 'Karnataka',
     description: 'Physical Education Leadership Training practical examination for all instructor-track candidates.',
     coverImageUrl: '', affiliatedBody: '',

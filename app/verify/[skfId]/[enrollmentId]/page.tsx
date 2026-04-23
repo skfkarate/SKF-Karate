@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getStudentBySkfId } from '@/lib/server/sheets'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 import Link from 'next/link'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
@@ -61,10 +61,12 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
     )
   }
 
-  let studentName = 'Unknown Student'
+  let studentName = 'Unknown Athlete'
   try {
-    const student = await getStudentBySkfId(skfId)
-    if (student) studentName = student.name
+    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    if (athlete) {
+      studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || studentName
+    }
   } catch {}
 
   const program = getProgramRelation(cert.programs)

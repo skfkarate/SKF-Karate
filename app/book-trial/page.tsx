@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaArrowLeft, FaCheckCircle } from 'react-icons/fa'
-import { getAllCities } from '@/lib/classesData'
+import { getAllCities, type City } from '@/lib/classesData'
+import { flattenClassBranches } from '@/lib/classes/catalog'
 import {
     queueTrialSubmission,
     readTrialQueue,
@@ -14,22 +15,13 @@ import {
 } from './trialSubmissionQueue'
 import './book-trial.css'
 
-const BRANCHES = getAllCities().flatMap(c =>
-    c.branches.map(b => ({ value: b.slug, label: b.name, city: c.name, batch: b.classTime, address: b.address }))
-)
-
-// Add "Not Sure" option
-const ALL_OPTIONS = [
-    ...BRANCHES,
-    { value: 'not-sure', label: 'Not Sure / Contact Me', city: 'Any', batch: 'To be discussed', address: '' }
-]
-
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function BookTrialPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const preselected = searchParams.get('branch') || ''
+    const [cities, setCities] = useState<City[]>(() => getAllCities())
 
     const [studentName, setStudentName] = useState('')
     const [parentPhone, setParentPhone] = useState('')
@@ -38,6 +30,18 @@ export default function BookTrialPage() {
     const [hearAboutUs, setHearAboutUs] = useState('')
     const [submitState, setSubmitState] = useState<SubmitState>('idle')
     const [errorMsg, setErrorMsg] = useState('')
+
+    const branchOptions = flattenClassBranches(cities).map((branch) => ({
+        value: branch.slug,
+        label: branch.name,
+        city: branch.cityName,
+        batch: branch.classTime,
+        address: branch.address,
+    }))
+    const allOptions = [
+        ...branchOptions,
+        { value: 'not-sure', label: 'Not Sure / Contact Me', city: 'Any', batch: 'To be discussed', address: '' }
+    ]
 
     // Queue flushing logic
     const flushQueue = useCallback(async () => {
@@ -61,6 +65,24 @@ export default function BookTrialPage() {
     useEffect(() => {
         flushQueue()
     }, [flushQueue])
+
+    useEffect(() => {
+        let isMounted = true
+
+        fetch('/api/classes')
+            .then((res) => res.json())
+            .then((data) => {
+                if (!isMounted || !Array.isArray(data?.cities)) return
+                setCities(data.cities)
+            })
+            .catch((error) => {
+                console.error('Failed to load classes for trial booking:', error)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
 
     // Auto-redirect back after success
     useEffect(() => {
@@ -110,7 +132,7 @@ export default function BookTrialPage() {
             return
         }
 
-        const selectedBranch = ALL_OPTIONS.find(b => b.value === branch)
+        const selectedBranch = allOptions.find(b => b.value === branch)
         const payload = {
             studentName: studentName.trim(),
             parentPhone: phone,
@@ -136,7 +158,7 @@ export default function BookTrialPage() {
         }
     }
 
-    const selectedBranchData = ALL_OPTIONS.find(b => b.value === branch)
+    const selectedBranchData = allOptions.find(b => b.value === branch)
 
     return (
         <div className="bt-page">
@@ -211,7 +233,7 @@ export default function BookTrialPage() {
                                         <label className="bt-form__label" htmlFor="branch">Preferred Branch</label>
                                         <select id="branch" className="bt-form__input bt-form__select" value={branch} onChange={e => setBranch(e.target.value)} required>
                                             <option value="">Select a branch</option>
-                                            {ALL_OPTIONS.map(b => (
+                                            {allOptions.map(b => (
                                                 <option key={b.value} value={b.value}>{b.label} — {b.city}</option>
                                             ))}
                                         </select>

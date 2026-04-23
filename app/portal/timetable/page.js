@@ -1,8 +1,11 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth_legacy'
+
+import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth_legacy'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getActiveTimetableForBranchName } from '@/lib/server/repositories/portal-content-live'
+
 import TimetableClient from './TimetableClient'
-import { getTimetableByBranch } from '@/lib/server/sheets'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,9 +18,9 @@ export default async function TimetablePage() {
     redirect('/portal/login')
   }
 
-  const branchName = session.branch || 'Unknown Dojo'
-  const timetableData = await getTimetableByBranch(branchName)
+  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const branchName = athlete?.branchName || session.branch || 'SKF Karate'
+  const timetable = await getActiveTimetableForBranchName(branchName)
 
-  return <TimetableClient branchName={branchName} timetableData={timetableData || []} />
+  return <TimetableClient branchName={branchName} timetableData={timetable} />
 }
-

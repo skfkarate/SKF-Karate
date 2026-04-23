@@ -14,17 +14,15 @@ import {
     FaFistRaised,
     FaCalendarAlt,
 } from 'react-icons/fa'
-import { getCityBySlug, getAllCities, formatClassDays } from '@/lib/classesData'
+import { formatClassDays } from '@/lib/classesData'
+import { getCityBySlugLive } from '@/lib/server/repositories/classes-live'
 import '../obsidian.css' // Import Obsidian styles instead of legacy classes.css
 
-
-export async function generateStaticParams() {
-    return getAllCities().map((city) => ({ city: city.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }) {
     const { city: citySlug } = await params
-    const city = getCityBySlug(citySlug)
+    const city = await getCityBySlugLive(citySlug)
     if (!city) return {}
     return {
         title: `Karate Classes in ${city.name} | SKF`,
@@ -34,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 
 export default async function CityPage({ params }: { params: Promise<{ city: string }> }) {
     const { city: citySlug } = await params
-    const city = getCityBySlug(citySlug)
+    const city = await getCityBySlugLive(citySlug)
     if (!city) notFound()
 
     if (city.branches.length === 1 && city.schools.length === 0) {
@@ -128,7 +126,15 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
 
                                 <div className="obs-card-branch-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
-                                        <FaUserTie style={{ color: 'var(--gold, #ffb703)' }} /> <strong>{branch.sensei}</strong> · {branch.senseiDan}
+                                        <FaUserTie style={{ color: 'var(--gold, #ffb703)' }} />
+                                        {branch.senseiSlug ? (
+                                            <Link href={`/senseis/${branch.senseiSlug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                                                <strong>{branch.sensei}</strong>
+                                            </Link>
+                                        ) : (
+                                            <strong>{branch.sensei}</strong>
+                                        )}
+                                        · {branch.senseiDan}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
                                         <FaCalendarAlt style={{ color: 'var(--gold, #ffb703)' }} /> {formatClassDays(branch.classDays)}

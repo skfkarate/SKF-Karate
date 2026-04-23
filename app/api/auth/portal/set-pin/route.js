@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
 import { hashPin, createJWT, buildPortalCookie } from '@/lib/server/auth_legacy'
 import { createErrorResponse, readJsonBody, enforceRateLimit } from '@/lib/server/api'
-import { getStudentBySkfId } from '@/lib/server/sheets'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 /**
  * POST /api/auth/portal/set-pin
@@ -44,10 +44,10 @@ export async function POST(request) {
       )
     }
 
-    // Validate that skfId exists in Google Sheets
-    const studentData = await getStudentBySkfId(normalizedId)
+    // Validate that the athlete exists in the live athlete database
+    const athlete = await getAthleteByRegistrationNumberLive(normalizedId)
     
-    if (!studentData) {
+    if (!athlete) {
       return NextResponse.json(
         { error: 'Invalid SKF ID. You must be registered in the dojo first.' },
         { status: 403 }
@@ -79,14 +79,14 @@ export async function POST(request) {
       )
     }
 
-    // Issue JWT + cookie, storing the Google Sheets derived data
+    // Issue JWT + cookie using the live athlete profile.
     const token = createJWT({
       skfId: normalizedId,
       role: 'student',
-      branch: studentData.Branch || studentData.branch || null,
-      batch: studentData.Batch || studentData.batch || null,
-      belt: studentData.Belt || studentData.belt || null,
-      name: studentData["First Name"] || studentData.firstName || null,
+      branch: athlete.branchName || null,
+      batch: athlete.batch || null,
+      belt: athlete.currentBelt || null,
+      name: athlete.firstName || null,
     })
 
     const response = NextResponse.json({ success: true })

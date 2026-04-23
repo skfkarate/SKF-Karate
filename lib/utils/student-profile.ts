@@ -175,7 +175,7 @@ function getTimelineEntry(athlete, achievement, events, currentDate) {
       subtitle: `${competition.resultLabel}${competition.category ? ` — ${competition.category}` : ""}`,
       meta: [
         achievement.location || athlete.branchName,
-        `${competition.points.activePoints.toFixed(2)} ranking pts active`,
+        `${competition.points.activePoints.toFixed(2)} ranking pts`,
       ],
       href: competition.eventSlug ? `/results/${competition.eventSlug}` : null,
       actionLabel: competition.eventSlug ? "View event" : null,
@@ -185,6 +185,7 @@ function getTimelineEntry(athlete, achievement, events, currentDate) {
   if (
     achievement.type?.startsWith("seminar") ||
     achievement.type?.startsWith("camp") ||
+    achievement.type?.startsWith("belt") ||
     achievement.type?.startsWith("pelt") ||
     achievement.type === "grading-fail" ||
     achievement.type === "fun-attended"
@@ -195,8 +196,8 @@ function getTimelineEntry(athlete, achievement, events, currentDate) {
         ? "Seminar"
         : achievement.type.startsWith("camp")
           ? "Camp"
-          : achievement.type.startsWith("pelt")
-            ? "PELT Exam"
+          : achievement.type.startsWith("belt") || achievement.type.startsWith("pelt")
+            ? "Belt Exam"
             : achievement.type === "fun-attended"
               ? "Fun Event"
               : "Grading"

@@ -1,8 +1,13 @@
 import Link from 'next/link'
-import { getAllAthletes, getRankSnapshots } from '@/lib/server/repositories/athletes'
-import { getAllTournaments } from '@/lib/server/repositories/tournaments'
+
 import AthleteCard from '@/app/_components/athlete/AthleteCard'
 import DanCarousel from '@/app/_components/athlete/DanCarousel'
+import {
+  getAllAthletesLive,
+  getRankSnapshotsLive,
+} from '@/lib/server/repositories/athletes-live'
+import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
+import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
 import './honours.css'
 
 export const dynamic = 'force-dynamic'
@@ -23,6 +28,17 @@ function beltSort(belt: string): number {
   return 0
 }
 
+function danSort(label: string): number {
+  const normalized = String(label || '').toLowerCase()
+  if (normalized.includes('5th')) return 5
+  if (normalized.includes('4th')) return 4
+  if (normalized.includes('3rd')) return 3
+  if (normalized.includes('2nd')) return 2
+  if (normalized.includes('1st')) return 1
+  if (normalized.includes('black')) return 0
+  return -1
+}
+
 function medalEmoji(medal: string) {
   return medal === 'gold' ? '🥇' : medal === 'silver' ? '🥈' : '🥉'
 }
@@ -36,42 +52,109 @@ function ProfileSvg({ size = 60 }: { size?: number }) {
   )
 }
 
-export default async function HonoursPage() {
-  const athletes = getAllAthletes()
-  const publicAthletes = athletes.filter(a => a.isPublic)
-  const snapshots = getRankSnapshots().filter(e => e.totalPoints > 0)
-  const tournaments = getAllTournaments()
+function buildTournamentAchievements(publicAthletes: any[]) {
+  return publicAthletes
+    .flatMap((athlete) =>
+      (athlete.achievements || [])
+        .filter((achievement: any) => achievement.type?.startsWith('tournament'))
+        .map((achievement: any, index: number) => ({
+          id: achievement.id || `${athlete.id}-${index}`,
+          athleteId: athlete.id,
+          athleteName: `${athlete.firstName} ${athlete.lastName}`,
+          registrationNumber: athlete.registrationNumber,
+          branchName: athlete.branchName,
+          belt: beltLabel(athlete.currentBelt),
+          photoUrl: athlete.photoUrl,
+          medal: normaliseResult(
+            achievement.competitionResult ||
+            achievement.result ||
+            achievement.type.replace('tournament-', '')
+          ),
+          level: normaliseEventTier(achievement.sourceEventLevel || achievement.tournamentLevel),
+          tournament: achievement.tournamentName || achievement.title || 'Tournament',
+          date: achievement.date,
+          category: achievement.eventCategory || '',
+          sourceEventId: achievement.sourceEventId || '',
+        }))
+    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
 
-  // ── DAN BOARD ──
-  const danHolders = publicAthletes
-    .filter(a => a.currentBelt?.startsWith('black'))
+function getLatestSpotlight(achievements: any[]) {
+  const latestGold = achievements.find((achievement) => achievement.medal === 'gold')
+  if (!latestGold) {
+    return {
+      title: '',
+      athletes: [],
+      date: '',
+    }
+  }
+
+  const sourceKey = latestGold.sourceEventId || `${latestGold.tournament}-${latestGold.date}`
+  return {
+    title: latestGold.tournament,
+    date: latestGold.date,
+    athletes: achievements
+      .filter(
+        (achievement) =>
+          achievement.medal === 'gold' &&
+          (achievement.sourceEventId || `${achievement.tournament}-${achievement.date}`) === sourceKey
+      )
+      .slice(0, 3),
+  }
+}
+
+export default async function HonoursPage() {
+  const [athletes, snapshots, senseis] = await Promise.all([
+    getAllAthletesLive(),
+    getRankSnapshotsLive(),
+    getPublicSenseisLive(),
+  ])
+  const publicAthletes = athletes.filter((athlete) => athlete.isPublic)
+  const publicAthleteMap = new Map(publicAthletes.map((athlete) => [String(athlete.id), athlete]))
+  const filteredSnapshots = snapshots.filter(
+    (entry) => publicAthleteMap.has(String(entry.athleteId)) && Number(entry.totalPoints || 0) > 0
+  )
+  const tournamentAchievements = buildTournamentAchievements(publicAthletes)
+
+  const senseiDanHolders = senseis
+    .filter((sensei) => sensei.isActive && sensei.isPublic)
+    .sort((a, b) => danSort(b.dan) - danSort(a.dan) || a.sortOrder - b.sortOrder)
+    .map((sensei) => ({
+      id: sensei.id,
+      slug: sensei.slug,
+      displayName: sensei.name,
+      danLabel: sensei.dan,
+      subtitle: sensei.assignments?.[0]?.branchName
+        ? `SKF ${sensei.assignments[0].branchName}`
+        : sensei.title,
+      imageUrl: sensei.imageUrl,
+      profileHref: `/senseis/${sensei.slug}`,
+      assignments: sensei.assignments,
+    }))
+
+  const athleteDanHolders = publicAthletes
+    .filter((athlete) => athlete.currentBelt?.startsWith('black'))
     .sort((a, b) => beltSort(b.currentBelt) - beltSort(a.currentBelt))
 
-  // ── TOP 3 OVERALL ──
-  const allSorted = [...snapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
-  const top3 = allSorted.slice(0, 3).map(snap => {
-    const athlete = publicAthletes.find(a => a.id === snap.athleteId)
-    return { ...snap, athlete }
-  })
+  const danHolders = senseiDanHolders.length > 0 ? senseiDanHolders : athleteDanHolders
 
-  // ── NATIONAL GOLD ──
-  const nationalGolds = tournaments
-    .filter(t => t.level === 'national')
-    .flatMap(t => t.winners.filter(w => w.medal === 'gold').map(w => ({ ...w, tournament: t.shortName, date: t.date })))
+  const top3 = [...filteredSnapshots]
+    .sort((a, b) => Number(b.totalPoints || 0) - Number(a.totalPoints || 0))
+    .slice(0, 3)
+    .map((snapshot) => ({
+      ...snapshot,
+      athlete: publicAthleteMap.get(String(snapshot.athleteId)),
+    }))
+    .filter((entry) => entry.athlete)
 
-  // ── STATE GOLD ──
-  const stateGolds = tournaments
-    .filter(t => t.level === 'state')
-    .flatMap(t => t.winners.filter(w => w.medal === 'gold').map(w => ({ ...w, tournament: t.shortName, date: t.date })))
-
-  // ── LATEST HIGHLIGHTS ──
-  const completedTournaments = tournaments
-    .filter(t => t.status === 'completed')
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  const latestTournament = completedTournaments[0]
-  const latestGolds = latestTournament
-    ? latestTournament.winners.filter(w => w.medal === 'gold').slice(0, 3)
-    : []
+  const nationalGolds = tournamentAchievements.filter(
+    (achievement) => achievement.level === 'national' && achievement.medal === 'gold'
+  )
+  const stateGolds = tournamentAchievements.filter(
+    (achievement) => achievement.level === 'state' && achievement.medal === 'gold'
+  )
+  const latestSpotlight = getLatestSpotlight(tournamentAchievements)
 
   return (
     <div className="hon-page">
@@ -80,7 +163,6 @@ export default async function HonoursPage() {
       <div className="hon-orb hon-orb--3" />
       <div className="hon-watermark">栄誉</div>
 
-      {/* ═══ HERO ═══ */}
       <section className="hon-hero">
         <div className="hon-hero__badge">
           <span className="hon-hero__badge-dot" /> Hall of Honour
@@ -94,14 +176,13 @@ export default async function HonoursPage() {
         </p>
       </section>
 
-      {/* ═══ DAN BOARD — Depth Carousel ═══ */}
       {danHolders.length > 0 && (
         <section className="hon-section hon-section--wide">
           <div className="hon-section__header">
             <span className="hon-section__tag">🥋 The Dan Board</span>
             <h2 className="hon-section__title">Black Belt Holders</h2>
             <p className="hon-section__sub">
-              Achieving Dan grade is the highest milestone in karate.
+              Athletes who have reached Dan grade appear here automatically.
             </p>
           </div>
 
@@ -109,19 +190,17 @@ export default async function HonoursPage() {
         </section>
       )}
 
-      {/* ═══ TOP 3 — Podium Style ═══ */}
       {top3.length >= 3 && (
         <section className="hon-section">
           <div className="hon-section__header">
             <span className="hon-section__tag">🏆 Top Performers</span>
             <h2 className="hon-section__title">Overall Top 3</h2>
             <p className="hon-section__sub">
-              The highest-ranked athletes across all categories.
+              The highest-ranked athletes across all current competitive divisions.
             </p>
           </div>
 
           <div className="hon-podium">
-            {/* 2nd */}
             <Link href={`/athlete/${top3[1].registrationNumber}`} className="hon-pcard hon-pcard--2">
               <span className="hon-pcard__medal">🥈</span>
               <div className="hon-pcard__photo hon-pcard__photo--silver"><ProfileSvg size={56} /></div>
@@ -130,7 +209,7 @@ export default async function HonoursPage() {
               <span className="hon-pcard__branch">{top3[1].branchName}</span>
               <div className="hon-pcard__pts">{Number(top3[1].totalPoints || 0).toFixed(0)}<small> pts</small></div>
             </Link>
-            {/* 1st */}
+
             <Link href={`/athlete/${top3[0].registrationNumber}`} className="hon-pcard hon-pcard--1">
               <span className="hon-pcard__medal">👑</span>
               <div className="hon-pcard__photo hon-pcard__photo--gold"><ProfileSvg size={64} /></div>
@@ -139,7 +218,7 @@ export default async function HonoursPage() {
               <span className="hon-pcard__branch">{top3[0].branchName}</span>
               <div className="hon-pcard__pts">{Number(top3[0].totalPoints || 0).toFixed(0)}<small> pts</small></div>
             </Link>
-            {/* 3rd */}
+
             <Link href={`/athlete/${top3[2].registrationNumber}`} className="hon-pcard hon-pcard--3">
               <span className="hon-pcard__medal">🥉</span>
               <div className="hon-pcard__photo hon-pcard__photo--bronze"><ProfileSvg size={56} /></div>
@@ -152,7 +231,6 @@ export default async function HonoursPage() {
         </section>
       )}
 
-      {/* ═══ NATIONAL CHAMPIONS ═══ */}
       {nationalGolds.length > 0 && (
         <section className="hon-section">
           <div className="hon-section__header">
@@ -160,21 +238,24 @@ export default async function HonoursPage() {
             <h2 className="hon-section__title">National Gold Medalists</h2>
           </div>
           <div className="hon-medal-grid">
-            {nationalGolds.map((w: any, i: number) => (
-              <div key={`nat-${w.id}-${i}`} className="hon-medal-card">
+            {nationalGolds.map((achievement: any) => (
+              <Link
+                key={`nat-${achievement.id}`}
+                href={`/athlete/${achievement.registrationNumber}`}
+                className="hon-medal-card"
+              >
                 <div className="hon-medal-card__photo"><ProfileSvg size={36} /></div>
                 <div className="hon-medal-card__info">
-                  <h3 className="hon-medal-card__name">{w.athleteName}</h3>
-                  <span className="hon-medal-card__detail">{w.belt} · {w.branchName}</span>
-                  <span className="hon-medal-card__event">{medalEmoji(w.medal)} {w.tournament}</span>
+                  <h3 className="hon-medal-card__name">{achievement.athleteName}</h3>
+                  <span className="hon-medal-card__detail">{achievement.belt} · {achievement.branchName}</span>
+                  <span className="hon-medal-card__event">{medalEmoji(achievement.medal)} {achievement.tournament}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* ═══ STATE CHAMPIONS ═══ */}
       {stateGolds.length > 0 && (
         <section className="hon-section">
           <div className="hon-section__header">
@@ -182,40 +263,51 @@ export default async function HonoursPage() {
             <h2 className="hon-section__title">State Gold Medalists</h2>
           </div>
           <div className="hon-medal-grid">
-            {stateGolds.map((w: any, i: number) => (
-              <div key={`state-${w.id}-${i}`} className="hon-medal-card">
+            {stateGolds.map((achievement: any) => (
+              <Link
+                key={`state-${achievement.id}`}
+                href={`/athlete/${achievement.registrationNumber}`}
+                className="hon-medal-card"
+              >
                 <div className="hon-medal-card__photo"><ProfileSvg size={36} /></div>
                 <div className="hon-medal-card__info">
-                  <h3 className="hon-medal-card__name">{w.athleteName}</h3>
-                  <span className="hon-medal-card__detail">{w.belt} · {w.branchName}</span>
-                  <span className="hon-medal-card__event">{medalEmoji(w.medal)} {w.tournament}</span>
+                  <h3 className="hon-medal-card__name">{achievement.athleteName}</h3>
+                  <span className="hon-medal-card__detail">{achievement.belt} · {achievement.branchName}</span>
+                  <span className="hon-medal-card__event">{medalEmoji(achievement.medal)} {achievement.tournament}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* ═══ RECENT SPOTLIGHT — Full Athlete Cards ═══ */}
-      {latestTournament && latestGolds.length > 0 && (
+      {latestSpotlight.athletes.length > 0 && (
         <section className="hon-section hon-section--records">
           <div className="hon-section__header">
             <span className="hon-section__tag">🔥 Recent Spotlight</span>
-            <h2 className="hon-section__title">{latestTournament.shortName}</h2>
+            <h2 className="hon-section__title">{latestSpotlight.title}</h2>
             <p className="hon-section__sub">
-              Gold medalists from our latest tournament — {new Date(latestTournament.date).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+              Gold medalists from the latest published tournament result set
+              {latestSpotlight.date
+                ? ` — ${new Date(latestSpotlight.date).toLocaleDateString('en-IN', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}`
+                : ''}
             </p>
           </div>
 
           <div className="hon-spotlight-grid">
-            {latestGolds.map((w: any, i: number) => (
+            {latestSpotlight.athletes.map((achievement: any) => (
               <AthleteCard
-                key={`spot-${w.id}-${i}`}
-                name={w.athleteName}
-                belt={w.belt}
-                branch={w.branchName}
-                category={w.category?.replace(/-/g, ' ')}
+                key={`spot-${achievement.id}`}
+                name={achievement.athleteName}
+                belt={achievement.belt}
+                branch={achievement.branchName}
+                category={achievement.category?.replace(/-/g, ' ')}
                 medal="gold"
+                photoUrl={achievement.photoUrl}
+                href={`/athlete/${achievement.registrationNumber}`}
               />
             ))}
           </div>

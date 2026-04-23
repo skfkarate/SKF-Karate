@@ -87,6 +87,8 @@ export function buildCompetitionResultsFromAthletes(athletes = []) {
           ),
           gender: athlete.gender || "male",
           weightCategory: achievement.weightCategory || null,
+          difficultyLevel: achievement.difficultyLevel ?? null,
+          wins: achievement.wins ?? 0,
           tournamentName: achievement.tournamentName || achievement.title || "Tournament",
           eventSlug: achievement.sourceEventSlug || null,
           sourceType: "achievement",
@@ -136,6 +138,7 @@ export function compareRankingEntries(a, b) {
   if (b.goldCount !== a.goldCount) return b.goldCount - a.goldCount
   if (b.silverCount !== a.silverCount) return b.silverCount - a.silverCount
   if (b.bronzeCount !== a.bronzeCount) return b.bronzeCount - a.bronzeCount
+  if (b.fightWinCount !== a.fightWinCount) return b.fightWinCount - a.fightWinCount
   if (b.tournamentCount !== a.tournamentCount) return b.tournamentCount - a.tournamentCount
 
   const aRecent = a.mostRecentResultAt ? new Date(a.mostRecentResultAt).getTime() : 0
@@ -161,6 +164,7 @@ export function getRankedAthletes(
     const goldCount = results.filter((result) => normaliseResult(result.result) === "gold").length
     const silverCount = results.filter((result) => normaliseResult(result.result) === "silver").length
     const bronzeCount = results.filter((result) => normaliseResult(result.result) === "bronze").length
+    const fightWinCount = results.reduce((sum, result) => sum + Number(result.wins || 0), 0)
 
     return {
       athleteId: athlete.id,
@@ -172,6 +176,7 @@ export function getRankedAthletes(
       goldCount,
       silverCount,
       bronzeCount,
+      fightWinCount,
       totalMedals: goldCount + silverCount + bronzeCount,
       tournamentCount: results.length,
       mostRecentResultAt: results

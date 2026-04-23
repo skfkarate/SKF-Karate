@@ -3,7 +3,6 @@ import { BELTS } from '@/data/constants/belts'
 import {
   AGE_GROUPS,
   BELTS as TOURNAMENT_BELTS,
-  BRANCHES,
   EVENT_CATEGORIES,
   MEDAL_TYPES,
   TOURNAMENT_LEVELS,
@@ -13,6 +12,7 @@ import {
   EVENT_TYPES,
   EVENT_RESULT_OPTIONS,
   EVENT_BELT_VALUES,
+  isBeltExamType,
 } from '../../types/event'
 
 const ATHLETE_GENDERS = new Set(['male', 'female', 'other'])
@@ -24,7 +24,6 @@ const EXTENDED_TOURNAMENT_LEVEL_VALUES = new Set([
   'invitational',
   'open',
 ])
-const BRANCH_VALUES = new Set(BRANCHES)
 const EVENT_CATEGORY_VALUES = new Set(EVENT_CATEGORIES)
 const AGE_GROUP_VALUES = new Set(AGE_GROUPS)
 const MEDAL_VALUES = new Set(MEDAL_TYPES)
@@ -32,6 +31,7 @@ const TOURNAMENT_BELT_VALUES = new Set(TOURNAMENT_BELTS)
 const EVENT_TYPE_VALUES = new Set(EVENT_TYPES)
 const EVENT_STATUS_VALUES = new Set(EVENT_STATUSES)
 const EVENT_BELT_VALUE_SET = new Set(EVENT_BELT_VALUES)
+const ATTENDANCE_STYLE_EVENT_RESULT_VALUES = new Set(['absent', 'attended', 'completed'])
 
 type NumericOptions = {
   min?: number
@@ -75,6 +75,30 @@ function requiredString(value, label, options: NumericOptions = {}) {
   }
 
   return trimmed
+}
+
+function slugifyIdentifier(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+function normalizeEventTypeValue(value, label = 'Event type') {
+  const normalized = slugifyIdentifier(value || 'seminar')
+  const canonical = normalized === 'pelt-exam' ? 'belt-exam' : normalized
+
+  if (!canonical) {
+    throw new ApiError(400, `${label} is required.`)
+  }
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(canonical)) {
+    throw new ApiError(400, `${label} is invalid.`)
+  }
+
+  return canonical
 }
 
 function optionalString(value, label, options: NumericOptions = {}) {
@@ -360,7 +384,9 @@ function normaliseWinner(winner, index) {
       `Winner ${index + 1} registration number`,
       { max: 40 }
     ),
-    branchName: enumValue(value.branchName, `Winner ${index + 1} branch`, BRANCH_VALUES),
+    branchName: requiredString(value.branchName, `Winner ${index + 1} branch`, {
+      max: 120,
+    }),
     belt: value.belt
       ? enumValue(value.belt, `Winner ${index + 1} belt`, TOURNAMENT_BELT_VALUES)
       : 'White Belt',
@@ -384,6 +410,16 @@ function normaliseWinner(winner, index) {
       value.weightCategory,
       `Winner ${index + 1} weight category`,
       { max: 80 }
+    ),
+    difficultyLevel: optionalInteger(
+      value.difficultyLevel ?? value.difficulty,
+      `Winner ${index + 1} difficulty level`,
+      { min: 1, max: 5 }
+    ),
+    wins: optionalInteger(
+      value.wins ?? value.fightsWon,
+      `Winner ${index + 1} fights won`,
+      { min: 0, max: 50 }
     ),
     photoUrl: optionalUrl(value.photoUrl, `Winner ${index + 1} photo URL`),
   }
@@ -409,10 +445,10 @@ function normaliseParticipant(participant, index) {
       { max: 40 }
     ),
     athleteName,
-    branchName: enumValue(
-      value.branchName || 'Sunkadakatte',
+    branchName: requiredString(
+      value.branchName || 'SKF Karate',
       `Participant ${index + 1} branch`,
-      BRANCH_VALUES
+      { max: 120 }
     ),
     belt: optionalString(value.belt, `Participant ${index + 1} belt`, { max: 80 }),
     photoUrl: optionalUrl(value.photoUrl, `Participant ${index + 1} photo URL`),
@@ -421,8 +457,11 @@ function normaliseParticipant(participant, index) {
 
 function normaliseEventResult(result, index, eventType) {
   const value = ensureObject(result, `Result ${index + 1}`)
-  const normalizedType = enumValue(eventType, 'Event type', EVENT_TYPE_VALUES)
-  const allowedResults = new Set(EVENT_RESULT_OPTIONS[normalizedType] || [])
+  const normalizedType = normalizeEventTypeValue(eventType)
+  const allowedResults =
+    EVENT_RESULT_OPTIONS[normalizedType]
+      ? new Set(EVENT_RESULT_OPTIONS[normalizedType] || [])
+      : ATTENDANCE_STYLE_EVENT_RESULT_VALUES
   const participantName = requiredString(
     value.athleteName,
     `Result ${index + 1} athlete name`,
@@ -431,6 +470,9 @@ function normaliseEventResult(result, index, eventType) {
 
   const base = {
     id: optionalString(value.id, `Result ${index + 1} id`, { max: 80 }),
+    participantId: optionalString(value.participantId, `Result ${index + 1} participant id`, {
+      max: 80,
+    }),
     athleteId: optionalString(value.athleteId, `Result ${index + 1} athlete id`, { max: 80 }),
     registrationNumber: requiredString(
       value.registrationNumber,
@@ -446,6 +488,10 @@ function normaliseEventResult(result, index, eventType) {
     const resultValue = optionalString(value.result || medal, `Result ${index + 1} result`, {
       max: 40,
     }) || 'participation'
+
+    if (!allowedResults.has(resultValue)) {
+      throw new ApiError(400, `Result ${index + 1} is invalid.`)
+    }
 
     return {
       ...base,
@@ -470,10 +516,20 @@ function normaliseEventResult(result, index, eventType) {
         `Result ${index + 1} weight category`,
         { max: 80 }
       ),
+      difficultyLevel: optionalInteger(
+        value.difficultyLevel ?? value.difficulty,
+        `Result ${index + 1} difficulty level`,
+        { min: 1, max: 5 }
+      ),
+      wins: optionalInteger(
+        value.wins ?? value.fightsWon,
+        `Result ${index + 1} fights won`,
+        { min: 0, max: 50 }
+      ),
     }
   }
 
-  if (normalizedType === 'seminar' || normalizedType === 'camp' || normalizedType === 'fun') {
+  if (normalizedType === 'seminar' || normalizedType === 'camp' || normalizedType === 'fun' || !EVENT_TYPE_VALUES.has(normalizedType)) {
     const attended = booleanValue(value.attended, false)
     const completed = booleanValue(value.completed, false)
     const resultValue =
@@ -497,7 +553,7 @@ function normaliseEventResult(result, index, eventType) {
     }
   }
 
-  if (normalizedType === 'pelt-exam') {
+  if (isBeltExamType(normalizedType)) {
     const resultValue = enumValue(
       value.result || 'fail',
       `Result ${index + 1} result`,
@@ -589,13 +645,19 @@ export function validateAthletePayload(payload) {
     dateOfBirth,
     gender: enumValue(value.gender || 'male', 'Gender', ATHLETE_GENDERS),
     photoUrl: optionalUrl(value.photoUrl, 'Photo URL'),
-    branchName: enumValue(value.branchName || 'Sunkadakatte', 'Branch', BRANCH_VALUES),
+    branchName: requiredString(value.branchName || 'SKF Karate', 'Branch', { max: 120 }),
     currentBelt: enumValue(value.currentBelt || 'white', 'Current belt', BELT_VALUES),
     joinDate,
     status: enumValue(value.status || 'active', 'Status', ATHLETE_STATUSES),
     parentName: optionalString(value.parentName, 'Parent name', { max: 120 }),
     phone: optionalPhone(value.phone, 'Phone', { minDigits: 10, maxDigits: 15 }),
     email: optionalEmail(value.email, 'Email'),
+    batch: optionalString(value.batch, 'Batch', { max: 80 }),
+    monthlyFee: numberValue(value.monthlyFee ?? 0, 'Monthly fee', {
+      min: 0,
+      max: 100000,
+    }),
+    photoConsent: booleanValue(value.photoConsent, false),
     isPublic: booleanValue(value.isPublic, true),
     isFeatured: booleanValue(value.isFeatured, false),
     achievements,
@@ -615,11 +677,10 @@ export function validateAthletePayload(payload) {
 
 export function validateTournamentPayload(payload) {
   const value = ensureObject(payload, 'Tournament payload')
+  const name = requiredString(value.name, 'Tournament name', { max: 160 })
   const date = requiredDate(value.date, 'Start date')
   const endDate = optionalDate(value.endDate, 'End date')
-  const slug = requiredString(value.slug, 'Slug', { max: 120 })
-    .toLowerCase()
-    .replace(/\s+/g, '-')
+  const slug = slugifyIdentifier(optionalString(value.slug, 'Slug', { max: 120 }) || name)
 
   if (endDate && new Date(endDate) < new Date(date)) {
     throw new ApiError(400, 'End date cannot be earlier than start date.')
@@ -655,7 +716,7 @@ export function validateTournamentPayload(payload) {
   return {
     id: optionalString(value.id, 'Tournament id', { max: 80 }),
     slug,
-    name: requiredString(value.name, 'Tournament name', { max: 160 }),
+    name,
     shortName: requiredString(value.shortName, 'Short name', { max: 120 }),
     level: enumValue(value.level || 'district', 'Tournament level', TOURNAMENT_LEVEL_VALUES),
     status: enumValue(value.status || 'draft', 'Tournament status', EVENT_STATUS_VALUES),
@@ -684,12 +745,11 @@ export function validateTournamentPayload(payload) {
 
 export function validateEventPayload(payload) {
   const value = ensureObject(payload, 'Event payload')
-  const type = enumValue(value.type || 'seminar', 'Event type', EVENT_TYPE_VALUES)
+  const name = requiredString(value.name, 'Event name', { max: 160 })
+  const type = normalizeEventTypeValue(value.type || 'seminar')
   const date = requiredDate(value.date, 'Start date')
   const endDate = optionalDate(value.endDate, 'End date')
-  const slug = requiredString(value.slug, 'Slug', { max: 120 })
-    .toLowerCase()
-    .replace(/\s+/g, '-')
+  const slug = slugifyIdentifier(optionalString(value.slug, 'Slug', { max: 120 }) || name)
 
   if (endDate && new Date(endDate) < new Date(date)) {
     throw new ApiError(400, 'End date cannot be earlier than start date.')
@@ -709,9 +769,8 @@ export function validateEventPayload(payload) {
   return {
     id: optionalString(value.id, 'Event id', { max: 80 }),
     slug,
-    name: requiredString(value.name, 'Event name', { max: 160 }),
-    shortName: optionalString(value.shortName, 'Short name', { max: 120 }) ||
-      requiredString(value.name, 'Event name', { max: 160 }),
+    name,
+    shortName: optionalString(value.shortName, 'Short name', { max: 120 }) || name,
     type,
     status: enumValue(value.status || 'draft', 'Event status', EVENT_STATUS_VALUES),
     level:
@@ -720,16 +779,18 @@ export function validateEventPayload(payload) {
         : '',
     date,
     endDate,
-    venue: requiredString(value.venue, 'Venue', { max: 160 }),
-    city: requiredString(value.city, 'City', { max: 120 }),
-    state: requiredString(value.state || 'Karnataka', 'State', { max: 120 }),
-    description: requiredString(value.description, 'Description', { max: 600 }),
+    venue: optionalString(value.venue, 'Venue', { max: 160 }),
+    city: optionalString(value.city, 'City', { max: 120 }),
+    state: optionalString(value.state || 'Karnataka', 'State', { max: 120 }) || 'Karnataka',
+    description: optionalString(value.description, 'Description', { max: 600 }),
     coverImageUrl: optionalUrl(value.coverImageUrl, 'Cover image URL'),
     affiliatedBody: optionalString(value.affiliatedBody, 'Affiliated body', {
       max: 80,
     }),
+    hostingBranch: optionalString(value.hostingBranch, 'Hosting branch', { max: 120 }),
     isPublished: booleanValue(value.isPublished, false),
     isFeatured: booleanValue(value.isFeatured, false),
+    isResultsPublished: booleanValue(value.isResultsPublished, false),
     participants,
     results,
     resultsAppliedAt: optionalDate(value.resultsAppliedAt, 'Results applied at'),

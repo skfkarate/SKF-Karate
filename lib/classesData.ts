@@ -1,10 +1,10 @@
-import { BranchSlug } from '@/data/constants/branches'
-
 /* ── SKF Karate Classes Data ── */
 /* Central data source for all cities, branches, and class info */
 
+import type { SenseiSummary } from '@/lib/types/sensei'
+
 export interface Branch {
-    slug: BranchSlug
+    slug: string
     name: string
     isHQ?: boolean
     city: string
@@ -18,9 +18,13 @@ export interface Branch {
     mapUrl?: string
     photos: string[]
     description: string
+    senseiId?: string | null
+    senseiSlug?: string | null
+    senseiProfile?: SenseiSummary | null
 }
 
 export interface School {
+    id?: string
     name: string
     city: string
 }

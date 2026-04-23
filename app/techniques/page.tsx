@@ -1,8 +1,7 @@
-import { getTechniqueVideos } from '@/lib/server/sheets'
-import Image from 'next/image'
 import { Metadata } from 'next'
 import TechniquesClient from './TechniquesClient'
 import { FaStar } from 'react-icons/fa'
+import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
 
 export const revalidate = 3600
 
@@ -12,17 +11,8 @@ export const metadata: Metadata = {
 }
 
 export default async function TechniqueLibraryPage() {
-    const videos = await getTechniqueVideos()
-    
-    // Sort so featured videos can be shown at the top if needed, 
-    // although the requirements said "Featured videos section at top: show Techniques where Featured = YES"
-    const featuredVideos = videos.filter(v => v.featured)
-
-    function extractVideoId(url: string) {
-        if (!url) return null;
-        let match = url.match(/embed\/([^?]+)/);
-        return match ? match[1] : null;
-    }
+    const videos = await getTechniqueLibraryVideos()
+    const featuredVideos = videos.filter(v => v.isFeatured)
 
     return (
         <div style={{ minHeight: '100vh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
@@ -43,10 +33,8 @@ export default async function TechniqueLibraryPage() {
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2rem' }}>
                             {featuredVideos.slice(0, 3).map(video => {
-                                const vId = extractVideoId(video.youtubeUrl)
-                                const thumbnailUrl = vId ? `https://img.youtube.com/vi/${vId}/maxresdefault.jpg` : ''
                                 return (
-                                    <div key={`feat-${video.videoId}`} style={{
+                                    <div key={`feat-${video.id}`} style={{
                                         position: 'relative',
                                         borderRadius: '24px',
                                         overflow: 'hidden',
@@ -55,18 +43,14 @@ export default async function TechniqueLibraryPage() {
                                         background: '#000'
                                     }}>
                                         <div style={{ width: '100%', paddingTop: '56.25%', position: 'relative' }}>
-                                            {thumbnailUrl && (
-                                                // We just display it like a card here; the click interaction 
-                                                // could open modal, but standard link or duplicate TechniquesClient might be cleaner.
-                                                // For a featured section, maybe passing them to TechniquesClient is easier,
-                                                // but since we want it distinct, let's just make it a nice static visually pleasing block
-                                                // Or we can just import a simpler client component, but let's just use standard img.
-                                                <Image 
-                                                    src={thumbnailUrl} 
-                                                    alt={video.title} 
-                                                    fill
-                                                    style={{ objectFit: 'cover', opacity: 0.7 }}
+                                            {video.thumbnailUrl ? (
+                                                <img
+                                                    src={video.thumbnailUrl}
+                                                    alt={video.title}
+                                                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
                                                 />
+                                            ) : (
+                                                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.3), rgba(255,183,3,0.12))' }} />
                                             )}
                                             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}></div>
                                             <div style={{ position: 'absolute', bottom: 0, left: 0, padding: '1.5rem', width: '100%' }}>

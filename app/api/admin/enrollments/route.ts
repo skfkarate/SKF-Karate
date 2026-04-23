@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
-import { getStudentBySkfId } from '@/lib/server/sheets'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/server/auth/options'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 export async function GET(_request: Request) {
   try {
@@ -33,16 +33,16 @@ export async function GET(_request: Request) {
     // 3. Map SKF IDs to Real Names via Google Sheets (in parallel for speed)
     const enrichedEnrollments = await Promise.all(
       records.map(async (rec) => {
-        let studentName = 'Unknown Student'
+        let studentName = 'Unknown Athlete'
         let belt = 'Unknown Belt'
         let branch = 'Unknown Branch'
         
         try {
-          const studentInfo = await getStudentBySkfId(rec.skf_id)
-          if (studentInfo) {
-            studentName = `${studentInfo.name?.split(' ')[0] || ''} ${studentInfo.name?.split(' ').slice(1).join(' ') || ''}`
-            belt = studentInfo.belt || 'White'
-            branch = studentInfo.branch || 'Unknown'
+          const athlete = await getAthleteByRegistrationNumberLive(rec.skf_id)
+          if (athlete) {
+            studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || studentName
+            belt = athlete.currentBelt || 'white'
+            branch = athlete.branchName || 'Unknown'
           }
         } catch (e) {
           // Ignore fetch errors per student
@@ -85,9 +85,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Server-side validate SKF ID natively against sheets
-    const studentInfo = await getStudentBySkfId(skfId)
-    if (!studentInfo) return NextResponse.json({ error: 'Invalid SKF ID' }, { status: 404 })
+    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    if (!athlete) return NextResponse.json({ error: 'Invalid SKF ID' }, { status: 404 })
 
     const { data: program } = await supabaseAdmin.from('programs').select('id').eq('id', programId).single()
     if (!program) return NextResponse.json({ error: 'Invalid Program' }, { status: 404 })

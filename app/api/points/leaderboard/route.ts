@@ -1,57 +1,65 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getAllStudents } from '@/lib/server/sheets'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+
+function formatLeaderboardName(athlete?: Record<string, any> | null) {
+  const first = String(athlete?.firstName || '').trim()
+  const lastInitial = String(athlete?.lastName || '').trim().charAt(0)
+  const combined = [first, lastInitial ? `${lastInitial}.` : ''].filter(Boolean).join(' ').trim()
+  return combined || 'Unknown Athlete'
+}
+
+function formatLeaderboardBelt(athlete?: Record<string, any> | null) {
+  const belt = String(athlete?.currentBelt || 'white').trim().toLowerCase()
+  if (!belt) return 'white'
+  if (belt.startsWith('black')) return 'black'
+  return belt
+}
 
 export async function GET() {
-    try {
-        const startOfMonth = new Date()
-        startOfMonth.setDate(1)
-        startOfMonth.setHours(0,0,0,0)
+  try {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
 
-        // Fetch all EARN transactions this month
-        const { data: transactions } = await supabaseAdmin
-            .from('point_transactions')
-            .select('skf_id, points')
-            .eq('type', 'EARN')
-            .gte('created_at', startOfMonth.toISOString())
+    const { data: transactions } = await supabaseAdmin
+      .from('point_transactions')
+      .select('skf_id, points')
+      .eq('type', 'EARN')
+      .gte('created_at', startOfMonth.toISOString())
 
-        if (!transactions) return Response.json({ leaderboard: [] })
+    if (!transactions) return Response.json({ leaderboard: [] })
 
-        const sums: Record<string, number> = {}
-        for (const t of transactions) {
-            sums[t.skf_id] = (sums[t.skf_id] || 0) + t.points
-        }
-
-        const sorted = Object.entries(sums)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10)
-
-        const students = await getAllStudents()
-        const studentMap = new Map(students.map(s => [s.skfId, s]))
-
-        const leaderboard = sorted.map(([skfId, points], idx) => {
-            const student = studentMap.get(skfId)
-            let displayName = 'Unknown Ninja'
-            let belt = 'white'
-            
-            if (student) {
-                const parts = student.name.trim().split(' ')
-                const first = parts[0]
-                const lastInitial = parts.length > 1 ? parts[parts.length - 1][0] + '.' : ''
-                displayName = `${first} ${lastInitial}`.trim()
-                belt = student.belt
-            }
-
-            return {
-                rank: idx + 1,
-                name: displayName,
-                belt,
-                points
-            }
-        })
-
-        return Response.json({ leaderboard })
-    } catch (e: any) {
-        console.error('Leaderboard error:', e)
-        return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 })
+    const sums: Record<string, number> = {}
+    for (const transaction of transactions) {
+      const key = normaliseRegistrationNumber(String(transaction.skf_id || ''))
+      if (!key) continue
+      sums[key] = (sums[key] || 0) + Number(transaction.points || 0)
     }
+
+    const sorted = Object.entries(sums)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+
+    const athletes = await getAllAthletesLive()
+    const athleteMap = new Map(
+      athletes.map((athlete) => [normaliseRegistrationNumber(athlete.registrationNumber), athlete])
+    )
+
+    const leaderboard = sorted.map(([registrationNumber, points], index) => {
+      const athlete = athleteMap.get(registrationNumber)
+
+      return {
+        rank: index + 1,
+        name: formatLeaderboardName(athlete),
+        belt: formatLeaderboardBelt(athlete),
+        points,
+      }
+    })
+
+    return Response.json({ leaderboard })
+  } catch (error: any) {
+    console.error('Leaderboard error:', error)
+    return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 })
+  }
 }

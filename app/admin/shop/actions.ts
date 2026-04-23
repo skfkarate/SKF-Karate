@@ -1,12 +1,18 @@
 'use server'
 
-import { updateShopOrderStatus } from '@/lib/server/sheets'
+import { updateShopOrderStatus } from '@/lib/server/repositories/shop'
 import { revalidatePath } from 'next/cache'
 
 export async function mutateOrderStatus(orderId: string, status: string) {
-    const success = await updateShopOrderStatus(orderId, status)
-    if (success) {
-        revalidatePath('/admin/shop')
-    }
-    return success
+  const order = await updateShopOrderStatus(orderId, status)
+
+  if (order) {
+    revalidatePath('/admin/shop')
+    revalidatePath('/shop/orders')
+  }
+
+  return {
+    success: Boolean(order),
+    order,
+  }
 }

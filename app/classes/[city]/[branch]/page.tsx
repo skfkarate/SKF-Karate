@@ -1,23 +1,23 @@
 import { notFound } from 'next/navigation'
-import { getCityBySlug, getBranch, getAllCities } from '@/lib/classesData'
-import { getAllAthletes, getRankSnapshots } from '@/lib/server/repositories/athletes'
+import {
+  getAllAthletesLive,
+  getRankSnapshotsLive,
+} from '@/lib/server/repositories/athletes-live'
+import {
+  getBranchBySlugsLive,
+  getCityBySlugLive,
+} from '@/lib/server/repositories/classes-live'
 import BranchDetailClient from './BranchDetailClient'
 import '../../classes.css'
 
-export async function generateStaticParams() {
-    const params: { city: string; branch: string }[] = []
-    for (const city of getAllCities()) {
-        for (const branch of city.branches) {
-            params.push({ city: city.slug, branch: branch.slug })
-        }
-    }
-    return params
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string; branch: string }> }) {
     const { city: citySlug, branch: branchSlug } = await params
-    const city = getCityBySlug(citySlug)
-    const branch = getBranch(citySlug, branchSlug)
+    const [city, branch] = await Promise.all([
+      getCityBySlugLive(citySlug),
+      getBranchBySlugsLive(citySlug, branchSlug),
+    ])
     if (!city || !branch) return {}
 
     return {
@@ -28,18 +28,22 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 
 export default async function BranchPage({ params }: { params: Promise<{ city: string; branch: string }> }) {
     const { city: citySlug, branch: branchSlug } = await params
-    const city = getCityBySlug(citySlug)
-    const branch = getBranch(citySlug, branchSlug)
+    const [city, branch] = await Promise.all([
+      getCityBySlugLive(citySlug),
+      getBranchBySlugsLive(citySlug, branchSlug),
+    ])
 
     if (!city || !branch) notFound()
 
     // Dynamically fetch top performers
-    const athletes = getAllAthletes()
-    const snapshots = getRankSnapshots()
+    const [athletes, snapshots] = await Promise.all([
+        getAllAthletesLive(),
+        getRankSnapshotsLive(),
+    ])
     
     // Sort snapshots belonging to this branch by totalPoints (descending)
     const branchTopSnapshots = snapshots
-        .filter(s => s.branchName.toLowerCase() === branch.name.toLowerCase() && s.totalPoints > 0)
+        .filter(s => String(s.branchName || '').toLowerCase() === branch.name.toLowerCase() && s.totalPoints > 0)
         .slice(0, 3)
 
     // Match them to athletes to extract categories and medals

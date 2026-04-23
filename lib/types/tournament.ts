@@ -9,6 +9,9 @@ export const MEDAL_TYPES = ['gold', 'silver', 'bronze']
 /** @type {readonly ['inter-dojo', 'district', 'state', 'national', 'international']} */
 export const TOURNAMENT_LEVELS = ['inter-dojo', 'district', 'state', 'national', 'international']
 
+/** @type {readonly [1, 2, 3, 4, 5]} */
+export const TOURNAMENT_DIFFICULTY_LEVELS = [1, 2, 3, 4, 5]
+
 /** @type {Record<string, string>} */
 export const TOURNAMENT_LEVEL_LABELS = {
   'inter-dojo': 'Inter-Dojo',
@@ -75,6 +78,8 @@ export const TOURNAMENT_STATUSES = ['draft', 'upcoming', 'ongoing', 'completed',
  * @property {'kata-individual'|'kata-team'|'kumite-individual'|'kumite-team'|'mixed'} category
  * @property {'sub-junior'|'junior'|'senior'|'open'} ageGroup
  * @property {string} [weightCategory]
+ * @property {number} [difficultyLevel]
+ * @property {number} [wins]
  * @property {'gold'|'silver'|'bronze'} medal
  * @property {number} position
  * @property {string} [photoUrl]

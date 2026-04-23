@@ -103,7 +103,7 @@ export default function CsvUploaderModal({ isOpen, onClose, onComplete }: { isOp
                     {status === 'idle' && (
                         <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
                             <FaUpload style={{ fontSize: '3rem', color: '#333', marginBottom: '1rem' }} />
-                            <p style={{ color: '#ccc', marginBottom: '1.5rem' }}>Upload a CSV file to bulk import students.</p>
+                            <p style={{ color: '#ccc', marginBottom: '1.5rem' }}>Upload a CSV file to bulk import athlete profiles.</p>
                             <label style={{ background: '#fff', color: '#000', padding: '0.8rem 2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                                 Select CSV File
                                 <input type="file" accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />

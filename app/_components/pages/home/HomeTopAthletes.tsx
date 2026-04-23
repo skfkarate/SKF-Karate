@@ -1,35 +1,44 @@
 import Link from 'next/link'
 import { FaTrophy, FaArrowRight, FaMedal } from 'react-icons/fa'
-import { getFeaturedAthletes } from '@/lib/server/repositories/athletes'
+import {
+  getAllAthletesLive,
+  getRankSnapshotsLive,
+} from '@/lib/server/repositories/athletes-live'
 
 export default async function HomeTopAthletes() {
-    // Fetch directly from the JSON DB repository
-    const athletes = await Promise.resolve(getFeaturedAthletes())
+    const [athletes, snapshots] = await Promise.all([
+        getAllAthletesLive(),
+        getRankSnapshotsLive(),
+    ])
+    const athleteMap = new Map(
+        athletes
+            .filter((athlete) => athlete.isPublic && athlete.status === 'active')
+            .map((athlete) => [String(athlete.id), athlete])
+    )
 
-    // Map and calculate medals based on achievements
-    const topAthletes = athletes.map(athlete => {
-        let gold = 0, silver = 0, bronze = 0;
-        
-        athlete.achievements?.forEach((ach: any) => {
-            if (ach.type === 'tournament-gold') gold++
-            if (ach.type === 'tournament-silver') silver++
-            if (ach.type === 'tournament-bronze') bronze++
+    const topAthletes = snapshots
+        .filter((snapshot) => athleteMap.has(String(snapshot.athleteId)) && Number(snapshot.totalPoints || 0) > 0)
+        .sort((a, b) => Number(b.totalPoints || 0) - Number(a.totalPoints || 0))
+        .slice(0, 3)
+        .map((snapshot, index) => {
+            const athlete = athleteMap.get(String(snapshot.athleteId))
+            if (!athlete) return null
+
+            return {
+                name: `${athlete.firstName} ${athlete.lastName}`,
+                category: athlete.currentBelt.toUpperCase() + ' BELT',
+                branch: athlete.branchName,
+                medals: {
+                    gold: snapshot.goldCount || 0,
+                    silver: snapshot.silverCount || 0,
+                    bronze: snapshot.bronzeCount || 0,
+                },
+                totalPoints: snapshot.totalPoints || 0,
+                registrationNumber: athlete.registrationNumber,
+                rank: index + 1,
+            }
         })
-
-        const totalPoints = (gold * 10) + (silver * 5) + (bronze * 2)
-
-        return {
-            name: `${athlete.firstName} ${athlete.lastName}`,
-            category: athlete.currentBelt.toUpperCase() + ' BELT',
-            branch: athlete.branchName,
-            medals: { gold, silver, bronze },
-            totalPoints,
-            registrationNumber: athlete.registrationNumber
-        }
-    })
-    .sort((a, b) => b.totalPoints - a.totalPoints)
-    .slice(0, 3) 
-    .map((athlete, index) => ({ ...athlete, rank: index + 1 }))
+        .filter(Boolean)
 
     if (topAthletes.length === 0) {
         return null // Hide section if no featured athletes

@@ -35,7 +35,7 @@ export function ChildSwitcher({
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="child-switcher-icon"><FaUserFriends /></div>
           <div style={{ textAlign: 'left' }}>
-            <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Viewing Profile For</span>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Viewing Athlete Profile</span>
             <strong style={{ display: 'block', color: 'var(--gold, #ffb703)' }}>{activeStudent.name}</strong>
           </div>
         </div>

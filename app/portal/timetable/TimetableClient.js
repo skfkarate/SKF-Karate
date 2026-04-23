@@ -7,10 +7,9 @@ import { Calendar, MapPin, Download } from 'lucide-react'
 export default function TimetableClient({ branchName, timetableData }) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   
-  // Use data from sheets if available, otherwise fallback image
-  const imageUrl = timetableData?.length > 0 && timetableData[0].Image_URL 
-    ? timetableData[0].Image_URL 
-    : 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=1600' // Generic Dojo Fallback without being obviously fake mock
+  const imageUrl = timetableData?.imageUrl || timetableData?.driveUrl || 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=1600'
+  const monthLabel = timetableData?.monthLabel || 'Current Term'
+  const notes = timetableData?.notes || ''
 
   return (
     <div style={{ paddingBottom: '4rem', paddingTop: '1rem', maxWidth: '1420px', margin: '0 auto', width: '100%' }}>
@@ -125,7 +124,9 @@ export default function TimetableClient({ branchName, timetableData }) {
         }}>
           <div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Official Schedule</h3>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Updated for current term</p>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>
+              {monthLabel}{notes ? ` · ${notes}` : ''}
+            </p>
           </div>
           <p style={{ color: 'var(--gold, #ffb703)', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
             Contact Sensei for questions

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getAthleteByRegistrationNumber } from '@/lib/server/repositories/athletes'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 // Use the same JWT verification as the portal login sets
 // auth_legacy uses: cookie name 'skf_portal_token', and JWT_SECRET || NEXTAUTH_SECRET
@@ -31,7 +31,7 @@ export async function GET() {
             return NextResponse.json({ authenticated: false }, { status: 200 })
         }
 
-        const athlete = getAthleteByRegistrationNumber(session.skfId)
+        const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
 
         if (!athlete) {
             return NextResponse.json({ authenticated: false }, { status: 200 })
@@ -42,7 +42,7 @@ export async function GET() {
             user: {
                 skfId: session.skfId,
                 name: athlete.firstName + (athlete.lastName ? ` ${athlete.lastName}` : ''),
-                phone: athlete.mobileNumber || '+91',
+                phone: athlete.phone || '+91',
                 branch: athlete.branchName || 'SKF HQ',
                 belt: athlete.currentBelt || 'White'
             }

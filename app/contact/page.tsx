@@ -12,7 +12,7 @@ import {
   readQueue,
   sendToAPI,
 } from '@/app/_components/contact/contactSubmissionQueue'
-import { getAllCities } from '@/lib/classesData'
+import { getAllCities, type City } from '@/lib/classesData'
 import './contact.css'
 
 const FAQS = [
@@ -28,7 +28,7 @@ export default function ContactPage() {
     const [status, setStatus] = useState('idle')
     const [errorMsg, setErrorMsg] = useState('')
     const [openFaq, setOpenFaq] = useState<number | null>(null)
-    const cities = getAllCities()
+    const [cities, setCities] = useState<City[]>(() => getAllCities())
 
     const flushQueue = useCallback(async () => {
         try {
@@ -51,6 +51,24 @@ export default function ContactPage() {
     useEffect(() => {
         flushQueue()
     }, [flushQueue])
+
+    useEffect(() => {
+        let isMounted = true
+
+        fetch('/api/classes')
+            .then((res) => res.json())
+            .then((data) => {
+                if (!isMounted || !Array.isArray(data?.cities)) return
+                setCities(data.cities)
+            })
+            .catch((error) => {
+                console.error('Failed to load classes for contact page:', error)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })

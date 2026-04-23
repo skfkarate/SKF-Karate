@@ -7,6 +7,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCart } from '@/lib/shop/cartState'
+import {
+    calculatePointsRedemption,
+    calculatePromoDiscount,
+    calculateShippingFee,
+} from '@/lib/shop/logic'
 import { ArrowLeft, ShieldCheck, MapPin, UserCheck } from 'lucide-react'
 import '../shop.css'
 
@@ -29,13 +34,12 @@ export default function CheckoutPage() {
     const [submitting, setSubmitting] = useState(false)
     
     // Auth State
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
     const [athleteProfile, setAthleteProfile] = useState<any>(null)
 
     // Loaded Values from Cart
     const [pointsToRedeem, setPointsToRedeem] = useState(0)
     const [promoCode, setPromoCode] = useState<string | null>(null)
-    const [shippingFee, setShippingFee] = useState(0)
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -45,28 +49,31 @@ export default function CheckoutPage() {
             const promo = localStorage.getItem('skf_checkout_promo')
             if (promo) setPromoCode(promo)
 
-            const shipping = localStorage.getItem('skf_checkout_shipping')
-            if (shipping) setShippingFee(Number(shipping))
-
             fetch('/api/auth/me')
                 .then(res => res.json())
                 .then(data => {
                     if (data.authenticated && data.user) {
                         setIsAuthenticated(true)
                         setAthleteProfile(data.user)
-                        setShippingFee(0) // Override shipping safely to 0 for Athletes
                     } else {
-                        // Velvet Rope: unauthenticated users must login first
-                        router.push('/portal/login?callbackUrl=/shop/cart')
+                        setIsAuthenticated(false)
                     }
                 })
-                .catch(() => {})
+                .catch(() => setIsAuthenticated(false))
         }
     }, [])
 
     // Math Match
-    const pointsDiscount = Math.floor(pointsToRedeem / 100) * 25
-    const promoDiscount = promoCode ? cartTotalPrice * 0.10 : 0 
+    const shippingFee = calculateShippingFee(cartTotalPrice, {
+        authenticated: Boolean(isAuthenticated && athleteProfile),
+    })
+    const { promoDiscount } = calculatePromoDiscount(cartTotalPrice, promoCode)
+    const { pointsUsed, pointsDiscount } = calculatePointsRedemption(
+        cartTotalPrice,
+        pointsToRedeem,
+        Number.MAX_SAFE_INTEGER,
+        { authenticated: Boolean(isAuthenticated && athleteProfile) }
+    )
     const taxAmount = cartTotalPrice - (cartTotalPrice / 1.18); 
     const finalTotal = cartTotalPrice + shippingFee - pointsDiscount - promoDiscount
 
@@ -96,18 +103,14 @@ export default function CheckoutPage() {
         setSubmitting(true)
 
         try {
-            const skfId = athleteProfile?.skfId || 'GUEST'
-
             const verifyRes = await fetch('/api/shop/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     paymentBypass: true, // Secure flag telling backend Razorpay is intentionally skipped
-                    skfId: skfId,
                     items: cart,
-                    total: finalTotal,
-                    discount: pointsDiscount + promoDiscount,
-                    pointsUsed: pointsToRedeem,
+                    promoCode,
+                    pointsUsed,
                     address: addressPayload
                 })
             })
@@ -119,11 +122,14 @@ export default function CheckoutPage() {
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('skf_checkout_points')
                     localStorage.removeItem('skf_checkout_promo')
-                    localStorage.removeItem('skf_checkout_shipping')
                 }
-                router.push('/shop/orders?success=true')
+                router.push(
+                    verifyData.customerType === 'guest'
+                        ? `/shop/success?orderId=${encodeURIComponent(verifyData.orderId)}`
+                        : '/shop/orders?success=true'
+                )
             } else {
-                alert('Order creation failed!')
+                alert(verifyData.error || 'Order creation failed!')
                 setSubmitting(false)
             }
 
@@ -158,6 +164,16 @@ export default function CheckoutPage() {
                 <Link href="/shop" className="obsidian-btn-add" style={{ textDecoration: 'none', width: 'auto', padding: '1rem 3rem', marginTop: '2rem' }}>
                     RETURN TO STORE
                 </Link>
+            </div>
+        )
+    }
+
+    if (isAuthenticated === null) {
+        return (
+            <div className="obsidian-store" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Loading checkout...
+                </div>
             </div>
         )
     }

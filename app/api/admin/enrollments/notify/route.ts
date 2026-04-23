@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getStudentBySkfId } from '@/lib/server/sheets'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/server/auth/options'
 import { Resend } from 'resend'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -36,14 +36,10 @@ export async function POST(request: Request) {
     // Loop through enrollments sequentially or in small parallel batches protecting the rate limit
     for (const enrollment of enrollments) {
       try {
-        const studentInfo = await getStudentBySkfId(enrollment.skf_id)
-        const studentRecord = studentInfo as unknown as Record<string, unknown> | null
-        const emailContact =
-          typeof studentRecord?.Email === 'string'
-            ? String(studentRecord.Email)
-            : ''
+        const athlete = await getAthleteByRegistrationNumberLive(enrollment.skf_id)
+        const emailContact = athlete?.email || ''
 
-        if (!studentInfo || !emailContact) {
+        if (!athlete || !emailContact) {
           console.warn(`No email found for SKF ID: ${enrollment.skf_id}`)
           continue
         }

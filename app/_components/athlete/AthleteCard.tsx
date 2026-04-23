@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 /**
  * AthleteCard — Reusable full-photo athlete card
  * Used on: Honours Board, Homepage spotlight
@@ -45,7 +47,7 @@ export default function AthleteCard({ name, belt, branch, photoUrl, gender, cate
   )
 
   if (href) {
-    return <a href={href} className="ath-card__link">{card}</a>
+    return <Link href={href} className="ath-card__link">{card}</Link>
   }
   return card
 }

@@ -5,6 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/shop/cartState'
+import {
+    calculatePointsRedemption,
+    calculatePromoDiscount,
+    calculateShippingFee,
+} from '@/lib/shop/logic'
 import { ArrowLeft, Trash2, Truck, Tag, ShieldCheck, UserCircle, LogIn, Award, MapPin } from 'lucide-react'
 import '../shop.css'
 
@@ -71,19 +76,26 @@ export default function CartPage() {
     const FREE_SHIPPING_THRESHOLD = 5000;
     
     const amountToFreeShipping = isSkfAthlete ? 0 : Math.max(0, FREE_SHIPPING_THRESHOLD - cartTotalPrice)
-    const shippingFee = (isSkfAthlete || cartTotalPrice >= FREE_SHIPPING_THRESHOLD) ? 0 : 250;
+    const shippingFee = calculateShippingFee(cartTotalPrice, {
+        authenticated: Boolean(isSkfAthlete),
+    })
     
-    // Points max logic
-    const maxDiscountVal = cartTotalPrice * 0.10
-    const maxPointsRedeemable = Math.floor(maxDiscountVal / 25) * 100
+    const {
+        pointsUsed: finalPoints,
+        pointsDiscount: pointsDiscountAmount,
+        maxPointsRedeemable,
+    } = calculatePointsRedemption(
+        cartTotalPrice,
+        Number(pointsToRedeem) || 0,
+        pointsBalance || 0,
+        { authenticated: Boolean(isSkfAthlete) }
+    )
     const cappedMaxPoints = pointsBalance !== null ? Math.min(pointsBalance, maxPointsRedeemable) : 0
 
-    const ptsNum = Number(pointsToRedeem) || 0
-    const finalPoints = Math.min(ptsNum, cappedMaxPoints)
-    const pointsDiscountAmount = Math.floor(finalPoints / 100) * 25
-
-    // Promo logic
-    const promoDiscountAmount = activePromo ? cartTotalPrice * activePromo.discountPct : 0;
+    const { promoDiscount: promoDiscountAmount } = calculatePromoDiscount(
+        cartTotalPrice,
+        activePromo?.code
+    )
     
     // GST Breakdown
     const taxAmount = cartTotalPrice - (cartTotalPrice / 1.18); 
@@ -112,7 +124,6 @@ export default function CartPage() {
     const proceedToCheckout = () => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('skf_checkout_points', finalPoints.toString())
-            localStorage.setItem('skf_checkout_shipping', shippingFee.toString())
         }
         router.push('/shop/checkout')
     }
@@ -350,16 +361,9 @@ export default function CartPage() {
                             </div>
 
                             {/* Checkout Button */}
-                            {isAuthenticated ? (
-                                <button onClick={proceedToCheckout} className="obsidian-btn-add" style={{ marginTop: '2rem' }}>
-                                    PROCEED TO CHECKOUT
-                                </button>
-                            ) : (
-                                <button onClick={() => router.push('/portal/login?callbackUrl=/shop/cart')} className="obsidian-btn-add" style={{ marginTop: '2rem', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', border: '1px solid rgba(255,183,3,0.3)' }}>
-                                    <LogIn size={16} style={{ marginRight: '8px', verticalAlign: 'text-bottom' }} />
-                                    LOGIN TO PLACE ORDER
-                                </button>
-                            )}
+                            <button onClick={proceedToCheckout} className="obsidian-btn-add" style={{ marginTop: '2rem' }}>
+                                {isAuthenticated ? 'PROCEED TO CHECKOUT' : 'CHECKOUT'}
+                            </button>
                             
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                                 <ShieldCheck size={12} /> Secure Checkout

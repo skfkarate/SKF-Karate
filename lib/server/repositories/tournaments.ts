@@ -20,6 +20,8 @@ export type TournamentWinner = {
   category: string
   ageGroup: string
   weightCategory?: string
+  difficultyLevel?: number | null
+  wins?: number | null
   medal: 'gold' | 'silver' | 'bronze'
   position: number
   photoUrl?: string
@@ -37,6 +39,7 @@ export type TournamentParticipant = {
 
 export type TournamentResultRecord = {
   id?: string
+  participantId?: string
   athleteId?: string
   registrationNumber: string
   athleteName: string
@@ -46,6 +49,8 @@ export type TournamentResultRecord = {
   category?: string
   ageGroup?: string
   weightCategory?: string
+  difficultyLevel?: number | null
+  wins?: number | null
   notes?: string
   award?: string
   promotion?: string

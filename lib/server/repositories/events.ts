@@ -157,6 +157,8 @@ function buildTournamentResults(
     category: winner.category || "kata-individual",
     ageGroup: winner.ageGroup || "sub-junior",
     weightCategory: winner.weightCategory || "",
+    difficultyLevel: winner.difficultyLevel ?? null,
+    wins: winner.wins ?? null,
     notes: "",
   }))
 }

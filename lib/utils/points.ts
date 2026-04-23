@@ -10,8 +10,8 @@ export const DEFAULT_POINTS = {
   "seminar-completion": 30,
   "camp-attended": 10,
   "camp-completion": 30,
-  "pelt-pass": 180,
-  "pelt-fail": 0,
+  "belt-pass": 180,
+  "belt-fail": 0,
   "grading-fail": 0,
   "attendance-milestone": 100,
   "special-award": 150,
@@ -27,7 +27,7 @@ export const TOURNAMENT_LEVEL_MULTIPLIER = {
   international: 6.0,
 }
 
-export const POINTS_EXPIRY_MONTHS = 12
+export const POINTS_EXPIRY_MONTHS = 0
 
 // Competition ranking points from the implementation plan.
 export const EVENT_TIER_WEIGHTS = {
@@ -44,7 +44,7 @@ export const EVENT_TYPE_FACTORS = {
   seminar: 1,
   camp: 1.5,
   grading: 4,
-  "pelt-exam": 3,
+  "belt-exam": 3,
   fun: 1,
 }
 
@@ -65,9 +65,12 @@ export const RESULT_BASE_POINTS = {
   absent: 0,
 }
 
-function toDate(value) {
-  const date = value instanceof Date ? value : new Date(value)
-  return Number.isNaN(date.getTime()) ? null : date
+export const TOURNAMENT_DIFFICULTY_FACTORS = {
+  1: 1,
+  2: 1.15,
+  3: 1.3,
+  4: 1.45,
+  5: 1.6,
 }
 
 export function normaliseEventTier(level) {
@@ -86,7 +89,9 @@ export function normaliseEventTier(level) {
 
 export function normaliseEventTypeFactor(eventType) {
   if (!eventType) return "seminar"
-  const normalized = String(eventType).trim().toLowerCase()
+  const normalized = String(eventType).trim().toLowerCase() === "pelt-exam"
+    ? "belt-exam"
+    : String(eventType).trim().toLowerCase()
   return EVENT_TYPE_FACTORS[normalized] ? normalized : "seminar"
 }
 
@@ -111,36 +116,56 @@ export function normaliseResult(result) {
   return "participation"
 }
 
+export function normaliseDifficultyLevel(value) {
+  if (value === undefined || value === null || value === '') return null
+
+  const numeric = Math.trunc(Number(value))
+  if (!Number.isFinite(numeric)) return null
+
+  if (numeric < 1) return 1
+  if (numeric > 5) return 5
+  return numeric
+}
+
+export function normaliseWinCount(value) {
+  if (value === undefined || value === null || value === '') return 0
+
+  const numeric = Math.trunc(Number(value))
+  if (!Number.isFinite(numeric) || numeric < 0) return 0
+
+  return numeric
+}
+
 export function calculateTournamentPoints(type, level) {
-  const base = DEFAULT_POINTS[type] ?? 0
+  const normalizedType =
+    String(type).trim().toLowerCase() === "pelt-pass"
+      ? "belt-pass"
+      : String(type).trim().toLowerCase() === "pelt-fail"
+        ? "belt-fail"
+        : type
+  const base = DEFAULT_POINTS[normalizedType] ?? 0
   const multiplier = TOURNAMENT_LEVEL_MULTIPLIER[level] ?? 1
   return Math.round(base * multiplier)
 }
 
-export function calculateTimeDecayFactor(resultDate, currentDate = new Date()) {
-  const eventDate = toDate(resultDate)
-  const now = toDate(currentDate)
-
-  if (!eventDate || !now) return 0
-
-  const diffMonths =
-    (now.getFullYear() - eventDate.getFullYear()) * 12 +
-    (now.getMonth() - eventDate.getMonth())
-
-  if (diffMonths < 12) return 1.0
-  if (diffMonths < 24) return 0.75
-  if (diffMonths < 36) return 0.5
-  if (diffMonths < 48) return 0.25
-  return 0
+export function calculateTimeDecayFactor(_resultDate?: unknown, _currentDate: Date = new Date()) {
+  return 1
 }
 
-export function calculateRawPoints({ level, tier, result }) {
+export function calculateRawPoints({ level, tier, result, difficultyLevel, wins }) {
   const normalizedTier = normaliseEventTier(level || tier)
   const normalizedResult = normaliseResult(result)
   const basePoints = RESULT_BASE_POINTS[normalizedResult] ?? 0
   const multiplier = EVENT_TIER_WEIGHTS[normalizedTier] ?? EVENT_TIER_WEIGHTS.invitational
+  const normalizedDifficulty = normaliseDifficultyLevel(difficultyLevel)
+  const normalizedWins = normaliseWinCount(wins)
+  const difficultyFactor =
+    normalizedDifficulty === null
+      ? 1
+      : TOURNAMENT_DIFFICULTY_FACTORS[normalizedDifficulty] ?? 1
+  const winsBonus = normalizedWins * Math.max(4, Math.round(multiplier * 2))
 
-  return basePoints * multiplier
+  return Number(((basePoints * multiplier * difficultyFactor) + winsBonus).toFixed(2))
 }
 
 export function calculateEventAchievementPoints({
@@ -148,14 +173,20 @@ export function calculateEventAchievementPoints({
   level,
   tier,
   result,
+  difficultyLevel,
+  wins,
 }) {
   const normalizedResult = normaliseResult(result)
   const basePoints = RESULT_BASE_POINTS[normalizedResult] ?? 0
 
   if (eventType === "tournament") {
-    const normalizedTier = normaliseEventTier(level || tier)
-    const multiplier = EVENT_TIER_WEIGHTS[normalizedTier] ?? EVENT_TIER_WEIGHTS.invitational
-    return Number((basePoints * multiplier).toFixed(2))
+    return calculateRawPoints({
+      level,
+      tier,
+      result: normalizedResult,
+      difficultyLevel,
+      wins,
+    })
   }
 
   const normalizedType = normaliseEventTypeFactor(eventType)
@@ -168,8 +199,8 @@ export function calculateResultPoints(entry, currentDate = new Date()) {
     entry?.eventType && entry.eventType !== "tournament"
       ? calculateEventAchievementPoints(entry)
       : calculateRawPoints(entry)
-  const decayFactor = calculateTimeDecayFactor(entry.date, currentDate)
-  const finalPoints = rawPoints * decayFactor
+  const decayFactor = calculateTimeDecayFactor(entry?.date, currentDate)
+  const finalPoints = rawPoints
 
   return {
     rawPoints: Number(rawPoints.toFixed(2)),

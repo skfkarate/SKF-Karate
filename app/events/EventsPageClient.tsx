@@ -15,7 +15,7 @@ import {
     FaChevronRight,
 } from 'react-icons/fa'
 import ScrollReveal from '@/app/_components/ScrollReveal'
-import { EVENT_TYPE_BADGE_CLASS, EVENT_FILTER_OPTIONS, getEventLabel } from '@/data/constants/categories'
+import { EVENT_TYPE_BADGE_CLASS, getEventLabel } from '@/data/constants/categories'
 
 interface EventItem {
     id: string
@@ -65,9 +65,11 @@ const MONTHS_SHORT = [
 export default function EventsPageClient({
     upcomingEvents,
     pastEvents,
+    filterOptions,
 }: {
     upcomingEvents: EventItem[]
     pastEvents: EventItem[]
+    filterOptions: string[]
 }) {
     const [activeFilter, setActiveFilter] = useState('All')
     const [viewMode, setViewMode] = useState<'upcoming' | 'past'>('upcoming')
@@ -116,7 +118,6 @@ export default function EventsPageClient({
         return <span className="ev-date__full">{dateString}</span>
     }
 
-    const filterOptions = EVENT_FILTER_OPTIONS
     const typeBadgeClass = EVENT_TYPE_BADGE_CLASS
 
     return (

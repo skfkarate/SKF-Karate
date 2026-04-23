@@ -11,6 +11,7 @@ import {
   EVENT_TYPES as CANONICAL_EVENT_TYPES,
   EVENT_TYPE_LABELS,
   EVENT_STATUSES as CANONICAL_EVENT_STATUSES,
+  canonicalizeEventType,
 } from '@/lib/types/event'
 
 export const EVENT_TYPES = CANONICAL_EVENT_TYPES
@@ -18,29 +19,35 @@ export type EventType = typeof CANONICAL_EVENT_TYPES[number]
 export const EVENT_TYPES_LIST = CANONICAL_EVENT_TYPES
 
 /** Filter pill labels for the events page */
-export const EVENT_FILTER_OPTIONS = ['All', 'Camp', 'Grading', 'Tournament', 'PELT Exam', 'Seminar', 'Fun'] as const
+export const EVENT_FILTER_OPTIONS = ['All', 'Camp', 'Grading', 'Tournament', 'Belt Exam', 'Seminar', 'Fun'] as const
 
 /** Badge CSS class mapping for event types */
 export const EVENT_TYPE_BADGE_CLASS: Record<string, string> = {
   Camp: 'tag-camp',
   Grading: 'tag-grading',
   Tournament: 'tag-tournament',
-  'pelt-exam': 'tag-seminar',
+  'belt-exam': 'tag-seminar',
   Seminar: 'tag-seminar',
   Fun: 'tag-fun',
 }
 
 /** Human-readable label for event types */
 export function getEventLabel(type: string): string {
+  const normalized = canonicalizeEventType(type)
   const map: Record<string, string> = {
     tournament: 'Tournament',
     seminar: 'Seminar',
-    'pelt-exam': 'PELT Exam',
+    'belt-exam': 'Belt Exam',
     grading: 'Grading',
     camp: 'Camp',
     fun: 'Fun',
   }
-  return map[type] || type
+  if (map[normalized]) return map[normalized]
+  return String(normalized || '')
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ')
 }
 
 /* ── Gallery Categories ── */

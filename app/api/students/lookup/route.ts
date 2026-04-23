@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getStudentBySkfId } from '@/lib/server/sheets'
+
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 export async function GET(request: Request) {
   try {
@@ -10,23 +11,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'skfId parameter is required' }, { status: 400 })
     }
 
-    const student = await getStudentBySkfId(skfId.trim().toUpperCase())
+    const athlete = await getAthleteByRegistrationNumberLive(skfId.trim().toUpperCase())
 
-    if (student) {
-      // Intentionally omitting sensitive fields like monthlyFee, exact dob etc. not needed for the camp prepopulation
-      return NextResponse.json({
-        success: true,
-        student: {
-          name: student.name,
-          parent: student.parentName,
-          phone: student.phone,
-          branch: student.branch,
-          batch: student.batch,
-        }
-      })
-    } else {
-      return NextResponse.json({ success: false, error: 'Student not found' }, { status: 404 })
+    if (!athlete) {
+      return NextResponse.json({ success: false, error: 'Athlete not found' }, { status: 404 })
     }
+
+    return NextResponse.json({
+      success: true,
+      student: {
+        name: [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim(),
+        parent: athlete.parentName || '',
+        phone: athlete.phone || '',
+        branch: athlete.branchName || '',
+        batch: athlete.batch || '',
+      },
+    })
   } catch (error) {
     console.error('Lookup student error:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })

@@ -1,212 +1,742 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type { FormEvent, ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { allDojos } from '@/data/seed/dojos'
 
-export default function EventForm({ initialData, isEdit = false }: { initialData?: any, isEdit?: boolean }) {
+import { getEventLabel } from '@/data/constants/categories'
+import type { City } from '@/lib/classesData'
+import { flattenClassBranches } from '@/lib/classes/catalog'
+import { EVENT_STATUSES } from '@/lib/types/event'
+
+type SubmitMode = 'stay' | 'continue' | 'draft' | 'publish'
+type RedirectTab = 'details' | 'athletes' | 'results'
+
+function slugify(value: string) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
+
+export default function EventForm({
+  initialData,
+  isEdit = false,
+  classCities = [],
+  redirectTab = 'details',
+}: {
+  initialData?: any
+  isEdit?: boolean
+  classCities?: City[]
+  redirectTab?: RedirectTab
+}) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<string[]>([])
   const [newCategoryStr, setNewCategoryStr] = useState('')
   const [isAddingCategory, setIsAddingCategory] = useState(false)
+  const [availableCities, setAvailableCities] = useState<City[]>(classCities)
+  const [feedback, setFeedback] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loadingMode, setLoadingMode] = useState<SubmitMode | null>(null)
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
+    shortName: initialData?.shortName || '',
     slug: initialData?.slug || '',
     type: initialData?.type || 'seminar',
     hostingBranch: initialData?.hostingBranch || '',
-    status: initialData?.status || 'upcoming',
+    status: initialData?.status || 'draft',
     date: initialData?.date || '',
+    endDate: initialData?.endDate || '',
     venue: initialData?.venue || '',
     city: initialData?.city || '',
     state: initialData?.state || 'Karnataka',
     description: initialData?.description || '',
     isPublished: initialData?.isPublished ?? false,
     isFeatured: initialData?.isFeatured ?? false,
-    isResultsPublished: initialData?.isResultsPublished ?? false
+    isResultsPublished: initialData?.isResultsPublished ?? false,
   })
+
+  const classBranches = flattenClassBranches(availableCities)
+
+  const branchOptions = useMemo(() => {
+    const mappedOptions = classBranches.map((branch) => ({
+      key: `${branch.citySlug}-${branch.slug}`,
+      slug: branch.slug,
+      value: branch.name,
+      label: `${branch.name} (${branch.cityName})`,
+      city: branch.cityName,
+      state: branch.state,
+      venue: branch.venue,
+    }))
+
+    if (
+      !formData.hostingBranch ||
+      mappedOptions.some(
+        (branch) =>
+          branch.value === formData.hostingBranch || branch.slug === formData.hostingBranch
+      )
+    ) {
+      return mappedOptions
+    }
+
+    return [
+      {
+        key: `custom-${slugify(formData.hostingBranch) || 'branch'}`,
+        slug: slugify(formData.hostingBranch) || 'custom-branch',
+        value: formData.hostingBranch,
+        label: `${formData.hostingBranch} (Existing custom branch)`,
+        city: formData.city,
+        state: formData.state || 'Karnataka',
+        venue: formData.venue || formData.hostingBranch,
+      },
+      ...mappedOptions,
+    ]
+  }, [classBranches, formData.city, formData.hostingBranch, formData.state, formData.venue])
+
+  const visibleCategories = useMemo(() => {
+    const all = new Set(categories)
+    if (formData.type && formData.type !== 'tournament') {
+      all.add(formData.type)
+    }
+    return [...all]
+  }, [categories, formData.type])
+
+  useEffect(() => {
+    if (availableCities.length > 0) return
+
+    let isMounted = true
+
+    fetch('/api/admin/classes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted || !Array.isArray(data?.cities)) return
+        setAvailableCities(data.cities)
+      })
+      .catch((error) => {
+        console.error('Failed to load classes for event form:', error)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [availableCities.length])
 
   useEffect(() => {
     fetch('/api/admin/categories')
-      .then(res => res.json())
-      .then(data => {
-        if (data.categories) setCategories(data.categories)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!Array.isArray(data?.categories)) return
+        setCategories(
+          data.categories.filter((category: string) => category !== 'tournament')
+        )
+      })
+      .catch((error) => {
+        console.error('Failed to load event categories:', error)
       })
   }, [])
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
+  useEffect(() => {
+    if (!formData.hostingBranch || classBranches.length === 0) return
+
+    const selectedBranch = classBranches.find(
+      (branch) =>
+        branch.name === formData.hostingBranch || branch.slug === formData.hostingBranch
+    )
+
+    if (!selectedBranch || formData.type === 'tournament') return
+
+    setFormData((previous) => {
+      const nextVenue = previous.venue || selectedBranch.venue
+      const nextCity = previous.city || selectedBranch.cityName
+      const nextState = previous.state || selectedBranch.state || 'Karnataka'
+
+      if (
+        nextVenue === previous.venue &&
+        nextCity === previous.city &&
+        nextState === previous.state &&
+        previous.hostingBranch === selectedBranch.name
+      ) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        hostingBranch: selectedBranch.name,
+        venue: nextVenue,
+        city: nextCity,
+        state: nextState,
+      }
+    })
+  }, [classBranches, formData.hostingBranch, formData.type])
+
+  const handleChange = (event: any) => {
+    const { name, value, type, checked } = event.target
+    setErrorMessage('')
+
+    setFormData((previous) => {
+      if (name === 'name') {
+        const currentAutoSlug = slugify(previous.name)
+        const currentAutoShortName = previous.shortName || previous.name
+        const shouldSyncSlug = !previous.slug || previous.slug === currentAutoSlug
+        const shouldSyncShortName =
+          !previous.shortName || previous.shortName === currentAutoShortName
+
+        return {
+          ...previous,
+          name: value,
+          shortName: shouldSyncShortName ? value : previous.shortName,
+          slug: shouldSyncSlug ? slugify(value) : previous.slug,
+        }
+      }
+
+      if (name === 'slug') {
+        return {
+          ...previous,
+          slug: slugify(value),
+        }
+      }
+
+      if (name === 'hostingBranch') {
+        const selectedBranch = branchOptions.find((branch) => branch.value === value)
+        if (!selectedBranch || previous.type === 'tournament') {
+          return {
+            ...previous,
+            hostingBranch: value,
+          }
+        }
+
+        return {
+          ...previous,
+          hostingBranch: value,
+          venue: selectedBranch.venue,
+          city: selectedBranch.city,
+          state: selectedBranch.state || previous.state || 'Karnataka',
+        }
+      }
+
+      if (name === 'type' && value === 'tournament') {
+        return previous
+      }
+
+      return {
+        ...previous,
+        [name]: type === 'checkbox' ? checked : value,
+      }
+    })
   }
 
   const handleCreateCategory = async () => {
     if (!newCategoryStr.trim()) return
+    if (slugify(newCategoryStr) === 'tournament') {
+      alert('Tournaments are managed from the Tournament Results section.')
+      return
+    }
+
     setIsAddingCategory(true)
     try {
-      const res = await fetch('/api/admin/categories', {
+      const response = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: newCategoryStr })
+        body: JSON.stringify({ category: newCategoryStr }),
       })
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data.categories)
-        setFormData(prev => ({ ...prev, type: newCategoryStr.toLowerCase().replace(/\s+/g, '-') }))
-        setNewCategoryStr('')
+
+      if (!response.ok) {
+        const payload = await response.json()
+        throw new Error(payload.error || 'Unable to create category')
       }
-    } catch(e) {
-      console.error(e)
+
+      const payload = await response.json()
+      setCategories(
+        payload.categories.filter((category: string) => category !== 'tournament')
+      )
+      setFormData((previous) => ({
+        ...previous,
+        type: slugify(newCategoryStr),
+      }))
+      setNewCategoryStr('')
+    } catch (error) {
+      console.error(error)
+      alert('Failed to create category')
     } finally {
       setIsAddingCategory(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  const persistEvent = async (mode: SubmitMode) => {
+    setLoadingMode(mode)
+    setFeedback('')
+    setErrorMessage('')
 
     try {
       const url = isEdit ? `/api/admin/events/${initialData.id}` : '/api/admin/events'
       const method = isEdit ? 'PUT' : 'POST'
 
-      const res = await fetch(url, {
+      const payload = {
+        ...formData,
+        shortName: formData.shortName.trim() || formData.name.trim(),
+        slug: formData.slug.trim() || slugify(formData.name),
+      }
+
+      if (mode === 'draft') {
+        payload.status = 'draft'
+        payload.isPublished = false
+      }
+
+      if (mode === 'publish') {
+        payload.isPublished = true
+        if (payload.status === 'draft') {
+          payload.status = 'upcoming'
+        }
+      }
+
+      const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload),
       })
 
-      if (res.ok) {
-        // If it's a new event, we usually redirect back to list.
-        // If editing, we might want to stay on the page. But for consistency:
-        router.push('/admin/events')
-        router.refresh()
-      } else {
-        const data = await res.json()
-        alert(data.error || 'Something went wrong')
+      const responsePayload = await response.json()
+
+      if (!response.ok) {
+        throw new Error(responsePayload.error || 'Something went wrong')
       }
-    } catch (error) {
+
+      const savedEvent = responsePayload.event
+      const successMessage =
+        mode === 'draft'
+          ? 'Draft saved.'
+          : mode === 'publish'
+            ? 'Event saved and published.'
+            : 'Core details saved.'
+
+      setFeedback(successMessage)
+
+      if (mode === 'continue') {
+        router.push(`/admin/events/${savedEvent.id}?tab=athletes`)
+        router.refresh()
+        return
+      }
+
+      router.push(`/admin/events/${savedEvent.id}?tab=${redirectTab}`)
+      router.refresh()
+    } catch (error: any) {
       console.error(error)
-      alert('Failed to save event')
+      setErrorMessage(error?.message || 'Failed to save event')
     } finally {
-      setLoading(false)
+      setLoadingMode(null)
     }
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    await persistEvent('stay')
   }
 
   const inputStyle = {
     width: '100%',
-    padding: '0.75rem 1rem',
-    background: '#111',
-    border: '1px solid #333',
+    padding: '0.8rem 0.95rem',
+    background: '#0a0a0a',
+    border: '1px solid #232323',
     color: '#fff',
-    borderRadius: '4px',
+    borderRadius: '12px',
     fontFamily: 'system-ui, -apple-system, sans-serif',
-    marginTop: '0.5rem'
+    marginTop: '0.45rem',
   }
 
+  const sectionStyle = {
+    display: 'grid',
+    gap: '1rem',
+    padding: '1.1rem',
+    borderRadius: '18px',
+    border: '1px solid #151515',
+    background: '#070707',
+  }
+
+  const isBusy = loadingMode !== null
+
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px' }}>
-      
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>Event Name *</label>
-          <input required name="name" value={formData.name} onChange={handleChange} style={inputStyle} placeholder="e.g. Summer Camp 2026" />
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ maxWidth: '720px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 500 }}>Core Event Details</h3>
+          <p style={{ margin: '0.55rem 0 0', color: '#7f7f7f', lineHeight: 1.6 }}>
+            Save this record as a draft, keep refining details, or move directly into athlete assignment. Publishing publicly only affects the website. Athlete-profile history updates only happen after outcomes are published.
+          </p>
         </div>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>URL Slug</label>
-          <input name="slug" value={formData.slug} onChange={handleChange} style={inputStyle} placeholder="e.g. summer-camp-2026 (auto-generated if empty)" />
+
+        <div style={{ display: 'grid', gap: '0.35rem', color: '#8a8a8a', fontSize: '0.82rem' }}>
+          <span>Status: {formData.status}</span>
+          <span>Visibility: {formData.isPublished ? 'Public' : 'Internal only'}</span>
+          <span>Results visibility: {formData.isResultsPublished ? 'Public page enabled' : 'Internal only'}</span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>Event Category (Type) *</label>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-            <select required name="type" value={formData.type} onChange={handleChange} style={{...inputStyle, WebkitAppearance: 'none', flex: 1}}>
-              {categories.map(c => (
-                <option key={c} value={c}>{c.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+      {feedback ? (
+        <div style={{ padding: '0.9rem 1rem', borderRadius: '14px', border: '1px solid rgba(16,185,129,0.22)', background: 'rgba(16,185,129,0.08)', color: '#93e6c1' }}>
+          {feedback}
+        </div>
+      ) : null}
+
+      {errorMessage ? (
+        <div style={{ padding: '0.9rem 1rem', borderRadius: '14px', border: '1px solid rgba(255,107,107,0.24)', background: 'rgba(255,107,107,0.08)', color: '#ffb0b0' }}>
+          {errorMessage}
+        </div>
+      ) : null}
+
+      <section style={sectionStyle}>
+        <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#707070' }}>
+          Identity
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: '1rem' }}>
+          <Field label="Event Name *">
+            <input
+              required
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="e.g. Summer Camp 2026"
+            />
+          </Field>
+
+          <Field label="Short Name">
+            <input
+              name="shortName"
+              value={formData.shortName}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="Compact label for cards"
+            />
+          </Field>
+
+          <Field label="URL Slug">
+            <input
+              name="slug"
+              value={formData.slug}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="Auto-generated if blank"
+            />
+          </Field>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <Field label="Event Category *">
+            <div style={{ display: 'grid', gap: '0.55rem' }}>
+              <select
+                required
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                style={{ ...inputStyle, WebkitAppearance: 'none' }}
+              >
+                {visibleCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {getEventLabel(category)}
+                  </option>
+                ))}
+              </select>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  value={newCategoryStr}
+                  onChange={(event) => setNewCategoryStr(event.target.value)}
+                  style={{ ...inputStyle, marginTop: 0, flex: 1, padding: '0.65rem 0.75rem' }}
+                  placeholder="Create custom event type"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={isAddingCategory || !newCategoryStr.trim()}
+                  style={secondaryButtonStyle(Boolean(isAddingCategory || !newCategoryStr.trim()))}
+                >
+                  {isAddingCategory ? 'Adding…' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </Field>
+
+          <Field label="Workflow Status">
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              style={{ ...inputStyle, WebkitAppearance: 'none' }}
+            >
+              {EVENT_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status.replace(/-/g, ' ')}
+                </option>
               ))}
             </select>
-          </div>
-          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.5rem' }}>
-            <input 
-              value={newCategoryStr} 
-              onChange={e => setNewCategoryStr(e.target.value)} 
-              style={{ ...inputStyle, padding: '0.4rem', marginTop: 0, fontSize: '0.8rem', flex: 1 }} 
-              placeholder="Custom category..." 
-            />
-            <button 
-              type="button" 
-              onClick={handleCreateCategory} 
-              disabled={isAddingCategory || !newCategoryStr}
-              style={{ background: '#333', color: '#fff', border: 'none', padding: '0 0.5rem', fontSize: '0.75rem', borderRadius: '4px', cursor: 'pointer' }}
+          </Field>
+
+          <Field label="Hosting Branch">
+            <select
+              name="hostingBranch"
+              value={formData.hostingBranch}
+              onChange={handleChange}
+              style={{ ...inputStyle, WebkitAppearance: 'none' }}
             >
-              Add
-            </button>
-          </div>
+              <option value="">Select from live classes branches</option>
+              {branchOptions.map((branch) => (
+                <option key={branch.key} value={branch.value}>
+                  {branch.label}
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>Hosting Branch</label>
-          <select name="hostingBranch" value={formData.hostingBranch} onChange={handleChange} style={{...inputStyle, WebkitAppearance: 'none'}}>
-            <option value="">-- Central/Global --</option>
-            {allDojos.map(dojo => (
-              <option key={dojo.id} value={dojo.name}>{dojo.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>Date *</label>
-          <input required type="date" name="date" value={formData.date} onChange={handleChange} style={inputStyle} />
-        </div>
-      </div>
+      </section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>Venue</label>
-          <input name="venue" value={formData.venue} onChange={handleChange} style={inputStyle} placeholder="e.g. SKF Headquarters" />
+      <section style={sectionStyle}>
+        <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#707070' }}>
+          Schedule & Venue
         </div>
-        <div>
-          <label style={{ fontSize: '0.85rem', color: '#888' }}>City</label>
-          <input name="city" value={formData.city} onChange={handleChange} style={inputStyle} placeholder="e.g. Bengaluru" />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <Field label="Start Date *">
+            <input
+              required
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label="End Date">
+            <input
+              type="date"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label="Venue">
+            <input
+              name="venue"
+              value={formData.venue}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="Auto-filled from branch or enter manually"
+            />
+          </Field>
         </div>
-      </div>
 
-      <div>
-        <label style={{ fontSize: '0.85rem', color: '#888' }}>Description</label>
-        <textarea name="description" value={formData.description} onChange={handleChange} style={{...inputStyle, minHeight: '120px', resize: 'vertical'}} placeholder="Event details..." />
-      </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <Field label="City">
+            <input
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="e.g. Bengaluru"
+            />
+          </Field>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', padding: '1.2rem', background: '#050505', border: '1px solid #1a1a1a', borderRadius: '4px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: '#ccc' }}>
-          <input type="checkbox" name="isPublished" checked={formData.isPublished} onChange={handleChange} style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer' }} />
-          Publish Event publicly
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: '#ccc' }}>
-          <input type="checkbox" name="isFeatured" checked={formData.isFeatured} onChange={handleChange} style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer' }} />
-          Feature on Homepage
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: '#10b981' }}>
-          <input type="checkbox" name="isResultsPublished" checked={formData.isResultsPublished} onChange={handleChange} style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer' }} />
-          Show Results & Participants Publicly
-        </label>
-      </div>
+          <Field label="State">
+            <input
+              name="state"
+              value={formData.state}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="e.g. Karnataka"
+            />
+          </Field>
+        </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #1a1a1a', paddingTop: '2rem' }}>
-        <button type="submit" disabled={loading} style={{
-          background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', fontWeight: 600, borderRadius: '4px', cursor: loading ? 'wait' : 'pointer'
-        }}>
-          {loading ? 'Saving...' : 'Save Core Details'}
-        </button>
-        <Link href="/admin/events" style={{
-          background: 'transparent', color: '#fff', border: '1px solid #333', padding: '0.8rem 2rem', fontWeight: 500, borderRadius: '4px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center'
-        }}>
+        <Field label="Description">
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            style={{ ...inputStyle, minHeight: '120px', resize: 'vertical' }}
+            placeholder="Describe the event, what athletes should expect, and any operational notes."
+          />
+        </Field>
+      </section>
+
+      <section style={sectionStyle}>
+        <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#707070' }}>
+          Publication Controls
+        </div>
+
+        <ToggleField
+          checked={formData.isPublished}
+          name="isPublished"
+          onChange={handleChange}
+          title="Publish Event publicly"
+          description="This makes the event visible on the public website, including the Events page and the public event detail page."
+        />
+
+        <ToggleField
+          checked={formData.isFeatured}
+          name="isFeatured"
+          onChange={handleChange}
+          title="Mark as Featured"
+          description="This highlights the event on featured event surfaces. It does not publish the event by itself."
+        />
+
+        <ToggleField
+          checked={formData.isResultsPublished}
+          name="isResultsPublished"
+          onChange={handleChange}
+          title="Show Results & Participants Publicly"
+          description="This controls whether the public event page shows assigned athletes and results. Athlete-profile syncing is still a separate publish step."
+          accent="#10b981"
+        />
+      </section>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={() => persistEvent('draft')}
+            style={secondaryButtonStyle(isBusy)}
+          >
+            {loadingMode === 'draft' ? 'Saving draft…' : 'Save Draft'}
+          </button>
+
+          <button
+            type="submit"
+            disabled={isBusy}
+            style={primaryButtonStyle(isBusy)}
+          >
+            {loadingMode === 'stay'
+              ? 'Saving…'
+              : isEdit
+                ? 'Save Core Details'
+                : 'Create Event Record'}
+          </button>
+
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={() => persistEvent('continue')}
+            style={secondaryButtonStyle(isBusy)}
+          >
+            {loadingMode === 'continue' ? 'Saving…' : 'Save & Continue to Athletes'}
+          </button>
+
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={() => persistEvent('publish')}
+            style={publishButtonStyle(isBusy)}
+          >
+            {loadingMode === 'publish' ? 'Publishing…' : 'Save & Publish Publicly'}
+          </button>
+        </div>
+
+        <Link
+          href={isEdit && initialData?.id ? `/admin/events/${initialData.id}?tab=details` : '/admin/events'}
+          style={{
+            padding: '0.8rem 1.25rem',
+            borderRadius: '12px',
+            border: '1px solid #2a2a2a',
+            color: '#d8d8d8',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: '#080808',
+          }}
+        >
           Back
         </Link>
       </div>
     </form>
   )
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <label style={{ display: 'grid', gap: '0.1rem' }}>
+      <span style={{ fontSize: '0.84rem', color: '#8a8a8a' }}>{label}</span>
+      {children}
+    </label>
+  )
+}
+
+function ToggleField({
+  checked,
+  name,
+  onChange,
+  title,
+  description,
+  accent = '#ffffff',
+}: {
+  checked: boolean
+  name: string
+  onChange: (event: any) => void
+  title: string
+  description: string
+  accent?: string
+}) {
+  return (
+    <label style={{ display: 'grid', gap: '0.4rem', cursor: 'pointer', fontSize: '0.9rem', color: '#d8d8d8' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <input
+          type="checkbox"
+          name={name}
+          checked={checked}
+          onChange={onChange}
+          style={{ width: '1.05rem', height: '1.05rem', cursor: 'pointer', accentColor: accent }}
+        />
+        {title}
+      </span>
+      <span style={{ color: '#757575', fontSize: '0.8rem', lineHeight: 1.5 }}>{description}</span>
+    </label>
+  )
+}
+
+function primaryButtonStyle(disabled: boolean) {
+  return {
+    background: disabled ? '#b7b7b7' : '#fff',
+    color: '#000',
+    border: 'none',
+    padding: '0.8rem 1.25rem',
+    borderRadius: '12px',
+    cursor: disabled ? 'wait' : 'pointer',
+    fontWeight: 700,
+  }
+}
+
+function secondaryButtonStyle(disabled: boolean) {
+  return {
+    background: '#101010',
+    color: disabled ? '#6d6d6d' : '#f3f3f3',
+    border: '1px solid #2a2a2a',
+    padding: '0.8rem 1.05rem',
+    borderRadius: '12px',
+    cursor: disabled ? 'wait' : 'pointer',
+    fontWeight: 600,
+  }
+}
+
+function publishButtonStyle(disabled: boolean) {
+  return {
+    background: disabled ? '#0f3d2f' : '#10b981',
+    color: '#fff',
+    border: 'none',
+    padding: '0.8rem 1.15rem',
+    borderRadius: '12px',
+    cursor: disabled ? 'wait' : 'pointer',
+    fontWeight: 700,
+  }
 }

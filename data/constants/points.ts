@@ -82,8 +82,8 @@ export const LEGACY_ACHIEVEMENT_POINTS = Object.freeze({
   'seminar-completion': 30,
   'camp-attended': 10,
   'camp-completion': 30,
-  'pelt-pass': 180,
-  'pelt-fail': 0,
+  'belt-pass': 180,
+  'belt-fail': 0,
   'grading-fail': 0,
   'attendance-milestone': 100,
   'special-award': 150,
@@ -100,8 +100,8 @@ export const TOURNAMENT_LEVEL_MULTIPLIERS = Object.freeze({
   'international': 6.0,
 } as const)
 
-/** Points expiry period */
-export const POINTS_EXPIRY_MONTHS = 12
+/** Ranking points do not expire */
+export const POINTS_EXPIRY_MONTHS = 0
 
 /** Event tier weights for ranking calculations */
 export const EVENT_TIER_WEIGHTS = Object.freeze({

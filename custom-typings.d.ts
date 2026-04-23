@@ -6,6 +6,8 @@ declare module '*.css' {
   export default content
 }
 
+declare module '*.css?side-effect' {}
+
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: DefaultSession['user'] & {

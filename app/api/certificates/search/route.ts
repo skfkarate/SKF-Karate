@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getAllAthletes } from '@/lib/server/repositories/athletes'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
@@ -10,7 +10,7 @@ export async function GET(request) {
   }
 
   try {
-    const athletes = getAllAthletes()
+    const athletes = await getAllAthletesLive()
     
     // Search all athletes' achievements for a matching ID
     for (const athlete of athletes) {

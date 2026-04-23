@@ -5,22 +5,24 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Lock, ShieldCheck } from 'lucide-react'
 import { SHOP_FILTER_TABS } from '@/data/constants/categories'
+import { getProductTotalStock } from '@/lib/shop/logic'
+import type { ShopProduct } from '@/lib/shop/types'
 import './shop.css'
 
 const CATEGORIES = SHOP_FILTER_TABS
 
 export default function ShopListingPage() {
     const [activeTab, setActiveTab] = useState('all')
-    const [products, setProducts] = useState<any[]>([])
+    const [products, setProducts] = useState<ShopProduct[]>([])
 
     useEffect(() => {
-        fetch('/api/shop/catalog')
+        fetch('/api/shop/catalog', { cache: 'no-store' })
             .then(res => res.json())
             .then(data => setProducts(data || []))
             .catch(() => {})
     }, [])
 
-    const filtered = products.filter((p: any) => activeTab === 'all' || p.category === activeTab)
+    const filtered = products.filter((product) => activeTab === 'all' || product.category === activeTab)
 
     return (
         <div className="obsidian-store">
@@ -49,8 +51,8 @@ export default function ShopListingPage() {
 
                 {/* THE GRID */}
                 <div className="obsidian-grid">
-                    {filtered.map((product: any) => {
-                        const totalStock = product.variants.reduce((acc: number, v: any) => acc + v.stock, 0)
+                    {filtered.map((product) => {
+                        const totalStock = getProductTotalStock(product)
                         const outOfStock = totalStock === 0
 
                         return (
