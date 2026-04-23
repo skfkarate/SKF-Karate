@@ -1,8 +1,8 @@
 import {
-  getAllTournaments,
-  getAvailableYears,
-  getTournamentStats,
-} from '@/lib/server/repositories/tournaments'
+  getAllTournamentsLive,
+  getAvailableYearsLive,
+  getTournamentStatsLive,
+} from '@/lib/server/repositories/tournaments-live'
 import ResultsPageClient from '../_components/results/ResultsPageClient'
 import '@/app/results/results.css'
 
@@ -11,10 +11,12 @@ export const metadata = {
     description: 'Past SKF Karate competition results and statistics.',
 }
 
-export default function ResultsPage() {
-    const allTournaments = getAllTournaments()
-    const stats = getTournamentStats()
-    const availableYears = getAvailableYears()
+export default async function ResultsPage() {
+    const [allTournaments, stats, availableYears] = await Promise.all([
+        getAllTournamentsLive(),
+        getTournamentStatsLive(),
+        getAvailableYearsLive(),
+    ])
 
     return (
         <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--bg-black)' }}>

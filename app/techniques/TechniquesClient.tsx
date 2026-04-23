@@ -1,21 +1,28 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
-import { TechniqueVideo } from '@/lib/server/sheets'
 import { FaPlay, FaTimes } from 'react-icons/fa'
+import type { PortalVideoRecord } from '@/lib/server/repositories/portal-content-live'
 
 type Props = {
-    videos: TechniqueVideo[]
+    videos: PortalVideoRecord[]
     hideBeltFilter?: boolean
 }
 
 export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
-    const [activeCategory, setActiveCategory] = useState('All')
+    const [activeCategory, setActiveCategory] = useState('all')
     const [activeBelt, setActiveBelt] = useState('All')
-    const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null)
+    const [activeVideo, setActiveVideo] = useState<PortalVideoRecord | null>(null)
 
-    const categories = ['All', 'Kata', 'Kumite', 'Kihon', 'Conditioning']
+    const categories = [
+        { value: 'all', label: 'All' },
+        { value: 'kata', label: 'Kata' },
+        { value: 'kumite', label: 'Kumite' },
+        { value: 'techniques', label: 'Kihon' },
+        { value: 'bunkai', label: 'Bunkai' },
+        { value: 'fitness', label: 'Conditioning' },
+        { value: 'seminar', label: 'Seminar' },
+    ]
     const beltTabs = [
         { label: 'All', value: 'All' },
         { label: 'Beginner (White–Yellow)', value: 'beginner' },
@@ -31,23 +38,27 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
         return 'other'
     }
 
+    const matchesBeltFilter = (video: PortalVideoRecord) => {
+        if (activeBelt === 'All') return true
+        if (!video.beltLevels?.length) return true
+        return video.beltLevels.some((beltLevel) => getBeltGroup(beltLevel) === activeBelt)
+    }
+
+    const formatBeltLabel = (video: PortalVideoRecord) => {
+        if (!video.beltLevels?.length) return 'All Belts'
+        const labels = video.beltLevels.map((belt) => belt.charAt(0).toUpperCase() + belt.slice(1))
+        return labels.length <= 2 ? labels.join(' • ') : `${labels.slice(0, 2).join(' • ')} +${labels.length - 2}`
+    }
+
     const filtered = videos.filter(v => {
-        if (activeCategory !== 'All' && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
+        if (activeCategory !== 'all' && v.category.toLowerCase() !== activeCategory.toLowerCase()) {
             return false
         }
-        if (!hideBeltFilter && activeBelt !== 'All') {
-            if (activeBelt !== getBeltGroup(v.beltLevel)) {
-                return false
-            }
+        if (!hideBeltFilter && !matchesBeltFilter(v)) {
+            return false
         }
         return true
     })
-
-    function extractVideoId(url: string) {
-        if (!url) return null;
-        let match = url.match(/embed\/([^?]+)/);
-        return match ? match[1] : null;
-    }
 
     return (
         <div>
@@ -56,13 +67,13 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                 <div style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
                     {categories.map(cat => (
                         <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
+                            key={cat.value}
+                            onClick={() => setActiveCategory(cat.value)}
                             style={{
-                                background: activeCategory === cat ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.05)',
-                                color: activeCategory === cat ? '#000' : '#fff',
+                                background: activeCategory === cat.value ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.05)',
+                                color: activeCategory === cat.value ? '#000' : '#fff',
                                 border: '1px solid',
-                                borderColor: activeCategory === cat ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.1)',
+                                borderColor: activeCategory === cat.value ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.1)',
                                 padding: '0.6rem 1.4rem',
                                 borderRadius: '50px',
                                 fontWeight: 'bold',
@@ -72,7 +83,7 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                 fontSize: '0.9rem'
                             }}
                         >
-                            {cat}
+                            {cat.label}
                         </button>
                     ))}
                 </div>
@@ -112,12 +123,10 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
                     {filtered.map(video => {
-                        const vId = extractVideoId(video.youtubeUrl)
-                        const thumbnailUrl = vId ? `https://img.youtube.com/vi/${vId}/maxresdefault.jpg` : ''
                         return (
                             <div 
-                                key={video.videoId} 
-                                onClick={() => setActiveVideoUrl(video.youtubeUrl)}
+                                key={video.id} 
+                                onClick={() => setActiveVideo(video)}
                                 style={{
                                     background: 'rgba(10, 15, 28, 0.65)',
                                     border: '1px solid rgba(255,255,255,0.08)',
@@ -141,17 +150,15 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                 }}
                             >
                                 <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000' }}>
-                                    {thumbnailUrl && (
-                                        <Image 
-                                            src={thumbnailUrl} 
-                                            alt={video.title} 
-                                            fill
-                                            style={{ objectFit: 'cover', opacity: 0.8 }} 
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.srcset = `https://img.youtube.com/vi/${vId}/hqdefault.jpg`;
-                                            }}
+                                    {video.thumbnailUrl ? (
+                                        <img
+                                            src={video.thumbnailUrl}
+                                            alt={video.title}
+                                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
+                                            loading="lazy"
                                         />
+                                    ) : (
+                                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.25), rgba(255,183,3,0.12))' }} />
                                     )}
                                     <div style={{ 
                                         position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -169,7 +176,7 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                         position: 'absolute', bottom: '0.8rem', right: '0.8rem', background: 'rgba(0,0,0,0.8)', 
                                         color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' 
                                     }}>
-                                        {video.durationMin} MIN
+                                        {video.durationLabel || 'ON DEMAND'}
                                     </span>
                                 </div>
                                 <div style={{ padding: '1.5rem' }}>
@@ -182,14 +189,14 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                             padding: '0.3rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 'bold',
                                             textTransform: 'uppercase'
                                         }}>
-                                            {video.category || 'General'}
+                                            {categories.find((category) => category.value === video.category)?.label || video.category || 'General'}
                                         </span>
                                         <span style={{ 
                                             background: 'rgba(255, 183, 3, 0.1)', color: 'var(--gold, #ffb703)', 
                                             padding: '0.3rem 0.8rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 'bold',
                                             textTransform: 'uppercase'
                                         }}>
-                                            {video.beltLevel || 'All Belts'}
+                                            {formatBeltLabel(video)}
                                         </span>
                                     </div>
                                 </div>
@@ -200,26 +207,36 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
             )}
 
             {/* Video Modal */}
-            {activeVideoUrl && (
+            {activeVideo && (
                 <div style={{ 
                     position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)', 
                     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' 
-                }} onClick={() => setActiveVideoUrl(null)}>
+                }} onClick={() => setActiveVideo(null)}>
                     
                     <button style={{ 
                         position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', 
                         color: '#fff', fontSize: '2rem', cursor: 'pointer', zIndex: 10000 
-                    }} onClick={() => setActiveVideoUrl(null)}>
+                    }} onClick={() => setActiveVideo(null)}>
                         <FaTimes />
                     </button>
                     
                     <div style={{ width: '100%', maxWidth: '1000px', aspectRatio: '16/9', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
-                        <iframe 
-                            src={activeVideoUrl} 
-                            style={{ width: '100%', height: '100%', border: 'none' }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
+                        {activeVideo.playbackMode === 'iframe' ? (
+                            <iframe 
+                                src={activeVideo.playbackUrl} 
+                                style={{ width: '100%', height: '100%', border: 'none' }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <video
+                                src={activeVideo.playbackUrl}
+                                style={{ width: '100%', height: '100%' }}
+                                controls
+                                autoPlay
+                                playsInline
+                            />
+                        )}
                     </div>
                 </div>
             )}

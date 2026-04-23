@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import type { UserRole, JWTPayload } from '@/types'
-import { getStudentBySkfId } from './sheets'
+import { getAthleteByRegistrationNumberLive } from './repositories/athletes-live'
 
 const jwt = require('jsonwebtoken')
 
@@ -26,8 +26,8 @@ export async function requireRole(
   if (!allowedRoles.includes(payload.role)) throw new Error('FORBIDDEN')
   
   if (payload.role === 'student' && payload.skfId) {
-    const student = await getStudentBySkfId(payload.skfId)
-    if (student?.status === 'Inactive') {
+    const athlete = await getAthleteByRegistrationNumberLive(payload.skfId)
+    if (!athlete || String(athlete.status || '').toLowerCase() === 'inactive') {
       throw new Error('UNAUTHORIZED')
     }
   }

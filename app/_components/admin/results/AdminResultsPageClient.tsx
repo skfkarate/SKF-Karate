@@ -120,11 +120,14 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
       }}>
         <div>
           <p style={{ color: '#666', fontSize: '0.8rem', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '1rem', textTransform: 'uppercase' }}>
-            Database
+            Event Operations / Tournaments
           </p>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 400, margin: 0, letterSpacing: '-0.03em' }}>
-            Tournament Records
+            Tournament Studio
           </h1>
+          <p style={{ margin: '0.8rem 0 0', color: '#7d7d7d', lineHeight: 1.6, maxWidth: '720px' }}>
+            This is the precise lane for tournament records and medal outcomes. Tournaments also surface in the Events Hub timeline, but creation and editing stay here so the normal event workflow does not get mixed up with tournament scoring.
+          </p>
         </div>
         {canManage && (
           <Link href="/admin/results/new" style={{
@@ -134,7 +137,7 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
           }}
           onMouseOver={e => e.currentTarget.style.background = '#222'}
           onMouseOut={e => e.currentTarget.style.background = '#111'}>
-            <FaPlus /> Disclose Record
+            <FaPlus /> Create Tournament
           </Link>
         )}
       </div>

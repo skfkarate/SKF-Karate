@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { searchAthletesByName } from '@/lib/server/repositories/athletes';
+import {
+  getFeaturedAthleteSearchResultsLive,
+  searchAthletesByNameLive,
+} from '@/lib/server/repositories/athletes-live';
 import { enforceRateLimit } from '@/lib/server/api';
 
 export async function GET(request: Request) {
@@ -18,11 +21,20 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || '';
+  const featured = searchParams.get('featured') === '1';
+  const limit = Number.parseInt(searchParams.get('limit') || '6', 10);
+
+  if (featured) {
+    const results = await getFeaturedAthleteSearchResultsLive(
+      Number.isFinite(limit) ? Math.max(1, Math.min(limit, 24)) : 6
+    );
+    return NextResponse.json({ results });
+  }
 
   if (!query || query.trim().length < 2) {
     return NextResponse.json({ results: [] });
   }
 
-  const results = searchAthletesByName(query.trim());
+  const results = await searchAthletesByNameLive(query.trim());
   return NextResponse.json({ results: results.slice(0, 6) });
 }

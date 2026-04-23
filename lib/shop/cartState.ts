@@ -10,6 +10,7 @@ export interface CartItem {
     name: string
     size: string
     image: string
+    requiresApproval?: boolean
 }
 
 const CART_KEY = 'skf_cart'

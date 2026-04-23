@@ -1,4 +1,20 @@
-import { getVideoUrlById } from '@/lib/server/sheets'
+import { getAllPortalVideosAdmin } from '@/lib/server/repositories/portal-content-live'
+
+function extractYouTubeVideoId(value: string) {
+  const text = String(value || '').trim()
+  if (!text) return null
+
+  const watchMatch = text.match(/[?&]v=([^&]+)/i)
+  if (watchMatch) return watchMatch[1]
+
+  const shortMatch = text.match(/youtu\.be\/([^?&/]+)/i)
+  if (shortMatch) return shortMatch[1]
+
+  const embedMatch = text.match(/youtube\.com\/embed\/([^?&/]+)/i)
+  if (embedMatch) return embedMatch[1]
+
+  return null
+}
 
 export async function GET(request: Request) {
   try {
@@ -6,16 +22,19 @@ export async function GET(request: Request) {
     const videoId = searchParams.get('videoId')
     if (!videoId) return new Response('Missing videoId', { status: 400 })
     
-    // Verify the videoId belongs to a real video in the sheet (prevent abuse)
-    const youtubeUrl = await getVideoUrlById(videoId)
-    if (!youtubeUrl) return new Response('Video not found', { status: 404 })
+    const video = (await getAllPortalVideosAdmin()).find((entry) => entry.id === videoId)
+    if (!video) return new Response('Video not found', { status: 404 })
 
-    // Extract the YouTube native ID
-    const youtubeIdMatch = youtubeUrl.match(/(?:v=|youtu\.be\/)([^&\s]+)/)
-    if (!youtubeIdMatch) return new Response('Invalid video URL mapping', { status: 500 })
+    const derivedThumbnailUrl =
+      video.thumbnailUrl ||
+      (() => {
+        const youtubeId = extractYouTubeVideoId(video.sourceUrl) || extractYouTubeVideoId(video.playbackUrl)
+        return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : ''
+      })()
 
-    const thumbUrl = `https://img.youtube.com/vi/${youtubeIdMatch[1]}/hqdefault.jpg`
-    const response = await fetch(thumbUrl)
+    if (!derivedThumbnailUrl) return new Response('Thumbnail not available', { status: 404 })
+
+    const response = await fetch(derivedThumbnailUrl)
     
     if (!response.ok) {
         return new Response('Failed to fetch thumbnail', { status: response.status })

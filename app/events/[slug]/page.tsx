@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { FaCalendarAlt, FaMapMarkerAlt, FaCity, FaUsers, FaArrowRight, FaMedal } from "react-icons/fa"
-import { getEventBySlug } from "@/lib/server/repositories/events"
+import { getEventBySlugLive } from "@/lib/server/repositories/events-live"
+import { getEventLabel } from "@/data/constants/categories"
 import "../events.css"
 
 export const dynamic = "force-dynamic"
@@ -20,18 +21,38 @@ function getResultLabel(result: any) {
     if (result.medal === 'gold') return 'Gold Medal'
     if (result.medal === 'silver') return 'Silver Medal'
     if (result.medal === 'bronze') return 'Bronze Medal'
+    if (result.medal === 'participation') return 'Participation'
   }
+  if (result.specialAward) return result.specialAward
   if (result.award) return result.award
   if (result.result === "completed") return "Completed"
   if (result.result === "attended") return "Attended"
+  if (result.result === "absent") return "Absent"
   if (result.result === "pass") return "Passed"
   if (result.result === "fail") return "Failed"
   return result.result || "Recorded"
 }
 
+function getResultMeta(result: any) {
+  const parts = []
+
+  if (result.category) parts.push(result.category.replace(/-/g, ' '))
+  if (result.ageGroup) parts.push(result.ageGroup.replace(/-/g, ' '))
+  if (result.weightCategory) parts.push(result.weightCategory)
+  if (result.beltAwarded || result.promotion) {
+    parts.push(`Promoted to ${(result.beltAwarded || result.promotion).replace(/-/g, ' ')}`)
+  }
+  if (result.grade) parts.push(`Grade ${result.grade}`)
+  if (result.score === 0 || result.score) parts.push(`Score ${result.score}`)
+  if (result.doublePromotion) parts.push('Double promotion')
+  if (result.notes) parts.push(result.notes)
+
+  return parts.join(' • ')
+}
+
 export async function generateMetadata({ params }: any) {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const event = await getEventBySlugLive(slug)
 
   if (!event) {
     return { title: "Event Not Found | SKF Karate" }
@@ -66,7 +87,7 @@ export async function generateMetadata({ params }: any) {
 
 export default async function EventDetailPage({ params }: any) {
   const { slug } = await params
-  const event = getEventBySlug(slug)
+  const event = await getEventBySlugLive(slug)
 
   if (!event) {
     notFound()
@@ -103,7 +124,7 @@ export default async function EventDetailPage({ params }: any) {
         <div className="ev-detail-hero__bg" />
         <div className="container ev-detail-hero__content">
             <span className="ev-detail-hero__type">
-                {event.type.replace(/-/g, ' ')}
+                {getEventLabel(event.type)}
             </span>
             <h1 className="ev-detail-hero__title">
                 {event.name}
@@ -213,10 +234,15 @@ export default async function EventDetailPage({ params }: any) {
                                             <FaMedal style={{ display: 'inline-block', marginRight: '4px', position: 'relative', top: '-1px' }} />
                                             {getResultLabel(result)}
                                         </span>
-                                        {result.promotion && (
+                                        {(result.beltAwarded || result.promotion) && (
                                             <span className="ev-promotion-badge">
-                                                Promoted to {result.promotion.replace(/-/g, ' ')}
+                                                Promoted to {(result.beltAwarded || result.promotion).replace(/-/g, ' ')}
                                             </span>
+                                        )}
+                                        {getResultMeta(result) && (
+                                          <span style={{ display: 'block', marginTop: '0.35rem', color: '#8f8f8f', fontSize: '0.74rem', textAlign: 'right', maxWidth: '22rem' }}>
+                                            {getResultMeta(result)}
+                                          </span>
                                         )}
                                     </div>
                                 </div>

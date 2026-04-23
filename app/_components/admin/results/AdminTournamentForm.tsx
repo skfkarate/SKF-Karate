@@ -9,12 +9,16 @@ import { useRouter } from 'next/navigation'
 import { FaPlus, FaEdit, FaTrash, FaTimes } from 'react-icons/fa'
 import TournamentCard from '../../results/TournamentCard'
 import MedalTally from '../../results/MedalTally'
+import { flattenClassBranches } from '@/lib/classes/catalog'
+import type { City } from '@/lib/classesData'
 import {
   TOURNAMENT_LEVELS, TOURNAMENT_LEVEL_LABELS,
   EVENT_CATEGORIES, EVENT_CATEGORY_LABELS,
   AGE_GROUPS, AGE_GROUP_LABELS,
-  BRANCHES, BELTS,
+  BELTS,
+  TOURNAMENT_DIFFICULTY_LEVELS,
 } from '@/lib/types/tournament'
+import { calculateRawPoints } from '@/lib/utils/points'
 import '../../../admin/results/admin-results.css'
 
 const AUTOSAVE_INTERVAL = 30000
@@ -30,6 +34,8 @@ type WinnerFormValue = {
   category: string
   ageGroup: string
   weightCategory: string
+  difficultyLevel: number | ''
+  wins: number
   photoUrl: string
 }
 
@@ -78,13 +84,15 @@ function slugify(str: string) {
 const emptyWinner: WinnerFormValue = {
   athleteName: '',
   registrationNumber: '',
-  branchName: 'Sunkadakatte',
+  branchName: 'SKF Karate',
   belt: 'White Belt',
   medal: 'gold',
   position: 1,
   category: 'kata-individual',
   ageGroup: 'sub-junior',
   weightCategory: '',
+  difficultyLevel: '',
+  wins: 0,
   photoUrl: '',
 }
 
@@ -122,6 +130,11 @@ function normaliseWinner(winner: Partial<WinnerFormValue> = {}): WinnerFormValue
     ...emptyWinner,
     ...winner,
     registrationNumber: winner.registrationNumber ?? '',
+    difficultyLevel:
+      winner.difficultyLevel === undefined || winner.difficultyLevel === null || winner.difficultyLevel === ''
+        ? ''
+        : Number(winner.difficultyLevel),
+    wins: Number(winner.wins ?? 0),
   }
 }
 
@@ -136,6 +149,14 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
   const [currentWinner, setCurrentWinner] = useState<WinnerFormValue>({ ...emptyWinner })
   const [notification, setNotification] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [classCities, setClassCities] = useState<City[]>([])
+  const branchNames = Array.from(
+    new Set(flattenClassBranches(classCities).map((branch) => branch.name))
+  ).sort((a, b) => a.localeCompare(b))
+  const winnerBranchOptions =
+    currentWinner.branchName && !branchNames.includes(currentWinner.branchName)
+      ? [currentWinner.branchName, ...branchNames]
+      : branchNames
 
   const [form, setForm] = useState<TournamentFormState>(() => {
     if (tournament) {
@@ -160,6 +181,48 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
     }
     return defaultTournamentForm
   })
+  const currentWinnerPointsPreview = Math.round(
+    calculateRawPoints({
+      level: form.level,
+      tier: form.level,
+      result: currentWinner.medal,
+      difficultyLevel: currentWinner.difficultyLevel,
+      wins: currentWinner.wins,
+    })
+  )
+
+  useEffect(() => {
+    let isMounted = true
+
+    fetch('/api/admin/classes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted || !Array.isArray(data?.cities)) return
+        setClassCities(data.cities)
+      })
+      .catch((error) => {
+        console.error('Failed to load classes for tournament form:', error)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!branchNames.length) return
+
+    setCurrentWinner((previous) => {
+      if (previous.branchName && previous.branchName !== 'SKF Karate') {
+        return previous
+      }
+
+      return {
+        ...previous,
+        branchName: branchNames[0],
+      }
+    })
+  }, [branchNames])
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
@@ -203,7 +266,10 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
 
   // Winner modal
   const openAddWinner = () => {
-    setCurrentWinner({ ...emptyWinner })
+    setCurrentWinner({
+      ...emptyWinner,
+      branchName: branchNames[0] || emptyWinner.branchName,
+    })
     setEditingWinnerIndex(null)
     setShowWinnerModal(true)
   }
@@ -300,7 +366,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
       const response = await fetch(
         isEdit ? `/api/admin/results/${tournament.id}` : '/api/admin/results',
         {
-          method: isEdit ? 'PATCH' : 'POST',
+          method: isEdit ? 'PUT' : 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -551,6 +617,23 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
                       <span>{w.branchName}</span>
                       <span className={`achievement-badge achievement-badge--${w.medal}`}>{w.medal}</span>
                       <span>{EVENT_CATEGORY_LABELS[w.category]}</span>
+                      {(w.difficultyLevel || w.wins) ? (
+                        <span>
+                          {w.difficultyLevel ? `Difficulty ${w.difficultyLevel}/5` : 'Base difficulty'}
+                          {w.wins ? ` • ${w.wins} wins` : ''}
+                        </span>
+                      ) : null}
+                      <span>
+                        {Math.round(
+                          calculateRawPoints({
+                            level: form.level,
+                            tier: form.level,
+                            result: w.medal,
+                            difficultyLevel: w.difficultyLevel,
+                            wins: w.wins,
+                          })
+                        )} pts preview
+                      </span>
                     </div>
                     <div className="admin-form__winner-actions">
                       <button className="admin-table__action-btn" onClick={() => openEditWinner(i)} aria-label="Edit winner">
@@ -674,7 +757,9 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
                   value={currentWinner.branchName}
                   onChange={e => setCurrentWinner(prev => ({ ...prev, branchName: e.target.value }))}
                 >
-                  {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  {winnerBranchOptions.map((branch) => (
+                    <option key={branch} value={branch}>{branch}</option>
+                  ))}
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -757,6 +842,54 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
                 onChange={e => setCurrentWinner(prev => ({ ...prev, weightCategory: e.target.value }))}
                 placeholder="e.g. Under 55kg (optional for kata)"
               />
+            </div>
+
+            <div className="admin-form__row">
+              <div className="admin-form__group">
+                <label className="admin-form__label">Difficulty Level</label>
+                <select
+                  className="admin-form__form-select"
+                  value={currentWinner.difficultyLevel}
+                  onChange={e => setCurrentWinner(prev => ({
+                    ...prev,
+                    difficultyLevel: e.target.value ? Number(e.target.value) : '',
+                  }))}
+                >
+                  <option value="">Use tournament level only</option>
+                  {TOURNAMENT_DIFFICULTY_LEVELS.map((difficultyLevel) => (
+                    <option key={difficultyLevel} value={difficultyLevel}>
+                      {difficultyLevel} / 5
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="admin-form__group">
+                <label className="admin-form__label">Fights Won</label>
+                <input
+                  type="number"
+                  className="admin-form__input"
+                  min={0}
+                  max={50}
+                  value={currentWinner.wins}
+                  onChange={e => setCurrentWinner(prev => ({ ...prev, wins: Number(e.target.value || 0) }))}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.9rem 1rem',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 183, 3, 0.22)',
+                background: 'rgba(255, 183, 3, 0.06)',
+                color: 'var(--text-white)',
+              }}
+            >
+              Ranking points preview: <strong>{currentWinnerPointsPreview}</strong>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.35rem' }}>
+                Based on tournament level, medal result, difficulty rating, and fights won. Saving results will recalculate athlete rankings automatically.
+              </div>
             </div>
 
             <div className="admin-form__group">

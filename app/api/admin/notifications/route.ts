@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 import { resend } from '@/lib/email/resend'
 import { certificateReadyTemplate } from '@/lib/email/templates'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
-import { getStudentBySkfId } from '@/lib/server/sheets'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/server/auth/options'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 
 export async function POST(request: Request) {
   try {
@@ -48,14 +48,8 @@ export async function POST(request: Request) {
     // 3. Process each enrollment
     for (const enrollment of enrollments) {
       // Get student email from Google Sheets
-      const student = await getStudentBySkfId(enrollment.skf_id)
-      const studentRecord = student as unknown as Record<string, unknown> | null
-      const targetEmail =
-        typeof studentRecord?.Email === 'string'
-          ? String(studentRecord.Email)
-          : typeof studentRecord?.email === 'string'
-            ? String(studentRecord.email)
-            : ''
+      const athlete = await getAthleteByRegistrationNumberLive(enrollment.skf_id)
+      const targetEmail = athlete?.email || ''
       
       if (!targetEmail) {
         emailsFailed++
@@ -66,10 +60,11 @@ export async function POST(request: Request) {
       const program =
         Array.isArray(enrollment.programs) ? enrollment.programs[0] : enrollment.programs
       const programName = program?.name || 'Certificate Program'
-      const studentName = student?.name || 'Student'
+      const studentName =
+        [athlete?.firstName, athlete?.lastName].filter(Boolean).join(' ').trim() || 'Athlete'
       
       const { subject, html } = certificateReadyTemplate({
-        parentName: student?.parentName || 'Parent',
+        parentName: athlete?.parentName || 'Parent',
         studentName,
         programName,
         skfId: enrollment.skf_id

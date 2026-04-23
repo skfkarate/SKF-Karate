@@ -1,23 +1,45 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  BarChart3, TrendingUp, Download, Eye, Bell, Users,
-  Award, Shield, CheckCircle, XCircle, Clock
+  Activity,
+  Award,
+  Bell,
+  Eye,
+  Globe2,
+  LogIn,
+  MousePointerClick,
+  TriangleAlert,
 } from 'lucide-react'
 
-const BELT_COLORS: Record<string, string> = {
-  white: '#FFFFFF',
-  yellow: '#FFD700',
-  orange: '#FF8C00',
-  green: '#228B22',
-  blue: '#1E3A8A',
-  purple: '#9B59B6',
-  brown: '#8B4513',
-  black: '#1a1a1a'
+type WebsiteAnalytics = {
+  overview: {
+    totalVisits: number
+    visitsToday: number
+    totalPageViews: number
+    publicPageViews: number
+    portalPageViews: number
+    leadSubmissions: number
+    leadFailures: number
+    portalLogins: number
+    portalLoginFailures: number
+  }
+  topPages: Array<{ path: string; views: number }>
+  topLandingPages: Array<{ path: string; views: number }>
+  dailyTraffic: Array<{ date: string; views: number }>
+  recentOperationalEvents: Array<{
+    id: string
+    eventType: string
+    path: string
+    createdAt: string
+    metadata: Record<string, unknown>
+    skfId: string | null
+  }>
+  timeWindowLabel: string
 }
 
-interface Analytics {
+type CertificateAnalytics = {
   overview: {
     totalUnlocked: number
     unlockedThisMonth: number
@@ -46,224 +68,360 @@ interface Analytics {
   }>
 }
 
+type AnalyticsPayload = {
+  website: WebsiteAnalytics | null
+  certificates: CertificateAnalytics | null
+}
+
+function formatShortDate(value: string) {
+  return new Date(value).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
+function formatEventLabel(value: string) {
+  return value.replace(/_/g, ' ')
+}
+
+function formatPath(value: string) {
+  return value === '/' ? 'Homepage' : value
+}
+
 export default function AdminAnalyticsPage() {
-  const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsPayload | null>(null)
+  const [warnings, setWarnings] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/admin/analytics')
-      .then(res => res.json())
-      .then(data => setAnalytics(data.analytics))
-      .catch(console.error)
+      .then((res) => res.json())
+      .then((payload) => {
+        setAnalytics(payload.analytics || null)
+        setWarnings(Array.isArray(payload.warnings) ? payload.warnings : [])
+      })
+      .catch((error) => {
+        console.error('Failed to load analytics:', error)
+      })
       .finally(() => setLoading(false))
   }, [])
 
+  const website = analytics?.website || null
+  const certificates = analytics?.certificates || null
+
+  const beltDistribution = useMemo(() => {
+    if (!certificates) return []
+    return Object.entries(certificates.beltDistribution).sort((a, b) => b[1] - a[1])
+  }, [certificates])
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#666', fontSize: '1.2rem' }}>Loading analytics...</div>
+      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem', display: 'grid', placeItems: 'center' }}>
+        <div style={{ color: '#6b6b6b', fontSize: '1rem' }}>Loading analytics intelligence…</div>
       </div>
     )
   }
-
-  if (!analytics) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#666', fontSize: '1.2rem' }}>Analytics unavailable. Database may not be configured.</div>
-      </div>
-    )
-  }
-
-  const o = analytics.overview
-  const downloadRate = o.totalUnlocked > 0 ? Math.round((o.downloadsThisMonth / Math.max(o.totalUnlocked, 1)) * 100) : 0
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#000',
-      color: '#fff',
-      padding: '2rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      {/* Header */}
-      <div style={{ marginBottom: '3rem' }}>
-        <p style={{ fontSize: '0.8rem', color: '#666', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#000',
+        color: '#fff',
+        padding: '2rem 2.5rem 4rem',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      <div style={{ marginBottom: '2rem' }}>
+        <p style={{ fontSize: '0.78rem', color: '#666', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>
           Intelligence
         </p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 400, margin: 0, letterSpacing: '-0.03em' }}>
-          Certificate Analytics
+          Operations Analytics
         </h1>
+        <p style={{ margin: '0.85rem 0 0', color: '#808080', lineHeight: 1.65, maxWidth: '900px' }}>
+          Website traffic, lead capture, portal activity, and certificate performance are now visible from one admin surface. Public page views respect cookie consent. Operational failures such as lead submission issues and portal login failures are tracked server-side so you can diagnose real workflow problems.
+        </p>
       </div>
 
-      {/* Overview Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
-        <StatCard icon={<Award size={18} />} label="Certificates Issued" value={o.totalUnlocked} accent="#2ecc71" />
-        <StatCard icon={<TrendingUp size={18} />} label="Unlocked This Month" value={o.unlockedThisMonth} accent="#f39c12" />
-        <StatCard icon={<Clock size={18} />} label="Pending Enrollment" value={o.totalEnrolled} accent="#3498db" />
-        <StatCard icon={<XCircle size={18} />} label="Revoked" value={o.totalRevoked} accent="#e74c3c" />
-        <StatCard icon={<Eye size={18} />} label="Views This Month" value={o.viewsThisMonth} accent="#9b59b6" />
-        <StatCard icon={<Download size={18} />} label="Downloads This Month" value={o.downloadsThisMonth} accent="#1abc9c" />
-        <StatCard icon={<Bell size={18} />} label="Emails Sent" value={o.notificationsSent} accent="#2ecc71" />
-        <StatCard icon={<Bell size={18} />} label="Pending Notifications" value={o.notificationsPending} accent="#e67e22" />
-      </div>
-
-      {/* Program Breakdown */}
-      <div style={{ marginBottom: '4rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 400, marginBottom: '2rem', borderBottom: '1px solid #111', paddingBottom: '1rem', letterSpacing: '-0.02em' }}>
-          Program Breakdown
-        </h2>
-        <div style={{ background: '#050505', border: '1px solid #111', borderRadius: '8px', overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ background: '#0a0a0a', borderBottom: '1px solid #222' }}>
-                <th style={{ padding: '1rem 1.5rem', color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Program</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#f39c12', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Enrolled</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#2ecc71', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Completed</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#e74c3c', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Revoked</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics.programBreakdown.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>No programs found.</td></tr>
-              ) : analytics.programBreakdown.map(p => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #111' }}>
-                  <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{p.name}</td>
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, background: 'rgba(243, 156, 18, 0.1)', color: '#f39c12', textTransform: 'uppercase' }}>
-                      {p.type.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: '#f39c12', fontWeight: 600 }}>{p.enrolled}</td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: '#2ecc71', fontWeight: 600 }}>{p.completed}</td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: '#e74c3c', fontWeight: 600 }}>{p.revoked}</td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center', fontWeight: 600 }}>{p.enrolled + p.completed + p.revoked}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {warnings.length > 0 ? (
+        <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          {warnings.map((warning) => (
+            <div
+              key={warning}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '1rem 1.1rem',
+                borderRadius: '16px',
+                border: '1px solid rgba(245, 158, 11, 0.22)',
+                background: 'rgba(245, 158, 11, 0.08)',
+                color: '#f6d28b',
+              }}
+            >
+              <TriangleAlert size={18} style={{ flexShrink: 0, marginTop: '0.1rem' }} />
+              <span style={{ lineHeight: 1.55 }}>{warning}</span>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : null}
 
-      {/* Two-Column: Belt Distribution + Recent Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        {/* Belt Distribution */}
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 400, marginBottom: '2rem', borderBottom: '1px solid #111', paddingBottom: '1rem', letterSpacing: '-0.02em' }}>
-            Belt Distribution
-          </h2>
-          <div style={{ background: '#050505', border: '1px solid #111', borderRadius: '8px', padding: '1.5rem' }}>
-            {Object.keys(analytics.beltDistribution).length === 0 ? (
-              <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>No belt data yet</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {Object.entries(analytics.beltDistribution)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([belt, count]) => {
-                    const totalBelts = Object.values(analytics.beltDistribution).reduce((s, v) => s + v, 0)
-                    const pct = Math.round((count / totalBelts) * 100)
-                    const color = BELT_COLORS[belt.toLowerCase()] || '#888'
-                    return (
-                      <div key={belt} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: color, border: belt.toLowerCase() === 'white' ? '1px solid #444' : 'none', flexShrink: 0 }} />
-                        <span style={{ width: '80px', fontSize: '0.85rem', textTransform: 'capitalize', fontWeight: 600, color: '#ccc' }}>{belt}</span>
-                        <div style={{ flex: 1, height: '8px', background: '#111', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.5s ease' }} />
-                        </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', minWidth: '40px', textAlign: 'right' }}>{count}</span>
-                      </div>
-                    )
-                  })}
-              </div>
-            )}
-          </div>
+      <section style={{ marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '1rem' }}>
+          <Globe2 size={18} color="#d5d5d5" />
+          <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600 }}>Website Activity</h2>
         </div>
 
-        {/* Recent Activity */}
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 400, marginBottom: '2rem', borderBottom: '1px solid #111', paddingBottom: '1rem', letterSpacing: '-0.02em' }}>
-            Recent Certificate Activity
-          </h2>
-          <div style={{ background: '#050505', border: '1px solid #111', borderRadius: '8px', overflow: 'hidden' }}>
-            {analytics.recentActivity.length === 0 ? (
-              <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>No activity yet</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {analytics.recentActivity.map((a, i) => (
-                  <div key={i} style={{
-                    padding: '0.85rem 1.25rem',
-                    borderBottom: '1px solid #111',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.75rem'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{
-                        width: '28px', height: '28px', borderRadius: '50%',
-                        background: a.downloaded_at ? 'rgba(46, 204, 113, 0.15)' : 'rgba(243, 156, 18, 0.15)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        {a.downloaded_at ? <Download size={14} color="#2ecc71" /> : <Eye size={14} color="#f39c12" />}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 500, fontFamily: 'monospace', color: '#ccc' }}>{a.skf_id}</div>
-                        <div style={{ fontSize: '0.7rem', color: '#666' }}>
-                          {a.downloaded_at ? `Downloaded ${a.download_format?.toUpperCase() || ''}` : 'Viewed'}
+        {website ? (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              <MetricCard icon={<MousePointerClick size={16} />} label="Visits" value={website.overview.totalVisits} helper="Session entries tracked" />
+              <MetricCard icon={<Activity size={16} />} label="Visits Today" value={website.overview.visitsToday} helper="Landing visits since midnight" />
+              <MetricCard icon={<Eye size={16} />} label="Page Views" value={website.overview.totalPageViews} helper={`${website.overview.publicPageViews} public · ${website.overview.portalPageViews} portal`} />
+              <MetricCard icon={<Award size={16} />} label="Lead Success" value={website.overview.leadSubmissions} helper={`${website.overview.leadFailures} lead failures`} />
+              <MetricCard icon={<LogIn size={16} />} label="Portal Logins" value={website.overview.portalLogins} helper={`${website.overview.portalLoginFailures} login failures`} />
+            </div>
+
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1.2fr 1fr 1fr', marginBottom: '1.5rem' }}>
+              <Panel title={`Top Pages · ${website.timeWindowLabel}`}>
+                {website.topPages.length === 0 ? (
+                  <EmptyPanel text="No tracked public traffic yet." />
+                ) : (
+                  website.topPages.map((entry) => (
+                    <ListRow
+                      key={entry.path}
+                      label={formatPath(entry.path)}
+                      value={`${entry.views} views`}
+                    />
+                  ))
+                )}
+              </Panel>
+
+              <Panel title={`Top Landing Pages · ${website.timeWindowLabel}`}>
+                {website.topLandingPages.length === 0 ? (
+                  <EmptyPanel text="Landing-page data appears once traffic starts." />
+                ) : (
+                  website.topLandingPages.map((entry) => (
+                    <ListRow
+                      key={entry.path}
+                      label={formatPath(entry.path)}
+                      value={`${entry.views} visits`}
+                    />
+                  ))
+                )}
+              </Panel>
+
+              <Panel title="Traffic Trend · Last 14 days">
+                {website.dailyTraffic.length === 0 ? (
+                  <EmptyPanel text="No daily traffic points yet." />
+                ) : (
+                  <div style={{ display: 'grid', gap: '0.65rem' }}>
+                    {website.dailyTraffic.map((point) => (
+                      <div key={point.date} style={{ display: 'grid', gap: '0.35rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontSize: '0.8rem', color: '#bfbfbf' }}>
+                          <span>{formatShortDate(point.date)}</span>
+                          <span>{point.views}</span>
                         </div>
+                        <div style={{ height: '8px', borderRadius: '999px', background: '#111', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${Math.max(
+                                6,
+                                (point.views /
+                                  Math.max(...website.dailyTraffic.map((entry) => entry.views), 1)) *
+                                  100
+                              )}%`,
+                              background: 'linear-gradient(90deg, #ffffff, #5f5f5f)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Panel>
+            </div>
+
+            <Panel title="Recent Operational Signals">
+              {website.recentOperationalEvents.length === 0 ? (
+                <EmptyPanel text="Lead failures and portal login events will appear here." />
+              ) : (
+                <div style={{ display: 'grid', gap: '0.85rem' }}>
+                  {website.recentOperationalEvents.map((entry) => (
+                    <div
+                      key={entry.id}
+                      style={{
+                        display: 'grid',
+                        gap: '0.25rem',
+                        padding: '0.95rem 1rem',
+                        borderRadius: '14px',
+                        border: '1px solid #171717',
+                        background: '#080808',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9f9f9f' }}>
+                          {formatEventLabel(entry.eventType)}
+                        </span>
+                        <span style={{ fontSize: '0.76rem', color: '#666' }}>
+                          {new Date(entry.createdAt).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{formatPath(entry.path)}</div>
+                      <div style={{ color: '#7d7d7d', fontSize: '0.8rem', lineHeight: 1.55 }}>
+                        {entry.skfId ? `SKF ID: ${entry.skfId} · ` : null}
+                        {Object.entries(entry.metadata || {})
+                          .slice(0, 3)
+                          .map(([key, value]) => `${key}: ${String(value)}`)
+                          .join(' · ') || 'No extra metadata'}
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#666' }}>
-                      {new Date(a.viewed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                  ))}
+                </div>
+              )}
+            </Panel>
+          </>
+        ) : (
+          <Panel title="Website Activity">
+            <EmptyPanel text="Website analytics will appear here once the site analytics table is available and page views begin flowing." />
+          </Panel>
+        )}
+      </section>
 
-      {/* Engagement Summary */}
-      <div style={{ marginTop: '3rem', padding: '2rem', background: '#050505', border: '1px solid #111', borderRadius: '8px' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '1.5rem', color: '#888' }}>Engagement Summary</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '2rem' }}>
-          <div>
-            <p style={{ margin: '0 0 0.25rem 0', fontSize: '2rem', fontWeight: 300, color: '#2ecc71' }}>{downloadRate}%</p>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Download Rate (MTD)</p>
-          </div>
-          <div>
-            <p style={{ margin: '0 0 0.25rem 0', fontSize: '2rem', fontWeight: 300, color: '#f39c12' }}>{o.viewsThisMonth}</p>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Certificate Views (MTD)</p>
-          </div>
-          <div>
-            <p style={{ margin: '0 0 0.25rem 0', fontSize: '2rem', fontWeight: 300, color: '#e74c3c' }}>{o.notificationsPending}</p>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending Follow-ups</p>
-          </div>
+      <section>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '1rem' }}>
+          <Bell size={18} color="#d5d5d5" />
+          <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600 }}>Certificates & Programs</h2>
         </div>
-      </div>
+
+        {certificates ? (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              <MetricCard icon={<Award size={16} />} label="Certificates Issued" value={certificates.overview.totalUnlocked} helper={`${certificates.overview.unlockedThisMonth} this month`} />
+              <MetricCard icon={<Eye size={16} />} label="Certificate Views" value={certificates.overview.viewsThisMonth} helper={`${certificates.overview.downloadsThisMonth} downloads this month`} />
+              <MetricCard icon={<Activity size={16} />} label="Pending Enrollment" value={certificates.overview.totalEnrolled} helper={`${certificates.overview.totalRevoked} revoked`} />
+              <MetricCard icon={<Bell size={16} />} label="Notifications" value={certificates.overview.notificationsSent} helper={`${certificates.overview.notificationsPending} pending`} />
+            </div>
+
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1.2fr 1fr 1fr' }}>
+              <Panel title="Program Breakdown">
+                {certificates.programBreakdown.length === 0 ? (
+                  <EmptyPanel text="No program analytics yet." />
+                ) : (
+                  certificates.programBreakdown.map((program) => (
+                    <ListRow
+                      key={program.id}
+                      label={program.name}
+                      value={`${program.completed} complete · ${program.enrolled} enrolled`}
+                      sublabel={program.type.replace(/_/g, ' ')}
+                    />
+                  ))
+                )}
+              </Panel>
+
+              <Panel title="Belt Distribution">
+                {beltDistribution.length === 0 ? (
+                  <EmptyPanel text="No completed belt records yet." />
+                ) : (
+                  beltDistribution.map(([belt, count]) => (
+                    <ListRow
+                      key={belt}
+                      label={belt}
+                      value={String(count)}
+                    />
+                  ))
+                )}
+              </Panel>
+
+              <Panel title="Recent Certificate Activity">
+                {certificates.recentActivity.length === 0 ? (
+                  <EmptyPanel text="No certificate activity yet." />
+                ) : (
+                  certificates.recentActivity.map((entry) => (
+                    <ListRow
+                      key={`${entry.enrollment_id}-${entry.viewed_at}`}
+                      label={entry.skf_id}
+                      value={entry.downloaded_at ? `Downloaded ${entry.download_format?.toUpperCase() || ''}` : 'Viewed'}
+                      sublabel={formatShortDate(entry.viewed_at)}
+                    />
+                  ))
+                )}
+              </Panel>
+            </div>
+          </>
+        ) : (
+          <Panel title="Certificates & Programs">
+            <EmptyPanel text="Certificate analytics are not available in this environment yet." />
+          </Panel>
+        )}
+      </section>
     </div>
   )
 }
 
-function StatCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: number; accent: string }) {
+function MetricCard({
+  icon,
+  label,
+  value,
+  helper,
+}: {
+  icon: ReactNode
+  label: string
+  value: number
+  helper: string
+}) {
   return (
-    <div style={{
-      padding: '1.5rem',
-      border: '1px solid #111',
-      background: '#050505',
-      borderRadius: '0'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-        <span style={{ color: accent }}>{icon}</span>
-        <p style={{ fontSize: '0.7rem', color: '#666', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-          {label}
-        </p>
+    <div style={{ padding: '1.15rem 1.2rem', borderRadius: '18px', border: '1px solid #161616', background: '#050505' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', color: '#cfcfcf', marginBottom: '0.8rem' }}>
+        {icon}
+        <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#707070' }}>{label}</span>
       </div>
-      <p style={{ fontSize: '2.2rem', fontWeight: 300, color: '#fff', margin: 0, letterSpacing: '-0.05em' }}>
-        {value}
-      </p>
+      <div style={{ fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.04em' }}>{value}</div>
+      <div style={{ marginTop: '0.35rem', color: '#7b7b7b', fontSize: '0.8rem', lineHeight: 1.45 }}>{helper}</div>
     </div>
   )
+}
+
+function Panel({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div style={{ padding: '1.15rem', borderRadius: '18px', border: '1px solid #161616', background: '#050505' }}>
+      <div style={{ marginBottom: '1rem', fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#7a7a7a' }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function ListRow({
+  label,
+  value,
+  sublabel,
+}: {
+  label: string
+  value: string
+  sublabel?: string
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start', padding: '0.7rem 0', borderBottom: '1px solid #111' }}>
+      <div>
+        <div style={{ fontSize: '0.92rem', fontWeight: 600 }}>{label}</div>
+        {sublabel ? (
+          <div style={{ marginTop: '0.2rem', fontSize: '0.78rem', color: '#666' }}>{sublabel}</div>
+        ) : null}
+      </div>
+      <div style={{ fontSize: '0.82rem', color: '#bdbdbd', whiteSpace: 'nowrap' }}>{value}</div>
+    </div>
+  )
+}
+
+function EmptyPanel({ text }: { text: string }) {
+  return <div style={{ color: '#6f6f6f', fontSize: '0.88rem', lineHeight: 1.6 }}>{text}</div>
 }

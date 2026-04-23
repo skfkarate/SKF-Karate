@@ -1,12 +1,10 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaArrowRight, FaMapMarkerAlt } from 'react-icons/fa'
-import { getAllCities } from '@/lib/classesData'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 
-export default function HomeClassesPreview() {
-    const cities = getAllCities()
+export default async function HomeClassesPreview() {
+    const cities = await getAllCitiesLive()
 
     return (
         <section className="home-classes-preview section section--tint-cool">

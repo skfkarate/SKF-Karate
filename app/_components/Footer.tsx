@@ -2,11 +2,12 @@ import Link from 'next/link'
 import { FaInstagram, FaYoutube, FaWhatsapp, FaFacebookF } from 'react-icons/fa'
 import Image from 'next/image'
 import { CONTACT, SOCIAL_LINKS } from '@/data/constants/contact'
-import { getAllCities } from '@/lib/classesData'
+import { flattenClassBranches } from '@/lib/classes/catalog'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 
-export default function Footer() {
-    const cities = getAllCities()
-    const allBranches = cities.flatMap(c => c.branches)
+export default async function Footer() {
+    const cities = await getAllCitiesLive()
+    const allBranches = flattenClassBranches(cities)
 
     return (
         <footer className="ft">
@@ -48,8 +49,8 @@ export default function Footer() {
                 <div className="ft__dojos">
                     {allBranches.map(branch => (
                         <Link
-                            key={branch.slug}
-                            href={`/classes/${cities.find(c => c.branches.includes(branch))?.slug || 'bangalore'}/${branch.slug}`}
+                            key={`${branch.citySlug}-${branch.slug}`}
+                            href={`/classes/${branch.citySlug}/${branch.slug}`}
                             className="ft__dojo-chip"
                         >
                             <span className="ft__dojo-pulse" />

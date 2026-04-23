@@ -1,22 +1,15 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getShopOrdersBySkfId } from '@/lib/server/sheets'
+import { COOKIE_NAME, verifyStudentJWT } from '@/lib/server/auth/student'
+import { getShopOrdersBySkfId } from '@/lib/server/repositories/shop'
 import '../shop.css'
-
-const jwt = require('jsonwebtoken')
-
-function verifyPortalToken(token: string): any {
-    const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
-    if (!secret) return null
-    try { return jwt.verify(token, secret) } catch { return null }
-}
 
 export default async function ShopOrdersPage(props: { searchParams: Promise<any> }) {
     const searchParams = await props.searchParams
     const cookieStore = await cookies()
-    const token = cookieStore.get('skf_portal_token')?.value
-    const session = token ? verifyPortalToken(token) : null
+    const token = cookieStore.get(COOKIE_NAME)?.value
+    const session = token ? verifyStudentJWT(token) : null
 
     if (!session || !session.skfId) {
         redirect('/portal/login?callbackUrl=/shop/orders')
@@ -49,18 +42,16 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<any>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         {orders.map(order => {
-                            const items = JSON.parse(order.itemsJson || '[]')
-                            
                             let statusColor = '#ffb703' // Processing (amber)
-                            if (order.status.toLowerCase() === 'shipped') statusColor = '#4facfe' // blue
-                            if (order.status.toLowerCase() === 'delivered') statusColor = '#4caf50' // green
+                            if (order.status === 'shipped') statusColor = '#4facfe' // blue
+                            if (order.status === 'delivered') statusColor = '#4caf50' // green
 
                             return (
                                 <details key={order.orderId} className="obsidian-summary-card" style={{ padding: '0', overflow: 'hidden' }}>
                                     <summary style={{ padding: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', listStyle: 'none', background: 'rgba(255,255,255,0.01)' }}>
                                         <div>
                                             <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>
-                                                Initiated {new Date(order.date).toLocaleDateString()}
+                                                Initiated {new Date(order.createdAt).toLocaleDateString()}
                                             </div>
                                             <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '1px' }}>
                                                 {order.orderId}
@@ -72,7 +63,7 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<any>
                                                 ₹{order.total.toLocaleString()}
                                             </div>
                                             <div style={{ display: 'inline-block', border: `1px solid ${statusColor}`, color: statusColor, padding: '0.3rem 1rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', background: `${statusColor}10` }}>
-                                                {order.status}
+                                                {order.statusLabel}
                                             </div>
                                         </div>
                                     </summary>
@@ -82,10 +73,10 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<any>
                                         <div>
                                             <h3 style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px' }}>Manifest</h3>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                                {items.map((it: any, idx: number) => (
-                                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', fontWeight: 600 }}>
-                                                        <span><strong style={{ color: '#fff' }}>{it.quantity}x</strong> {it.name} ({it.size})</span>
-                                                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>₹{(it.price * it.quantity).toLocaleString()}</span>
+                                                {order.items.map((item) => (
+                                                    <div key={item.variantId} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', fontWeight: 600 }}>
+                                                        <span><strong style={{ color: '#fff' }}>{item.quantity}x</strong> {item.name} ({item.size})</span>
+                                                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>₹{item.lineTotal.toLocaleString()}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -100,18 +91,13 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<any>
 
                                         <div>
                                             <h3 style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '2px' }}>Drop Zone</h3>
-                                            {(() => {
-                                                const addr = JSON.parse(order.addressJson || '{}')
-                                                return (
-                                                    <div style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8 }}>
-                                                        <strong style={{ color: '#fff', display: 'block', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>{addr.fullName}</strong>
-                                                        <span style={{ display: 'block' }}>{addr.phone}</span>
-                                                        <span style={{ display: 'block' }}>{addr.addressLine1}</span>
-                                                        {addr.addressLine2 && <span style={{ display: 'block' }}>{addr.addressLine2}</span>}
-                                                        <span style={{ display: 'block' }}>{addr.city}, {addr.state} {addr.pincode}</span>
-                                                    </div>
-                                                )
-                                            })()}
+                                            <div style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8 }}>
+                                                <strong style={{ color: '#fff', display: 'block', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>{order.address.fullName}</strong>
+                                                <span style={{ display: 'block' }}>{order.address.phone}</span>
+                                                <span style={{ display: 'block' }}>{order.address.addressLine1}</span>
+                                                {order.address.addressLine2 && <span style={{ display: 'block' }}>{order.address.addressLine2}</span>}
+                                                <span style={{ display: 'block' }}>{order.address.city}, {order.address.state} {order.address.pincode}</span>
+                                            </div>
                                         </div>
 
                                     </div>

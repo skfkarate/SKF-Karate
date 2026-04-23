@@ -1,6 +1,7 @@
-import { getAllEvents } from '@/lib/server/repositories/events'
+import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
+import { getEventLabel } from '@/data/constants/categories'
 
 
 
@@ -17,8 +18,8 @@ export const metadata = {
     description: 'Upcoming SKF Karate events, seminars, and past competition results.',
 }
 
-export default function EventsPage() {
-    const events = getAllEvents()
+export default async function EventsPage() {
+    const events = await getAllEventsLive()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -43,10 +44,16 @@ export default function EventsPage() {
         .filter((event) => event.rawDate < today.getTime())
         .sort((a, b) => b.rawDate - a.rawDate) // Sort past events descending
 
+    const filterOptions = [
+        'All',
+        ...Array.from(new Set(mappedEvents.map((event) => getEventLabel(event.type)))).sort((a, b) => a.localeCompare(b)),
+    ]
+
     return (
         <EventsPageClient 
             upcomingEvents={upcomingEvents}
             pastEvents={pastEvents}
+            filterOptions={filterOptions}
         />
     )
 }

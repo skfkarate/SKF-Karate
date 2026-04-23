@@ -1,8 +1,8 @@
-import { getTechniqueVideos } from '@/lib/server/sheets'
 import { Metadata } from 'next'
 import TechniquesClient from '../TechniquesClient'
 import Link from 'next/link'
 import { FaArrowLeft, FaAward } from 'react-icons/fa'
+import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
 
 export const revalidate = 3600
 
@@ -29,9 +29,7 @@ export default async function BeltTechniquesPage({ params }: Props) {
     const { beltLevel } = await params
     const capitalizedBelt = beltLevel.charAt(0).toUpperCase() + beltLevel.slice(1)
     
-    // We fetch everything and filter down, or pass beltLevel to the server function.
-    // The server function takes `beltLevel` as the first argument.
-    const videos = await getTechniqueVideos(beltLevel)
+    const videos = await getTechniqueLibraryVideos({ beltLevel })
 
     return (
         <div style={{ minHeight: '100vh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>

@@ -1,16 +1,19 @@
 import { notFound } from 'next/navigation'
 import ResultsDetailPageClient from './ResultsDetailPageClient'
-import { getAllTournaments, getTournamentBySlug } from '@/lib/server/repositories/tournaments'
+import {
+  getAllTournamentsLive,
+  getTournamentBySlugLive,
+} from '@/lib/server/repositories/tournaments-live'
 
 export async function generateStaticParams() {
-  return getAllTournaments()
+  return (await getAllTournamentsLive())
     .filter(t => t.isPublished)
     .map(t => ({ slug: t.slug }))
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
-  const tournament = getTournamentBySlug(slug)
+  const tournament = await getTournamentBySlugLive(slug)
   if (!tournament) return { title: 'Not Found' }
   return {
     title: `${tournament.name} — Results | SKF Karate`,
@@ -27,7 +30,7 @@ export async function generateMetadata({ params }) {
 
 export default async function TournamentDetailPage({ params }) {
   const { slug } = await params
-  const tournament = getTournamentBySlug(slug)
+  const tournament = await getTournamentBySlugLive(slug)
   if (!tournament) notFound()
 
   return <ResultsDetailPageClient tournament={tournament} />

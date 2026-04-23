@@ -27,6 +27,12 @@ interface ImportRow {
   issuer_name?: string
 }
 
+interface SenseiOption {
+  id: string
+  name: string
+  dan: string
+}
+
 export default function AdminEnrollmentsPage() {
   const searchParams = useSearchParams()
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
@@ -38,6 +44,7 @@ export default function AdminEnrollmentsPage() {
   const [filterBranch, setFilterBranch] = useState('ALL')
   const [filterProgram, setFilterProgram] = useState(searchParams?.get('program') || 'ALL')
   const [programs, setPrograms] = useState<{id: string, name: string}[]>([])
+  const [senseis, setSenseis] = useState<SenseiOption[]>([])
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -66,6 +73,7 @@ export default function AdminEnrollmentsPage() {
   useEffect(() => {
     fetchEnrollments()
     fetchPrograms()
+    fetchSenseis()
   }, [])
 
   async function fetchEnrollments() {
@@ -88,6 +96,24 @@ export default function AdminEnrollmentsPage() {
        const data = await res.json()
        setPrograms(data.programs || [])
     } catch (e) { }
+  }
+
+  async function fetchSenseis() {
+    try {
+      const res = await fetch('/api/admin/senseis')
+      const data = await res.json()
+      setSenseis(
+        Array.isArray(data?.senseis)
+          ? data.senseis
+              .filter((sensei: any) => sensei?.isAssignable !== false && sensei?.isActive !== false)
+              .map((sensei: any) => ({
+                id: sensei.id,
+                name: sensei.name,
+                dan: sensei.dan || '',
+              }))
+          : []
+      )
+    } catch (e) {}
   }
 
   // Filtered List
@@ -353,7 +379,19 @@ export default function AdminEnrollmentsPage() {
               </div>
               <div>
                 <label style={{ fontSize: '0.75rem', color: '#888', display: 'block', marginBottom: '0.25rem' }}>Issuer Name</label>
-                <input type="text" value={editIssuer} onChange={e => setEditIssuer(e.target.value)} placeholder="e.g. Sensei Ramesh" style={{ width: '100%', padding: '0.75rem', background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '4px' }} />
+                <select
+                  value={editIssuer}
+                  onChange={e => setEditIssuer(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '4px' }}
+                >
+                  <option value="">Select issuer</option>
+                  {senseis.map((sensei) => (
+                    <option key={sensei.id} value={sensei.name}>
+                      {sensei.name}{sensei.dan ? ` · ${sensei.dan}` : ''}
+                    </option>
+                  ))}
+                  <option value="SKF Examination Panel">SKF Examination Panel</option>
+                </select>
               </div>
             </div>
             

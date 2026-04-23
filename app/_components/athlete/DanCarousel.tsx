@@ -8,6 +8,42 @@ function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
 }
 
+function getCardHref(holder: any) {
+  if (holder?.profileHref) return holder.profileHref
+  if (holder?.registrationNumber) return `/athlete/${holder.registrationNumber}`
+  if (holder?.slug) return `/senseis/${holder.slug}`
+  return '#'
+}
+
+function getCardName(holder: any) {
+  if (holder?.displayName) return holder.displayName
+  if (holder?.name) return holder.name
+  return `${holder?.firstName || ''} ${holder?.lastName || ''}`.trim()
+}
+
+function getCardBadge(holder: any) {
+  if (holder?.danLabel) return holder.danLabel
+  if (holder?.dan) return holder.dan
+  return beltLabel(holder?.currentBelt)
+}
+
+function getCardSubtitle(holder: any) {
+  if (holder?.subtitle) return holder.subtitle
+  if (holder?.assignments?.[0]?.branchName) return `SKF ${holder.assignments[0].branchName}`
+  if (holder?.branchName) return `SKF ${holder.branchName}`
+  return holder?.title || 'SKF Karate'
+}
+
+function getCardImage(holder: any) {
+  return (
+    holder?.imageUrl ||
+    holder?.photoUrl ||
+    (holder?.gender?.toLowerCase() === 'female'
+      ? '/no-profile/no profile female.png'
+      : '/no-profile/no profile male.png')
+  )
+}
+
 function ProfileSvg({ size = 60 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -80,18 +116,18 @@ export default function DanCarousel({ danHolders }: { danHolders: any[] }) {
         {carouselOrder.map(({ athlete, depth }) => (
           <Link
             key={athlete.id}
-            href={`/athlete/${athlete.registrationNumber}`}
+            href={getCardHref(athlete)}
             className={`hon-ccard hon-ccard--d${Math.min(depth, 2)}`}
           >
             <div className="hon-ccard__photo">
               <img 
-                src={athlete.photoUrl || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png')} 
-                alt={`${athlete.firstName} ${athlete.lastName}`} 
+                src={getCardImage(athlete)}
+                alt={getCardName(athlete)}
               />
             </div>
-            <div className="hon-ccard__badge">{beltLabel(athlete.currentBelt)}</div>
-            <h3 className="hon-ccard__name">{athlete.firstName} {athlete.lastName}</h3>
-            <span className="hon-ccard__branch">SKF {athlete.branchName}</span>
+            <div className="hon-ccard__badge">{getCardBadge(athlete)}</div>
+            <h3 className="hon-ccard__name">{getCardName(athlete)}</h3>
+            <span className="hon-ccard__branch">{getCardSubtitle(athlete)}</span>
             {depth === 0 && (
               <span className="hon-ccard__featured">Featured</span>
             )}

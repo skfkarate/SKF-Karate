@@ -28,13 +28,15 @@ export default function CinematicDojoVideos() {
         if (data.videos && data.videos.length > 0) {
           const formatted = data.videos.map(v => ({
             ...v,
-            id: v.ID || v.id || Math.random().toString(),
-            title: v.Title || v.title || 'Untitled Video',
-            duration: v.Duration || v.duration || '0:00',
-            category: (v.Category || v.category || 'techniques').toLowerCase(),
-            locked: (v.Locked || v.locked) === 'TRUE',
-            thumbnail: v.Thumbnail || v.thumbnail || FALLBACK_THUMBNAIL,
-            url: v.URL || v.url || FALLBACK_VIDEO
+            id: v.id || Math.random().toString(),
+            title: v.title || 'Untitled Video',
+            duration: v.durationLabel || v.duration || 'On demand',
+            category: (v.category || 'techniques').toLowerCase(),
+            locked: Boolean(v.locked),
+            thumbnail: v.thumbnailUrl || v.thumbnail || FALLBACK_THUMBNAIL,
+            url: v.playbackUrl || v.url || FALLBACK_VIDEO,
+            playbackMode: v.playbackMode || 'video',
+            provider: v.provider || 'google-drive',
           }))
           setVideos(formatted)
         }
@@ -307,15 +309,25 @@ export default function CinematicDojoVideos() {
                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", damping: 25 }}
                 style={{ width: '100%', maxWidth: '1200px', aspectRatio: '16/9', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
-                <video 
-                  controls 
-                  autoPlay 
-                  src={playingVideo.url} 
-                  poster={playingVideo.thumbnail}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                >
-                  Your browser does not support the video tag.
-                </video>
+                {playingVideo.playbackMode === 'iframe' ? (
+                  <iframe
+                    src={playingVideo.url}
+                    title={playingVideo.title}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    style={{ width: '100%', height: '100%', border: 'none', background: '#000' }}
+                  />
+                ) : (
+                  <video 
+                    controls 
+                    autoPlay 
+                    src={playingVideo.url} 
+                    poster={playingVideo.thumbnail}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                )}
               </motion.div>
             </div>
           </motion.div>

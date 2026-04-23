@@ -186,14 +186,20 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                         <FaUserTie style={{ fontSize: '2rem', color: 'var(--gold)', marginBottom: '1.5rem' }} />
                         
                         <h4 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: '0 0 0.2rem' }}>
-                            {branch.sensei}
+                            {branch.senseiSlug ? (
+                                <Link href={`/senseis/${branch.senseiSlug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                                    {branch.sensei}
+                                </Link>
+                            ) : (
+                                branch.sensei
+                            )}
                         </h4>
                         <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '1.5rem' }}>
                             {branch.senseiDan} · Lead Instructor
                         </div>
                         
                         <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: '2rem' }}>
-                            "True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential."
+                            "{branch.senseiProfile?.description || 'True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential.'}"
                         </p>
                         
                         <a 

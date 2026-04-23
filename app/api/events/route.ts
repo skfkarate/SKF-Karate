@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getAllEvents } from '@/lib/server/repositories/events'
+import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 
 /**
  * Public events endpoint — returns all published events (standalone + tournaments).
@@ -7,7 +7,7 @@ import { getAllEvents } from '@/lib/server/repositories/events'
  */
 export async function GET() {
   try {
-    const events = getAllEvents()
+    const events = await getAllEventsLive()
     return NextResponse.json({ events })
   } catch (error) {
     console.error('[API] Failed to fetch public events:', error)

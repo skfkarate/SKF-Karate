@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
-import { createTournament } from '@/lib/server/repositories/tournaments'
+import { createTournamentLive } from '@/lib/server/repositories/tournaments-live'
 import { createErrorResponse, readJsonBody } from '@/lib/server/api'
 import { validateTournamentPayload } from '@/lib/server/validation'
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'
-
-function revalidateTournamentPaths(tournament: any) {
-  revalidatePath('/admin/results')
-  revalidatePath('/results')
-  revalidatePath('/')
-  if (tournament?.id) {
-    revalidatePath(`/admin/results/${tournament.id}/edit`)
-  }
-  if (tournament?.slug) {
-    revalidatePath(`/results/${tournament.slug}`)
-  }
-}
+import {
+  clearSyncedEventArtifactsFromAthletes,
+  syncTournamentResultsToAthletes,
+} from '@/lib/server/event-athlete-sync'
+import { revalidateTournamentSitePaths } from '@/lib/server/revalidation'
 
 export async function POST(request: Request) {
   try {
@@ -25,9 +17,18 @@ export async function POST(request: Request) {
     }
 
     const payload = await readJsonBody(request)
-    const tournament = createTournament(validateTournamentPayload(payload))
+    const tournament = await createTournamentLive(validateTournamentPayload(payload))
 
-    revalidateTournamentPaths(tournament)
+    if (tournament.isPublished) {
+      await syncTournamentResultsToAthletes({
+        ...tournament,
+        type: 'tournament',
+      })
+    } else {
+      await clearSyncedEventArtifactsFromAthletes(tournament.id)
+    }
+
+    revalidateTournamentSitePaths(tournament)
 
     return NextResponse.json({ tournament }, { status: 201 })
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
+import FirstPartyAnalyticsTracker from '@/components/FirstPartyAnalyticsTracker'
 
 export default function AnalyticsLoader() {
   const [consented, setConsented] = useState(false)
@@ -34,20 +35,24 @@ export default function AnalyticsLoader() {
   if (!consented) return null
 
   const gaId = process.env.NEXT_PUBLIC_GA_ID || ''
-  if (!gaId) return null
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){window.dataLayer.push(arguments);}
-          gtag('js', new Date());
+      <FirstPartyAnalyticsTracker />
+      {gaId ? (
+        <>
+          <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);}
+              gtag('js', new Date());
 
-          gtag('config', '${gaId}');
-        `}
-      </Script>
+              gtag('config', '${gaId}');
+            `}
+          </Script>
+        </>
+      ) : null}
     </>
   )
 }

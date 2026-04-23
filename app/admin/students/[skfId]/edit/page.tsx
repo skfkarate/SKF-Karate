@@ -1,10 +1,36 @@
-import { getStudentBySkfId } from '@/lib/server/sheets'
-import EditStudentClient from './EditStudentClient'
 import { notFound } from 'next/navigation'
 
-export default async function EditStudentPage({ params }: { params: { skfId: string } }) {
-    const student = await getStudentBySkfId(params.skfId.toUpperCase())
-    if (!student) return notFound()
+import {
+  buildAthleteAdminFormDefaults,
+  buildAthleteAutomationSummary,
+} from '@/lib/admin/athlete-records'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { normaliseRegistrationNumber } from '@/lib/utils/registration'
 
-    return <EditStudentClient student={student} />
+import EditStudentClient from './EditStudentClient'
+
+export default async function EditStudentPage({
+  params,
+}: {
+  params: Promise<{ skfId: string }>
+}) {
+  const { skfId } = await params
+  const registrationNumber = normaliseRegistrationNumber(skfId)
+
+  const [athlete, classCities] = await Promise.all([
+    getAthleteByRegistrationNumberLive(registrationNumber),
+    getAllCitiesLive(),
+  ])
+
+  if (!athlete) return notFound()
+
+  return (
+    <EditStudentClient
+      initialCities={classCities}
+      profile={buildAthleteAdminFormDefaults(athlete)}
+      automationSummary={buildAthleteAutomationSummary(athlete)}
+      publicProfileHref={athlete.isPublic ? `/athlete/${athlete.registrationNumber}` : null}
+    />
+  )
 }

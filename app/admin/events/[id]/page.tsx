@@ -1,14 +1,36 @@
-import { getEventByIdAdmin } from '@/lib/server/repositories/events'
+import { getEventByIdAdminLive } from '@/lib/server/repositories/events-live'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import { getAssignableSenseisLive } from '@/lib/server/repositories/senseis-live'
 import EditEventClient from './EditEventClient'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
-export default async function EditEventPage({ params }: { params: { id: string } }) {
+export default async function EditEventPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams?: { tab?: string }
+}) {
   const { id } = await Promise.resolve(params)
-  const event = getEventByIdAdmin(id)
+  const resolvedSearchParams = await Promise.resolve(searchParams)
+  const [event, classCities, senseis] = await Promise.all([
+    getEventByIdAdminLive(id),
+    getAllCitiesLive(),
+    getAssignableSenseisLive(),
+  ])
 
   if (!event) {
     notFound()
   }
+
+  if (event.type === 'tournament') {
+    redirect(`/admin/results/${event.id}/edit`)
+  }
+
+  const initialTab =
+    resolvedSearchParams?.tab === 'athletes' || resolvedSearchParams?.tab === 'results'
+      ? resolvedSearchParams.tab
+      : 'details'
 
   return (
     <div style={{ 
@@ -32,7 +54,12 @@ export default async function EditEventPage({ params }: { params: { id: string }
       </div>
 
       <div style={{ padding: '2rem 2.5rem' }}>
-        <EditEventClient eventData={event} />
+        <EditEventClient
+          eventData={event}
+          classCities={classCities}
+          senseis={senseis}
+          initialTab={initialTab}
+        />
       </div>
     </div>
   )

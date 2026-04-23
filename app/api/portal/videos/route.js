@@ -1,25 +1,26 @@
 import { NextResponse } from 'next/server'
+
 import { getPortalSession } from '@/lib/server/auth_legacy'
-import { getVideosByBranchAndBatch } from '@/lib/server/sheets'
+import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getPortalVideosForAthlete } from '@/lib/server/repositories/portal-content-live'
 
 export async function GET(request) {
   try {
-    // 1. Authenticate Student Session
     const session = getPortalSession(request)
     if (!session || !session.skfId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Use branch and batch from JWT if available
-    const branch = session.branch || request.nextUrl.searchParams.get('branch')
-    const batch = session.batch || request.nextUrl.searchParams.get('batch')
-
-    if (!branch) {
-      return NextResponse.json({ error: 'Branch is required to fetch videos' }, { status: 400 })
+    const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+    if (!athlete) {
+      return NextResponse.json({ error: 'Athlete not found' }, { status: 404 })
     }
 
-    // 2. Fetch accessible videos
-    const videos = await getVideosByBranchAndBatch(branch, batch)
+    const videos = await getPortalVideosForAthlete({
+      branchName: athlete.branchName || session.branch || '',
+      batch: athlete.batch || session.batch || '',
+      belt: athlete.currentBelt || session.belt || '',
+    })
 
     return NextResponse.json({ videos })
   } catch (error) {

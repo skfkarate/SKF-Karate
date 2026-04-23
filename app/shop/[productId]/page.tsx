@@ -6,18 +6,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Star, Package, Lock, Ruler, X, User, ShoppingCart, Check } from 'lucide-react'
 import { useCart } from '@/lib/shop/cartState'
+import type { ShopProduct } from '@/lib/shop/types'
+import { BELT_HIERARCHY } from '@/lib/shop/types'
 import '../shop.css'
-import { AdminProduct } from '@/lib/server/repositories/products'
-
-// Standard Karate belt progression
-const BELT_HIERARCHY = ['white', 'yellow', 'orange', 'green', 'blue', 'purple', 'brown', 'black']
 
 export default function ProductDetailPage() {
     const params = useParams()
     const router = useRouter()
     const productId = params.productId as string
     
-    const [product, setProduct] = useState<AdminProduct | null>(null)
+    const [product, setProduct] = useState<ShopProduct | null>(null)
     const { addToCart, cart } = useCart()
     
     const [selectedImage, setSelectedImage] = useState(0)
@@ -50,10 +48,10 @@ export default function ProductDetailPage() {
             .catch(() => {})
 
         // Fetch Live Catalog
-        fetch('/api/shop/catalog')
+        fetch('/api/shop/catalog', { cache: 'no-store' })
             .then(res => res.json())
             .then(data => {
-                const target = data.find((p: AdminProduct) => p.id === productId)
+                const target = data.find((p: ShopProduct) => p.id === productId)
                 if (target) {
                     setProduct(target)
                     setSelectedVariant(target.variants[0]?.id || '')
@@ -63,20 +61,34 @@ export default function ProductDetailPage() {
             .catch(() => setIsLoading(false))
     }, [productId])
 
+    useEffect(() => {
+        if (!product) return
+
+        const variant = product.variants.find(v => v.id === selectedVariant)
+        const inCart = cart.find(item => item.variantId === selectedVariant)?.quantity || 0
+        const availableToAdd = Math.max(1, (variant?.stock || 0) - inCart)
+
+        setQuantity(current => Math.min(current, availableToAdd))
+    }, [product, selectedVariant, cart])
+
     if (isLoading) return <div className="obsidian-store" style={{ padding: '6rem', color: '#fff', textAlign: 'center' }}>Loading Armory...</div>
     if (!product) return <div className="obsidian-store" style={{ padding: '6rem', color: '#fff', textAlign: 'center' }}>Product not found.</div>
 
-    const activeVariantObj = product.variants.find((v: any) => v.id === selectedVariant)
+    const activeVariantObj = product.variants.find(v => v.id === selectedVariant)
     const isOutOfStock = activeVariantObj?.stock === 0
     const requiresApproval = activeVariantObj?.requiresApproval === true
 
     // Belt Gate Logic
-    const reqBeltIndex = product.requires_belt ? BELT_HIERARCHY.indexOf(product.requires_belt.toLowerCase()) : 0
-    const athleteBeltIndex = BELT_HIERARCHY.indexOf(athleteBelt)
+    const reqBeltIndex = product.requires_belt
+        ? BELT_HIERARCHY.indexOf(product.requires_belt.toLowerCase() as (typeof BELT_HIERARCHY)[number])
+        : 0
+    const athleteBeltIndex = BELT_HIERARCHY.indexOf(athleteBelt as (typeof BELT_HIERARCHY)[number])
     const isBeltLocked = product.requires_belt && athleteBeltIndex < reqBeltIndex
 
     // Check if this variant is already in cart
     const existingCartItem = cart.find(item => item.variantId === selectedVariant)
+    const maxPurchasableQuantity = Math.max(0, (activeVariantObj?.stock || 0) - (existingCartItem?.quantity || 0))
+    const hasReachedCartLimit = !isOutOfStock && maxPurchasableQuantity === 0
 
     // Sizing Matrix Engine
     const determineSize = (h: number) => {
@@ -92,7 +104,7 @@ export default function ProductDetailPage() {
         if (!h) return
 
         const sizePrefix = determineSize(h)
-        const targetVar = product.variants.find((v: any) => v.id.toLowerCase().endsWith(sizePrefix))
+        const targetVar = product.variants.find((v) => v.id.toLowerCase().endsWith(sizePrefix))
         
         if (targetVar) {
             setSelectedVariant(targetVar.id)
@@ -111,7 +123,9 @@ export default function ProductDetailPage() {
             return
         }
 
-        if (!activeVariantObj || isOutOfStock || isBeltLocked) return
+        const quantityToAdd = Math.min(quantity, maxPurchasableQuantity)
+
+        if (!activeVariantObj || isOutOfStock || isBeltLocked || quantityToAdd <= 0) return
         
         addToCart({
             productId: product.id,
@@ -120,7 +134,7 @@ export default function ProductDetailPage() {
             price: product.price,
             size: activeVariantObj.size,
             image: product.images[0],
-            quantity: quantity,
+            quantity: quantityToAdd,
             requiresApproval
         })
         
@@ -151,11 +165,17 @@ export default function ProductDetailPage() {
             <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button
                     onClick={handleAddToCart}
-                    disabled={isOutOfStock}
+                    disabled={isOutOfStock || hasReachedCartLimit}
                     className="obsidian-btn-add"
-                    style={{ flex: 1, opacity: isOutOfStock ? 0.5 : 1 }}
+                    style={{ flex: 1, opacity: isOutOfStock || hasReachedCartLimit ? 0.5 : 1 }}
                 >
-                    {isOutOfStock ? 'OUT OF STOCK' : requiresApproval ? 'ADD — NEEDS APPROVAL' : 'ADD TO CART'}
+                    {isOutOfStock
+                        ? 'OUT OF STOCK'
+                        : hasReachedCartLimit
+                            ? 'MAX IN CART'
+                            : requiresApproval
+                                ? 'ADD — NEEDS APPROVAL'
+                                : 'ADD TO CART'}
                 </button>
                 {cartItemCount > 0 && (
                     <Link
@@ -323,7 +343,7 @@ export default function ProductDetailPage() {
                                 )}
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                {product.variants.map((v: any) => (
+                                {product.variants.map((v) => (
                                     <button
                                         key={v.id}
                                         className={`obsidian-variant-btn ${selectedVariant === v.id ? 'active' : ''} ${v.stock === 0 ? 'out-of-stock' : ''}`}
@@ -352,11 +372,15 @@ export default function ProductDetailPage() {
                                 <div className="obsidian-stepper">
                                     <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
                                     <span className="obsidian-stepper__val">{quantity}</span>
-                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(quantity + 1)}>+</button>
+                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.min(Math.max(1, maxPurchasableQuantity || 1), quantity + 1))}>+</button>
                                 </div>
                                 <div style={{ color: isOutOfStock ? '#ff6b6b' : 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Package size={14} /> 
-                                    {isOutOfStock ? 'Out of Stock' : `${activeVariantObj?.stock} available`}
+                                    {isOutOfStock
+                                        ? 'Out of Stock'
+                                        : hasReachedCartLimit
+                                            ? 'All stock already in cart'
+                                            : `${maxPurchasableQuantity} available to add`}
                                 </div>
                             </div>
 

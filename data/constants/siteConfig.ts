@@ -22,7 +22,7 @@ export const ORG_STATS = Object.freeze({
   TOTAL_ATHLETES: '5,100+',
   BLACK_BELTS: '20+',
   CHAMPIONSHIPS: '300+',
-  BRANCHES: '3',
+  BRANCHES: '5',
 })
 
 /** Legacy highlights shown on the about page */

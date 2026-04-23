@@ -8,7 +8,7 @@ export default function AdminNavbar({ user }) {
   const pathname = usePathname()
   const navItems = [
     { href: "/admin", label: "Dashboard" },
-    { href: "/admin/students", label: "Students" },
+    { href: "/admin/students", label: "Athletes" },
     { href: "/admin/events", label: "Events" },
     { href: "/admin/results", label: "Results" },
   ]

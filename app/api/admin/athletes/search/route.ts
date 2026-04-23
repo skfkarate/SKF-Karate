@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server'
-import { getAllAthletes } from '@/lib/server/repositories/athletes'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
+    const session = await getAuthorizedApiSession(['admin', 'instructor'])
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.toLowerCase() || ''
 
-    let athletes = getAllAthletes()
+    let athletes = await getAllAthletesLive()
 
     if (q) {
       athletes = athletes.filter((a: any) => 
@@ -22,6 +21,12 @@ export async function GET(request: Request) {
         a.registrationNumber.toLowerCase().includes(q)
       )
     }
+
+    athletes = athletes
+      .filter((a: any) => String(a.status || '').toLowerCase() !== 'inactive')
+      .sort((a: any, b: any) =>
+        `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+      )
 
     // Return limited dataset for assignment search
     const results = athletes.map((a: any) => ({

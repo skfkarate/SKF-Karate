@@ -1,4 +1,5 @@
-import { getRankSnapshots } from '@/lib/server/repositories/athletes'
+import Link from 'next/link'
+import { getRankSnapshotsLive } from '@/lib/server/repositories/athletes-live'
 import { buildRankingBoards } from '@/app/_components/athlete/rankingBoardUtils'
 import RankingDashboard from '@/app/_components/athlete/RankingDashboard'
 import './rankings.css'
@@ -11,7 +12,7 @@ export const metadata = {
 }
 
 export default async function RankingsPage() {
-  const snapshots = getRankSnapshots().filter((entry) => entry.totalPoints > 0)
+  const snapshots = (await getRankSnapshotsLive()).filter((entry) => entry.totalPoints > 0)
   const boards = buildRankingBoards(snapshots)
   const dojos = [...new Set(snapshots.map((s) => s.branchName).filter(Boolean))].sort()
   const allSorted = [...snapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
@@ -45,16 +46,16 @@ export default async function RankingsPage() {
       {podium.length >= 3 && (
         <section className="rk-podium">
           {/* 2nd */}
-          <div className="rk-pod rk-pod--2">
+          <Link href={`/athlete/${podium[1].registrationNumber}`} className="rk-pod rk-pod--2">
             <div className="rk-pod__photo rk-pod__photo--silver">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <span className="rk-pod__name">{podium[1].athleteName}</span>
             <span className="rk-pod__pts">{podium[1].totalPoints?.toFixed(0)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--silver"><span>2</span></div>
-          </div>
+          </Link>
           {/* 1st */}
-          <div className="rk-pod rk-pod--1">
+          <Link href={`/athlete/${podium[0].registrationNumber}`} className="rk-pod rk-pod--1">
             <div className="rk-pod__crown">👑</div>
             <div className="rk-pod__photo rk-pod__photo--gold">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -62,16 +63,16 @@ export default async function RankingsPage() {
             <span className="rk-pod__name">{podium[0].athleteName}</span>
             <span className="rk-pod__pts">{podium[0].totalPoints?.toFixed(0)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--gold"><span>1</span></div>
-          </div>
+          </Link>
           {/* 3rd */}
-          <div className="rk-pod rk-pod--3">
+          <Link href={`/athlete/${podium[2].registrationNumber}`} className="rk-pod rk-pod--3">
             <div className="rk-pod__photo rk-pod__photo--bronze">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <span className="rk-pod__name">{podium[2].athleteName}</span>
             <span className="rk-pod__pts">{podium[2].totalPoints?.toFixed(0)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--bronze"><span>3</span></div>
-          </div>
+          </Link>
         </section>
       )}
 

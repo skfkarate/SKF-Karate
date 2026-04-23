@@ -78,7 +78,7 @@ function SectionHeader({ icon, label }) {
 /* ═══════════════════════════════════════════════════════════════════════
    HERO — clean 2-column: photo+name left | stats+rank right
    ═══════════════════════════════════════════════════════════════════════ */
-function AthleteHero({ athleteInfo, categories, onShareCard, isExporting }) {
+function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDashboardContext = false }) {
   const primary = categories.find((c) => c.isPrimary) || categories[0]
   const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
   const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
@@ -124,6 +124,16 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting }) {
                     Trains at SKF {athleteInfo.branchName}
                   </Link>
                 )}
+                {isDashboardContext && athleteInfo.publicProfileHref ? (
+                  <Link
+                    href={athleteInfo.publicProfileHref}
+                    target="_blank"
+                    className="ap-hero__branch-link"
+                    style={{ borderColor: 'rgba(255,183,3,0.25)', color: 'var(--gold)' }}
+                  >
+                    Open Public Profile
+                  </Link>
+                ) : null}
               </div>
             </div>
             {/* Rank Box */}
@@ -557,6 +567,7 @@ export default function AthleteProfileClient({
           categories={categories}
           onShareCard={!isDashboardContext ? handleShareCard : undefined}
           isExporting={isExporting}
+          isDashboardContext={isDashboardContext}
         />
 
         <NextEventsSection nextEvents={nextEvents} />

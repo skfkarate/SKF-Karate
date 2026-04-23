@@ -87,8 +87,8 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
   }
 
   // Fallback to local mock athletes for development if Sheet fails or is empty
-  const { getAthleteByRegistrationNumber } = await import('@/lib/server/repositories/athletes')
-  const localAthlete = await Promise.resolve(getAthleteByRegistrationNumber(skfId))
+  const { getAthleteByRegistrationNumberLive } = await import('@/lib/server/repositories/athletes-live')
+  const localAthlete = await getAthleteByRegistrationNumberLive(skfId)
   
   if (localAthlete) {
     return {
@@ -133,7 +133,22 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
     } as Student))
   } catch (error) {
     console.error('getAllStudents error:', error)
-    return []
+    const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
+    const athletes = await getAllAthletesLive()
+    return athletes.map((athlete: any) => ({
+      skfId: athlete.registrationNumber,
+      name: `${athlete.firstName} ${athlete.lastName}`.trim(),
+      branch: athlete.branchName || 'M P Sports Club',
+      batch: athlete.batch || 'Evening',
+      belt: athlete.currentBelt || 'white',
+      parentName: athlete.parentName || '',
+      phone: athlete.phone || '',
+      status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+      enrolledDate: athlete.joinDate || '',
+      monthlyFee: Number(athlete.monthlyFee || 0),
+      photoConsent: athlete.photoConsent ?? true,
+      dob: athlete.dateOfBirth || undefined,
+    }))
   }
 }, ['getAllStudents'], 60)
 
@@ -159,7 +174,24 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
     } as Student))
   } catch (error) {
     console.error('getStudentsByBranch error:', error)
-    return []
+    const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
+    const athletes = await getAllAthletesLive()
+    return athletes
+      .filter((athlete: any) => athlete.branchName === branch)
+      .map((athlete: any) => ({
+        skfId: athlete.registrationNumber,
+        name: `${athlete.firstName} ${athlete.lastName}`.trim(),
+        branch: athlete.branchName || '',
+        batch: athlete.batch || 'Evening',
+        belt: athlete.currentBelt || 'white',
+        parentName: athlete.parentName || '',
+        phone: athlete.phone || '',
+        status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+        enrolledDate: athlete.joinDate || '',
+        monthlyFee: Number(athlete.monthlyFee || 0),
+        photoConsent: athlete.photoConsent ?? true,
+        dob: athlete.dateOfBirth || undefined,
+      }))
   }
 }, ['getStudentsByBranch'], 60)
 
@@ -187,7 +219,24 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
     } as Student))
   } catch (error) {
     console.error('getStudentsByPhone error:', error)
-    return []
+    const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
+    const athletes = await getAllAthletesLive()
+    return athletes
+      .filter((athlete: any) => athlete.phone === phone)
+      .map((athlete: any) => ({
+        skfId: athlete.registrationNumber,
+        name: `${athlete.firstName} ${athlete.lastName}`.trim(),
+        branch: athlete.branchName || '',
+        batch: athlete.batch || 'Evening',
+        belt: athlete.currentBelt || 'white',
+        parentName: athlete.parentName || '',
+        phone: athlete.phone || '',
+        status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+        enrolledDate: athlete.joinDate || '',
+        monthlyFee: Number(athlete.monthlyFee || 0),
+        photoConsent: athlete.photoConsent ?? true,
+        dob: athlete.dateOfBirth || undefined,
+      }))
   }
 }, ['getStudentsByPhone'], 60)
 
@@ -409,11 +458,11 @@ export async function createStudent(student: Omit<Student, 'skfId'> & { skfId: s
     const values = [[
       student.skfId, student.name, student.branch, student.batch, student.belt,
       student.parentName, student.phone, student.status, student.enrolledDate,
-      student.monthlyFee, student.photoConsent ? 'Yes' : 'No'
+      student.monthlyFee, student.photoConsent ? 'Yes' : 'No', student.dob || ''
     ]]
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Students!A:K',
+      range: 'Students!A:L',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values }
     })
@@ -427,12 +476,13 @@ export async function createStudent(student: Omit<Student, 'skfId'> & { skfId: s
 export async function updateStudent(skfId: string, updates: Partial<Student>): Promise<boolean> {
   try {
     const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:K' })
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     const rowIndex = rows.findIndex(r => r[0] === skfId)
     if (rowIndex === -1) return false
     
     const row = rows[rowIndex]
+    while (row.length < 12) row.push('')
     // apply updates manually based on index
     if (updates.name !== undefined) row[1] = updates.name
     if (updates.branch !== undefined) row[2] = updates.branch
@@ -444,10 +494,11 @@ export async function updateStudent(skfId: string, updates: Partial<Student>): P
     if (updates.enrolledDate !== undefined) row[8] = updates.enrolledDate
     if (updates.monthlyFee !== undefined) row[9] = updates.monthlyFee.toString()
     if (updates.photoConsent !== undefined) row[10] = updates.photoConsent ? 'Yes' : 'No'
+    if (updates.dob !== undefined) row[11] = updates.dob
 
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
-      range: `Students!A${rowIndex + 1}:K${rowIndex + 1}`,
+      range: `Students!A${rowIndex + 1}:L${rowIndex + 1}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] }
     })
