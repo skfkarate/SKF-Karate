@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 /**
  * AthleteCard — Reusable full-photo athlete card
@@ -31,8 +32,8 @@ export default function AthleteCard({ name, belt, branch, photoUrl, gender, cate
 
   const card = (
     <div className="ath-card" style={{ '--ath-accent': medalColor } as any}>
-      <div className="ath-card__photo-wrap">
-        <img className="ath-card__img" src={photoUrl || fallbackPhoto} alt={name} />
+      <div className="ath-card__photo-wrap" style={{ position: 'relative' }}>
+        <Image className="ath-card__img" src={photoUrl || fallbackPhoto} alt={name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
       </div>
       {medal && (
         <span className="ath-card__medal">

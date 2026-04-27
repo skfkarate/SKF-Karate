@@ -118,11 +118,21 @@ export default async function EventDetailPage({ params }: any) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
       />
+
+      {/* AMBIENT ORBS & WATERMARK */}
+      <div className="ev-orb ev-orb--1" />
+      <div className="ev-orb ev-orb--2" />
+      <div className="ev-watermark" style={{ top: '30%' }}>道</div> {/* "Do" / The Way */}
       
       {/* ═══════ HERO ═══════ */}
       <section className="ev-detail-hero">
-        <div className="ev-detail-hero__bg" />
         <div className="container ev-detail-hero__content">
+            <div style={{ marginBottom: '2rem' }}>
+                <Link href="/events" className="contact-cta-btn" style={{ display: 'inline-flex', padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+                    <FaArrowRight style={{ transform: 'rotate(180deg)' }} className="contact-cta-btn-icon" />
+                    <span>Back to Events</span>
+                </Link>
+            </div>
             <span className="ev-detail-hero__type">
                 {getEventLabel(event.type)}
             </span>

@@ -5,7 +5,7 @@
 
 /* ── PAGE ──────────────────────────────────────────────────────────────── */
 .ap-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: transparent;
   color: #d8d8de;
   font-family: var(--font-body);
@@ -839,6 +839,13 @@
    RESPONSIVE — Small tablet / large phone (≤768px)
    ══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  .ap-page-watermark {
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    font-size: 75vw;
+    color: rgba(255, 255, 255, 0.05);
+  }
   .ap-container { padding: 0 1.25rem; }
   .ap-hero { margin-top: 4.5rem; padding-top: 1.5rem; }
   .ap-hero-card {

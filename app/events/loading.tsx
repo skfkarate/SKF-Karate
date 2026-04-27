@@ -1,3 +1,5 @@
-import Loading from '../loading'
+import EventsPageSkeleton from '@/components/skeletons/EventsPageSkeleton'
 
-export default Loading
+export default function Loading() {
+  return <EventsPageSkeleton />
+}

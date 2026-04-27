@@ -246,7 +246,7 @@ export default function AthleteRecordEditor({
     return (
       <div
         style={{
-          minHeight: '100vh',
+          minHeight: '100dvh',
           background: '#020202',
           color: '#fff',
           padding: '3rem 1.5rem 4rem',
@@ -356,7 +356,7 @@ export default function AthleteRecordEditor({
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#020202',
         color: '#fff',
         padding: '3rem 1.5rem 4rem',

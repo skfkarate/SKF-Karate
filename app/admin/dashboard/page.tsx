@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
     <div
       style={{
         padding: '2rem 2.5rem 4rem',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#000',
         color: '#fff',
         fontFamily: 'system-ui, -apple-system, sans-serif',

@@ -193,7 +193,7 @@ export default function TemplateEditor() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#0a0a0a', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ display: 'flex', height: '100dvh', background: '#0a0a0a', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
       
       {/* LEFT PANEL */}
       <div style={{ width: '30%', minWidth: '350px', background: '#050505', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column' }}>

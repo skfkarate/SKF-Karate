@@ -16,7 +16,7 @@ export default function AdminSidebar() {
   return (
     <div style={{
       width: '280px',
-      height: '100vh',
+      height: '100dvh',
       background: '#050505',
       display: 'flex',
       flexDirection: 'column',

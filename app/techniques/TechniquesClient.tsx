@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { FaPlay, FaTimes } from 'react-icons/fa'
 import type { PortalVideoRecord } from '@/lib/server/repositories/portal-content-live'
 
@@ -151,11 +152,12 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                             >
                                 <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000' }}>
                                     {video.thumbnailUrl ? (
-                                        <img
+                                        <Image
                                             src={video.thumbnailUrl}
                                             alt={video.title}
-                                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
-                                            loading="lazy"
+                                            style={{ objectFit: 'cover', opacity: 0.8 }}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 400px"
                                         />
                                     ) : (
                                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.25), rgba(255,183,3,0.12))' }} />

@@ -15,25 +15,34 @@ export default async function AdminLayout({ children }) {
   // If not logged in, show the login page (children will render login route)
   if (!session) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+      <div style={{ minHeight: '100dvh', background: '#0a0a0a', color: '#fff' }}>
         {children}
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#000', color: '#fff' }}>
-      {/* Persistent Sidebar */}
-      <AdminSidebar />
-      
-      {/* Main Content Area */}
-      <main style={{
-        flex: 1,
-        minHeight: '100vh',
-        background: '#000'
-      }}>
-        {children}
-      </main>
+    <div style={{
+      minHeight: '100dvh',
+      width: '100%',
+      overflowX: 'auto',
+      background: '#000',
+      color: '#fff',
+      WebkitOverflowScrolling: 'touch'
+    }}>
+      <div style={{ display: 'flex', minHeight: '100dvh', minWidth: '1280px', background: '#000', color: '#fff' }}>
+        {/* Persistent Sidebar */}
+        <AdminSidebar />
+        
+        {/* Main Content Area */}
+        <main style={{
+          flex: 1,
+          minHeight: '100dvh',
+          background: '#000'
+        }}>
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,5 @@
-import Loading from '../../loading'
+import AthleteProfileSkeleton from '@/components/skeletons/AthleteProfileSkeleton'
 
-export default Loading
+export default function Loading() {
+  return <AthleteProfileSkeleton />
+}

@@ -44,7 +44,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
     children: [
       { label: 'About SKF', href: '/about' },
       { label: 'Contact & FAQ', href: '/contact' },
-      { label: 'Blogs', href: '#', disabled: true },
+      { label: 'Blogs', href: '/blog' },
     ],
   },
   { label: 'Shop', href: '/shop' },

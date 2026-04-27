@@ -116,7 +116,7 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem', display: 'grid', placeItems: 'center' }}>
+      <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', padding: '2rem', display: 'grid', placeItems: 'center' }}>
         <div style={{ color: '#6b6b6b', fontSize: '1rem' }}>Loading analytics intelligence…</div>
       </div>
     )
@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#000',
         color: '#fff',
         padding: '2rem 2.5rem 4rem',

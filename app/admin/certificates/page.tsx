@@ -26,7 +26,7 @@ export default function AdminCertificatesPage() {
 
   return (
     <div style={{ 
-      minHeight: '100vh', background: '#0a0a0a', color: '#fff', 
+      minHeight: '100dvh', background: '#0a0a0a', color: '#fff', 
       paddingBottom: '4rem', fontFamily: 'system-ui, -apple-system, sans-serif' 
     }}>
       <div style={{ borderBottom: '1px solid #1a1a1a', padding: '2rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', background: '#000' }}>

@@ -1,0 +1,76 @@
+import React from 'react'
+
+/**
+ * Skeleton Primitives — atomic building blocks for all skeleton screens.
+ * Every page skeleton composes from these four primitives.
+ */
+
+/** Single line of text — use width prop to match real text length */
+export const SkeletonLine = ({
+  width = '100%',
+  height = 14,
+  className = '',
+  style = {},
+}: {
+  width?: string | number
+  height?: number
+  className?: string
+  style?: React.CSSProperties
+}) => (
+  <div
+    className={`skeleton-shimmer ${className}`}
+    style={{ width, height, borderRadius: 4, ...style }}
+    aria-hidden="true"
+  />
+)
+
+/** Circle — for avatars, icons, status dots */
+export const SkeletonCircle = ({
+  size = 40,
+  className = '',
+}: {
+  size?: number
+  className?: string
+}) => (
+  <div
+    className={`skeleton-shimmer ${className}`}
+    style={{ width: size, height: size, borderRadius: '50%' }}
+    aria-hidden="true"
+  />
+)
+
+/** Rectangle block — for images, cards, banners, thumbnails */
+export const SkeletonBlock = ({
+  width = '100%',
+  height = 200,
+  radius = 8,
+  className = '',
+  style = {},
+}: {
+  width?: string | number
+  height?: number
+  radius?: number
+  className?: string
+  style?: React.CSSProperties
+}) => (
+  <div
+    className={`skeleton-shimmer ${className}`}
+    style={{ width, height, borderRadius: radius, ...style }}
+    aria-hidden="true"
+  />
+)
+
+/** Button-shaped skeleton */
+export const SkeletonButton = ({
+  width = 120,
+  height = 38,
+}: {
+  width?: number
+  height?: number
+}) => (
+  <div
+    className="skeleton-shimmer"
+    style={{ width, height, borderRadius: 8 }}
+    aria-hidden="true"
+  />
+)

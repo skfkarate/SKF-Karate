@@ -151,7 +151,7 @@ export default function ContactPage() {
                 <div className="contact-hero__badge">
                     <FaEnvelope /> Get in Touch
                 </div>
-                <h1 className="contact-hero__title">Contact Us</h1>
+                <h1 className="contact-hero__title">Contact <span className="contact-hero__accent">Us</span></h1>
                 <p className="contact-hero__sub">
                     Have questions? We're here to help you begin your journey. Request a callback or visit one of our branches.
                 </p>
@@ -159,7 +159,6 @@ export default function ContactPage() {
 
             {/* MAIN CONTENT */}
             <div className="contact-grid">
-                <ContactInfoPanel />
                 <ContactFormCard
                     emailRef={emailRef}
                     errorMsg={errorMsg}
@@ -171,23 +170,28 @@ export default function ContactPage() {
                     onSubmit={handleSubmit}
                     status={status}
                 />
+                <ContactInfoPanel />
             </div>
 
             {/* EXTRA SECTION: LOCATIONS & FAQS */}
             <div className="contact-extra">
                 {/* BRANCH DIRECTORY */}
                 <div>
-                    <h2 className="contact-extra-title">Our Branches</h2>
-                    <div className="contact-location-list">
-                        {cities.flatMap(c => c.branches).map((branch) => (
-                            <div key={branch.slug} className="contact-location-card">
-                                <FaMapMarkerAlt className="contact-location-icon" />
-                                <div className="contact-location-content">
-                                    <h4 className="contact-location-name">{branch.name}</h4>
-                                    <p className="contact-location-address">{branch.address}</p>
-                                </div>
+                    <h2 className="contact-extra-title">Find a Dojo</h2>
+                    <div className="contact-location-card" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem' }}>
+                            <FaMapMarkerAlt className="contact-location-icon" style={{ fontSize: '1.5rem', marginTop: '0' }} />
+                            <div>
+                                <h4 className="contact-location-name" style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Multiple Branches Across Karnataka</h4>
+                                <p className="contact-location-address" style={{ fontSize: '1rem' }}>
+                                    View all our official training locations, timetables, and specific dojo details on our dedicated Classes page.
+                                </p>
                             </div>
-                        ))}
+                        </div>
+                        <Link href="/classes" className="contact-cta-btn" style={{ width: '100%', justifyContent: 'center' }}>
+                            <span>View All Branches</span>
+                            <span className="contact-cta-btn-icon">→</span>
+                        </Link>
                     </div>
                 </div>
 
@@ -214,22 +218,6 @@ export default function ContactPage() {
                     </div>
                 </div>
             </div>
-
-            <section className="contact-footer">
-                <div className="contact-glass-pane contact-cta-box">
-                    <h2 className="contact-cta-title">
-                        Ready to <span className="contact-cta-accent">train?</span>
-                    </h2>
-                    <p className="contact-cta-text">
-                        Don't wait for a callback. Book your free introductory class instantly.
-                    </p>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-                        <Link href="/book-trial" className="btn btn-primary">
-                            Book Free Trial <FaArrowRight />
-                        </Link>
-                    </div>
-                </div>
-            </section>
         </div>
     )
 }

@@ -19,7 +19,7 @@ export default async function ResultsPage() {
     ])
 
     return (
-        <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--bg-black)' }}>
+        <div style={{ paddingTop: '80px', minHeight: '100dvh', background: 'var(--bg-black)' }}>
             <ResultsPageClient 
                 allTournaments={allTournaments}
                 stats={stats}

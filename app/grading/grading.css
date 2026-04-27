@@ -5,7 +5,7 @@
 .grad-redesign {
     background: #020308;
     color: var(--text-white);
-    min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
 }
 

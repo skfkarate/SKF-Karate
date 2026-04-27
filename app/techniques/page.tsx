@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Image from 'next/image'
 import TechniquesClient from './TechniquesClient'
 import { FaStar } from 'react-icons/fa'
 import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
@@ -15,7 +16,7 @@ export default async function TechniqueLibraryPage() {
     const featuredVideos = videos.filter(v => v.isFeatured)
 
     return (
-        <div style={{ minHeight: '100vh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ minHeight: '100dvh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                     <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, margin: 0, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
@@ -44,10 +45,12 @@ export default async function TechniqueLibraryPage() {
                                     }}>
                                         <div style={{ width: '100%', paddingTop: '56.25%', position: 'relative' }}>
                                             {video.thumbnailUrl ? (
-                                                <img
+                                                <Image
                                                     src={video.thumbnailUrl}
                                                     alt={video.title}
-                                                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
+                                                    style={{ objectFit: 'cover', opacity: 0.7 }}
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 400px"
                                                 />
                                             ) : (
                                                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.3), rgba(255,183,3,0.12))' }} />

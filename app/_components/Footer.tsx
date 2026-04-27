@@ -11,8 +11,6 @@ export default async function Footer() {
 
     return (
         <footer className="ft">
-            {/* Animated accent line */}
-            <div className="ft__accent" />
 
             {/* Watermark */}
             <div className="ft__kanji" aria-hidden="true">武</div>

@@ -34,7 +34,7 @@ export default function InstructorProfilePage({ params }: { params: { slug: stri
     }
 
     return (
-        <div style={{ background: '#05080f', minHeight: '100vh', paddingBottom: '6rem' }}>
+        <div style={{ background: '#05080f', minHeight: '100dvh', paddingBottom: '6rem' }}>
             
             {/* ═══════ HERO: Master Header ═══════ */}
             <section style={{ paddingTop: '8rem', paddingBottom: '4rem', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden' }}>
