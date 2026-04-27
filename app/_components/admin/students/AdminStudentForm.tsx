@@ -84,11 +84,11 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
         ))}
       </div>
 
-      <div className="p-6 md:p-10">
+      <div className="p-10">
 
         {/* Tab 1: Info (The main form) */}
         <form onSubmit={handleSubmit} className={activeTab === 'info' ? 'block' : 'hidden'}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 gap-8">
             {/* Personal Details */}
             <div className="space-y-5 bg-[rgba(0,0,0,0.3)] p-6 rounded-xl border border-[rgba(255,255,255,0.05)]">
               <h3 className="text-lg font-bold text-white border-b border-[rgba(255,255,255,0.1)] pb-3 flex items-center gap-2"><span className="text-brand-red">■</span> Personal Details</h3>
@@ -244,7 +244,7 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
         {/* Tab 3: Points History */}
         {activeTab === 'points' && (
           <div className="animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 bg-[rgba(20,33,61,0.5)] p-8 rounded-2xl border border-[rgba(255,183,3,0.2)] shadow-[inset_0_0_30px_rgba(255,183,3,0.05)] gap-4">
+            <div className="flex justify-between items-end mb-8 bg-[rgba(20,33,61,0.5)] p-8 rounded-2xl border border-[rgba(255,183,3,0.2)] shadow-[inset_0_0_30px_rgba(255,183,3,0.05)] gap-4">
               <div>
                 <h3 className="text-xs font-bold text-gold uppercase tracking-widest mb-2 opacity-80">Current Balance</h3>
                 <p className="text-5xl font-black text-white flex items-center gap-3">

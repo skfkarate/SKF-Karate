@@ -8,6 +8,7 @@ import { ArrowLeft, ShieldCheck, Star, Package, Lock, Ruler, X, User, ShoppingCa
 import { useCart } from '@/lib/shop/cartState'
 import type { ShopProduct } from '@/lib/shop/types'
 import { BELT_HIERARCHY } from '@/lib/shop/types'
+import ShopProductSkeleton from '@/components/skeletons/ShopProductSkeleton'
 import '../shop.css'
 
 export default function ProductDetailPage() {
@@ -71,7 +72,7 @@ export default function ProductDetailPage() {
         setQuantity(current => Math.min(current, availableToAdd))
     }, [product, selectedVariant, cart])
 
-    if (isLoading) return <div className="obsidian-store" style={{ padding: '6rem', color: '#fff', textAlign: 'center' }}>Loading Armory...</div>
+    if (isLoading) return <ShopProductSkeleton />
     if (!product) return <div className="obsidian-store" style={{ padding: '6rem', color: '#fff', textAlign: 'center' }}>Product not found.</div>
 
     const activeVariantObj = product.variants.find(v => v.id === selectedVariant)

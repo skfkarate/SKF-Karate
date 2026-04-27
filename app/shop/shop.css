@@ -6,7 +6,7 @@
 
 /* ── CORE STORE CONTAINER ── */
 .obsidian-store {
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: #050505;
   color: #fff;
   font-family: var(--font-body), sans-serif;
@@ -23,7 +23,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: radial-gradient(circle at 50% 0%, rgba(214, 40, 40, 0.08) 0%, rgba(0, 0, 0, 0) 60%),
     radial-gradient(circle at 100% 100%, rgba(255, 183, 3, 0.05) 0%, rgba(0, 0, 0, 0) 50%);
   pointer-events: none;

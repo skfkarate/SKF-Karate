@@ -12,30 +12,6 @@
     border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-/* ── Animated accent line ── */
-.ft__accent {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        var(--crimson) 20%,
-        var(--gold) 50%,
-        var(--crimson) 80%,
-        transparent 100%
-    );
-    opacity: 0.5;
-    background-size: 200% 100%;
-    animation: ftAccentShimmer 8s linear infinite;
-}
-
-@keyframes ftAccentShimmer {
-    0% { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
-}
 
 /* ── Kanji Watermark ── */
 .ft__kanji {
@@ -84,7 +60,7 @@
     transform: translate(-50%, -50%);
     width: 80px;
     height: 80px;
-    background: radial-gradient(circle, rgba(255,183,3,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 183, 3, 0.15) 0%, transparent 70%);
     z-index: -1;
     filter: blur(10px);
 }
@@ -93,7 +69,7 @@
     width: 64px;
     height: 64px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
 }
 
 .ft__monument-type {
@@ -119,7 +95,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .ft__monument-motto {
@@ -252,8 +228,15 @@
 }
 
 @keyframes ftDojoPulse {
-    0% { transform: scale(1); opacity: 0.4; }
-    100% { transform: scale(2.5); opacity: 0; }
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
 }
 
 /* ═══════════════════════════════════════
@@ -323,10 +306,25 @@ a.ft__connect-item:hover {
     transform: translateY(-4px);
 }
 
-.ft__soc--ig:hover { background: #E1306C; box-shadow: 0 4px 15px rgba(225, 48, 108, 0.3); }
-.ft__soc--yt:hover { background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3); }
-.ft__soc--fb:hover { background: #1877F2; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
-.ft__soc--wa:hover { background: #25D366; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+.ft__soc--ig:hover {
+    background: #E1306C;
+    box-shadow: 0 4px 15px rgba(225, 48, 108, 0.3);
+}
+
+.ft__soc--yt:hover {
+    background: #FF0000;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+}
+
+.ft__soc--fb:hover {
+    background: #1877F2;
+    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+}
+
+.ft__soc--wa:hover {
+    background: #25D366;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
 
 /* ═══════════════════════════════════════
    LEGAL BAR
@@ -397,7 +395,8 @@ a.ft__connect-item:hover {
     }
 
     .ft__river:hover .ft__river-link:not(:hover) {
-        opacity: 0.5; /* Less dramatic dimming on touch devices */
+        opacity: 0.5;
+        /* Less dramatic dimming on touch devices */
         transform: none;
     }
 
@@ -409,7 +408,7 @@ a.ft__connect-item:hover {
     .ft__connect-dot {
         display: none;
     }
-    
+
     .ft__connect-item--addr {
         text-align: center;
         margin-top: 0.5rem;
@@ -426,7 +425,7 @@ a.ft__connect-item:hover {
     .ft__monument-type {
         font-size: 3rem;
     }
-    
+
     .ft__monument-skf {
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
     }
@@ -449,7 +448,7 @@ a.ft__connect-item:hover {
         padding: 0.4rem 1rem;
         font-size: 0.7rem;
     }
-    
+
     .ft__soc {
         width: 40px;
         height: 40px;

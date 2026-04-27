@@ -1,6 +1,7 @@
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import './profile.css'
+import '@/components/skeletons/skeleton.css'
 import './_components/Footer.css'
 import './_components/Navbar.css'
 
@@ -37,15 +38,17 @@ import { Metadata } from 'next'
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'),
   manifest: '/manifest.json',
-  title: { default: 'SKF Karate — Bangalore', template: '%s | SKF Karate' },
-  description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Koramangala, Whitefield, and JP Nagar, Bangalore. WKF-affiliated. All ages welcome.',
-  keywords: ['SKF karate', 'karate Bangalore', 'karate classes Koramangala', 'karate Whitefield', 'WKF karate', 'sportkarate federation'],
+  title: { default: 'SKF Karate — Karnataka', template: '%s | SKF Karate' },
+  description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Bangalore, Kunigal, Tumkur, and Udupi. WKF-affiliated. All ages welcome.',
+  keywords: ['SKF karate', 'karate Karnataka', 'karate Bangalore', 'WKF karate', 'sportkarate federation'],
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org',
+    title: 'SKF Karate — Elite Martial Arts in Karnataka',
+    description: 'Join the fastest-growing WKF-affiliated Karate academy in Karnataka. Train with champions.',
+    url: 'https://skfkarate.com',
     siteName: 'SKF Karate',
-    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'SKF Karate Bangalore' }]
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'SKF Karate Karnataka' }]
   },
   twitter: { card: 'summary_large_image', site: '@skfkarate' },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || '' },

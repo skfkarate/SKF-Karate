@@ -286,7 +286,7 @@ export default function ClassesAdminClient({
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: '#fff', paddingBottom: '4rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: '#050505', color: '#fff', paddingBottom: '4rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <header style={{ borderBottom: '1px solid #111', padding: '2rem 2.5rem', background: '#000' }}>
         <p style={{ color: '#666', fontSize: '0.8rem', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '1rem', textTransform: 'uppercase' }}>
           Administration / Classes

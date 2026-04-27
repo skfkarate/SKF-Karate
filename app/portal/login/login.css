@@ -216,3 +216,13 @@
 .dojo-login__test-btn:hover {
   color: rgba(255, 183, 3, 0.8);
 }
+
+@media (max-width: 768px) {
+  .dojo-login__watermark {
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    font-size: 75vw;
+    color: rgba(255, 255, 255, 0.05);
+  }
+}

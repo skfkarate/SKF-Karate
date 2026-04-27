@@ -50,7 +50,6 @@ export default function GalleryPage() {
         <div className="gallery-page">
             <div className="gal-orb gal-orb--1" />
             <div className="gal-orb gal-orb--2" />
-            <div className="gal-watermark">写真</div>
 
             {/* HERO */}
             <section className="gal-hero">
@@ -60,7 +59,7 @@ export default function GalleryPage() {
                 </div>
                 <div className="container gal-hero__content">
                     <span className="gal-badge"><FaCamera /> Media Gallery</span>
-                    <h1 className="gal-hero__title">Our <span className="gal-text-grad">Gallery</span></h1>
+                    <h1 className="gal-hero__title">SKF <span className="gal-text-grad">Gallery</span></h1>
                     <p className="gal-hero__subtitle">Elite moments from the Dojo, championships, and masterclasses.</p>
                     <div className="gal-hero__stats-row">
                         <div className="gal-hero__stat">

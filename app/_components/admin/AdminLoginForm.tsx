@@ -66,7 +66,7 @@ export default function AdminLoginForm() {
   if (!showForm) {
     return (
       <div style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#0a0a0a',
         display: 'flex',
         flexDirection: 'column',
@@ -118,7 +118,7 @@ export default function AdminLoginForm() {
   // State 2: Stealth Login Form (No branding, no labels)
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       background: '#000',
       display: 'flex',
       alignItems: 'center',

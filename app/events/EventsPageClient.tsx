@@ -138,7 +138,7 @@ export default function EventsPageClient({
                         <FaCalendarAlt /> SKF Calendar
                     </span>
                     <h1 className="ev-hero__title">
-                        SKF <span className="text-gradient">Events</span>
+                        SKF <span className="ev-hero__accent">Events</span>
                     </h1>
                     <p className="ev-hero__subtitle">
                         Elite competitions, technical gradings, and masterclass seminars.

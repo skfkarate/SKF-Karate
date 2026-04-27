@@ -5,7 +5,7 @@
 
 .bt-page {
     position: relative;
-    height: 100vh;
+    height: 100dvh;
     min-height: 700px; /* Ensure content isn't crushed */
     background: #030508;
     overflow: hidden;
@@ -359,6 +359,15 @@
 }
 
 @media (max-width: 600px) {
+    .bt-page__orb--1 { display: none; }
+    .bt-page__kanji {
+      left: -8vw;
+      right: auto;
+      transform: translateY(-50%) rotate(-12deg);
+      transform-origin: left center;
+      font-size: 75vw;
+      color: rgba(255, 255, 255, 0.05);
+    }
     .bt-page__container { padding: 0 1.25rem; }
     .bt-page__form-wrap { padding: 2.5rem 1.5rem; }
     .bt-form__row { grid-template-columns: 1fr; gap: 0; }

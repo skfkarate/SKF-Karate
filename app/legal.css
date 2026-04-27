@@ -6,7 +6,7 @@
 .privacy-page {
   background: #030508;
   color: #fff;
-  min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
   padding-bottom: 12rem;
@@ -153,6 +153,7 @@
 }
 
 @media (max-width: 768px) {
+  .privacy-orb--1 { display: none; }
   .privacy-hero { padding: 5rem 1.5rem 2rem; }
   .privacy-hero__title { font-size: clamp(2.5rem, 12vw, 4rem); letter-spacing: -2px; }
   .privacy-glass-card { padding: 2.5rem 1.25rem; border-radius: 24px; }

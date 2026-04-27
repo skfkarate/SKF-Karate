@@ -222,7 +222,7 @@ export default function AdminEventsPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#0a0a0a',
         color: '#fff',
         paddingBottom: '4rem',

@@ -1,5 +1,5 @@
 .athlete-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at top left, rgba(214, 40, 40, 0.12), transparent 32%),
     radial-gradient(circle at top right, rgba(255, 183, 3, 0.08), transparent 28%),

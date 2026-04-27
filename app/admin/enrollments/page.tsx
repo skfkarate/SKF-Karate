@@ -254,7 +254,7 @@ export default function AdminEnrollmentsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: '#0a0a0a', color: '#fff', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
       
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>

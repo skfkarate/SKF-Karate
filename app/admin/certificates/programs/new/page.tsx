@@ -38,7 +38,7 @@ export default function NewCertificateProgram() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', display: 'flex', justifyContent: 'center', padding: '4rem 1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: '#0a0a0a', color: '#fff', display: 'flex', justifyContent: 'center', padding: '4rem 1rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ width: '100%', maxWidth: '600px' }}>
         
         <Link href="/admin/certificates" style={{ color: '#888', textDecoration: 'none', marginBottom: '2rem', display: 'inline-block', fontSize: '0.9rem' }}>

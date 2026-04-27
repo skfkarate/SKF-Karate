@@ -4,7 +4,7 @@
    ═════════════════════════════════════════════════════════════ */
 
 .system-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #030508;
   color: #fff;
   display: flex;
@@ -112,6 +112,14 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
+  .system-orb--1 { display: none; }
+  .system-watermark {
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    font-size: 75vw;
+    color: rgba(255, 255, 255, 0.05);
+  }
   .system-code { letter-spacing: -2px; }
   .system-actions .btn { width: 100%; }
 }

@@ -133,19 +133,7 @@ export default function FindProfilePage() {
           </button>
         </form>
 
-        {/* Quick search suggestions */}
-        <div className="as-quick-tags">
-          <span className="as-quick-tags__label">Try:</span>
-          {['Arvind', 'Krishna', 'SKF-2024-0042', 'Priya'].map(tag => (
-            <button 
-              key={tag} 
-              className="as-quick-tag" 
-              onClick={() => { setQuery(tag); setTimeout(() => handleSearch(), 50) }}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
+
       </section>
 
       {/* ═══ RESULTS SECTION ═══ */}

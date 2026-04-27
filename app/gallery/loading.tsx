@@ -1,3 +1,5 @@
-import Loading from '../loading'
+import GalleryPageSkeleton from '@/components/skeletons/GalleryPageSkeleton'
 
-export default Loading
+export default function Loading() {
+  return <GalleryPageSkeleton />
+}

@@ -32,7 +32,7 @@ export default async function BeltTechniquesPage({ params }: Props) {
     const videos = await getTechniqueLibraryVideos({ beltLevel })
 
     return (
-        <div style={{ minHeight: '100vh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ minHeight: '100dvh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 
                 <Link href="/techniques" style={{ 

@@ -2,7 +2,7 @@
 
 .admin-results {
   padding: 6rem 0 4rem;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .admin-results__header {
@@ -221,7 +221,7 @@
 /* ── Form ── */
 .admin-form {
   padding: 6rem 0 4rem;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .admin-form__header {
@@ -440,33 +440,4 @@
   font-weight: 600;
   z-index: 9999;
   animation: fadeInUp 0.4s ease;
-}
-
-@media (max-width: 768px) {
-  .admin-results__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-results__controls {
-    width: 100%;
-  }
-
-  .admin-results__search {
-    width: 100%;
-  }
-
-  .admin-form__row {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-form__tabs {
-    overflow-x: auto;
-  }
-
-  .admin-form__winner-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
 }

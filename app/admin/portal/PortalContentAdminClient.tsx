@@ -260,7 +260,7 @@ export default function PortalContentAdminClient({
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: '#050505',
         color: '#fff',
         paddingBottom: '4rem',

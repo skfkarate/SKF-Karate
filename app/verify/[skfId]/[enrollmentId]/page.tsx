@@ -46,7 +46,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
 
   if (!isValid) {
     return (
-      <div style={{ minHeight: '100vh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: '100dvh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ background: '#111', padding: '3rem', borderRadius: '12px', border: '1px solid #333', textAlign: 'center', maxWidth: '500px' }}>
           <XCircle size={64} style={{ color: '#e74c3c', marginBottom: '1rem', display: 'inline-block' }} />
           <h1 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '1rem' }}>Certificate Not Found</h1>
@@ -72,7 +72,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
   const program = getProgramRelation(cert.programs)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: 'rgba(10, 15, 30, 0.7)', backdropFilter: 'blur(10px)', padding: '3rem', borderRadius: '16px', border: '1px solid rgba(46, 204, 113, 0.3)', boxShadow: '0 10px 40px rgba(46, 204, 113, 0.1)', maxWidth: '500px', width: '100%' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>

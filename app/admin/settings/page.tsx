@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      minHeight: '100dvh', 
       background: '#000',
       color: '#fff',
       paddingBottom: '4rem',

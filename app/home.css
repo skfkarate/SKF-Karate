@@ -1,7 +1,7 @@
 /* ===== HERO ===== */
 .hero {
     position: relative;
-    min-height: 100vh;
+    min-height: 100dvh;
     min-height: 100dvh;
     display: flex;
     align-items: center;
@@ -122,6 +122,13 @@
 
 /* ───── TABLET PORTRAIT ───── */
 @media (max-width: 768px) {
+    .hero__watermark {
+      left: -8vw;
+      transform: translateY(-50%) rotate(-12deg);
+      transform-origin: left center;
+      font-size: 75vw;
+      color: rgba(255, 255, 255, 0.05);
+    }
     .hero {
         min-height: 90vh;
     }
@@ -174,7 +181,7 @@
 /* ───── MOBILE STANDARD ───── */
 @media (max-width: 480px) {
     .hero {
-        min-height: 100vh;
+        min-height: 100dvh;
         min-height: 100dvh;
     }
 

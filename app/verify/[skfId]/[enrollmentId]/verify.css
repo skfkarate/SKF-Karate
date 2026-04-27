@@ -1,6 +1,6 @@
 /* verify.css - Matches the existing global scheme from portal/athlete */
 .verify-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-dark, #05080f);
   background-image: radial-gradient(circle at top center, rgba(255, 183, 3, 0.05) 0%, transparent 40%);
   display: flex;

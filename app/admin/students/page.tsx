@@ -70,7 +70,7 @@ export default async function AdminStudentsPage({
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: PAGE_BG,
         color: '#fff',
         paddingBottom: '4rem',

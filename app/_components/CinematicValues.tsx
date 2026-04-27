@@ -218,7 +218,7 @@ export default function CinematicValues() {
 
     return (
         <section ref={containerRef} className="cinematic-values-wrapper" style={{ height: "600vh", position: "relative", background: "#020306" }}>
-            <div className="cinematic-values-sticky" style={{ height: "100vh", position: "sticky", top: 0, overflow: "hidden" }}>
+            <div className="cinematic-values-sticky" style={{ height: "100dvh", position: "sticky", top: 0, overflow: "hidden" }}>
 
                 {/* Unified Background Images Ecosystem */}
                 <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>

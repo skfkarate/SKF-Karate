@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 
 function beltLabel(v: string) {
@@ -119,10 +120,13 @@ export default function DanCarousel({ danHolders }: { danHolders: any[] }) {
             href={getCardHref(athlete)}
             className={`hon-ccard hon-ccard--d${Math.min(depth, 2)}`}
           >
-            <div className="hon-ccard__photo">
-              <img 
+            <div className="hon-ccard__photo" style={{ position: 'relative' }}>
+              <Image 
                 src={getCardImage(athlete)}
                 alt={getCardName(athlete)}
+                fill
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 768px) 100vw, 300px"
               />
             </div>
             <div className="hon-ccard__badge">{getCardBadge(athlete)}</div>

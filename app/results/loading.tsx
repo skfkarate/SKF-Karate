@@ -1,3 +1,5 @@
-import Loading from '../loading'
+import ResultsPageSkeleton from '@/components/skeletons/ResultsPageSkeleton'
 
-export default Loading
+export default function Loading() {
+  return <ResultsPageSkeleton />
+}

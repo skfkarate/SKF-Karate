@@ -8,10 +8,11 @@ import HomeYourFirstClass from '@/app/_components/pages/home/HomeYourFirstClass'
 import './home.css'
 import { buildOrgJsonLd, SITE_CONFIG } from '@/data/constants/siteConfig'
 import { HERO_COPY } from '@/data/constants/homeContent'
+import { Metadata } from 'next'
 
-export const metadata = {
-  title: 'SKF Karate Classes in Bangalore | Expert Self-Defense Training',
-  description: 'Join SKF Karate in Bangalore. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
+export const metadata: Metadata = {
+  title: 'SKF Karate Classes in Karnataka | Expert Self-Defense Training',
+  description: 'Join SKF Karate across Karnataka. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
 }
 
 export default function HomePage() {

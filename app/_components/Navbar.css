@@ -223,7 +223,7 @@ nextjs-portal {
     right: 0;
     width: 340px;
     max-width: 85vw;
-    height: 100vh;
+    height: 100dvh;
     height: 100dvh;
     z-index: 1200;
     background: rgba(3, 5, 8, 0.85); /* Deep obsidian tint */

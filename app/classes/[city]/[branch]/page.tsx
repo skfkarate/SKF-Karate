@@ -8,7 +8,9 @@ import {
   getCityBySlugLive,
 } from '@/lib/server/repositories/classes-live'
 import BranchDetailClient from './BranchDetailClient'
-import '../../classes.css'
+// FIX: was importing ../../classes.css but BranchDetailClient uses obs-* classes
+// that are defined in obsidian.css — corrected import below.
+import '../../obsidian.css'
 
 export const dynamic = 'force-dynamic'
 

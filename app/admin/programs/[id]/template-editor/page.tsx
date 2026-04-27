@@ -102,7 +102,7 @@ export default function TemplateEditorPage({ params }) {
   }
 
   return (
-    <div style={{ padding: '2rem', background: '#05080f', minHeight: '100vh', color: '#fff' }}>
+    <div style={{ padding: '2rem', background: '#05080f', minHeight: '100dvh', color: '#fff' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
