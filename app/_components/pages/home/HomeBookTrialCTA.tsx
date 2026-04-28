@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { FaCalendarCheck, FaArrowRight, FaPhoneAlt } from 'react-icons/fa'
 import { homeBookTrialCTAFeatures } from '@/data/constants/homeContent'
+import ScrollReveal from '@/app/_components/ScrollReveal'
 
 export default function HomeBookTrialCTA() {
   return (
@@ -12,7 +13,7 @@ export default function HomeBookTrialCTA() {
       <div className="trial-cta__overlay"></div>
       
       <div className="container trial-cta__container">
-        <div className="trial-cta__content">
+        <ScrollReveal className="trial-cta__content">
           <span className="section-label" style={{ color: "var(--gold)", borderColor: "rgba(255, 183, 3, 0.3)", background: "rgba(255, 183, 3, 0.1)" }}>
             <FaCalendarCheck /> BECOME A CHAMPION
           </span>
@@ -40,7 +41,7 @@ export default function HomeBookTrialCTA() {
               <FaPhoneAlt /> +91 90199 71726
             </a>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   )

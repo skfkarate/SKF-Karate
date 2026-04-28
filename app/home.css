@@ -81,6 +81,22 @@
     margin-bottom: 2.5rem;
 }
 
+.hero__badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    animation: dotPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 .hero__title {
     font-size: clamp(4rem, 12vw, 8rem);
     font-weight: 900;
@@ -292,15 +308,18 @@
 .home-city-card {
     position: relative;
     display: block;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
     aspect-ratio: 3/4;
-    transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s;
 }
 
 .home-city-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
+    transform: translateY(-6px);
+    border-color: rgba(255, 183, 3, 0.3);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 .home-city-card__image {
@@ -369,20 +388,23 @@
 
 .athlete-podium-card {
     position: relative;
-    background: var(--bg-card);
-    border: var(--border-glass);
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
     padding: 2rem 1.5rem;
     text-align: center;
-    backdrop-filter: var(--card-blur);
-    -webkit-backdrop-filter: var(--card-blur);
-    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s ease;
 }
 
 .athlete-podium-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 183, 3, 0.2);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 .athlete-podium-card__rank {
@@ -498,19 +520,23 @@
 }
 
 .why-card {
-    padding: 1.5rem;
-    background: var(--bg-card);
-    border: var(--border-glass);
-    border-radius: 14px;
+    padding: 2rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
     text-align: center;
-    backdrop-filter: var(--card-blur);
-    -webkit-backdrop-filter: var(--card-blur);
-    transition: transform 0.3s var(--ease-out), border-color 0.3s;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s ease;
 }
 
 .why-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 183, 3, 0.2);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 .why-card__icon {
@@ -555,18 +581,22 @@
 
 .first-class-step {
     position: relative;
-    padding: 2rem 1.25rem;
-    background: var(--bg-card);
-    border: var(--border-glass);
-    border-radius: 14px;
+    padding: 2.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
     text-align: center;
-    backdrop-filter: var(--card-blur);
-    -webkit-backdrop-filter: var(--card-blur);
-    transition: transform 0.3s var(--ease-out), border-color 0.3s;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.4s ease;
 }
 .first-class-step:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 183, 3, 0.2);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 .first-class-step__number {

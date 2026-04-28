@@ -14,8 +14,6 @@ import SessionProvider from '@/app/_components/providers/SessionProvider'
 import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
-import BackToTop from '@/components/BackToTop'
-
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,7 +75,6 @@ export default function RootLayout({ children }) {
               navbar={<Navbar />} 
               footer={<Footer />}
               whatsappButton={<WhatsAppButton />}
-              backToTop={<BackToTop />}
             >
               {children}
             </ClientLayoutWrapper>

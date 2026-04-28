@@ -54,23 +54,6 @@ export default function WhatsAppButton({ branch }: Props) {
             aria-label="Chat with us on WhatsApp"
         >
             <div style={{
-                background: '#fff',
-                color: '#25D366',
-                padding: '0.6rem 1.2rem',
-                borderRadius: '50px',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                marginRight: '0.8rem',
-                transform: isHovered ? 'translateX(0)' : 'translateX(20px)',
-                opacity: isHovered ? 1 : 0,
-                transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s',
-                pointerEvents: isHovered ? 'auto' : 'none',
-                whiteSpace: 'nowrap'
-            }}>
-                Chat with us
-            </div>
-            
-            <div style={{
                 background: '#25D366',
                 color: '#fff',
                 width: '60px',

@@ -59,20 +59,25 @@ nextjs-portal {
     align-items: baseline;
     gap: 5px;
     font-family: var(--font-heading);
-    font-weight: 900;
-    font-size: 1.5rem;
-    letter-spacing: -0.5px;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: -1px;
+    text-transform: uppercase;
 }
 
 .nav__brand-name {
-    color: var(--text-white);
+    font-weight: 300;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
 }
 
 .nav__brand-accent {
-    background: linear-gradient(135deg, var(--crimson), var(--gold));
+    font-weight: 900;
+    background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Center nav: single link ── */
@@ -127,6 +132,33 @@ nextjs-portal {
 .nav__link--active::after {
     width: 70%;
     background: var(--gold);
+}
+
+.link-pending-indicator {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.16s ease, transform 0.16s ease, width 0.16s ease, height 0.16s ease;
+    background: transparent;
+}
+
+.link-pending-indicator.is-pending {
+    opacity: 1;
+    transform: scale(1);
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(255, 183, 3, 0.18);
+}
+
+.nav__pending-indicator {
+    flex-shrink: 0;
+}
+
+.nav__pending-indicator--icon {
+    position: absolute;
+    top: -1px;
+    right: -1px;
 }
 
 /* ── Right side ── */
@@ -413,6 +445,27 @@ nextjs-portal {
 /* ===== MOBILE STICKY CTA BAR ===== */
 .mobile-sticky-cta {
     display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    opacity: 0;
+    transform: translateY(110%);
+    pointer-events: none;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.mobile-sticky-cta.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.mobile-sticky-cta__pending {
+    margin-left: 0.1rem;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -450,7 +503,7 @@ nextjs-portal {
 
     /* Mobile sticky CTA */
     .mobile-sticky-cta {
-        display: block;
+        display: flex;
         position: fixed;
         bottom: 0;
         left: 0;

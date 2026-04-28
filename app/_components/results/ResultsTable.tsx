@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa'
-import AchievementBadge from './AchievementBadge'
+import { Search, ChevronDown, X, ChevronRight } from 'lucide-react'
 import { EVENT_CATEGORY_LABELS, AGE_GROUP_LABELS } from '../../../lib/types/tournament'
+
+import '@/app/rankings/rankings.css'
 
 const ROWS_PER_PAGE = 20
 
@@ -17,9 +18,12 @@ const eventFilterOptions = [
   { value: 'mixed', label: 'Mixed' },
 ]
 
+const MEDAL_LABELS = { gold: '🥇', silver: '🥈', bronze: '🥉' }
+
 export default function ResultsTable({ winners }) {
   const [filterText, setFilterText] = useState('')
   const [eventFilter, setEventFilter] = useState('all')
+  const [catOpen, setCatOpen] = useState(false)
   const [sortKey, setSortKey] = useState('medal')
   const [sortDir, setSortDir] = useState('asc')
   const [page, setPage] = useState(1)
@@ -37,9 +41,8 @@ export default function ResultsTable({ winners }) {
   }
 
   const filteredAndSorted = useMemo(() => {
-    let result = [...winners]
+    let result = [...(winners || [])]
 
-    // Text filter
     if (filterText.trim()) {
       const q = filterText.toLowerCase()
       result = result.filter(w =>
@@ -49,12 +52,10 @@ export default function ResultsTable({ winners }) {
       )
     }
 
-    // Event filter
     if (eventFilter !== 'all') {
       result = result.filter(w => w.category === eventFilter)
     }
 
-    // Sort
     result.sort((a, b) => {
       let cmp = 0
       switch (sortKey) {
@@ -65,9 +66,6 @@ export default function ResultsTable({ winners }) {
           break
         case 'event':
           cmp = (EVENT_CATEGORY_LABELS[a.category] || '').localeCompare(EVENT_CATEGORY_LABELS[b.category] || '')
-          break
-        case 'ageGroup':
-          cmp = (AGE_GROUP_LABELS[a.ageGroup] || '').localeCompare(AGE_GROUP_LABELS[b.ageGroup] || '')
           break
         case 'athlete':
           cmp = a.athleteName.localeCompare(b.athleteName)
@@ -87,141 +85,152 @@ export default function ResultsTable({ winners }) {
   const totalPages = Math.ceil(filteredAndSorted.length / ROWS_PER_PAGE)
   const paginatedRows = filteredAndSorted.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE)
 
-  const SortIcon = ({ column }) => {
-    if (sortKey !== column) return <FaSort className="sort-icon" />
-    return sortDir === 'asc'
-      ? <FaSortUp className="sort-icon sort-icon--active" />
-      : <FaSortDown className="sort-icon sort-icon--active" />
-  }
-
   if (!winners || winners.length === 0) {
     return (
-      <div className="results-empty animate-in fade-in">
-        <FaSort className="results-empty__icon" style={{ opacity: 0.2 }} />
-        <h2 className="results-empty__title">Awaiting Official Results</h2>
-        <p className="results-empty__text">
-          The official winner list for this tournament is currently being processed and verified. Please check back later.
-        </p>
+      <div className="lb-wrap">
+        <div className="lb-card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <p style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🥋</p>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', marginBottom: '0.5rem', fontWeight: 800 }}>Awaiting Official Results</h2>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', maxWidth: 400, margin: '0 auto' }}>
+            Results are being verified and will appear here once finalized.
+          </p>
+        </div>
       </div>
     )
   }
 
+  const eventLabel = eventFilter === 'all' ? 'All Events' : eventFilterOptions.find(o => o.value === eventFilter)?.label
+  const resultCount = filteredAndSorted.length
+
   return (
-    <div className="results-table-section">
-      <div className="results-table__controls">
-        <div className="results-table__search-wrapper">
-          <svg className="results-table__search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input
-            type="text"
-            className="results-table__search-input"
-            placeholder="Filter by athlete name or event..."
-            value={filterText}
-            onChange={(e) => { setFilterText(e.target.value); setPage(1) }}
-            aria-label="Filter results"
-          />
-        </div>
-        <div className="results-table__event-pills">
-          {eventFilterOptions.map(opt => (
-            <button
-              key={opt.value}
-              className={`results-table__event-pill ${eventFilter === opt.value ? 'results-table__event-pill--active' : ''}`}
-              onClick={() => { setEventFilter(opt.value); setPage(1) }}
-              aria-pressed={eventFilter === opt.value}
-            >
-              {opt.label}
+    <div className="lb-wrap">
+      <div className="lb-card">
+        {/* ── Controls Row ── */}
+        <div className="lb-controls" style={{ gap: '0.75rem' }}>
+          <div className="lb-search" style={{ flex: 1 }}>
+            <Search size={14} />
+            <input
+              type="text"
+              placeholder="Search athlete, branch..."
+              value={filterText}
+              onChange={(e) => { setFilterText(e.target.value); setPage(1); }}
+            />
+          </div>
+          <div className="lb-dropdown" style={{ position: 'relative', flexShrink: 0, minWidth: 160 }}>
+            <button className="lb-dropdown__btn" onClick={() => setCatOpen(!catOpen)} style={{ padding: '0.75rem 1rem', borderRadius: 10 }}>
+              <span style={{ fontSize: '0.82rem' }}>{eventLabel}</span>
+              {eventFilter !== 'all' ? <X size={12} onClick={(e) => { e.stopPropagation(); setEventFilter('all'); setPage(1); }} style={{ cursor: 'pointer' }} /> : <ChevronDown size={13} />}
             </button>
-          ))}
+            {catOpen && (
+              <div className="lb-dropdown__list">
+                {eventFilterOptions.map(opt => (
+                  <button key={opt.value} className={`lb-dropdown__opt ${eventFilter === opt.value ? 'lb-dropdown__opt--on' : ''}`} onClick={() => { setEventFilter(opt.value); setCatOpen(false); setPage(1); }}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Count ── */}
+        <div style={{ padding: '0 1.5rem 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: 1.5, textTransform: 'uppercase' }}>
+            {resultCount} Result{resultCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {/* ── Scrollable Table Area ── */}
+        <div className="td-table-scroll">
+          {/* ── Table Header ── */}
+          <div className="lb-thead">
+            <span className="lb-th" style={{ width: 50, flexShrink: 0 }}></span>
+            <span className="lb-th lb-th--name" style={{ flex: 1.5, cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => handleSort('athlete')}>
+              Athlete
+            </span>
+            <span className="lb-th" style={{ width: 130, flexShrink: 0, cursor: 'pointer' }} onClick={() => handleSort('branch')}>
+              Branch
+            </span>
+            <span className="lb-th" style={{ flex: 1, cursor: 'pointer' }} onClick={() => handleSort('event')}>
+              Event
+            </span>
+          </div>
+
+          {/* ── Rows ── */}
+          <div className="lb-rows">
+            {paginatedRows.length === 0 && (
+              <div className="lb-empty">No results match your filter.</div>
+            )}
+            {paginatedRows.map(w => (
+              <div key={w.id} className="lb-row" style={{ minHeight: 52 }}>
+                {/* Medal emoji as rank indicator */}
+                <div className="lb-cell" style={{ width: 50, flexShrink: 0, justifyContent: 'center' }}>
+                  <span style={{ fontSize: '1.1rem' }} title={`${w.medal} — Position ${w.position}`}>
+                    {MEDAL_LABELS[w.medal] || ''}
+                  </span>
+                </div>
+
+                {/* Athlete name */}
+                <div className="lb-cell lb-cell--name" style={{ flex: 1.5 }}>
+                  {w.registrationNumber ? (
+                    <Link href={`/athlete/${w.registrationNumber}`} className="lb-name" style={{ textDecoration: 'none' }}>
+                      {w.athleteName}
+                    </Link>
+                  ) : (
+                    <span className="lb-name">{w.athleteName}</span>
+                  )}
+                </div>
+
+                {/* Branch */}
+                <div className="lb-cell" style={{ width: 130, flexShrink: 0 }}>
+                  <span className="lb-branch">{w.branchName}</span>
+                </div>
+
+                {/* Event + Age group combined */}
+                <div className="lb-cell" style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.35 }}>
+                    {EVENT_CATEGORY_LABELS[w.category] || w.category}
+                    <br />
+                    <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)' }}>
+                      {AGE_GROUP_LABELS[w.ageGroup] || w.ageGroup}
+                    </span>
+                  </span>
+                </div>
+
+                <ChevronRight size={13} className="lb-row__arrow" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="results-table__wrapper">
-        <table className="results-table">
-          <caption>Tournament results and medal winners</caption>
-          <thead>
-            <tr>
-              <th onClick={() => handleSort('medal')} aria-sort={sortKey === 'medal' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                Pos <SortIcon column="medal" />
-              </th>
-              <th onClick={() => handleSort('athlete')} aria-sort={sortKey === 'athlete' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                Athlete <SortIcon column="athlete" />
-              </th>
-              <th onClick={() => handleSort('branch')} aria-sort={sortKey === 'branch' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                Branch <SortIcon column="branch" />
-              </th>
-              <th>Belt</th>
-              <th onClick={() => handleSort('event')} aria-sort={sortKey === 'event' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                Event <SortIcon column="event" />
-              </th>
-              <th onClick={() => handleSort('ageGroup')} aria-sort={sortKey === 'ageGroup' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                Age Group <SortIcon column="ageGroup" />
-              </th>
-              <th>Medal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedRows.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>
-                    No results match your filter.
-                  </p>
-                </td>
-              </tr>
-            ) : (
-              paginatedRows.map(w => (
-                <tr key={w.id}>
-                  <td>
-                    <span className={`results-table__position results-table__position--${w.position}`}>
-                      #{w.position}
-                    </span>
-                  </td>
-                  <td className="results-table__athlete-name">
-                    {w.registrationNumber ? (
-                      <Link href={`/athlete/${w.registrationNumber}`} className="hover:text-[var(--gold)] transition-colors">
-                        {w.athleteName}
-                      </Link>
-                    ) : (
-                      w.athleteName
-                    )}
-                  </td>
-                  <td>{w.branchName}</td>
-                  <td>{w.belt}</td>
-                  <td>{EVENT_CATEGORY_LABELS[w.category] || w.category}</td>
-                  <td>{AGE_GROUP_LABELS[w.ageGroup] || w.ageGroup}</td>
-                  <td><AchievementBadge medal={w.medal} /></td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
+      {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div className="results-table__pagination">
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: '1.25rem' }}>
           <button
-            className="results-table__page-btn prev-next"
             onClick={() => setPage(p => p - 1)}
             disabled={page === 1}
-            aria-label="Previous page"
+            className="td-page-btn"
+            style={{ opacity: page === 1 ? 0.3 : 1 }}
           >
-            Prev
+            ‹ Prev
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
             <button
               key={p}
-              className={`results-table__page-btn ${p === page ? 'results-table__page-btn--active' : ''}`}
               onClick={() => setPage(p)}
+              className={`td-page-btn ${p === page ? 'td-page-btn--on' : ''}`}
             >
               {p}
             </button>
           ))}
           <button
-            className="results-table__page-btn prev-next"
             onClick={() => setPage(p => p + 1)}
             disabled={page === totalPages}
-            aria-label="Next page"
+            className="td-page-btn"
+            style={{ opacity: page === totalPages ? 0.3 : 1 }}
           >
-            Next
+            Next ›
           </button>
         </div>
       )}

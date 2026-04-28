@@ -1,5 +1,4 @@
 import { getAllTournamentsLive } from '@/lib/server/repositories/tournaments-live'
-import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 
 export default async function sitemap() {
     const baseUrl = 'https://skfkarate.org'
@@ -17,23 +16,14 @@ export default async function sitemap() {
     ]
 
     // Add individual tournament pages
-    const [tournaments, senseis] = await Promise.all([
-        getAllTournamentsLive(),
-        getPublicSenseisLive(),
-    ])
+    const tournaments = await getAllTournamentsLive()
     const tournamentRoutes = tournaments.map(t => ({
         path: `/results/${t.slug}`,
         priority: 0.7,
         changeFrequency: 'monthly',
     }))
 
-    const senseiRoutes = senseis.map((sensei) => ({
-        path: `/senseis/${sensei.slug}`,
-        priority: 0.7,
-        changeFrequency: 'monthly',
-    }))
-
-    return [...routes, ...tournamentRoutes, ...senseiRoutes].map((route) => ({
+    return [...routes, ...tournamentRoutes].map((route) => ({
         url: `${baseUrl}${route.path}`,
         lastModified: new Date(),
         changeFrequency: route.changeFrequency,

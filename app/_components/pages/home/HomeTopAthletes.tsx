@@ -4,6 +4,7 @@ import {
   getAllAthletesLive,
   getRankSnapshotsLive,
 } from '@/lib/server/repositories/athletes-live'
+import ScrollReveal from '@/app/_components/ScrollReveal'
 
 export default async function HomeTopAthletes() {
     const [athletes, snapshots] = await Promise.all([
@@ -47,57 +48,63 @@ export default async function HomeTopAthletes() {
     return (
         <section className="home-top-athletes section section--tint-mid">
             <div className="container">
-                <div className="home-top-athletes__header">
-                    <span className="section-label"><FaTrophy /> Champions</span>
-                    <h2 className="section-title">
-                        Our Top <span className="text-gradient">Athletes</span>
-                    </h2>
-                    <p className="section-subtitle">
-                        The highest-ranked competitors across all SKF Karate branches.
-                    </p>
-                </div>
+                <ScrollReveal>
+                    <div className="home-top-athletes__header">
+                        <span className="section-label"><FaTrophy /> Champions</span>
+                        <h2 className="section-title">
+                            Our Top <span className="text-gradient">Athletes</span>
+                        </h2>
+                        <p className="section-subtitle">
+                            The highest-ranked competitors across all SKF Karate branches.
+                        </p>
+                    </div>
+                </ScrollReveal>
 
                 <div className="home-top-athletes__grid">
-                    {topAthletes.map((athlete) => (
-                        <Link href={`/athlete/${athlete.registrationNumber}`} key={athlete.rank} className="athlete-podium-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}>
-                            <div className={`athlete-podium-card__rank athlete-podium-card__rank--${athlete.rank}`}>
-                                {athlete.rank}
-                            </div>
+                    {topAthletes.map((athlete, i) => (
+                        <ScrollReveal key={athlete.rank} delay={i * 0.1}>
+                            <Link href={`/athlete/${athlete.registrationNumber}`} className="athlete-podium-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}>
+                                <div className={`athlete-podium-card__rank athlete-podium-card__rank--${athlete.rank}`}>
+                                    {athlete.rank}
+                                </div>
 
-                            <div className="athlete-podium-card__avatar">
-                                {athlete.name.charAt(0)}
-                            </div>
+                                <div className="athlete-podium-card__avatar">
+                                    {athlete.name.charAt(0)}
+                                </div>
 
-                            <h3 className="athlete-podium-card__name">{athlete.name}</h3>
-                            <span className="athlete-podium-card__category">{athlete.category}</span>
-                            <span className="athlete-podium-card__branch">{athlete.branch}</span>
+                                <h3 className="athlete-podium-card__name">{athlete.name}</h3>
+                                <span className="athlete-podium-card__category">{athlete.category}</span>
+                                <span className="athlete-podium-card__branch">{athlete.branch}</span>
 
-                            <div className="athlete-podium-card__medals">
-                                {athlete.medals.gold > 0 && (
-                                    <span className="medal medal--gold">
-                                        <FaMedal /> {athlete.medals.gold}
-                                    </span>
-                                )}
-                                {athlete.medals.silver > 0 && (
-                                    <span className="medal medal--silver">
-                                        <FaMedal /> {athlete.medals.silver}
-                                    </span>
-                                )}
-                                {athlete.medals.bronze > 0 && (
-                                    <span className="medal medal--bronze">
-                                        <FaMedal /> {athlete.medals.bronze}
-                                    </span>
-                                )}
-                            </div>
-                        </Link>
+                                <div className="athlete-podium-card__medals">
+                                    {athlete.medals.gold > 0 && (
+                                        <span className="medal medal--gold">
+                                            <FaMedal /> {athlete.medals.gold}
+                                        </span>
+                                    )}
+                                    {athlete.medals.silver > 0 && (
+                                        <span className="medal medal--silver">
+                                            <FaMedal /> {athlete.medals.silver}
+                                        </span>
+                                    )}
+                                    {athlete.medals.bronze > 0 && (
+                                        <span className="medal medal--bronze">
+                                            <FaMedal /> {athlete.medals.bronze}
+                                        </span>
+                                    )}
+                                </div>
+                            </Link>
+                        </ScrollReveal>
                     ))}
                 </div>
 
-                <div className="home-top-athletes__cta">
-                    <Link href="/rankings" className="btn btn-secondary">
-                        View Full Rankings <FaArrowRight />
-                    </Link>
-                </div>
+                <ScrollReveal delay={0.4}>
+                    <div className="home-top-athletes__cta">
+                        <Link href="/rankings" className="btn btn-secondary">
+                            View Full Rankings <FaArrowRight />
+                        </Link>
+                    </div>
+                </ScrollReveal>
             </div>
         </section>
     )

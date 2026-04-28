@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
+import LinkPendingIndicator from '@/components/navigation/LinkPendingIndicator'
 
 import { PUBLIC_NAV_ITEMS } from '@/data/constants/navigation'
 import type { NavMenuItem } from '@/data/constants/navigation'
@@ -20,7 +21,27 @@ export default function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
     const pathname = usePathname()
+    const router = useRouter()
     const { cartTotalCount } = useCart()
+
+    const prefetchPrimaryRoutes = useCallback(() => {
+        const primaryRoutes = [
+            '/',
+            '/classes',
+            '/about',
+            '/honours',
+            '/events',
+            '/rankings',
+            '/athlete/search',
+            '/shop',
+            '/shop/cart',
+            '/book-trial',
+        ]
+
+        for (const route of primaryRoutes) {
+            router.prefetch(route)
+        }
+    }, [router])
 
 
     // Close drawer on route change
@@ -39,6 +60,10 @@ export default function Navbar() {
         return () => { document.body.style.overflow = '' }
     }, [drawerOpen])
 
+    useEffect(() => {
+        prefetchPrimaryRoutes()
+    }, [prefetchPrimaryRoutes])
+
     const toggleSubmenu = (label: string) => {
         setExpandedMenus(prev => {
             const next = new Set(prev)
@@ -56,12 +81,19 @@ export default function Navbar() {
             <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
                 <div className="container nav__inner">
                     {/* ── Brand ── */}
-                    <Link href="/" className="nav__brand">
+                    <Link
+                        href="/"
+                        className="nav__brand"
+                        onMouseEnter={prefetchPrimaryRoutes}
+                        onFocus={prefetchPrimaryRoutes}
+                        onTouchStart={prefetchPrimaryRoutes}
+                    >
                         <div className="nav__brand-stack">
                             <Image src="/logo/SKF logo.png" alt="SKF Karate" width={42} height={42} className="nav__brand-logo" />
                             <span className="nav__brand-text">
                                 <span className="nav__brand-name">SKF</span>
                                 <span className="nav__brand-accent">KARATE</span>
+                                <LinkPendingIndicator className="nav__pending-indicator" />
                             </span>
                         </div>
                     </Link>
@@ -71,20 +103,32 @@ export default function Navbar() {
                         <Link
                             href="/classes"
                             className={`nav__link ${pathname?.startsWith('/classes') ? 'nav__link--active' : ''}`}
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
                         >
                             Classes
+                            <LinkPendingIndicator className="nav__pending-indicator" />
                         </Link>
                         <Link
                             href="/about"
                             className={`nav__link ${pathname?.startsWith('/about') ? 'nav__link--active' : ''}`}
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
                         >
                             About
+                            <LinkPendingIndicator className="nav__pending-indicator" />
                         </Link>
                         <Link
                             href="/honours"
                             className={`nav__link ${pathname?.startsWith('/honours') ? 'nav__link--active' : ''}`}
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
                         >
                             Honours
+                            <LinkPendingIndicator className="nav__pending-indicator" />
                         </Link>
                     </nav>
 
@@ -93,20 +137,55 @@ export default function Navbar() {
 
 
                         {cartTotalCount > 0 && (
-                            <Link href="/shop/cart" className="nav__icon" aria-label="Cart">
+                            <Link
+                                href="/shop/cart"
+                                className="nav__icon"
+                                aria-label="Cart"
+                                onMouseEnter={prefetchPrimaryRoutes}
+                                onFocus={prefetchPrimaryRoutes}
+                                onTouchStart={prefetchPrimaryRoutes}
+                            >
                                 <FaShoppingCart />
                                 <span className="nav__icon-badge">{cartTotalCount}</span>
+                                <LinkPendingIndicator className="nav__pending-indicator nav__pending-indicator--icon" />
                             </Link>
                         )}
 
-                        <Link href="/events" className={`nav__icon ${pathname?.startsWith('/events') || pathname?.startsWith('/results') ? 'nav__icon--active' : ''}`} aria-label="Events" title="Events">
+                        <Link
+                            href="/events"
+                            className={`nav__icon ${pathname?.startsWith('/events') || pathname?.startsWith('/results') ? 'nav__icon--active' : ''}`}
+                            aria-label="Events"
+                            title="Events"
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
+                        >
                             <FaCalendarAlt />
+                            <LinkPendingIndicator className="nav__pending-indicator nav__pending-indicator--icon" />
                         </Link>
-                        <Link href="/rankings" className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`} aria-label="Rankings" title="Rankings">
+                        <Link
+                            href="/rankings"
+                            className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`}
+                            aria-label="Rankings"
+                            title="Rankings"
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
+                        >
                             <FaChartLine />
+                            <LinkPendingIndicator className="nav__pending-indicator nav__pending-indicator--icon" />
                         </Link>
-                        <Link href="/athlete/search" className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`} aria-label="Search" title="Search Athletes">
+                        <Link
+                            href="/athlete/search"
+                            className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`}
+                            aria-label="Search"
+                            title="Search Athletes"
+                            onMouseEnter={prefetchPrimaryRoutes}
+                            onFocus={prefetchPrimaryRoutes}
+                            onTouchStart={prefetchPrimaryRoutes}
+                        >
                             <FaSearch />
+                            <LinkPendingIndicator className="nav__pending-indicator nav__pending-indicator--icon" />
                         </Link>
 
                         <button
@@ -170,8 +249,12 @@ export default function Navbar() {
                                                         href={child.href!}
                                                         className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
                                                         onClick={() => setDrawerOpen(false)}
+                                                        onMouseEnter={prefetchPrimaryRoutes}
+                                                        onFocus={prefetchPrimaryRoutes}
+                                                        onTouchStart={prefetchPrimaryRoutes}
                                                     >
                                                         {child.label}
+                                                        <LinkPendingIndicator className="nav__pending-indicator" />
                                                     </Link>
                                                 )
                                             ))}
@@ -183,8 +266,12 @@ export default function Navbar() {
                                     href={item.href!}
                                     className={`wkf-menu-link ${pathname === item.href || pathname?.startsWith(item.href + '/') ? 'wkf-menu-link--active' : ''}`}
                                     onClick={() => setDrawerOpen(false)}
+                                    onMouseEnter={prefetchPrimaryRoutes}
+                                    onFocus={prefetchPrimaryRoutes}
+                                    onTouchStart={prefetchPrimaryRoutes}
                                 >
                                     <span>{item.label}</span>
+                                    <LinkPendingIndicator className="nav__pending-indicator" />
                                 </Link>
                             )}
                         </div>
@@ -210,8 +297,6 @@ export default function Navbar() {
 
                 </div>
             </aside>
-
-            {/* ── Mobile sticky CTA bar ── */}
 
         </>
     )
