@@ -35,7 +35,10 @@ export default function HomePage() {
         </div>
 
         <div className="container hero__content">
-          <div className="hero__badge animate-in">{HERO_COPY.BADGE}</div>
+          <div className="hero__badge animate-in">
+            <span className="hero__badge-dot"></span>
+            {HERO_COPY.BADGE}
+          </div>
 
           <h1 className="hero__title animate-in delay-1">
             {HERO_COPY.TITLE_PRE} <span className="text-gradient">{HERO_COPY.TITLE_ACCENT}</span>

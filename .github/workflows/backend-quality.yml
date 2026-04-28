@@ -1,0 +1,41 @@
+name: Backend Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run type-check
+
+      - name: Backend lint
+        run: npm run lint:backend
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Static asset audit
+        run: npm run audit:assets:ci
+
+      - name: Media manifest audit
+        run: npm run audit:media-manifest
+
+      - name: Production build
+        run: npm run build:ci

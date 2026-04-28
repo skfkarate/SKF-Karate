@@ -56,6 +56,10 @@ get_ids.js
 
 # Auto-generated sitemaps (generated at build time)
 public/sitemap*.xml
+public/Samay Raina - STILL ALIVE (Full Special).webm
+
+# Local test artifacts
+test-results/
 
 # Vercel
 .vercel

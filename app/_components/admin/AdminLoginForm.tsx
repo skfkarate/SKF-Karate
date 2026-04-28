@@ -1,14 +1,18 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function AdminLoginForm() {
+type AdminLoginFormProps = {
+  defaultCallbackUrl?: string
+}
+
+export default function AdminLoginForm({ defaultCallbackUrl = '/admin' }: AdminLoginFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [clickCount, setClickCount] = useState(0)
+  const clickCountRef = useRef(0)
   const [showForm, setShowForm] = useState(false)
   
   const [username, setUsername] = useState('')
@@ -20,21 +24,18 @@ export default function AdminLoginForm() {
 
   // Handle hidden activation sequence (triple click)
   const handleSecretClick = () => {
-    setClickCount(prev => prev + 1)
+    clickCountRef.current += 1
+    if (clickCountRef.current >= 3) {
+      setShowForm(true)
+      clickCountRef.current = 0
+    }
     
     // Reset click count if not clicked in 1.5 seconds
     if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current)
     clickTimeoutRef.current = setTimeout(() => {
-      setClickCount(0)
+      clickCountRef.current = 0
     }, 1500)
   }
-
-  useEffect(() => {
-    if (clickCount >= 3) {
-      setShowForm(true)
-      setClickCount(0)
-    }
-  }, [clickCount])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -53,9 +54,9 @@ export default function AdminLoginForm() {
         return
       }
 
-      router.push(searchParams?.get('callbackUrl') || '/admin')
+      router.push(searchParams?.get('callbackUrl') || defaultCallbackUrl)
       router.refresh()
-    } catch (err) {
+    } catch {
       setError('Connection failed.')
     } finally {
       setIsLoading(false)

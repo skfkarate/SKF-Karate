@@ -122,6 +122,9 @@
 }
 
 .ft__river-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.8rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.5);
@@ -349,10 +352,17 @@ a.ft__connect-item:hover {
 }
 
 .ft__legal-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.3);
     text-decoration: none;
     transition: color 0.3s ease;
+}
+
+.ft__pending-indicator {
+    flex-shrink: 0;
 }
 
 .ft__legal-links a:hover {

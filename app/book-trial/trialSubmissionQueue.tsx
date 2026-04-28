@@ -1,7 +1,7 @@
 export const INITIAL_TRIAL_FORM_STATE = {
   studentName: '',
   parentPhone: '',
-  childAge: '',
+  childAge: 0,
   branch: '',
   hearAboutUs: '',
 }
@@ -12,6 +12,11 @@ const QUEUE_TTL_MS = 24 * 60 * 60 * 1000
 type QueuedSubmission = typeof INITIAL_TRIAL_FORM_STATE & {
   queuedAt: number
   preferredBatch: string
+}
+
+type TrialSubmissionError = Error & {
+  retryable?: boolean
+  status?: number
 }
 
 export function readTrialQueue(): QueuedSubmission[] {
@@ -31,7 +36,7 @@ export function readTrialQueue(): QueuedSubmission[] {
   }
 }
 
-export function queueTrialSubmission(data: any) {
+export function queueTrialSubmission(data: Omit<QueuedSubmission, 'queuedAt'>) {
   try {
     const queue = readTrialQueue().slice(-4)
     queue.push({ ...data, queuedAt: Date.now() })
@@ -49,7 +54,7 @@ export function persistTrialQueue(queue: QueuedSubmission[]) {
   }
 }
 
-export async function sendTrialToAPI(payload: any) {
+export async function sendTrialToAPI(payload: Omit<QueuedSubmission, 'queuedAt'>) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 15000)
 
@@ -64,8 +69,10 @@ export async function sendTrialToAPI(payload: any) {
 
     const data = await res.json()
     if (!res.ok) {
-      const err = new Error(data.error || 'Something went wrong') as any
-      err.retryable = data.retryable !== false
+      const message =
+        data?.error?.message || data?.error || 'Something went wrong'
+      const err = new Error(message) as TrialSubmissionError
+      err.retryable = data?.retryable ?? (res.status >= 500 || res.status === 429)
       err.status = res.status
       throw err
     }

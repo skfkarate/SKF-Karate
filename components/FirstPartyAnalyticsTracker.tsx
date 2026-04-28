@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { consumeRouteTransition } from '@/components/navigation/routeTransitionTelemetry'
 
 const VISITOR_STORAGE_KEY = 'skf_analytics_visitor_id'
 const SESSION_STORAGE_KEY = 'skf_analytics_session_id'
@@ -75,6 +76,7 @@ export default function FirstPartyAnalyticsTracker() {
     const sessionId = getSessionId()
     const landing = isLandingView()
     const pageGroup = pathname.startsWith('/portal') ? 'portal' : 'public'
+    const transition = consumeRouteTransition(fullPath)
 
     sendAnalytics({
       eventType: 'page_view',
@@ -86,6 +88,7 @@ export default function FirstPartyAnalyticsTracker() {
       metadata: {
         landing,
         pageGroup,
+        ...(transition ? { routeTransition: transition } : {}),
       },
     })
   }, [pathname, searchParams])

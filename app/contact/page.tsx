@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { FaEnvelope, FaArrowRight, FaChevronDown, FaMapMarkerAlt } from 'react-icons/fa'
 import ContactFormCard from '@/app/_components/contact/ContactFormCard'
 import ContactInfoPanel from '@/app/_components/contact/ContactInfoPanel'
-import Link from 'next/link'
+import PrefetchLink from '@/components/navigation/PrefetchLink'
 import {
   INITIAL_CONTACT_FORM_STATE,
   persistQueue,
@@ -188,10 +188,10 @@ export default function ContactPage() {
                                 </p>
                             </div>
                         </div>
-                        <Link href="/classes" className="contact-cta-btn" style={{ width: '100%', justifyContent: 'center' }}>
+                        <PrefetchLink href="/classes" className="contact-cta-btn" style={{ width: '100%', justifyContent: 'center' }}>
                             <span>View All Branches</span>
                             <span className="contact-cta-btn-icon">→</span>
-                        </Link>
+                        </PrefetchLink>
                     </div>
                 </div>
 

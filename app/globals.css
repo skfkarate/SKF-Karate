@@ -115,6 +115,40 @@ body {
   top: 0;
 }
 
+.global-route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.global-route-progress.is-visible {
+  opacity: 1;
+}
+
+.global-route-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #e63946 0%, #ffb703 60%, #ffd166 100%);
+  box-shadow: 0 0 16px rgba(255, 183, 3, 0.35);
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-route-progress,
+  .global-route-progress__bar {
+    transition-duration: 0.01ms;
+  }
+}
+
 h1,
 h2,
 h3,

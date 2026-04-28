@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaTrophy, FaStar } from 'react-icons/fa'
 
-function AnimatedCounter({ target, duration = 2000 }) {
+function AnimatedCounter({ target, duration = 1800, suffix = '+' }) {
   const [count, setCount] = useState(0)
   const ref = useRef(null)
   const hasAnimated = useRef(false)
@@ -13,17 +13,16 @@ function AnimatedCounter({ target, duration = 2000 }) {
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated.current) {
           hasAnimated.current = true
-          let start = 0
-          const increment = target / (duration / 16)
-          const timer = setInterval(() => {
-            start += increment
-            if (start >= target) {
-              setCount(target)
-              clearInterval(timer)
-            } else {
-              setCount(Math.floor(start))
-            }
-          }, 16)
+          const startTime = performance.now()
+          const animate = (now) => {
+            const elapsed = now - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            // Ease-out cubic for smooth deceleration
+            const eased = 1 - Math.pow(1 - progress, 3)
+            setCount(Math.floor(eased * target))
+            if (progress < 1) requestAnimationFrame(animate)
+          }
+          requestAnimationFrame(animate)
         }
       },
       { threshold: 0.3 }
@@ -32,7 +31,7 @@ function AnimatedCounter({ target, duration = 2000 }) {
     return () => observer.disconnect()
   }, [target, duration])
 
-  return <span ref={ref}>{count}+</span>
+  return <span ref={ref}>{count}{suffix}</span>
 }
 
 export default function TournamentHero({ stats }) {

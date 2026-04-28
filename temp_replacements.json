@@ -1,0 +1,262 @@
+[
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Removing the red and yellow glows on mobile screens as requested.\"",
+    "EndLine": "1248",
+    "Instruction": "\"Replace the width/height setting for the glows with display: none.\"",
+    "ReplacementContent": "\"  .results-hero__glow-1,\\n  .results-hero__glow-2 {\\n    display: none;\\n  }\\n\"",
+    "StartLine": "1243",
+    "TargetContent": "\"  .results-hero__glow-1,\\n  .results-hero__glow-2 {\\n    width: 300px;\\n    height: 300px;\\n  }\\n\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Change results filter pills to horizontal scrolling instead of wrapping to two lines.\"",
+    "EndLine": "214",
+    "Instruction": "\"Replace flex-wrap: wrap with horizontally scrollable properties.\"",
+    "ReplacementContent": "\".results-filters__pills {\\n  display: flex;\\n  gap: 0.5rem;\\n  flex-wrap: nowrap;\\n  overflow-x: auto;\\n  white-space: nowrap;\\n  flex: 1;\\n  padding-bottom: 0.5rem;\\n  -ms-overflow-style: none;\\n  scrollbar-width: none;\\n}\\n\\n.results-filters__pills::-we\n<truncated 38 bytes>",
+    "StartLine": "209",
+    "TargetContent": "\".results-filters__pills {\\n  display: flex;\\n  gap: 0.5rem;\\n  flex-wrap: wrap;\\n  flex: 1;\\n}\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Aligning filter pills to start to allow horizontal scrolling on mobile.\"",
+    "EndLine": "1279",
+    "Instruction": "\"Replace justify-content: center with justify-content: flex-start\"",
+    "ReplacementContent": "\"  .results-filters__pills {\\n    justify-content: flex-start;\\n  }\"",
+    "StartLine": "1277",
+    "TargetContent": "\"  .results-filters__pills {\\n    justify-content: center;\\n  }\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Updating the filter dropdown and search bar to match the premium styling of the rest of the site (rounded borders, better focus states, uppercase counts).\"",
+    "EndLine": "314",
+    "Instruction": "\"Replace the select, search and count CSS rules.\"",
+    "ReplacementContent": "\".results-filters__select {\\n  padding: 0.6rem 1.2rem;\\n  border-radius: 50px;\\n  font-size: 0.8rem;\\n  font-weight: 600;\\n  letter-spacing: 0.5px;\\n  border: 1px solid rgba(255, 255, 255, 0.1);\\n  background: rgba(255, 255, 255, 0.03);\\n  color: var(--tex\n<truncated 1507 bytes>",
+    "StartLine": "257",
+    "TargetContent": "\".results-filters__select {\\n  padding: 0.5rem 1.2rem;\\n  border-radius: 8px;\\n  font-size: 0.85rem;\\n  font-weight: 500;\\n  border: 1px solid rgba(255, 255, 255, 0.1);\\n  background: transparent;\\n  color: var(--text-light);\\n  font-family: var(--font-bod\n<truncated 1292 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Fixing media responsiveness for search inputs on results page.\"",
+    "EndLine": "1294",
+    "Instruction": "\"Replace the controls flex-wrap with flex-direction column for proper mobile stacking.\"",
+    "ReplacementContent": "\"  .results-filters__controls {\\n    flex-direction: column;\\n    align-items: stretch;\\n    gap: 0.75rem;\\n    width: 100%;\\n  }\\n\\n  .results-filters__search,\\n  .results-filters__select {\\n    width: 100%;\\n    max-width: none;\\n  }\\n\\n  .results-filter\n<truncated 87 bytes>",
+    "StartLine": "1287",
+    "TargetContent": "\"  .results-filters__controls {\\n    flex-wrap: wrap;\\n    justify-content: space-between;\\n  }\\n\\n  .results-filters__search {\\n    width: 100%;\\n  }\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Replacing the old blue results empty state with the sleek premium gold-accented empty state.\"",
+    "EndLine": "1230",
+    "Instruction": "\"Replace the old .results-empty CSS block with the premium theme one.\"",
+    "ReplacementContent": "\"/* \u2500\u2500 Empty State \u2500\u2500 */\\n.results-empty {\\n  text-align: center;\\n  padding: 5rem 2rem;\\n  background: rgba(255, 255, 255, 0.015);\\n  border: 1px dashed rgba(255, 255, 255, 0.06);\\n  border-radius: 24px;\\n  animation: fadeInUp 0.4s ease forwards;\\\n<truncated 464 bytes>",
+    "StartLine": "1201",
+    "TargetContent": "\"/* \u2500\u2500 Empty State \u2500\u2500 */\\n.results-empty {\\n  text-align: center;\\n  padding: 6rem 2rem;\\n  background: rgba(15, 23, 42, 0.3);\\n  border: 1px dashed rgba(255, 255, 255, 0.15);\\n  border-radius: 24px;\\n}\\n\\n.results-empty__icon {\\n  font-size: 3.5re\n<truncated 358 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Fix button color to match ranking page theme.\"",
+    "EndLine": "1169",
+    "Instruction": "\"Change background of the share button to use the new ranking theme glassmorphism.\"",
+    "ReplacementContent": "\".detail-nav__share {\\n  padding: 0.7rem 1.4rem;\\n  border-radius: 50px;\\n  font-size: 0.8rem;\\n  font-weight: 700;\\n  letter-spacing: 1px;\\n  text-transform: uppercase;\\n  border: 1px solid rgba(255, 255, 255, 0.06);\\n  background: rgba(255, 255, 255, 0.0\n<truncated 53 bytes>",
+    "StartLine": "1159",
+    "TargetContent": "\".detail-nav__share {\\n  padding: 0.7rem 1.4rem;\\n  border-radius: 50px;\\n  font-size: 0.8rem;\\n  font-weight: 700;\\n  letter-spacing: 1px;\\n  text-transform: uppercase;\\n  border: 1px solid rgba(255, 255, 255, 0.1);\\n  background: rgba(15, 23, 42, 0.5);\\n\n<truncated 48 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Tighten the padding of the medal tally strip.\"",
+    "EndLine": "660",
+    "Instruction": "\"Change the padding and margin of .medal-dashboard-strip to reduce bloated vertical space.\"",
+    "ReplacementContent": "\"  padding: 1.5rem 2rem;\\n  margin-bottom: 2rem;\\n  backdrop-filter: blur(20px);\\n  -webkit-backdrop-filter: blur(20px);\\n}\"",
+    "StartLine": "656",
+    "TargetContent": "\"  padding: 2.5rem 2rem;\\n  margin-bottom: 4rem;\\n  backdrop-filter: blur(20px);\\n  -webkit-backdrop-filter: blur(20px);\\n}\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Reduce margin on hero navigation buttons.\"",
+    "EndLine": "1130",
+    "Instruction": "\"Change margin-top of .detail-nav to 2rem to bring elements closer together.\"",
+    "ReplacementContent": "\".detail-nav {\\n  display: flex;\\n  align-items: center;\\n  justify-content: center;\\n  gap: 1rem;\\n  margin-top: 2rem;\\n}\"",
+    "StartLine": "1124",
+    "TargetContent": "\".detail-nav {\\n  display: flex;\\n  align-items: center;\\n  justify-content: center;\\n  gap: 1rem;\\n  margin-top: 3rem;\\n}\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Replace the entire old detail hero CSS block with a clean, compact new system (td-hero) that merges stats, medals, and navigation into one tight section. Also add td-dashboard and td-page-btn styles for the redesigned lower section.\"",
+    "EndLine": "1404",
+    "Instruction": "\"Replace everything from the old detail-page-hero CSS section through the end of the file with the new td-hero system and updated responsive rules.\"",
+    "ReplacementContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   TOURNAMENT DETAIL \u2014 REDESIGNED COMPACT HERO\\n   \u2550\u2550\u2550\u2550\u2550\u2550\n<truncated 7082 bytes>",
+    "StartLine": "982",
+    "TargetContent": "\"/* \u2500\u2500 Ultra-Premium Detail Page Hero \u2500\u2500 */\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Remove all the old detail-page-hero CSS, old floating stats, old detail-nav, and old duplicate responsive queries that are now replaced by the new td-hero system.\"",
+    "EndLine": "1738",
+    "Instruction": "\"Delete the entire old detail hero section, from .detail-page-hero through the end of the file, since all of it has been replaced by the td-hero system above.\"",
+    "ReplacementContent": "\"\\n\"",
+    "StartLine": "1317",
+    "TargetContent": "\".detail-page-hero {\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Remove all old orphaned detail-page-hero CSS and duplicate responsive queries. These are replaced by the new td-hero system.\"",
+    "EndLine": "1738",
+    "Instruction": "\"Delete everything from line 1317 to end of file.\"",
+    "ReplacementContent": "\"\\n\"",
+    "StartLine": "1317",
+    "TargetContent": "\"\\n.detail-page-hero {\\n  position: relative;\\n  min-height: auto;\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Complete mobile-first responsive overhaul: hero stats bar wraps into a 2-row grid on mobile, table gets horizontal scroll, pagination and controls stay neat. Three breakpoints: 768, 480, 380.\"",
+    "EndLine": "1317",
+    "Instruction": "\"Replace the responsive section for tournament detail with comprehensive mobile-first rules. The table should scroll horizontally on mobile, the hero and stats bar should gracefully reflow.\"",
+    "ReplacementContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   RESPONSIVE \u2014 Tournament Detail + Results List\\n   Table: horizontal \n<truncated 5576 bytes>",
+    "StartLine": "1195",
+    "TargetContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   RESPONSIVE \u2014 Tournament Detail\\n   \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n<truncated 148 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Prevent rankings.css card-mode transforms from breaking the results table. Force lb-row to stay as a flex row inside td-dashboard so horizontal scroll works properly.\"",
+    "EndLine": "1456",
+    "Instruction": "\"Add an override block after the last closing brace to prevent the rankings card mode from applying inside td-dashboard.\"",
+    "ReplacementContent": "\"  .td-stat__lbl { font-size: 0.4rem; }\\n  .td-stat-div { height: 16px; }\\n\\n  .td-dashboard {\\n    padding: 0.5rem 0.5rem 2.5rem;\\n  }\\n\\n  .td-dashboard .lb-card {\\n    border-radius: 12px;\\n  }\\n}\\n\\n/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n<truncated 1230 bytes>",
+    "StartLine": "1445",
+    "TargetContent": "\"  .td-stat__lbl { font-size: 0.4rem; }\\n  .td-stat-div { height: 16px; }\\n\\n  .td-dashboard {\\n    padding: 0.5rem 0.5rem 2.5rem;\\n  }\\n\\n  .td-dashboard .lb-card {\\n    border-radius: 12px;\\n  }\\n}\\n\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Add the td-table-scroll CSS: transparent on desktop, enables overflow-x: auto on mobile with a min-width forcing the table to be scrollable rather than squished.\"",
+    "EndLine": "1194",
+    "Instruction": "\"Add the td-table-scroll base CSS before the responsive section.\"",
+    "ReplacementContent": "\"/* \u2500\u2500 Table scroll wrapper \u2014 only scrolls on mobile \u2500\u2500 */\\n.td-table-scroll {\\n  overflow-x: auto;\\n  -webkit-overflow-scrolling: touch;\\n  scrollbar-width: thin;\\n  scrollbar-color: rgba(255,255,255,0.06) transparent;\\n}\\n\\n.td-table-scroll .lb\n<truncated 989 bytes>",
+    "StartLine": "1188",
+    "TargetContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   RESPONSIVE \u2014 Tournament Detail + Results List\\n   Table: horizontal \n<truncated 250 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Force lb-card inside td-dashboard to allow overflow so the scroll wrapper works.\"",
+    "EndLine": "1194",
+    "Instruction": "\"Add a rule to override lb-card overflow inside td-dashboard.\"",
+    "ReplacementContent": "\"/* \u2500\u2500 Table scroll wrapper \u2014 only scrolls on mobile \u2500\u2500 */\\n.td-table-scroll {\\n  overflow-x: auto;\\n  -webkit-overflow-scrolling: touch;\\n  scrollbar-width: thin;\\n  scrollbar-color: rgba(255,255,255,0.06) transparent;\\n}\\n\\n.td-table-scroll .lb\n<truncated 418 bytes>",
+    "StartLine": "1188",
+    "TargetContent": "\"/* \u2500\u2500 Table scroll wrapper \u2014 only scrolls on mobile \u2500\u2500 */\\n.td-table-scroll {\\n  overflow-x: auto;\\n  -webkit-overflow-scrolling: touch;\\n  scrollbar-width: thin;\\n  scrollbar-color: rgba(255,255,255,0.06) transparent;\\n}\\n\\n.td-table-scroll .lb\n<truncated 61 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Remove duplicate scrollbar rules.\"",
+    "EndLine": "1225",
+    "Instruction": "\"Remove the duplicate scrollbar CSS block (lines 1216-1225).\"",
+    "ReplacementContent": "\"\\n/* On desktop, no need for min-width constraint */\"",
+    "StartLine": "1215",
+    "TargetContent": "\"\\n.td-table-scroll::-webkit-scrollbar {\\n  height: 4px;\\n}\\n.td-table-scroll::-webkit-scrollbar-track {\\n  background: transparent;\\n}\\n.td-table-scroll::-webkit-scrollbar-thumb {\\n  background: rgba(255,255,255,0.08);\\n  border-radius: 4px;\\n}\\n\\n/* On d\n<truncated 44 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Remove old conflicting scroll rules from 768px media query \u2014 the td-table-scroll wrapper handles this now.\"",
+    "EndLine": "1317",
+    "Instruction": "\"Remove the old td-dashboard .lb-card overflow and min-width rules that conflict with the scroll wrapper.\"",
+    "ReplacementContent": "\"    padding: 0.75rem 1rem 4rem;\\n  }\\n}\"",
+    "StartLine": "1300",
+    "TargetContent": "\"    padding: 0.75rem 1rem 4rem;\\n  }\\n\\n  /* \u2500\u2500 Results Table: enable horizontal scroll \u2500\u2500 */\\n  .td-dashboard .lb-card {\\n    overflow: visible;\\n  }\\n\\n  .td-dashboard .lb-thead,\\n  .td-dashboard .lb-rows {\\n    min-width: 600px;\\n  }\\n\\n  .td-d\n<truncated 102 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Remove old td-dashboard scroll rules from 480px block \u2014 the td-table-scroll wrapper handles scrolling globally. Keep only the control styling overrides.\"",
+    "EndLine": "1446",
+    "Instruction": "\"Replace the 480px dashboard section with only the control styling, removing all scroll and overflow rules.\"",
+    "ReplacementContent": "\"  /* \u2500\u2500 Dashboard \u2500\u2500 */\\n  .td-dashboard {\\n    padding: 0.5rem 0.75rem 3rem;\\n  }\\n\\n  .td-dashboard .lb-controls {\\n    min-width: 0;\\n    flex-wrap: wrap;\\n  }\\n\\n  .td-dashboard .lb-search {\\n    min-width: 0;\\n    flex: 1 1 140px;\\n  }\\n\\n  .\n<truncated 303 bytes>",
+    "StartLine": "1390",
+    "TargetContent": "\"  /* \u2500\u2500 Dashboard \u2500\u2500 */\\n  .td-dashboard {\\n    padding: 0.5rem 0.75rem 3rem;\\n  }\\n\\n  /* \u2500\u2500 Table scroll wrapper \u2500\u2500 */\\n  .td-dashboard .lb-card {\\n    border-radius: 14px;\\n    overflow: hidden;\\n  }\\n\\n  .td-dashboard .lb-controls {\\n \n<truncated 872 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Add explicit vertical centering for all cells in the results table rows, and ensure the lb-name link itself is also vertically centered.\"",
+    "EndLine": "1186",
+    "Instruction": "\"Add td-dashboard row alignment overrides after the pagination button styles.\"",
+    "ReplacementContent": "\".td-page-btn:disabled {\\n  cursor: not-allowed;\\n}\\n\\n/* \u2500\u2500 Row alignment: ensure all cells vertically center \u2500\u2500 */\\n.td-dashboard .lb-row {\\n  align-items: center;\\n}\\n\\n.td-dashboard .lb-cell {\\n  display: flex;\\n  align-items: center;\\n}\\n\\n.td\n<truncated 78 bytes>",
+    "StartLine": "1182",
+    "TargetContent": "\".td-page-btn:disabled {\\n  cursor: not-allowed;\\n}\\n\\n\\n\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Add align-items center to the 640px override to ensure vertical centering persists on mobile.\"",
+    "EndLine": "1490",
+    "Instruction": "\"Add align-items: center to the lb-row override.\"",
+    "ReplacementContent": "\"  .td-dashboard .lb-row {\\n    display: flex !important;\\n    align-items: center !important;\\n    grid-template-columns: none !important;\\n    grid-template-rows: none !important;\\n    grid-template-areas: none !important;\\n    background: transparent !i\n<truncated 172 bytes>",
+    "StartLine": "1480",
+    "TargetContent": "\"  .td-dashboard .lb-row {\\n    display: flex !important;\\n    grid-template-columns: none !important;\\n    grid-template-rows: none !important;\\n    grid-template-areas: none !important;\\n    background: transparent !important;\\n    border: 1px solid tran\n<truncated 135 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Fix name truncation and ensure proper horizontal layout in the results table. Allow names to display fully, and apply min-width to the scroll wrapper itself so the flex row never compresses.\"",
+    "EndLine": "1200",
+    "Instruction": "\"Rewrite the row alignment and scroll wrapper rules to fix both the name truncation and the broken card-mode layout.\"",
+    "ReplacementContent": "\"/* \u2500\u2500 Row alignment: ensure all cells vertically center \u2500\u2500 */\\n.td-dashboard .lb-row {\\n  display: flex !important;\\n  align-items: center !important;\\n}\\n\\n.td-dashboard .lb-cell {\\n  display: flex;\\n  align-items: center;\\n}\\n\\n/* Show full name\n<truncated 559 bytes>",
+    "StartLine": "1185",
+    "TargetContent": "\"/* \u2500\u2500 Row alignment: ensure all cells vertically center \u2500\u2500 */\\n.td-dashboard .lb-row {\\n  align-items: center;\\n}\\n\\n.td-dashboard .lb-cell {\\n  display: flex;\\n  align-items: center;\\n}\\n\\n.td-dashboard .lb-name {\\n  display: inline-flex;\\n  alig\n<truncated 339 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Strengthen the 640px override: force flex layout with min-width on each row so rankings card-mode never takes effect inside the results table.\"",
+    "EndLine": "1502",
+    "Instruction": "\"Update the 640px override to include min-width on the row and prevent any cell hiding.\"",
+    "ReplacementContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   OVERRIDE: Prevent rankings.css card-mode transforms\\n   from applying \n<truncated 1269 bytes>",
+    "StartLine": "1469",
+    "TargetContent": "\"/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\\n   OVERRIDE: Prevent rankings.css card-mode transforms\\n   from applying \n<truncated 1065 bytes>",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Override align-self: end from rankings.css card mode so all cells sit on the same horizontal line in the results table.\"",
+    "EndLine": "1504",
+    "Instruction": "\"Add align-self: center to the cell override so name, medal, and branch all sit on the same line.\"",
+    "ReplacementContent": "\"  /* Prevent any cell from being hidden by rankings card-mode */\\n  .td-dashboard .lb-cell {\\n    display: flex !important;\\n    align-items: center !important;\\n    align-self: center !important;\\n  }\"",
+    "StartLine": "1499",
+    "TargetContent": "\"  /* Prevent any cell from being hidden by rankings card-mode */\\n  .td-dashboard .lb-cell {\\n    display: flex !important;\\n    align-items: center !important;\\n  }\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Ensure cell vertical centering at all breakpoints, not just 640px.\"",
+    "EndLine": "1195",
+    "Instruction": "\"Add align-self: center to the base td-dashboard .lb-cell rule.\"",
+    "ReplacementContent": "\".td-dashboard .lb-cell {\\n  display: flex;\\n  align-items: center;\\n  align-self: center;\\n}\"",
+    "StartLine": "1191",
+    "TargetContent": "\".td-dashboard .lb-cell {\\n  display: flex;\\n  align-items: center;\\n}\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  },
+  {
+    "AllowMultiple": "false",
+    "Description": "\"Complete visual overhaul of the results listing page: compact hero matching rankings page style, cleaner filter bar with proper glassmorphism, redesigned tournament cards with obsidian theme (no slate-blue), tighter grid spacing, improved hover states, an\n<truncated 22 bytes>",
+    "EndLine": "555",
+    "Instruction": "\"Replace the entire hero, filters, cards, and grid CSS with the redesigned obsidian-themed version.\"",
+    "ReplacementContent": "\"/* \u2500\u2500 Results Hero \u2500\u2500 */\\n.results-hero {\\n  position: relative;\\n  display: flex;\\n  align-items: center;\\n  justify-content: center;\\n  padding-top: 140px;\\n  padding-bottom: 3rem;\\n  overflow: hidden;\\n}\\n\\n.results-hero__bg {\\n  position: abso\n<truncated 10642 bytes>",
+    "StartLine": "59",
+    "TargetContent": "\"/* \u2500\u2500 Results Hero \u2500\u2500 */\"",
+    "TargetFile": "\"/home/krish/SKF Karate/website/SKF-Karate/app/results/results.css\""
+  }
+]

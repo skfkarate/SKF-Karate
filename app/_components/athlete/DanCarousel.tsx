@@ -12,8 +12,7 @@ function beltLabel(v: string) {
 function getCardHref(holder: any) {
   if (holder?.profileHref) return holder.profileHref
   if (holder?.registrationNumber) return `/athlete/${holder.registrationNumber}`
-  if (holder?.slug) return `/senseis/${holder.slug}`
-  return '#'
+  return '/athlete/search'
 }
 
 function getCardName(holder: any) {

@@ -18,6 +18,9 @@ export default async function RankingsPage() {
   const allSorted = [...snapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
   const podium = allSorted.slice(0, 3)
 
+  /* Top points for proportional bar widths in the graph */
+  const topPts = podium[0]?.totalPoints || 1
+
   return (
     <div className="rk-page">
       {/* Ambient effects — identical to /athlete/search */}
@@ -76,6 +79,47 @@ export default async function RankingsPage() {
         </section>
       )}
 
+      {/* ═══ TOP 3 POINTS GRAPH ═══ */}
+      {podium.length >= 3 && (
+        <section className="rk-graph">
+          <div className="rk-graph__card">
+            <div className="rk-graph__header">
+              <span className="rk-graph__icon">📊</span>
+              <h2 className="rk-graph__title">Points Comparison</h2>
+            </div>
+
+            {[podium[0], podium[1], podium[2]].map((athlete, i) => {
+              const rank = i + 1
+              const pct = Math.max(8, ((athlete.totalPoints || 0) / topPts) * 100)
+              const barClass = rank === 1 ? 'rk-graph__fill--gold' : rank === 2 ? 'rk-graph__fill--silver' : 'rk-graph__fill--bronze'
+
+              return (
+                <Link
+                  key={athlete.registrationNumber}
+                  href={`/athlete/${athlete.registrationNumber}`}
+                  className="rk-graph__row"
+                >
+                  <div className="rk-graph__rank-badge" data-rank={rank}>
+                    {rank}
+                  </div>
+                  <div className="rk-graph__info">
+                    <span className="rk-graph__name">{athlete.athleteName}</span>
+                    <span className="rk-graph__meta">
+                      {athlete.branchName && <span>{athlete.branchName}</span>}
+                      {athlete.totalMedals > 0 && <span>🏅 {athlete.totalMedals}</span>}
+                    </span>
+                  </div>
+                  <div className="rk-graph__bar-wrap">
+                    <div className={`rk-graph__fill ${barClass}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="rk-graph__value">{Number(athlete.totalPoints || 0).toFixed(0)}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {/* ═══ LEADERBOARD ═══ */}
       <section className="rk-board-section">
         <RankingDashboard boards={boards} dojos={dojos} totalRanked={snapshots.length} />
@@ -83,3 +127,4 @@ export default async function RankingsPage() {
     </div>
   )
 }
+

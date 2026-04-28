@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import { FaInstagram, FaYoutube, FaWhatsapp, FaFacebookF } from 'react-icons/fa'
 import Image from 'next/image'
 import { CONTACT, SOCIAL_LINKS } from '@/data/constants/contact'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import PrefetchLink from '@/components/navigation/PrefetchLink'
 
 export default async function Footer() {
     const cities = await getAllCitiesLive()
@@ -19,9 +19,9 @@ export default async function Footer() {
 
                 {/* ── MONUMENT: Big typographic brand statement ── */}
                 <div className="ft__monument">
-                    <Link href="/" className="ft__monument-logo">
+                    <PrefetchLink href="/" className="ft__monument-logo" showPendingIndicator={false}>
                         <Image src="/logo/SKF logo.png" alt="SKF" width={44} height={44} className="ft__monument-img" />
-                    </Link>
+                    </PrefetchLink>
                     <h2 className="ft__monument-type">
                         <span className="ft__monument-skf">SKF</span>
                         <span className="ft__monument-karate">KARATE</span>
@@ -31,29 +31,30 @@ export default async function Footer() {
 
                 {/* ── LINK RIVER: Compact horizontal nav ── */}
                 <nav className="ft__river" aria-label="Footer navigation">
-                    <Link href="/classes" className="ft__river-link">Classes</Link>
-                    <Link href="/about" className="ft__river-link">About</Link>
-                    <Link href="/rankings" className="ft__river-link">Rankings</Link>
-                    <Link href="/events" className="ft__river-link">Events</Link>
-                    <Link href="/results" className="ft__river-link">Results</Link>
-                    <Link href="/gallery" className="ft__river-link">Gallery</Link>
-                    <Link href="/grading" className="ft__river-link">Belt Grading</Link>
-                    <Link href="/shop" className="ft__river-link">Shop</Link>
-                    <Link href="/contact" className="ft__river-link">Contact</Link>
-                    <Link href="/portal" className="ft__river-link ft__river-link--portal">Athlete Portal</Link>
+                    <PrefetchLink href="/classes" className="ft__river-link" pendingClassName="ft__pending-indicator">Classes</PrefetchLink>
+                    <PrefetchLink href="/about" className="ft__river-link" pendingClassName="ft__pending-indicator">About</PrefetchLink>
+                    <PrefetchLink href="/rankings" className="ft__river-link" pendingClassName="ft__pending-indicator">Rankings</PrefetchLink>
+                    <PrefetchLink href="/events" className="ft__river-link" pendingClassName="ft__pending-indicator">Events</PrefetchLink>
+                    <PrefetchLink href="/results" className="ft__river-link" pendingClassName="ft__pending-indicator">Results</PrefetchLink>
+                    <PrefetchLink href="/gallery" className="ft__river-link" pendingClassName="ft__pending-indicator">Gallery</PrefetchLink>
+                    <PrefetchLink href="/grading" className="ft__river-link" pendingClassName="ft__pending-indicator">Belt Grading</PrefetchLink>
+                    <PrefetchLink href="/shop" className="ft__river-link" pendingClassName="ft__pending-indicator">Shop</PrefetchLink>
+                    <PrefetchLink href="/contact" className="ft__river-link" pendingClassName="ft__pending-indicator">Contact</PrefetchLink>
+                    <PrefetchLink href="/portal" className="ft__river-link ft__river-link--portal" pendingClassName="ft__pending-indicator">Athlete Portal</PrefetchLink>
                 </nav>
 
                 {/* ── DOJOS: Location chips ── */}
                 <div className="ft__dojos">
                     {allBranches.map(branch => (
-                        <Link
+                        <PrefetchLink
                             key={`${branch.citySlug}-${branch.slug}`}
                             href={`/classes/${branch.citySlug}/${branch.slug}`}
                             className="ft__dojo-chip"
+                            showPendingIndicator={false}
                         >
                             <span className="ft__dojo-pulse" />
                             {branch.name}
-                        </Link>
+                        </PrefetchLink>
                     ))}
                 </div>
 
@@ -78,9 +79,9 @@ export default async function Footer() {
                 <div className="ft__legal-bar">
                     <span className="ft__legal-copy">&copy; {new Date().getFullYear()} SKF Karate</span>
                     <div className="ft__legal-links">
-                        <Link href="/privacy-policy">Privacy</Link>
-                        <Link href="/cookie-policy">Cookies</Link>
-                        <Link href="/terms-of-service">Terms</Link>
+                        <PrefetchLink href="/privacy-policy" pendingClassName="ft__pending-indicator">Privacy</PrefetchLink>
+                        <PrefetchLink href="/cookie-policy" pendingClassName="ft__pending-indicator">Cookies</PrefetchLink>
+                        <PrefetchLink href="/terms-of-service" pendingClassName="ft__pending-indicator">Terms</PrefetchLink>
                     </div>
                 </div>
             </div>

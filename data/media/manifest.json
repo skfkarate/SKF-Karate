@@ -1,0 +1,21 @@
+{
+  "default.fallbackImage": "/gallery/Training.jpeg",
+
+  "home.bookTrial.background": "/gallery/In Dojo 3.jpeg",
+
+  "home.senseis.avatar.1": "/gallery/International seminar by john wick.jpeg",
+  "home.senseis.avatar.2": "/gallery/Karate Demonstration2 starred.jpeg",
+  "home.senseis.avatar.3": "/gallery/Tournment7.jpeg",
+
+  "home.paths.kyuJourney.background": "/gallery/beltexam.jpg",
+  "home.paths.danSanctuary.background": "/gallery/belt.jpg",
+
+  "home.cinematic.discipline": "/gallery/Training.jpeg",
+  "home.cinematic.inclusion": "/gallery/IMG_1191.JPG.jpeg",
+  "home.cinematic.spirit": "/gallery/Karate Demonstration2 starred.jpeg",
+  "home.cinematic.excellence": "/gallery/Tournment8 starred.jpeg",
+  "home.cinematic.respect": "/gallery/Tournment.jpeg",
+  "home.cinematic.passion": "/gallery/Train the Elite - Training Camp starred.jpeg",
+  "home.cinematic.family": "/gallery/In dojo 2 starred.jpeg",
+  "home.cinematic.logo": "/logo/SKF logo.png"
+}

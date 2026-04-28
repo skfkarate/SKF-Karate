@@ -1,0 +1,197 @@
+import { ZodError, type ZodType } from 'zod'
+
+import type { Session } from 'next-auth'
+
+import { getAuthorizedApiSession } from '@/lib/server/auth/session'
+import { getPortalSession } from '@/lib/server/auth_legacy'
+import type { JWTPayload, UserRole } from '@/types'
+import { AppError, AuthenticationError, AuthorizationError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
+import { logger } from '@/src/server/lib/logger'
+import { captureError } from '@/src/server/lib/monitoring'
+import { errorResponse, withResponseHeaders } from '@/src/server/lib/response'
+import { applyRateLimit } from '@/src/server/lib/rate-limit'
+
+type RequestLike = Request & { nextUrl?: URL }
+
+type RouteOptions<TBody, TQuery> = {
+  auth?:
+    | { type: 'admin'; roles?: string[] }
+    | { type: 'portal'; roles?: UserRole[] }
+  bodySchema?: ZodType<TBody>
+  querySchema?: ZodType<TQuery>
+  rateLimit?: {
+    tier: Parameters<typeof applyRateLimit>[1]
+    keySuffix?: string
+  }
+  cacheControl?: string
+}
+
+type RouteContext<TBody, TQuery> = {
+  request: RequestLike
+  params: Record<string, string>
+  requestId: string
+  body: TBody
+  query: TQuery
+  adminSession: Session | null
+  portalSession: JWTPayload | null
+}
+
+function getSearchParams(request: RequestLike) {
+  if (request.nextUrl) {
+    return request.nextUrl.searchParams
+  }
+
+  return new URL(request.url).searchParams
+}
+
+function parseQuery<TQuery>(request: RequestLike, schema?: ZodType<TQuery>): TQuery {
+  if (!schema) {
+    return {} as TQuery
+  }
+
+  const raw = Object.fromEntries(getSearchParams(request).entries())
+  return schema.parse(raw)
+}
+
+async function parseBody<TBody>(request: RequestLike, schema?: ZodType<TBody>): Promise<TBody> {
+  if (!schema) {
+    return {} as TBody
+  }
+
+  let raw: unknown
+
+  try {
+    raw = await request.json()
+  } catch {
+    throw new ValidationError({ body: ['Invalid JSON body.'] })
+  }
+
+  return schema.parse(raw)
+}
+
+async function resolveAuth(
+  request: RequestLike,
+  auth: RouteOptions<unknown, unknown>['auth']
+): Promise<Pick<RouteContext<unknown, unknown>, 'adminSession' | 'portalSession'>> {
+  if (!auth) {
+    return { adminSession: null, portalSession: null }
+  }
+
+  if (auth.type === 'admin') {
+    const session = await getAuthorizedApiSession(auth.roles)
+    if (!session?.user?.id) {
+      throw new AuthenticationError()
+    }
+    return { adminSession: session, portalSession: null }
+  }
+
+  const portalSession = getPortalSession(request)
+  if (!portalSession?.skfId) {
+    throw new AuthenticationError()
+  }
+
+  if (auth.roles && !auth.roles.includes(portalSession.role)) {
+    throw new AuthorizationError()
+  }
+
+  return { adminSession: null, portalSession }
+}
+
+function buildErrorResponse(error: unknown, requestId: string): Response {
+  if (error instanceof RateLimitError) {
+    return errorResponse(error.code, error.message, error.statusCode, {
+      headers: error.headers,
+    })
+  }
+
+  if (error instanceof AppError) {
+    return errorResponse(error.code, error.message, error.statusCode, {
+      details: error.details,
+    })
+  }
+
+  if (error instanceof ZodError) {
+    return errorResponse('VALIDATION_ERROR', 'Invalid input data', 400, {
+      details: error.flatten().fieldErrors,
+    })
+  }
+
+  captureError(error, { requestId })
+  return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500, {
+    details: { requestId },
+  })
+}
+
+export function withRoute<TBody = Record<string, never>, TQuery = Record<string, never>>(
+  options: RouteOptions<TBody, TQuery>,
+  handler: (context: RouteContext<TBody, TQuery>) => Promise<Response>
+) {
+  return async (
+    request: RequestLike,
+    context?: { params?: Promise<Record<string, string>> | Record<string, string> }
+  ) => {
+    const requestId = crypto.randomUUID()
+    const startedAt = Date.now()
+    let rateLimitHeaders: HeadersInit | undefined
+
+    try {
+      if (options.rateLimit) {
+        const rateLimit = await applyRateLimit(
+          request,
+          options.rateLimit.tier,
+          options.rateLimit.keySuffix
+        )
+
+        rateLimitHeaders = rateLimit.headers
+
+        if (!rateLimit.allowed) {
+          throw new RateLimitError(rateLimit.headers)
+        }
+      }
+
+      const params = context?.params ? await Promise.resolve(context.params) : {}
+      const [body, query, authResult] = await Promise.all([
+        parseBody(request, options.bodySchema),
+        Promise.resolve(parseQuery(request, options.querySchema)),
+        resolveAuth(request, options.auth),
+      ])
+
+      const response = await handler({
+        request,
+        params,
+        requestId,
+        body,
+        query,
+        ...authResult,
+      })
+
+      const finalResponse = withResponseHeaders(
+        response,
+        { 'X-Request-ID': requestId },
+        rateLimitHeaders,
+        options.cacheControl ? { 'Cache-Control': options.cacheControl } : undefined
+      )
+
+      logger.info('api.request', {
+        requestId,
+        method: request.method,
+        path: new URL(request.url).pathname,
+        status: finalResponse.status,
+        durationMs: Date.now() - startedAt,
+      })
+
+      return finalResponse
+    } catch (error) {
+      logger.error('api.request_failed', {
+        requestId,
+        method: request.method,
+        path: new URL(request.url).pathname,
+        durationMs: Date.now() - startedAt,
+        error,
+      })
+
+      const response = buildErrorResponse(error, requestId)
+      return withResponseHeaders(response, { 'X-Request-ID': requestId }, rateLimitHeaders)
+    }
+  }
+}

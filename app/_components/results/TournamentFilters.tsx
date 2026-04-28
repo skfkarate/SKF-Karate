@@ -65,7 +65,7 @@ export default function TournamentFilters({ filters, availableYears, totalCount,
         </div>
 
         <span className="results-filters__count">
-          Showing {filteredCount} of {totalCount} tournaments
+          {filteredCount} {filteredCount === 1 ? 'Tournament' : 'Tournaments'} Found
         </span>
       </div>
     </div>
