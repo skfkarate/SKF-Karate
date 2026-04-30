@@ -36,13 +36,15 @@ export const POST = withRoute(
     if (!isSupabaseReady()) return NextResponse.json({ error: 'DB Unavailable' }, { status: 503 })
 
     // Check if template exists for exact prog+belt
-    const { data: existing } = await supabaseAdmin
+    let existingTemplateQuery = supabaseAdmin
       .from('certificate_templates')
       .select('id')
       .eq('program_id', body.programId)
-      // Allow undefined/null for non-belt exams
-      .or(body.beltLevel ? `belt_level.eq.${body.beltLevel}` : 'belt_level.is.null')
-      .single()
+    existingTemplateQuery = body.beltLevel
+      ? existingTemplateQuery.eq('belt_level', body.beltLevel)
+      : existingTemplateQuery.is('belt_level', null)
+
+    const { data: existing } = await existingTemplateQuery.maybeSingle()
 
     let result
     if (existing) {

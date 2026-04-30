@@ -1,10 +1,13 @@
 import HomeHeroActions from '@/app/_components/pages/home/HomeHeroActions'
+import HeroVideo from '@/app/_components/pages/home/HeroVideo'
 import HomeBookTrialCTA from '@/app/_components/pages/home/HomeBookTrialCTA'
 import CinematicValues from '@/app/_components/CinematicValues'
 import HomeClassesPreview from '@/app/_components/pages/home/HomeClassesPreview'
 import HomeTopAthletes from '@/app/_components/pages/home/HomeTopAthletes'
+import HomeTestimonials from '@/app/_components/pages/home/HomeTestimonials'
 import HomeWhyParentsChoose from '@/app/_components/pages/home/HomeWhyParentsChoose'
 import HomeYourFirstClass from '@/app/_components/pages/home/HomeYourFirstClass'
+import HomeStatsCounter from '@/app/_components/pages/home/HomeStatsCounter'
 import './home.css'
 import { absoluteMediaUrl, absoluteSiteUrl, buildOrgJsonLd } from '@/data/constants/siteConfig'
 import { HERO_COPY } from '@/data/constants/homeContent'
@@ -42,10 +45,10 @@ export default function HomePage() {
 
       {/* ===== 1. HERO ===== */}
       <section className="hero">
+        {/* Cinematic video background */}
         <div className="hero__bg">
-          <div className="glow glow-red hero__glow-1"></div>
-          <div className="glow glow-gold hero__glow-2"></div>
-          <div className="glow glow-blue hero__glow-3"></div>
+          <HeroVideo />
+          <div className="hero__overlay" />
           <div className="hero__watermark">{HERO_COPY.WATERMARK}</div>
         </div>
 
@@ -56,7 +59,8 @@ export default function HomePage() {
           </div>
 
           <h1 className="hero__title animate-in delay-1">
-            {HERO_COPY.TITLE_PRE} <span className="text-gradient">{HERO_COPY.TITLE_ACCENT}</span>
+            {HERO_COPY.TITLE_LINE1}<br />
+            <span className="text-gradient">{HERO_COPY.TITLE_ACCENT}</span>
           </h1>
 
           <p className="hero__subtitle animate-in delay-2">
@@ -69,18 +73,30 @@ export default function HomePage() {
 
           <HomeHeroActions />
         </div>
+
+        {/* Scroll hint */}
+        <div className="hero__scroll-hint animate-in delay-5">
+          <span className="hero__scroll-text">Scroll</span>
+          <span className="hero__scroll-line" />
+        </div>
       </section>
 
-      {/* ===== 2. CINEMATIC VALUES ===== */}
+      {/* ===== 2. STATS STRIP ===== */}
+      <HomeStatsCounter />
+
+      {/* ===== 3. CINEMATIC VALUES ===== */}
       <CinematicValues />
 
-      {/* ===== 3. CLASSES PREVIEW (City Cards) ===== */}
+      {/* ===== 4. CLASSES PREVIEW (City Cards) ===== */}
       <HomeClassesPreview />
 
-      {/* ===== 4. TOP 3 ATHLETES ===== */}
+      {/* ===== 5. TOP 3 ATHLETES ===== */}
       <HomeTopAthletes />
 
-      {/* ===== 5. WHY PARENTS CHOOSE SKF ===== */}
+      {/* ===== 5. TESTIMONIALS ===== */}
+      <HomeTestimonials />
+
+      {/* ===== 6. WHY PARENTS CHOOSE SKF ===== */}
       <HomeWhyParentsChoose />
 
       {/* ===== 6. YOUR FIRST CLASS ===== */}

@@ -1,14 +1,16 @@
 import { z } from 'zod'
 
-export const shopCheckoutCreateOrderSchema = z.object({
-  amount: z.coerce.number().positive().max(1_000_000),
-})
-
 const shopCartItemSchema = z.object({
   productId: z.string().trim().min(1).max(120),
   variantId: z.string().trim().min(1).max(120),
   quantity: z.coerce.number().int().min(1).max(100),
 })
+
+export const shopCheckoutCreateOrderSchema = z.object({
+  items: z.array(shopCartItemSchema).min(1).max(100),
+  pointsUsed: z.coerce.number().int().min(0).max(100000).optional().default(0),
+  promoCode: z.string().trim().max(80).optional(),
+}).strict()
 
 export const shopOrderAddressSchema = z.object({
   fullName: z.string().trim().min(2).max(160),

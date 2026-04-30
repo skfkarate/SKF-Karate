@@ -2,6 +2,7 @@ import crypto from 'crypto'
 
 import { revalidatePath } from 'next/cache'
 import { NextResponse } from 'next/server'
+import Razorpay from 'razorpay'
 
 import { redeemPoints, restoreRedeemedPoints } from '@/lib/points/pointsService'
 import { getPortalSession } from '@/lib/server/auth/portal'
@@ -30,8 +31,6 @@ export const POST = withRoute(
     const payload = shopOrderBodySchema.parse(await readJsonBody(request))
     const actor = await getShopActor(request)
 
-    verifyPaymentSignature(payload)
-
     const products = await getProducts()
     const availablePoints =
       actor.authenticated && actor.skfId
@@ -54,6 +53,8 @@ export const POST = withRoute(
         error instanceof Error ? error.message : 'Invalid cart payload.'
       )
     }
+
+    await verifyPayment(payload, preparedOrder.total)
 
     const address = actor.authenticated
       ? createPickupAddress(actor)
@@ -126,6 +127,43 @@ export const POST = withRoute(
   }
 )
 
+async function verifyPayment(payload: ShopOrderBody, expectedTotal: number) {
+  verifyPaymentSignature(payload)
+
+  const keyId = process.env.RAZORPAY_KEY_ID
+  const keySecret = process.env.RAZORPAY_KEY_SECRET
+  if (!keyId || !keySecret) {
+    throw new ApiError(503, 'Payment gateway is not configured.')
+  }
+
+  const razorpay = new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  })
+
+  const payment = await razorpay.payments.fetch(payload.razorpay_payment_id) as {
+    order_id?: string
+    amount?: number | string
+    currency?: string
+    status?: string
+    captured?: boolean
+  }
+
+  if (payment.order_id !== payload.razorpay_order_id) {
+    throw new ApiError(400, 'Payment order mismatch.')
+  }
+
+  const expectedAmount = Math.round(expectedTotal * 100)
+  const paidAmount = Number(payment.amount || 0)
+  if (paidAmount !== expectedAmount || payment.currency !== 'INR') {
+    throw new ApiError(400, 'Payment amount verification failed.')
+  }
+
+  if (payment.status !== 'captured' && payment.captured !== true) {
+    throw new ApiError(409, 'Payment has not been captured.')
+  }
+}
+
 function verifyPaymentSignature(payload: ShopOrderBody) {
   const orderId = String(payload?.razorpay_order_id || '')
   const paymentId = String(payload?.razorpay_payment_id || '')
@@ -140,7 +178,10 @@ function verifyPaymentSignature(payload: ShopOrderBody) {
   hmac.update(`${orderId}|${paymentId}`)
   const generatedSignature = hmac.digest('hex')
 
-  if (generatedSignature !== signature) {
+  if (
+    generatedSignature.length !== signature.length ||
+    !crypto.timingSafeEqual(Buffer.from(generatedSignature), Buffer.from(signature))
+  ) {
     throw new ApiError(400, 'Payment verification failed.')
   }
 }

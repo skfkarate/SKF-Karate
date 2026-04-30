@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { FaTrophy, FaArrowRight, FaMedal } from 'react-icons/fa'
 import {
   getAllAthletesLive,
@@ -37,13 +38,30 @@ export default async function HomeTopAthletes() {
                 totalPoints: snapshot.totalPoints || 0,
                 registrationNumber: athlete.registrationNumber,
                 rank: index + 1,
+                profileImageUrl: athlete.photoConsent ? athlete.photoUrl : '',
             }
         })
         .filter(Boolean)
 
-    if (topAthletes.length === 0) {
-        return null // Hide section if no featured athletes
+    // Fallback data for development if DB is empty
+    let displayAthletes = topAthletes
+    if (displayAthletes.length === 0) {
+        if (process.env.NODE_ENV === 'development') {
+            displayAthletes = [
+                { name: 'John Doe', category: 'BLACK BELT', branch: 'Main Dojo', medals: { gold: 5, silver: 2, bronze: 1 }, totalPoints: 1200, registrationNumber: 'SKF001', rank: 1, profileImageUrl: null },
+                { name: 'Jane Smith', category: 'BROWN BELT', branch: 'West Side', medals: { gold: 3, silver: 4, bronze: 0 }, totalPoints: 950, registrationNumber: 'SKF002', rank: 2, profileImageUrl: null },
+                { name: 'Mike Ross', category: 'PURPLE BELT', branch: 'North Dojo', medals: { gold: 1, silver: 5, bronze: 3 }, totalPoints: 800, registrationNumber: 'SKF003', rank: 3, profileImageUrl: null },
+            ]
+        } else {
+            return null
+        }
     }
+
+    // Reorder for podium display: [2nd, 1st, 3rd]
+    const podiumOrder = []
+    if (displayAthletes[1]) podiumOrder.push(displayAthletes[1])
+    if (displayAthletes[0]) podiumOrder.push(displayAthletes[0])
+    if (displayAthletes[2]) podiumOrder.push(displayAthletes[2])
 
     return (
         <section className="home-top-athletes section section--tint-mid">
@@ -61,15 +79,29 @@ export default async function HomeTopAthletes() {
                 </ScrollReveal>
 
                 <div className="home-top-athletes__grid">
-                    {topAthletes.map((athlete, i) => (
+                    {podiumOrder.map((athlete, i) => (
                         <ScrollReveal key={athlete.rank} delay={i * 0.1}>
-                            <Link href={`/athlete/${athlete.registrationNumber}`} className="athlete-podium-card" style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}>
+                            <Link
+                                href={`/athlete/${athlete.registrationNumber}`}
+                                className={`athlete-podium-card athlete-podium-card--rank-${athlete.rank}`}
+                                aria-label={`View profile for ${athlete.name}, ranked #${athlete.rank}`}
+                            >
                                 <div className={`athlete-podium-card__rank athlete-podium-card__rank--${athlete.rank}`}>
                                     {athlete.rank}
                                 </div>
 
                                 <div className="athlete-podium-card__avatar">
-                                    {athlete.name.charAt(0)}
+                                    {athlete.profileImageUrl ? (
+                                        <Image
+                                            src={athlete.profileImageUrl}
+                                            alt={athlete.name}
+                                            fill
+                                            sizes="72px"
+                                            className="athlete-podium-card__image"
+                                        />
+                                    ) : (
+                                        <span>{athlete.name.charAt(0)}</span>
+                                    )}
                                 </div>
 
                                 <h3 className="athlete-podium-card__name">{athlete.name}</h3>

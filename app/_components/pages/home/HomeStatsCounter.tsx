@@ -1,8 +1,10 @@
 'use client';
 import { useRef, useEffect } from 'react';
 import { motion, useInView, useSpring, useTransform } from 'framer-motion';
+import './HomeStatsCounter.css';
+import ScrollReveal from '@/app/_components/ScrollReveal';
 
-export default function HomeStatsCounter({ target, label, suffix = '+' }) {
+function StatItem({ target, label, suffix = '+' }: { target: number, label: string, suffix?: string }) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-50px" });
     
@@ -30,5 +32,23 @@ export default function HomeStatsCounter({ target, label, suffix = '+' }) {
             </span>
             <span className="stat__label">{label}</span>
         </div>
+    );
+}
+
+export default function HomeStatsCounter() {
+    return (
+        <section className="stats container">
+            <ScrollReveal>
+                <div className="stats__grid">
+                    <StatItem target={5100} label="Athletes Trained" />
+                    <div className="stats__divider" />
+                    <StatItem target={4} label="Cities" suffix="" />
+                    <div className="stats__divider" />
+                    <StatItem target={300} label="Championship Medals" />
+                    <div className="stats__divider" />
+                    <StatItem target={15} label="Years of Excellence" />
+                </div>
+            </ScrollReveal>
+        </section>
     );
 }

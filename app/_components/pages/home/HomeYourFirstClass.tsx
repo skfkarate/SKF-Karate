@@ -39,6 +39,15 @@ export default function HomeYourFirstClass() {
                                 <div className="first-class-step__icon">{renderIcon(step.iconType)}</div>
                                 <h3 className="first-class-step__title">{step.title}</h3>
                                 <p className="first-class-step__desc">{step.desc}</p>
+
+                                {i < homeYourFirstClassData.length - 1 && (
+                                    <div className="first-class-step__connector">
+                                        <svg width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none">
+                                            <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(255, 183, 3, 0.3)" strokeWidth="2" strokeDasharray="6 6" />
+                                            <polygon points="100,10 94,6 94,14" fill="rgba(255, 183, 3, 0.3)" />
+                                        </svg>
+                                    </div>
+                                )}
                             </div>
                         </ScrollReveal>
                     ))}

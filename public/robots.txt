@@ -7,6 +7,8 @@ User-agent: *
 Disallow: /portal
 Disallow: /admin
 Disallow: /api
+Disallow: /athlete
+Disallow: /verify
 
 # Host
 Host: https://skfkarate.org

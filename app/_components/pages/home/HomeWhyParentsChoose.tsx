@@ -1,4 +1,5 @@
-import { FaShieldAlt, FaUserGraduate, FaTrophy, FaUsers, FaAward } from 'react-icons/fa'
+import Link from 'next/link'
+import { FaShieldAlt, FaUserGraduate, FaTrophy, FaUsers, FaAward, FaArrowRight } from 'react-icons/fa'
 import { homeWhyParentsChooseData } from '@/data/constants/homeContent'
 import ScrollReveal from '@/app/_components/ScrollReveal'
 
@@ -37,6 +38,14 @@ export default function HomeWhyParentsChoose() {
                         </ScrollReveal>
                     ))}
                 </div>
+
+                <ScrollReveal delay={0.4}>
+                    <div className="home-why-parents__cta" style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+                        <Link href="/senseis" className="btn btn-secondary">
+                            Meet Our Instructors <FaArrowRight />
+                        </Link>
+                    </div>
+                </ScrollReveal>
             </div>
         </section>
     )

@@ -274,7 +274,7 @@ export default function ProductDetailPage() {
                     {/* LEFT: IMAGE GALLERY */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '24px', overflow: 'hidden', background: '#000', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <Image src={product.images[selectedImage] || product.images[0] || '/images/placeholder.jpg'} alt={product.name} fill style={{ objectFit: 'cover' }} priority />
+                            <Image src={product.images[selectedImage] || product.images[0] || '/og-default.jpg'} alt={product.name} fill style={{ objectFit: 'cover' }} priority />
                         </div>
                         {product.images.length > 1 && (
                             <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto' }}>

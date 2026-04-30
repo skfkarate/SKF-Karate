@@ -169,11 +169,20 @@ function mapTournamentRecordToRow(record: TournamentRecord): Record<string, unkn
   }
 }
 
-async function getTournamentDataset(): Promise<TournamentRecord[]> {
-  // Temporary: force local mock data to show the fake tournament
-  return cloneTournamentData(getAllTournamentsAdmin())
+async function readAllTournamentsFromDatabase(): Promise<TournamentRecord[]> {
+  const { data, error } = await supabaseAdmin
+    .from('tournaments')
+    .select('*')
+    .order('date', { ascending: false })
 
-  /*
+  if (error) {
+    throw error
+  }
+
+  return (data || []).map((row) => mapTournamentRowToRecord(row))
+}
+
+async function getTournamentDataset(): Promise<TournamentRecord[]> {
   if (!isSupabaseReady()) {
     return cloneTournamentData(getAllTournamentsAdmin())
   }
@@ -184,7 +193,6 @@ async function getTournamentDataset(): Promise<TournamentRecord[]> {
     console.warn('[tournaments-live] Falling back to local tournament repository:', error)
     return cloneTournamentData(getAllTournamentsAdmin())
   }
-  */
 }
 
 async function hasTournamentSlugLive(slug: string, excludeId: string | null = null) {

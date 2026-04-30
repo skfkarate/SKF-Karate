@@ -1,0 +1,39 @@
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Local dependencies and build artifacts
+node_modules/
+.next/
+out/
+build/
+coverage/
+test-results/
+*.tsbuildinfo
+
+# Local scratch/debug files
+scratch/
+scratch.js
+structure.txt
+cookies.txt
+*.dump.txt
+*_dump.txt
+contents.txt
+temp_replacements.json
+redesign.txt
+
+# Source-only documentation and tests
+docs/
+tests/
+
+# Generated at build time
+public/sitemap*.xml
+
+# Non-production media/source originals
+public/**/*.HEIC
+public/**/*.MOV
+public/**/*.mov
+
+# Unused oversized news originals; /news is not a production route
+public/news/*.png

@@ -58,19 +58,34 @@ export class AdminProgramTemplateService {
       throw new NotFoundError('Program')
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from('certificate_templates')
-      .upsert(
-        {
-          program_id: programId,
-          belt_level: null,
-          template_image_url: input.background_url,
-          fields: input.text_configs,
-          use_qr_code: false,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'program_id,belt_level' }
-      )
+      .select('id')
+      .eq('program_id', programId)
+      .is('belt_level', null)
+      .maybeSingle()
+
+    if (existingError) {
+      throw existingError
+    }
+
+    const payload = {
+      template_image_url: input.background_url,
+      fields: input.text_configs,
+      use_qr_code: false,
+      updated_at: new Date().toISOString(),
+    }
+
+    const query = existing
+      ? supabaseAdmin
+          .from('certificate_templates')
+          .update(payload)
+          .eq('id', existing.id)
+      : supabaseAdmin
+          .from('certificate_templates')
+          .insert([{ program_id: programId, belt_level: null, ...payload }])
+
+    const { data, error } = await query
       .select('program_id, template_image_url, fields, use_qr_code')
       .single()
 

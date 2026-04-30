@@ -5,6 +5,8 @@ export interface CertEmailProps {
   skfId: string
 }
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'
+
 export function certificateReadyTemplate({ parentName, studentName, programName, skfId }: CertEmailProps) {
   return {
     subject: `🥋 ${studentName}'s certificate is ready — SKF Karate`,
@@ -21,7 +23,7 @@ export function certificateReadyTemplate({ parentName, studentName, programName,
               <p>Dear ${parentName},</p>
               <p>${studentName} has successfully completed <strong style="color:#f39c12">${programName}</strong> and their digital certificate is now ready to download.</p>
               <div style="text-align:center; margin:32px 0;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/portal" 
+                <a href="${appUrl}/portal"
                    style="background:#c0392b; color:#fff; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:bold;">
                   Download Certificate
                 </a>

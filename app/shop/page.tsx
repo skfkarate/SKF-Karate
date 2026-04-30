@@ -27,7 +27,7 @@ export default function ShopListingPage() {
     return (
         <div className="obsidian-store">
             <div className="obsidian-container">
-                
+
                 {/* HERO HEADER */}
                 <header className="obsidian-header">
                     <h1 className="obsidian-header__title">Official Gear</h1>
@@ -59,9 +59,9 @@ export default function ShopListingPage() {
                                 const outOfStock = totalStock === 0
 
                                 return (
-                                    <Link 
-                                        href={`/shop/${product.id}`} 
-                                        key={product.id} 
+                                    <Link
+                                        href={`/shop/${product.id}`}
+                                        key={product.id}
                                         className={`obsidian-card ${outOfStock ? 'card-sold-out' : ''}`}
                                     >
                                         {outOfStock && (
@@ -83,19 +83,19 @@ export default function ShopListingPage() {
                                         )}
 
                                         <div className="obsidian-card__image-wrapper">
-                                            <Image 
-                                                src={product.images[0] || '/images/placeholder.jpg'} 
+                                            <Image
+                                                src={product.images[0] || '/og-default.jpg'}
                                                 alt={product.name}
                                                 fill
                                                 className="obsidian-card__image"
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             />
                                         </div>
-                                        
+
                                         <div className="obsidian-card__info">
                                             <span className="obsidian-card__category">{product.category.replace('-', ' ')}</span>
                                             <h3 className="obsidian-card__title">{product.name}</h3>
-                                            
+
                                             <div className="obsidian-card__price-row">
                                                 <span className="obsidian-card__price">₹{product.price.toLocaleString()}</span>
                                             </div>
@@ -116,7 +116,7 @@ export default function ShopListingPage() {
                         </p>
                     </div>
                 )}
-                
+
             </div>
         </div>
     )

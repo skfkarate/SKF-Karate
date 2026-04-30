@@ -1,6 +1,5 @@
 import Razorpay from 'razorpay'
 
-import type { ShopCheckoutInput } from '@/src/server/api/validators/shop.validator'
 import { requireEnv } from '@/src/server/config/env'
 
 let razorpayClient: Razorpay | null = null
@@ -19,12 +18,13 @@ function getRazorpayClient() {
 }
 
 export class ShopCheckoutService {
-  static async createOrder(input: ShopCheckoutInput) {
+  static async createOrder(input: { amount: number; receipt?: string; notes?: Record<string, string> }) {
     const client = getRazorpayClient()
     const order = await client.orders.create({
       amount: Math.round(input.amount * 100),
       currency: 'INR',
-      receipt: `shop_rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      receipt: input.receipt || `shop_rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      notes: input.notes,
     })
 
     return {

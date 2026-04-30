@@ -1,340 +1,104 @@
-'use client';
-import { useRef, useState } from 'react';
-import { motion, useScroll, useTransform, MotionValue, useMotionValue, useMotionValueEvent } from 'framer-motion';
-import Image from 'next/image';
-import type { StaticImageData } from 'next/image';
+'use client'
 
-import { cinematicValuesData as values } from '@/data/constants/homeContent';
-
-interface SlideProps {
-    img?: string | StaticImageData;
-    text: string;
-    index: number;
-    total: number;
-    scrollYProgress: MotionValue<number>;
-    isLogo?: boolean;
-    pos?: string;
-}
-
-function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos }: SlideProps) {
-    const start = index / total;
-    const duration = 1 / total;
-    const end = start + duration;
-
-    // Fast cinematic crossfade for regular photos
-    const fadeInEnd = start + duration * 0.15;
-    const opacity = useTransform(scrollYProgress, [start, fadeInEnd], index === 0 ? [1, 1] : [0, 1]);
-    const scale = useTransform(scrollYProgress, [start, end], [1.1, 1]);
-
-    const textReadyIn = start + duration * 0.35;
-    const textReadyFull = start + duration * 0.65;
-    const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
-    const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["30px", "0px"]);
-    const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
-    const logoScale = useTransform(scrollYProgress, [start, start + duration * 0.8], [1.2, 1]);
-    const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
-    const logoTrackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
-    const logoLetterSpacing = useTransform(logoTrackingProgress, (v) => `calc(${v * 10}px + ${v * 0.5}vw)`);
-
-    if (isLogo) {
-        return (
-            <motion.div
-                style={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: bgOpacity,
-                    zIndex: index + 1,
-                    display: "flex", // TRUE FLEXBOX guarantees no overlap!
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    // Thematic crimson/dark aura with transparent center hole - vastly softer memory feel
-                    background: "radial-gradient(circle at center, rgba(139, 0, 0, 0.05) 0%, rgba(2, 3, 6, 0.6) 60%, rgba(0, 0, 0, 0.85) 100%)",
-                    gap: "4vh" // Increased gap to completely separate text from logo
-                }}
-            >
-                {/* Subtle thematic gold glow behind the logo */}
-                <div style={{
-                    position: "absolute",
-                    width: "40vw",
-                    height: "40vw",
-                    background: "radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 60%)",
-                    pointerEvents: "none"
-                }} />
-
-                <motion.div style={{ position: "relative", width: "65vmin", height: "65vmin", maxWidth: "450px", scale: logoScale, opacity: logoOpacity }}>
-                    <Image
-                        src={img}
-                        alt="SKF Logo"
-                        fill
-                        sizes="(max-width: 768px) 75vmin, 60vmin"
-                        style={{ objectFit: "contain", objectPosition: "center", filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.8))" }}
-                        quality={100}
-                    />
-                </motion.div>
-
-                <motion.h2
-                    style={{
-                        opacity: textOpacity,
-                        y: textY,
-                        letterSpacing: logoLetterSpacing,
-                        margin: 0,
-                        textAlign: "center",
-                        fontWeight: 900,
-                        color: "transparent",
-                        backgroundImage: "linear-gradient(to right, #ffb703, #e85d04)",
-                        WebkitBackgroundClip: "text",
-                        fontSize: "clamp(2.5rem, 12vw, 6.5rem)", // Huge, grand font
-                        lineHeight: 1.1, // Keeps wrapped lines tightly bound to each other
-                        fontFamily: "var(--font-heading)",
-                        textTransform: "uppercase",
-                        textShadow: "none", // Eradicates VR ghosting bleeding completely
-                        padding: "0 1.5rem"
-                    }}
-                >
-                    {text}
-                </motion.h2>
-            </motion.div>
-        );
-    }
-
-    // Normal slide rendering
-    return (
-        <motion.div
-            style={{
-                position: "absolute",
-                inset: 0,
-                opacity,
-                willChange: "opacity",
-                zIndex: index + 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "transparent"
-            }}
-        >
-            <motion.div style={{ position: "absolute", inset: 0, scale, willChange: "transform" }}>
-                <Image
-                    src={img}
-                    alt=""
-                    fill
-                    sizes="100vw"
-                    style={{ objectFit: "cover", objectPosition: pos || "center" }}
-                    quality={90}
-                    priority={index < 2}
-                    loading={index < 2 ? "eager" : "lazy"}
-                />
-            </motion.div>
-        </motion.div>
-    );
-}
-
-function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) {
-    const start = index / total;
-    const duration = 1 / total;
-    const end = start + duration;
-    const isFirst = index === 0;
-
-    const fadeInStart = isFirst ? 0 : start;
-    const fadeInEnd = isFirst ? duration * 0.1 : start + duration * 0.15;
-    const fadeOutStart = end;
-    const fadeOutEnd = end + duration * 0.15;
-
-    const opInput = [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd];
-    const opOutput = [0, 1, 1, 0];
-    const yInput = [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd];
-    const yOutput = ["40px", "0px", "0px", "-40px"];
-
-    const opacity = useTransform(scrollYProgress, opInput, opOutput);
-    const y = useTransform(scrollYProgress, yInput, yOutput);
-
-    // Dynamic viewport-responsive tracking to ensure text doesn't overflow mobile boundaries
-    const trackingProgress = useTransform(scrollYProgress, [start, end], [0.1, 1.2]);
-    const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
-
-    if (isLogo) return null; // Controlled explicitly inside SlideBackground!
-
-    return (
-        <motion.div
-            style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 100,
-                pointerEvents: "none",
-                padding: "0 5vw"
-            }}
-        >
-            <motion.h2
-                style={{
-                    opacity,
-                    y,
-                    letterSpacing,
-                    willChange: "transform, opacity",
-                    margin: 0,
-                    textAlign: "center",
-                    fontWeight: 900,
-                    color: "rgba(255, 255, 255, 0.95)",
-                    fontSize: "clamp(1.5rem, 8vw, 7rem)",
-                    fontFamily: "var(--font-heading)",
-                    textTransform: "uppercase",
-                    textShadow: "0 10px 40px rgba(0,0,0,0.9)",
-                    whiteSpace: "nowrap"
-                }}
-            >
-                {text}
-            </motion.h2>
-        </motion.div>
-    );
-}
+import Image from 'next/image'
+import { cinematicValuesData as values } from '@/data/constants/homeContent'
+import ScrollReveal from '@/app/_components/ScrollReveal'
 
 export default function CinematicValues() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [isFinished, setIsFinished] = useState(false);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end end"]
-    });
-
-    const lockedProgress = useMotionValue(0);
-
-    useMotionValueEvent(scrollYProgress, "change", (latest) => {
-        if (isFinished) return;
-
-        // If we hit the end (or near the end), lock the animation and shrink the container to act like a static page
-        if (latest >= 0.98) {
-            lockedProgress.set(1);
-            setIsFinished(true);
-        } else {
-            lockedProgress.set(latest);
-        }
-    });
-
-    const indicatorOpacity = useTransform(lockedProgress, [0.02, 0.05], [1, 0]);
-
-    const handleSkip = () => {
-        lockedProgress.set(1);
-        setIsFinished(true);
-        setTimeout(() => {
-            if (containerRef.current) {
-                const yOffset = containerRef.current.getBoundingClientRect().bottom + window.scrollY;
-                window.scrollTo({ top: yOffset, behavior: 'smooth' });
-            }
-        }, 10);
-    };
+    // Duplicate the array so the marquee loops seamlessly
+    const marqueeItems = [...values, ...values]
 
     return (
-        <section ref={containerRef} className="cinematic-values-wrapper" style={{ height: isFinished ? "100vh" : "400vh", position: "relative", background: "#020306" }}>
-            <div className="cinematic-values-sticky" style={{ height: "100dvh", position: isFinished ? "relative" : "sticky", top: 0, overflow: "hidden" }}>
+        <section className="cinematic-marquee-section section" style={{ overflow: 'hidden', padding: '4rem 0', background: 'var(--bg-body)' }}>
+            <ScrollReveal>
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <h2 className="section-title" style={{ fontSize: '1.5rem', opacity: 0.8 }}>
+                        The Way of <span className="text-gradient">SKF</span>
+                    </h2>
+                </div>
+            </ScrollReveal>
 
-                {/* Unified Background Images Ecosystem */}
-                <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
-                    {values.map((v, i) => (
-                        <SlideBackground
-                            key={`bg-${i}`}
-                            img={v.img}
-                            text={v.text}
-                            index={i}
-                            total={values.length}
-                            scrollYProgress={lockedProgress}
-                            isLogo={v.isLogo}
-                            pos={v.pos}
-                        />
+            <style>{`
+                .marquee-container {
+                    display: flex;
+                    width: 200vw;
+                    animation: marquee 35s linear infinite;
+                    gap: 3rem;
+                    align-items: center;
+                }
+                .marquee-container:hover {
+                    animation-play-state: paused;
+                }
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                .marquee-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                    flex-shrink: 0;
+                }
+                .marquee-text {
+                    font-family: var(--font-heading);
+                    font-size: clamp(2rem, 5vw, 4rem);
+                    font-weight: 900;
+                    text-transform: uppercase;
+                    color: transparent;
+                    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s ease;
+                }
+                .marquee-item:hover .marquee-text {
+                    color: var(--gold);
+                    -webkit-text-stroke: 0px;
+                    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+                }
+                .marquee-image-container {
+                    position: relative;
+                    width: clamp(80px, 15vw, 120px);
+                    height: clamp(50px, 10vw, 80px);
+                    border-radius: 100px;
+                    overflow: hidden;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    opacity: 0.6;
+                    transition: all 0.3s ease;
+                    filter: grayscale(100%);
+                }
+                .marquee-item:hover .marquee-image-container {
+                    opacity: 1;
+                    filter: grayscale(0%);
+                    transform: scale(1.1) rotate(2deg);
+                    border-color: var(--gold);
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .marquee-container { animation: none; width: 100%; flex-wrap: wrap; justify-content: center; }
+                }
+            `}</style>
+
+            <div style={{ position: 'relative', width: '100vw', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', overflow: 'hidden' }}>
+                <div className="marquee-container">
+                    {marqueeItems.map((v, i) => (
+                        <div className="marquee-item" key={i}>
+                            <h3 className="marquee-text">{v.text}</h3>
+                            {!v.isLogo && v.img && (
+                                <div className="marquee-image-container">
+                                    <Image
+                                        src={v.img}
+                                        alt={v.text}
+                                        fill
+                                        sizes="120px"
+                                        style={{ objectFit: 'cover', objectPosition: v.pos || 'center' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     ))}
                 </div>
 
-                {/* Constant Immersive Deep Vignette Overlay */}
-                <div style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(2,3,6,0.65) 100%), linear-gradient(0deg, rgba(2,3,6,0.95) 0%, transparent 20%, transparent 80%, rgba(2,3,6,0.95) 100%)",
-                    zIndex: 2,
-                    pointerEvents: "none"
-                }} />
-
-                {/* Highly-Organized Distinct Text Layer */}
-                <div style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none" }}>
-                    {values.map((v, i) => (
-                        <SlideText
-                            key={`text-${i}`}
-                            text={v.text}
-                            index={i}
-                            total={values.length}
-                            scrollYProgress={lockedProgress}
-                            isLogo={v.isLogo}
-                        />
-                    ))}
-                </div>
-
-                {/* Scroll Progress Bar */}
-                <div style={{ position: 'absolute', left: 0, bottom: 0, height: '4px', width: '100%', zIndex: 30, background: 'rgba(255,255,255,0.1)' }}>
-                    <motion.div
-                        style={{ height: '100%', background: 'linear-gradient(90deg, var(--gold), var(--crimson))', width: '100%', scaleX: lockedProgress, transformOrigin: '0% 50%' }}
-                    />
-                </div>
-
-                {/* Skip Button */}
-                {!isFinished && (
-                    <button
-                        onClick={handleSkip}
-                        style={{
-                            position: 'absolute',
-                            bottom: '30px',
-                            left: '30px',
-                            zIndex: 30,
-                            background: 'rgba(0,0,0,0.4)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'rgba(255,255,255,0.7)',
-                            padding: '10px 20px',
-                            borderRadius: '30px',
-                            cursor: 'pointer',
-                            fontFamily: 'var(--font-heading)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '2px',
-                            fontSize: '0.8rem',
-                            backdropFilter: 'blur(10px)',
-                            transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                            e.currentTarget.style.color = '#fff';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(0,0,0,0.4)';
-                            e.currentTarget.style.color = 'rgba(255,255,255,0.7)';
-                        }}
-                    >
-                        Skip Intro ↓
-                    </button>
-                )}
-
-                {/* Refined Geometric Scroll Indicator */}
-                <motion.div
-                    style={{
-                        position: "absolute",
-                        bottom: "40px",
-                        left: "50%",
-                        x: "-50%",
-                        zIndex: 20,
-                        color: "#fff",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        opacity: indicatorOpacity,
-                        pointerEvents: "none"
-                    }}
-                >
-                    <span style={{ fontSize: "0.75rem", letterSpacing: "4px", opacity: 0.6, marginBottom: "15px", textTransform: "uppercase", fontWeight: 700 }}>Enter the Dojo</span>
-                    <motion.div
-                        animate={{ y: [0, 10, 0], opacity: [0.4, 1, 0.4] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        style={{ width: "2px", height: "50px", background: "linear-gradient(to bottom, #d4af37, transparent)" }}
-                    />
-                </motion.div>
+                {/* Gradient fades on edges */}
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '10vw', background: 'linear-gradient(to right, var(--bg-body), transparent)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '10vw', background: 'linear-gradient(to left, var(--bg-body), transparent)', pointerEvents: 'none' }} />
             </div>
         </section>
-    );
+    )
 }

@@ -33,6 +33,70 @@ type AthleteProfile = {
     branch: string
 }
 
+type RazorpayPaymentResponse = {
+    razorpay_order_id: string
+    razorpay_payment_id: string
+    razorpay_signature: string
+}
+
+type RazorpayCheckoutOptions = {
+    key: string
+    amount: number
+    currency: string
+    name: string
+    description: string
+    order_id: string
+    prefill?: {
+        name?: string
+        contact?: string
+    }
+    notes?: Record<string, string>
+    theme?: {
+        color?: string
+    }
+    handler: (response: RazorpayPaymentResponse) => void
+    modal?: {
+        ondismiss?: () => void
+    }
+}
+
+type RazorpayOrderResponse = {
+    id: string
+    amount: number
+    currency: string
+    key: string
+    total?: number
+}
+
+declare global {
+    interface Window {
+        Razorpay?: new (options: RazorpayCheckoutOptions) => { open: () => void }
+    }
+}
+
+function loadRazorpayScript() {
+    if (typeof window === 'undefined') return Promise.resolve(false)
+    if (window.Razorpay) return Promise.resolve(true)
+
+    return new Promise<boolean>((resolve) => {
+        const script = document.createElement('script')
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+        script.async = true
+        script.onload = () => resolve(Boolean(window.Razorpay))
+        script.onerror = () => resolve(false)
+        document.body.appendChild(script)
+    })
+}
+
+function readApiError(payload: unknown, fallback: string) {
+    if (!payload || typeof payload !== 'object') return fallback
+    const data = payload as { error?: string | { message?: string }; message?: string }
+    if (typeof data.error === 'string') return data.error
+    if (typeof data.error?.message === 'string') return data.error.message
+    if (typeof data.message === 'string') return data.message
+    return fallback
+}
+
 export default function CheckoutPage() {
     const { cart, cartTotalPrice, clearCart } = useCart()
     const router = useRouter()
@@ -112,38 +176,110 @@ export default function CheckoutPage() {
         setSubmitting(true)
 
         try {
-            const verifyRes = await fetch('/api/shop/orders', {
+            const scriptLoaded = await loadRazorpayScript()
+            if (!scriptLoaded || !window.Razorpay) {
+                throw new Error('Payment gateway could not be loaded. Please try again.')
+            }
+
+            const checkoutRes = await fetch('/api/shop/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cart,
                     promoCode,
                     pointsUsed,
-                    address: addressPayload
                 })
             })
 
-            const verifyData = await verifyRes.json()
-            
-            if (verifyData.success) {
-                clearCart()
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('skf_checkout_points')
-                    localStorage.removeItem('skf_checkout_promo')
-                }
-                router.push(
-                    verifyData.customerType === 'guest'
-                        ? `/shop/success?orderId=${encodeURIComponent(verifyData.orderId)}`
-                        : '/shop/orders?success=true'
-                )
-            } else {
-                alert(verifyData.error || 'Order creation failed!')
-                setSubmitting(false)
+            const checkoutData = await checkoutRes.json().catch(() => null) as RazorpayOrderResponse | null
+            if (!checkoutRes.ok || !checkoutData?.id || !checkoutData.key) {
+                throw new Error(readApiError(checkoutData, 'Payment initialization failed.'))
             }
 
+            await new Promise<void>((resolve, reject) => {
+                let settled = false
+
+                const resolveOnce = () => {
+                    if (settled) return
+                    settled = true
+                    resolve()
+                }
+
+                const rejectOnce = (error: Error) => {
+                    if (settled) return
+                    settled = true
+                    reject(error)
+                }
+
+                const RazorpayCheckout = window.Razorpay
+                if (!RazorpayCheckout) {
+                    rejectOnce(new Error('Payment gateway could not be loaded. Please try again.'))
+                    return
+                }
+
+                const razorpay = new RazorpayCheckout({
+                    key: checkoutData.key,
+                    amount: checkoutData.amount,
+                    currency: checkoutData.currency,
+                    name: 'SKF Karate',
+                    description: 'SKF Shop Order',
+                    order_id: checkoutData.id,
+                    prefill: {
+                        name: addressPayload.fullName,
+                        contact: addressPayload.phone.replace(/^\+91/, ''),
+                    },
+                    notes: {
+                        fulfillment: isAuthenticated ? 'dojo-pickup' : 'shipping',
+                    },
+                    theme: {
+                        color: '#d62828',
+                    },
+                    handler: async (payment) => {
+                        try {
+                            const verifyRes = await fetch('/api/shop/orders', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    razorpay_order_id: payment.razorpay_order_id,
+                                    razorpay_payment_id: payment.razorpay_payment_id,
+                                    razorpay_signature: payment.razorpay_signature,
+                                    items: cart,
+                                    promoCode,
+                                    pointsUsed,
+                                    address: addressPayload,
+                                }),
+                            })
+
+                            const verifyData = await verifyRes.json().catch(() => null)
+                            if (!verifyRes.ok || !verifyData?.success) {
+                                throw new Error(readApiError(verifyData, 'Order verification failed.'))
+                            }
+
+                            clearCart()
+                            if (typeof window !== 'undefined') {
+                                localStorage.removeItem('skf_checkout_points')
+                                localStorage.removeItem('skf_checkout_promo')
+                            }
+                            router.push(
+                                verifyData.customerType === 'guest'
+                                    ? `/shop/success?orderId=${encodeURIComponent(verifyData.orderId)}`
+                                    : '/shop/orders?success=true'
+                            )
+                            resolveOnce()
+                        } catch (error) {
+                            rejectOnce(error instanceof Error ? error : new Error('Order verification failed.'))
+                        }
+                    },
+                    modal: {
+                        ondismiss: () => rejectOnce(new Error('Payment was cancelled.')),
+                    },
+                })
+
+                razorpay.open()
+            })
         } catch (e) {
             console.error(e)
-            alert('Something went wrong during checkout.')
+            alert(e instanceof Error ? e.message : 'Something went wrong during checkout.')
             setSubmitting(false)
         }
     }
@@ -344,7 +480,7 @@ export default function CheckoutPage() {
                                     className="obsidian-btn-add"
                                     style={{ marginTop: '2.5rem' }}
                                 >
-                                    {submitting ? 'CONFIRMING...' : `CONFIRM DOJO PICKUP`}
+                                    {submitting ? 'PROCESSING...' : `PAY & CONFIRM PICKUP`}
                                 </button>
                             ) : (
                                 <button 
@@ -354,12 +490,12 @@ export default function CheckoutPage() {
                                     className="obsidian-btn-add"
                                     style={{ marginTop: '2.5rem' }}
                                 >
-                                    {submitting ? 'CONFIRMING...' : `PLACE ORDER (₹${finalTotal.toLocaleString()})`}
+                                    {submitting ? 'PROCESSING...' : `PAY ₹${finalTotal.toLocaleString()}`}
                                 </button>
                             )}
 
                             <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                Payment processing will be handled at Fulfillment.
+                                Secure payment is verified by Razorpay before order creation.
                             </p>
                          </div>
                     </div>

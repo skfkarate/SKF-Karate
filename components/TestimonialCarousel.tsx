@@ -69,17 +69,20 @@ export default function TestimonialCarousel() {
                 }
                 .t-card {
                     flex: 0 0 calc((100% - ${(cardsPerView - 1) * 2}rem) / ${cardsPerView});
-                    background: var(--bg-card, rgba(20, 33, 61, 0.4));
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 16px;
+                    background: rgba(15, 23, 42, 0.4);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-top: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 20px;
                     padding: 2.5rem 2rem;
-                    backdrop-filter: blur(20px);
-                    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+                    backdrop-filter: blur(24px);
+                    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+                    transition: transform 0.4s, background 0.4s, border-color 0.4s, box-shadow 0.4s;
                 }
                 .t-card:hover {
-                    transform: translateY(-5px);
-                    background: rgba(255,255,255,0.06);
+                    transform: translateY(-6px);
+                    background: rgba(15, 23, 42, 0.6);
                     border-color: rgba(255, 183, 3, 0.3);
+                    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
                 }
                 @media (prefers-reduced-motion: reduce) {
                     .t-carousel-track {

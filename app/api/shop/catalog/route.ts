@@ -7,9 +7,8 @@ export const dynamic = 'force-dynamic'
 export const GET = withRoute(
   { rateLimit: { tier: 'public' }, cacheControl: 'no-store' },
   async () => {
-    // Temporarily returning empty catalog — shop products will be added later
-    // To restore: const products = await getProducts()
-    return NextResponse.json([], {
+    const products = await getProducts()
+    return NextResponse.json(products, {
       headers: {
         'Cache-Control': 'no-store',
       },
