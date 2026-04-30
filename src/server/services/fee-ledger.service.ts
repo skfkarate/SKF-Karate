@@ -1,13 +1,13 @@
 import type { FeeRow } from '@/types'
+import { getStudentBySkfId } from '@/lib/server/sheets'
 import {
   ensureFeeRowsForStudent,
   findFeeByReceiptIdLive,
   getAllFeesLive,
   getFeesBySkfIdLive,
-  getStudentBySkfId,
   markFeeAsPaid,
   markFeeStatus,
-} from '@/lib/server/sheets'
+} from '@/lib/server/repositories/fee-records'
 import {
   getAllAthletesLive,
   getAthleteByRegistrationNumberLive,

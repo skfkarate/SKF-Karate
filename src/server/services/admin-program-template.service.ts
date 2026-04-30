@@ -5,6 +5,9 @@ import { NotFoundError } from '@/src/server/lib/errors'
 export class AdminProgramTemplateService {
   static async get(programId: string) {
     if (!isSupabaseReady()) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Database not configured for certificate templates.')
+      }
       return { template: null, mock: true }
     }
 
@@ -35,6 +38,9 @@ export class AdminProgramTemplateService {
 
   static async save(programId: string, input: LegacyProgramTemplateInput) {
     if (!isSupabaseReady()) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Database not configured for certificate templates.')
+      }
       return { success: true, mock: true }
     }
 

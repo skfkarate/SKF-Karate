@@ -7,18 +7,45 @@ import html2canvas from 'html2canvas'
 import { RankingCard } from '@/components/RankingCard'
 import {
   Search, ChevronRight, Eye, Share2,
-  Calendar, MapPin, Trophy, Flame, Shield, Star, Zap, Users, Download
+  Calendar, MapPin, Trophy, Shield, Star, Download
 } from 'lucide-react'
 import '@/app/athlete-profile.css'
 import '@/app/rankings/rankings.css'
 import { CertificateModal } from '@/components/CertificateModal'
 import { CertificateCard } from '@/components/CertificateCard'
+import type { CertificateConfig } from '@/components/CertificateCard'
 
 /* ═══════════════════════════════════════════════════════════════════════
    PUBLIC CERTIFICATES
    ═══════════════════════════════════════════════════════════════════════ */
+type PublicCertificate = Omit<CertificateConfig, 'onView'>
+
+type CompetitionResult = {
+  date: string
+  event: string
+  type: string
+  category: string
+  rank?: number | string | null
+  wins?: number | string
+  actual?: number
+  points?: number | string
+}
+
+type CompetitionCategory = {
+  name: string
+  rank?: number | null
+  points?: number | null
+  results?: CompetitionResult[]
+  honours?: Array<{
+    name: string
+    gold: number
+    silver: number
+    bronze: number
+  }>
+}
+
 function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpenCertificate: (id: string) => void }) {
-  const [certs, setCerts] = useState([])
+  const [certs, setCerts] = useState<PublicCertificate[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -36,7 +63,7 @@ function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpe
     <section className="ap-section ap-animate-in ap-delay-3" id="verified-certificates">
       <SectionHeader icon={<Shield size={16} />} label="Verified Certificates" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-        {certs.map((c: any) => (
+        {certs.map((c) => (
           <CertificateCard 
             key={c.id} 
             cert={{ ...c, onView: () => onOpenCertificate(c.id) }} 
@@ -242,7 +269,7 @@ function NextEventsSection({ nextEvents }) {
 /* ═══════════════════════════════════════════════════════════════════════
    TABBED COMPETITION RESULTS — sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function TabbedCompetitions({ categories, isDashboardContext = false }) {
+function TabbedCompetitions({ categories }: { categories: CompetitionCategory[]; isDashboardContext?: boolean }) {
   const [activeTab, setActiveTab] = useState(0)
   const [filter, setFilter] = useState('')
 
@@ -256,9 +283,8 @@ function TabbedCompetitions({ categories, isDashboardContext = false }) {
   const cat = sortedCategories[activeTab]
 
   const hasAnyResults = sortedCategories.some((c) => c.results && c.results.length > 0)
-  if (!sortedCategories || sortedCategories.length === 0 || !hasAnyResults) return null
-
   const filtered = useMemo(() => {
+    if (!cat?.results) return []
     let rows = [...cat.results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     if (filter.trim()) {
       const q = filter.toLowerCase()
@@ -266,6 +292,8 @@ function TabbedCompetitions({ categories, isDashboardContext = false }) {
     }
     return rows
   }, [cat, filter])
+
+  if (!sortedCategories || sortedCategories.length === 0 || !hasAnyResults) return null
 
   return (
     <section id="ap-competition-section" className="ap-section ap-animate-in ap-delay-2">
@@ -573,7 +601,7 @@ export default function AthleteProfileClient({
         <NextEventsSection nextEvents={nextEvents} />
         <TabbedCompetitions categories={categories} isDashboardContext={isDashboardContext} />
         {isDashboardContext && <PublicCertificates skfId={athleteInfo.id} onOpenCertificate={handleOpenCertificate} />}
-        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} isDashboardContext={isDashboardContext} onOpenCertificate={(r) => alert('Legacy certificates are handled directly via the Digital Certificates tab above.')} />
+        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} isDashboardContext={isDashboardContext} onOpenCertificate={() => alert('Legacy certificates are handled directly via the Digital Certificates tab above.')} />
         <SpecialEventsSection specialEvents={specialEvents} isDashboardContext={isDashboardContext} />
       </div>
 

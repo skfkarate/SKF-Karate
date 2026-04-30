@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
 import { FaArrowLeft, FaCheckCircle } from 'react-icons/fa'
 import { getAllCities, type City } from '@/lib/classesData'
 import { flattenClassBranches } from '@/lib/classes/catalog'
@@ -16,6 +14,9 @@ import {
 import './book-trial.css'
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
+type RetryableSubmissionError = Error & {
+    retryable?: boolean
+}
 
 export default function BookTrialPage() {
     const router = useRouter()
@@ -52,8 +53,14 @@ export default function BookTrialPage() {
             const remaining = []
             for (const item of queue) {
                 try {
-                    const { queuedAt, ...payload } = item
-                    await sendTrialToAPI(payload)
+                    await sendTrialToAPI({
+                        studentName: item.studentName,
+                        parentPhone: item.parentPhone,
+                        childAge: item.childAge,
+                        branch: item.branch,
+                        preferredBatch: item.preferredBatch,
+                        hearAboutUs: item.hearAboutUs,
+                    })
                 } catch {
                     remaining.push(item)
                 }
@@ -100,7 +107,7 @@ export default function BookTrialPage() {
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value
-        let raw = val.replace(/^(\+91\s*)/, '')
+        const raw = val.replace(/^(\+91\s*)/, '')
         const digits = raw.replace(/\D/g, '').slice(0, 10)
 
         let formatted = ''
@@ -125,7 +132,7 @@ export default function BookTrialPage() {
             return
         }
 
-        const age = parseInt(childAge)
+        const age = Number.parseInt(childAge, 10)
         if (isNaN(age) || age < 4 || age > 60) {
             setSubmitState('error')
             setErrorMsg('Please enter a valid age between 4 and 60.')
@@ -145,15 +152,16 @@ export default function BookTrialPage() {
         try {
             await sendTrialToAPI(payload)
             setSubmitState('success')
-        } catch (err: any) {
+        } catch (err) {
+            const error = err as RetryableSubmissionError
             console.error('Submission error:', err)
 
-            if (err.retryable !== false) {
+            if (error.retryable !== false) {
                 queueTrialSubmission(payload)
                 setSubmitState('success') // Show success even if queued to maintain "100% success rate" UX
             } else {
                 setSubmitState('error')
-                setErrorMsg(err.message || 'Something went wrong. Please try again or call us directly.')
+                setErrorMsg(error.message || 'Something went wrong. Please try again or call us directly.')
             }
         }
     }
@@ -179,7 +187,7 @@ export default function BookTrialPage() {
                                 <span className="bt-page__title--accent">Free Trial</span>
                             </h1>
                             <p className="bt-page__subtitle">
-                                Take the first step in your karate journey. No experience needed — just show up in comfortable clothes and we'll handle the rest.
+                                Take the first step in your karate journey. No experience needed — just show up in comfortable clothes and we&apos;ll handle the rest.
                             </p>
 
                             <div className="bt-page__features">
@@ -203,9 +211,9 @@ export default function BookTrialPage() {
                         {submitState === 'success' ? (
                             <div className="bt-page__success">
                                 <div className="bt-page__success-icon"><FaCheckCircle /></div>
-                                <h2 className="bt-page__success-title">You're In!</h2>
+                                <h2 className="bt-page__success-title">You&apos;re In!</h2>
                                 <p className="bt-page__success-text">
-                                    We've received your booking request. Our team will contact you soon to confirm your trial class schedule.
+                                    We&apos;ve received your booking request. Our team will contact you soon to confirm your trial class schedule.
                                 </p>
                                 <p className="bt-page__success-redirect">Redirecting you back...</p>
                             </div>

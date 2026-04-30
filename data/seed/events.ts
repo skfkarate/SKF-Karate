@@ -2,9 +2,6 @@
  * Seed: Events — standalone events (non-tournament).
  * These serve as the initial seed for the events JSON store.
  */
-import { EVENT_TYPES } from '../constants/categories'
-import { EVENT_STATUSES } from '../constants/statuses'
-
 export interface SeedEvent {
   id: string
   slug: string

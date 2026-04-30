@@ -3,7 +3,7 @@ import { ZodError, type ZodType } from 'zod'
 import type { Session } from 'next-auth'
 
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'
-import { getPortalSession } from '@/lib/server/auth_legacy'
+import { getPortalSession } from '@/lib/server/auth/portal'
 import type { JWTPayload, UserRole } from '@/types'
 import { AppError, AuthenticationError, AuthorizationError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -79,7 +79,7 @@ async function resolveAuth(
 
   if (auth.type === 'admin') {
     const session = await getAuthorizedApiSession(auth.roles)
-    if (!session?.user?.id) {
+    if (!session?.user?.role) {
       throw new AuthenticationError()
     }
     return { adminSession: session, portalSession: null }
@@ -108,6 +108,17 @@ function buildErrorResponse(error: unknown, requestId: string): Response {
     return errorResponse(error.code, error.message, error.statusCode, {
       details: error.details,
     })
+  }
+
+  if (
+    error &&
+    typeof error === 'object' &&
+    'status' in error &&
+    typeof error.status === 'number' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    return errorResponse('REQUEST_ERROR', error.message, error.status)
   }
 
   if (error instanceof ZodError) {
@@ -150,11 +161,9 @@ export function withRoute<TBody = Record<string, never>, TQuery = Record<string,
       }
 
       const params = context?.params ? await Promise.resolve(context.params) : {}
-      const [body, query, authResult] = await Promise.all([
-        parseBody(request, options.bodySchema),
-        Promise.resolve(parseQuery(request, options.querySchema)),
-        resolveAuth(request, options.auth),
-      ])
+      const authResult = await resolveAuth(request, options.auth)
+      const query = parseQuery(request, options.querySchema)
+      const body = await parseBody(request, options.bodySchema)
 
       const response = await handler({
         request,

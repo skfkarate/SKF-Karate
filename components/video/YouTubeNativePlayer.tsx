@@ -1,0 +1,487 @@
+'use client'
+
+import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+type YouTubePlayerStateEvent = {
+  data: number
+}
+
+type YouTubePlayer = {
+  playVideo: () => void
+  pauseVideo: () => void
+  stopVideo: () => void
+  destroy: () => void
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void
+  getCurrentTime: () => number
+  getDuration: () => number
+  getVolume: () => number
+  setVolume: (volume: number) => void
+  mute: () => void
+  unMute: () => void
+  isMuted: () => boolean
+  setPlaybackRate: (rate: number) => void
+  getIframe: () => HTMLIFrameElement
+}
+
+type YouTubeConstructor = new (
+  element: HTMLElement,
+  options: {
+    videoId: string
+    host?: string
+    playerVars: Record<string, string | number>
+    events: {
+      onReady: () => void
+      onStateChange: (event: YouTubePlayerStateEvent) => void
+    }
+  }
+) => YouTubePlayer
+
+declare global {
+  interface Window {
+    YT?: {
+      Player: YouTubeConstructor
+      PlayerState: {
+        ENDED: number
+        PLAYING: number
+        PAUSED: number
+      }
+    }
+    onYouTubeIframeAPIReady?: () => void
+  }
+}
+
+type YouTubeNativePlayerProps = {
+  youtubeId: string
+  title: string
+  posterUrl?: string
+  onEscape?: () => void
+}
+
+let iframeApiPromise: Promise<void> | null = null
+
+function loadYouTubeIframeApi() {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('YouTube player is only available in the browser.'))
+  }
+
+  if (window.YT?.Player) return Promise.resolve()
+
+  if (!iframeApiPromise) {
+    iframeApiPromise = new Promise((resolve, reject) => {
+      const previousReady = window.onYouTubeIframeAPIReady
+      window.onYouTubeIframeAPIReady = () => {
+        previousReady?.()
+        resolve()
+      }
+
+      const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]')
+      if (existingScript) return
+
+      const script = document.createElement('script')
+      script.src = 'https://www.youtube.com/iframe_api'
+      script.async = true
+      script.onerror = () => reject(new Error('Unable to load YouTube player.'))
+      document.head.appendChild(script)
+    })
+  }
+
+  return iframeApiPromise
+}
+
+function formatTime(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return '0:00'
+  const totalSeconds = Math.floor(value)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
+function clampVolume(value: number) {
+  return Math.max(0, Math.min(100, value))
+}
+
+export default function YouTubeNativePlayer({
+  youtubeId,
+  title,
+  posterUrl,
+  onEscape,
+}: YouTubeNativePlayerProps) {
+  const playerHostRef = useRef<HTMLDivElement | null>(null)
+  const frameSlotRef = useRef<HTMLDivElement | null>(null)
+  const playerRef = useRef<YouTubePlayer | null>(null)
+  const pollRef = useRef<number | null>(null)
+  const hideControlsTimerRef = useRef<number | null>(null)
+
+  const [isReady, setIsReady] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
+  const [volume, setVolume] = useState(80)
+  const [duration, setDuration] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [controlsVisible, setControlsVisible] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function initializePlayer() {
+      try {
+        await loadYouTubeIframeApi()
+        if (cancelled || !frameSlotRef.current || !window.YT?.Player) return
+
+        playerRef.current = new window.YT.Player(frameSlotRef.current, {
+          videoId: youtubeId,
+          host: 'https://www.youtube-nocookie.com',
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            iv_load_policy: 3,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            origin: window.location.origin,
+            enablejsapi: 1,
+          },
+          events: {
+            onReady: () => {
+              const player = playerRef.current
+              if (!player) return
+
+              const iframe = player.getIframe()
+              iframe.setAttribute('title', title)
+              iframe.style.pointerEvents = 'none'
+              iframe.style.width = '100%'
+              iframe.style.height = '100%'
+
+              player.setVolume(80)
+              setDuration(player.getDuration() || 0)
+              setIsReady(true)
+
+              pollRef.current = window.setInterval(() => {
+                const currentPlayer = playerRef.current
+                if (!currentPlayer) return
+                setCurrentTime(currentPlayer.getCurrentTime() || 0)
+                setDuration(currentPlayer.getDuration() || 0)
+                setIsMuted(currentPlayer.isMuted())
+              }, 500)
+            },
+            onStateChange: (event) => {
+              const state = window.YT?.PlayerState
+              if (!state) return
+              setIsPlaying(event.data === state.PLAYING)
+              if (event.data === state.ENDED) setCurrentTime(playerRef.current?.getDuration() || 0)
+            },
+          },
+        })
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Unable to load video player.')
+      }
+    }
+
+    initializePlayer()
+
+    return () => {
+      cancelled = true
+      if (pollRef.current) window.clearInterval(pollRef.current)
+      if (hideControlsTimerRef.current) window.clearTimeout(hideControlsTimerRef.current)
+
+      try {
+        playerRef.current?.stopVideo()
+        playerRef.current?.destroy()
+      } catch {
+        // The YouTube API can throw if the iframe is already gone during fast route changes.
+      } finally {
+        playerRef.current = null
+      }
+    }
+  }, [title, youtubeId])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onEscape?.()
+      }
+      if (event.key === ' ' && isReady) {
+        event.preventDefault()
+        togglePlayback()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  })
+
+  useEffect(() => {
+    if (!isPlaying || !controlsVisible) return
+    if (hideControlsTimerRef.current) window.clearTimeout(hideControlsTimerRef.current)
+    hideControlsTimerRef.current = window.setTimeout(() => setControlsVisible(false), 3000)
+  }, [controlsVisible, isPlaying])
+
+  function revealControls() {
+    setControlsVisible(true)
+    if (hideControlsTimerRef.current) window.clearTimeout(hideControlsTimerRef.current)
+    if (isPlaying) {
+      hideControlsTimerRef.current = window.setTimeout(() => setControlsVisible(false), 3000)
+    }
+  }
+
+  function togglePlayback() {
+    const player = playerRef.current
+    if (!player || !isReady) return
+
+    if (isPlaying) {
+      player.pauseVideo()
+    } else {
+      player.playVideo()
+    }
+  }
+
+  function seekToPercent(percent: number) {
+    const player = playerRef.current
+    if (!player || !duration) return
+
+    const nextTime = (duration * percent) / 100
+    player.seekTo(nextTime, true)
+    setCurrentTime(nextTime)
+  }
+
+  function updateVolume(nextVolume: number) {
+    const safeVolume = clampVolume(nextVolume)
+    setVolume(safeVolume)
+    playerRef.current?.setVolume(safeVolume)
+    if (safeVolume === 0) {
+      playerRef.current?.mute()
+      setIsMuted(true)
+    } else if (isMuted) {
+      playerRef.current?.unMute()
+      setIsMuted(false)
+    }
+  }
+
+  function toggleMute() {
+    const player = playerRef.current
+    if (!player) return
+
+    if (player.isMuted() || volume === 0) {
+      player.unMute()
+      if (volume === 0) updateVolume(60)
+      setIsMuted(false)
+    } else {
+      player.mute()
+      setIsMuted(true)
+    }
+  }
+
+  async function toggleFullscreen() {
+    const host = playerHostRef.current
+    if (!host) return
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen()
+    } else {
+      await host.requestFullscreen()
+    }
+  }
+
+  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
+
+  return (
+    <div
+      ref={playerHostRef}
+      role="application"
+      aria-label={`${title} video player`}
+      onMouseMove={revealControls}
+      onTouchStart={revealControls}
+      onClick={togglePlayback}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        minHeight: '240px',
+        background: '#000',
+        overflow: 'hidden',
+      }}
+    >
+      {posterUrl && !isReady ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.7)), url(${posterUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      ) : null}
+
+      <div
+        ref={frameSlotRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {error ? (
+        <div style={centerOverlayStyle}>
+          <div style={{ color: '#ff9a9a', fontWeight: 700 }}>{error}</div>
+        </div>
+      ) : null}
+
+      {!isReady && !error ? (
+        <div style={centerOverlayStyle}>
+          <div style={{ width: 42, height: 42, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.15)', borderTopColor: '#fff', animation: 'spin 1s linear infinite' }} />
+        </div>
+      ) : null}
+
+      {isReady && !isPlaying ? (
+        <button
+          type="button"
+          aria-label="Play video"
+          onClick={(event) => {
+            event.stopPropagation()
+            togglePlayback()
+          }}
+          style={{
+            ...roundButtonStyle,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: 78,
+            height: 78,
+            transform: 'translate(-50%, -50%)',
+            background: 'rgba(255,255,255,0.94)',
+            color: '#050505',
+            fontSize: '2rem',
+          }}
+        >
+          ▶
+        </button>
+      ) : null}
+
+      <div
+        onClick={(event) => event.stopPropagation()}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: '4rem clamp(1rem, 3vw, 2rem) clamp(1rem, 2vw, 1.4rem)',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.45) 58%, transparent)',
+          opacity: controlsVisible ? 1 : 0,
+          transform: controlsVisible ? 'translateY(0)' : 'translateY(12px)',
+          transition: 'opacity 180ms ease, transform 180ms ease',
+          pointerEvents: controlsVisible ? 'auto' : 'none',
+        }}
+      >
+        <input
+          aria-label="Seek video"
+          type="range"
+          min={0}
+          max={100}
+          step={0.1}
+          value={progress}
+          onChange={(event) => seekToPercent(Number(event.target.value))}
+          style={{
+            width: '100%',
+            accentColor: '#d62828',
+            cursor: 'pointer',
+            minHeight: 24,
+          }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.8rem',
+            flexWrap: 'wrap',
+            marginTop: '0.8rem',
+            color: '#fff',
+          }}
+        >
+          <button type="button" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={togglePlayback} style={controlButtonStyle}>
+            {isPlaying ? '❚❚' : '▶'}
+          </button>
+
+          <button type="button" aria-label={isMuted ? 'Unmute video' : 'Mute video'} onClick={toggleMute} style={controlButtonStyle}>
+            {isMuted || volume === 0 ? '🔇' : '🔊'}
+          </button>
+
+          <input
+            aria-label="Volume"
+            type="range"
+            min={0}
+            max={100}
+            value={isMuted ? 0 : volume}
+            onChange={(event) => updateVolume(Number(event.target.value))}
+            style={{ width: 96, minHeight: 24, accentColor: '#fff' }}
+          />
+
+          <span style={{ minWidth: 92, fontSize: '0.88rem', color: 'rgba(255,255,255,0.78)', fontVariantNumeric: 'tabular-nums' }}>
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </span>
+
+          <select
+            aria-label="Playback speed"
+            defaultValue="1"
+            onChange={(event) => playerRef.current?.setPlaybackRate(Number(event.target.value))}
+            style={{
+              minHeight: 44,
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.08)',
+              color: '#fff',
+              padding: '0 0.7rem',
+            }}
+          >
+            <option value="0.75">0.75x</option>
+            <option value="1">1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+
+          <button type="button" aria-label="Toggle fullscreen" onClick={toggleFullscreen} style={{ ...controlButtonStyle, marginLeft: 'auto' }}>
+            ⛶
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const centerOverlayStyle = {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(0,0,0,0.35)',
+} satisfies CSSProperties
+
+const roundButtonStyle = {
+  border: 'none',
+  borderRadius: '50%',
+  minWidth: 44,
+  minHeight: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  boxShadow: '0 18px 42px rgba(0,0,0,0.35)',
+} satisfies CSSProperties
+
+const controlButtonStyle = {
+  ...roundButtonStyle,
+  width: 44,
+  height: 44,
+  background: 'rgba(255,255,255,0.1)',
+  color: '#fff',
+  border: '1px solid rgba(255,255,255,0.14)',
+  fontSize: '1rem',
+} satisfies CSSProperties

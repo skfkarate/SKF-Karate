@@ -13,7 +13,7 @@ export default function NotFound() {
         </h1>
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Athlete Not Found</h2>
         <p className="text-gray-400 mb-10 text-lg">
-          We couldn't find a karate profile matching that registration number. Please check the number and try again.
+          We couldn&apos;t find a karate profile matching that registration number. Please check the number and try again.
         </p>
 
         <Link

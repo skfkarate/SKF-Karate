@@ -7,6 +7,7 @@ import {
   getBranchBySlugsLive,
   getCityBySlugLive,
 } from '@/lib/server/repositories/classes-live'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 import BranchDetailClient from './BranchDetailClient'
 // FIX: was importing ../../classes.css but BranchDetailClient uses obs-* classes
 // that are defined in obsidian.css — corrected import below.
@@ -21,10 +22,28 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
       getBranchBySlugsLive(citySlug, branchSlug),
     ])
     if (!city || !branch) return {}
+    const canonicalUrl = absoluteSiteUrl(`/classes/${city.slug}/${branch.slug}`)
+    const imageUrl = absoluteMediaUrl(branch.photos[0] || undefined)
 
     return {
         title: `Karate Classes in ${branch.name}, ${city.name}`,
         description: `SKF Karate ${branch.name} branch in ${city.name}. ${branch.sensei} leads classes on ${branch.classDays.length} days/week. Book a free trial class.`,
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            title: `Karate Classes in ${branch.name}, ${city.name}`,
+            description: `SKF Karate ${branch.name} branch in ${city.name}. Book a free trial class.`,
+            url: canonicalUrl,
+            type: 'website',
+            images: [{ url: imageUrl, width: 1200, height: 630, alt: `SKF Karate ${branch.name} branch` }],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `Karate Classes in ${branch.name}, ${city.name}`,
+            description: `Book a free trial class at SKF Karate ${branch.name}.`,
+            images: [imageUrl],
+        },
     }
 }
 

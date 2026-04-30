@@ -5,6 +5,7 @@ export function CertificatePDF({ data }: { data: CertificateData }) {
   return (
     <Document>
       <Page size={[2480, 1754]} orientation="landscape" style={{ position: 'relative' }}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image does not support alt text. */}
         <Image src={data.templateImageUrl} style={{ position: 'absolute', top: 0, left: 0, width: 2480, height: 1754 }} />
         {data.fields.map((field) => (
           <Text key={field.id} style={{

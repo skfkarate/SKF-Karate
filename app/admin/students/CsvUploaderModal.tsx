@@ -1,12 +1,35 @@
 'use client'
 
 import { useState } from 'react'
+import type { z } from 'zod'
 import Papa from 'papaparse'
 import { createStudentSchema } from '@/lib/validators'
 import { FaUpload, FaTimes, FaCheckCircle, FaExclamationCircle, FaSpinner } from 'react-icons/fa'
 
+type CsvStudentInput = z.infer<typeof createStudentSchema>
+
+type CsvSourceRow = Record<string, string | undefined>
+
+type CsvPreviewRow = {
+    original: {
+        name: string | undefined
+        dob: string | undefined
+        branch: string | undefined
+        batch: string | undefined
+        belt: string | undefined
+        parentName: string | undefined
+        phone: string | undefined
+        monthlyFee: number
+        photoConsent: boolean
+        enrolledDate: string
+    }
+    isValid: boolean
+    data: CsvStudentInput | null
+    error: string | null
+}
+
 export default function CsvUploaderModal({ isOpen, onClose, onComplete }: { isOpen: boolean, onClose: () => void, onComplete: () => void }) {
-    const [rows, setRows] = useState<any[]>([])
+    const [rows, setRows] = useState<CsvPreviewRow[]>([])
     const [status, setStatus] = useState<'idle' | 'preview' | 'importing' | 'complete'>('idle')
     const [progress, setProgress] = useState(0)
     const [results, setResults] = useState({ success: 0, failed: 0, failedList: [] as string[] })
@@ -17,11 +40,11 @@ export default function CsvUploaderModal({ isOpen, onClose, onComplete }: { isOp
         const file = e.target.files?.[0]
         if (!file) return
 
-        Papa.parse(file, {
+        Papa.parse<CsvSourceRow>(file, {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const parsed = results.data.map((row: any) => {
+                const parsed = results.data.map((row) => {
                     const candidate = {
                         name: row.name,
                         dob: row.dob,
@@ -78,7 +101,7 @@ export default function CsvUploaderModal({ isOpen, onClose, onComplete }: { isOp
                         failCount++
                         failures.push(r.data!.name + ' (API Error)')
                     }
-                } catch (e) {
+                } catch {
                     failCount++
                     failures.push(r.data!.name + ' (Network Error)')
                 }

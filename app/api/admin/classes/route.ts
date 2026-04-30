@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import {
   createBranchLive,
   createCityLive,
@@ -16,29 +14,24 @@ import {
   updateSchoolLive,
 } from '@/lib/server/repositories/classes-live'
 import { revalidateClassesSitePaths } from '@/lib/server/revalidation'
+import { adminMutableContentBodySchema } from '@/src/server/api/validators/admin-general.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET() {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const cities = await getAllCitiesLive()
     return NextResponse.json({ cities })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to fetch classes.')
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await readJsonBody(request)
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: adminMutableContentBodySchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body }) => {
     const entity = String(body?.entity || '').trim().toLowerCase()
     const operation = String(body?.operation || '').trim().toLowerCase()
     const payload = body?.payload || {}
@@ -77,7 +70,7 @@ export async function POST(request: Request) {
 
       if (operation === 'create') {
         const created = await createBranchLive(payload)
-        citySlugForRevalidation = payload?.city || citySlugForRevalidation
+        citySlugForRevalidation = String(payload?.city || citySlugForRevalidation)
         branchSlugForRevalidation = created?.slug || branchSlugForRevalidation
       } else if (operation === 'update') {
         const currentCitySlug = String(body?.citySlug || '').trim()
@@ -111,7 +104,7 @@ export async function POST(request: Request) {
 
       if (operation === 'create') {
         const created = await createSchoolLive(payload)
-        citySlugForRevalidation = payload?.city || citySlugForRevalidation
+        citySlugForRevalidation = String(payload?.city || citySlugForRevalidation)
         void created
       } else if (operation === 'update') {
         const updated = await updateSchoolLive(targetId, payload)
@@ -144,7 +137,5 @@ export async function POST(request: Request) {
 
     const cities = await getAllCitiesLive()
     return NextResponse.json({ success: true, cities })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to update classes.')
   }
-}
+)

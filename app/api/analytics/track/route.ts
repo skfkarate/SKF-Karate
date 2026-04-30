@@ -6,6 +6,8 @@ import {
   recordSiteAnalyticsEvent,
   SITE_ANALYTICS_EVENT_TYPES,
 } from '@/lib/server/site-analytics'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
 const trackAnalyticsSchema = z.object({
   eventType: z.enum(SITE_ANALYTICS_EVENT_TYPES),
@@ -18,11 +20,13 @@ const trackAnalyticsSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
-export async function POST(request: Request) {
+export const POST = withRoute(
+  {
+    bodySchema: trackAnalyticsSchema,
+    rateLimit: { tier: 'public' },
+  },
+  async ({ request, body: payload, requestId }) => {
   try {
-    const body = await request.json()
-    const payload = trackAnalyticsSchema.parse(body)
-
     const result = await recordSiteAnalyticsEvent({
       ...payload,
       userAgent: request.headers.get('user-agent'),
@@ -31,14 +35,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, recorded: result.ok })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid analytics payload.', details: error.issues },
-        { status: 400 }
-      )
-    }
-
-    console.error('[analytics/track] Unexpected error:', error)
+    logger.error('analytics.track.failed', { requestId, error })
     return NextResponse.json({ success: true, recorded: false })
   }
-}
+  }
+)

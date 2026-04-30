@@ -25,11 +25,17 @@ jobs:
       - name: TypeScript check
         run: npm run type-check
 
-      - name: Backend lint
-        run: npm run lint:backend
+      - name: Environment contract
+        run: npm run check:env
+
+      - name: Full lint
+        run: npm run lint
 
       - name: Unit tests
         run: npm run test:unit
+
+      - name: Security audit
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Static asset audit
         run: npm run audit:assets:ci
@@ -39,3 +45,12 @@ jobs:
 
       - name: Production build
         run: npm run build:ci
+        env:
+          JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
+          NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
+
+      - name: E2E tests
+        run: npm run test:e2e
+        env:
+          JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
+          NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value

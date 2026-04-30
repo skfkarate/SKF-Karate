@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server'
 
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { getWebsiteAnalyticsSummary } from '@/lib/server/site-analytics'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
+
+type ProgramRef = {
+  name?: string
+  type?: string
+}
+
+function getProgramRef(value: unknown): ProgramRef {
+  const program = Array.isArray(value) ? value[0] : value
+  if (!program || typeof program !== 'object') return {}
+  return program as ProgramRef
+}
 
 async function getCertificateAnalyticsSummary() {
   if (!isSupabaseReady()) {
@@ -115,9 +127,10 @@ async function getCertificateAnalyticsSummary() {
       if (!programId) continue
 
       if (!programMap[programId]) {
+        const program = getProgramRef(enrollment.programs)
         programMap[programId] = {
-          name: (enrollment.programs as any)?.name || 'Unknown',
-          type: (enrollment.programs as any)?.type || 'training',
+          name: program.name || 'Unknown',
+          type: program.type || 'training',
           enrolled: 0,
           completed: 0,
           revoked: 0,
@@ -156,7 +169,7 @@ async function getCertificateAnalyticsSummary() {
       },
     }
   } catch (error) {
-    console.error('[admin/analytics] Failed to load certificate analytics:', error)
+    logger.error('admin.analytics.certificates_failed', { error })
     return {
       data: null,
       warning: 'Certificate analytics could not be loaded.',
@@ -164,13 +177,9 @@ async function getCertificateAnalyticsSummary() {
   }
 }
 
-export async function GET() {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const [website, certificates] = await Promise.all([
       getWebsiteAnalyticsSummary(),
       getCertificateAnalyticsSummary(),
@@ -183,8 +192,5 @@ export async function GET() {
       },
       warnings: [website.warning, certificates.warning].filter(Boolean),
     })
-  } catch (error) {
-    console.error('[admin/analytics] Unexpected error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)

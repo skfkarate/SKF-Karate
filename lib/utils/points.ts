@@ -149,6 +149,7 @@ export function calculateTournamentPoints(type, level) {
 }
 
 export function calculateTimeDecayFactor(_resultDate?: unknown, _currentDate: Date = new Date()) {
+  void _currentDate
   return 1
 }
 

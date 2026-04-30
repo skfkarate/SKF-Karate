@@ -1,52 +1,78 @@
 import { getAllPortalVideosAdmin } from '@/lib/server/repositories/portal-content-live'
+import { getYouTubeThumbnailUrl } from '@/lib/youtube'
+import { videoIdQuerySchema } from '@/src/server/api/validators/admin-general.validator'
+import { NotFoundError, ValidationError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-function extractYouTubeVideoId(value: string) {
-  const text = String(value || '').trim()
-  if (!text) return null
+const MAX_THUMBNAIL_BYTES = 2 * 1024 * 1024
 
-  const watchMatch = text.match(/[?&]v=([^&]+)/i)
-  if (watchMatch) return watchMatch[1]
+function isAllowedThumbnailUrl(value: string) {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'https:') return false
 
-  const shortMatch = text.match(/youtu\.be\/([^?&/]+)/i)
-  if (shortMatch) return shortMatch[1]
+    const allowedHosts = new Set([
+      'img.youtube.com',
+      'i.ytimg.com',
+      'vumbnail.com',
+    ])
 
-  const embedMatch = text.match(/youtube\.com\/embed\/([^?&/]+)/i)
-  if (embedMatch) return embedMatch[1]
+    const mediaCdnOrigin = process.env.NEXT_PUBLIC_MEDIA_CDN_ORIGIN
+    if (mediaCdnOrigin) {
+      try {
+        allowedHosts.add(new URL(mediaCdnOrigin).hostname)
+      } catch {
+        // Ignore invalid optional config and keep the stricter allow-list.
+      }
+    }
 
-  return null
+    return allowedHosts.has(parsed.hostname)
+  } catch {
+    return false
+  }
 }
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const videoId = searchParams.get('videoId')
-    if (!videoId) return new Response('Missing videoId', { status: 400 })
-    
-    const video = (await getAllPortalVideosAdmin()).find((entry) => entry.id === videoId)
-    if (!video) return new Response('Video not found', { status: 404 })
+export const GET = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    querySchema: videoIdQuerySchema,
+    rateLimit: { tier: 'authed' },
+    cacheControl: 'public, max-age=86400',
+  },
+  async ({ query }) => {
+    const video = (await getAllPortalVideosAdmin()).find((entry) => entry.id === query.videoId)
+    if (!video) throw new NotFoundError('Video')
 
-    const derivedThumbnailUrl =
-      video.thumbnailUrl ||
-      (() => {
-        const youtubeId = extractYouTubeVideoId(video.sourceUrl) || extractYouTubeVideoId(video.playbackUrl)
-        return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : ''
-      })()
+    const derivedThumbnailUrl = getYouTubeThumbnailUrl(video.youtubeId, 'hqdefault')
 
-    if (!derivedThumbnailUrl) return new Response('Thumbnail not available', { status: 404 })
+    if (!derivedThumbnailUrl) throw new NotFoundError('Thumbnail')
+    if (!isAllowedThumbnailUrl(derivedThumbnailUrl)) {
+      throw new ValidationError({ thumbnailUrl: ['Thumbnail host not allowed.'] })
+    }
 
-    const response = await fetch(derivedThumbnailUrl)
+    const response = await fetch(derivedThumbnailUrl, {
+      signal: AbortSignal.timeout(5000),
+    })
     
     if (!response.ok) {
-        return new Response('Failed to fetch thumbnail', { status: response.status })
+      return new Response('Failed to fetch thumbnail', { status: response.status })
+    }
+
+    const contentLength = Number(response.headers.get('content-length') || '0')
+    if (contentLength > MAX_THUMBNAIL_BYTES) {
+      throw new ValidationError({ thumbnailUrl: ['Thumbnail is too large.'] })
     }
     
     const buffer = await response.arrayBuffer()
+    if (buffer.byteLength > MAX_THUMBNAIL_BYTES) {
+      throw new ValidationError({ thumbnailUrl: ['Thumbnail is too large.'] })
+    }
     
     return new Response(buffer, {
-      headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400' }
+      headers: {
+        'Content-Type': response.headers.get('content-type') || 'image/jpeg',
+        'Cache-Control': 'public, max-age=86400',
+      }
     })
-  } catch (error) {
-    console.error('Thumbnail proxy error:', error)
-    return new Response('Internal proxy error', { status: 500 })
   }
-}
+)

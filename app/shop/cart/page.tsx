@@ -13,13 +13,21 @@ import {
 import { ArrowLeft, Trash2, Truck, Tag, ShieldCheck, UserCircle, LogIn, Award, MapPin } from 'lucide-react'
 import '../shop.css'
 
+type AthleteProfile = {
+    name: string
+    phone: string
+    branch: string
+    skfId?: string
+    belt?: string
+}
+
 export default function CartPage() {
     const { cart, updateQuantity, removeFromCart, cartTotalPrice } = useCart()
     const router = useRouter()
     
     // Auth State — includes full athlete profile
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-    const [athleteProfile, setAthleteProfile] = useState<any>(null)
+    const [athleteProfile, setAthleteProfile] = useState<AthleteProfile | null>(null)
     
     // Loyalty Points State
     const [pointsBalance, setPointsBalance] = useState<number | null>(null)
@@ -31,6 +39,7 @@ export default function CartPage() {
     const [promoError, setPromoError] = useState('')
     
     useEffect(() => {
+        const id = window.setTimeout(() => {
         // Authenticate User & fetch full profile
         fetch('/api/auth/me')
             .then(res => res.json())
@@ -57,6 +66,8 @@ export default function CartPage() {
                 setPromoInput(savedPromo)
             }
         }
+        }, 0)
+        return () => window.clearTimeout(id)
     }, [])
 
     if (cart.length === 0) {
@@ -201,7 +212,7 @@ export default function CartPage() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', color: amountToFreeShipping === 0 ? '#4caf50' : '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.8rem' }}>
                                     <Truck size={18} />
                                     {amountToFreeShipping === 0 
-                                        ? <span>You've unlocked Free Premium Shipping!</span> 
+                                        ? <span>You&apos;ve unlocked Free Premium Shipping!</span> 
                                         : <span>Add ₹{amountToFreeShipping.toLocaleString()} more for Free Shipping</span>
                                     }
                                 </div>

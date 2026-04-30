@@ -76,7 +76,10 @@ describe('/api/admin/events/[id]/publish-results', () => {
     )
 
     expect(response.status).toBe(404)
-    await expect(response.json()).resolves.toEqual({ error: 'Event not found' })
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: { code: 'NOT_FOUND', message: 'Event not found' },
+    })
   })
 
   it('refuses to publish when no results have been recorded', async () => {
@@ -94,7 +97,14 @@ describe('/api/admin/events/[id]/publish-results', () => {
     )
 
     expect(response.status).toBe(400)
-    await expect(response.json()).resolves.toEqual({ error: 'No results recorded to publish.' })
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: { results: ['No results recorded to publish.'] },
+      },
+    })
   })
 
   it('publishes standalone event results to athlete profiles and revalidates event paths', async () => {

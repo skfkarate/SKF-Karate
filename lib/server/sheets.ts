@@ -4,6 +4,37 @@ import type {
   Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement, Belt
 } from '@/types'
 
+type SheetCell = string | number | boolean | null | undefined
+type SheetRow = SheetCell[]
+type CachedAsyncFn<Args extends unknown[], Result> = (...args: Args) => Promise<Result>
+
+type LiveAthlete = {
+  registrationNumber?: string
+  firstName?: string
+  lastName?: string
+  branchName?: string
+  batch?: string
+  currentBelt?: string
+  parentName?: string
+  phone?: string
+  status?: string
+  joinDate?: string
+  monthlyFee?: number | string
+  photoConsent?: boolean
+  dateOfBirth?: string
+}
+
+type EnrollmentSummary = {
+  id: string
+  type: 'enrollment' | 'certificate'
+  title: string
+  date: string
+}
+
+type AdminVideoRow = VideoRow & {
+  youtubeUrl: string
+}
+
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -13,8 +44,11 @@ const auth = new google.auth.GoogleAuth({
 })
 
 async function getSheets() {
-  const client = await auth.getClient()
-  return google.sheets({ version: 'v4', auth: client as any })
+  return google.sheets({ version: 'v4', auth })
+}
+
+function cellText(value: SheetCell): string {
+  return value === null || value === undefined ? '' : String(value)
 }
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID!
@@ -48,12 +82,12 @@ export async function getAllSkfIds(): Promise<string[]> {
 }
 
 // Helper for caching reads
-const cacheRead = <T extends (...args: any[]) => Promise<any>>(
-  fn: T,
+const cacheRead = <Args extends unknown[], Result>(
+  fn: CachedAsyncFn<Args, Result>,
   keyParts: string[],
   revalidate: number
 ) => {
-  return unstable_cache(fn, keyParts, { revalidate }) as T
+  return unstable_cache(fn, keyParts, { revalidate }) as CachedAsyncFn<Args, Result>
 }
 
 // ── STUDENTS ──
@@ -83,7 +117,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
       } as Student
     }
   } catch (error) {
-    console.error('getStudentBySkfId Sheets fetch failed, falling back to mock DB:', (error as any)?.message)
+    console.error('getStudentBySkfId Sheets fetch failed, falling back to mock DB:', error instanceof Error ? error.message : error)
   }
 
   // Fallback to local mock athletes for development if Sheet fails or is empty
@@ -134,13 +168,13 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
   } catch (error) {
     console.error('getAllStudents error:', error)
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
-    const athletes = await getAllAthletesLive()
-    return athletes.map((athlete: any) => ({
+    const athletes = (await getAllAthletesLive()) as LiveAthlete[]
+    return athletes.map((athlete) => ({
       skfId: athlete.registrationNumber,
       name: `${athlete.firstName} ${athlete.lastName}`.trim(),
       branch: athlete.branchName || 'M P Sports Club',
       batch: athlete.batch || 'Evening',
-      belt: athlete.currentBelt || 'white',
+      belt: (athlete.currentBelt || 'white') as Belt,
       parentName: athlete.parentName || '',
       phone: athlete.phone || '',
       status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
@@ -175,15 +209,15 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
   } catch (error) {
     console.error('getStudentsByBranch error:', error)
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
-    const athletes = await getAllAthletesLive()
+    const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes
-      .filter((athlete: any) => athlete.branchName === branch)
-      .map((athlete: any) => ({
+      .filter((athlete) => athlete.branchName === branch)
+      .map((athlete) => ({
         skfId: athlete.registrationNumber,
         name: `${athlete.firstName} ${athlete.lastName}`.trim(),
         branch: athlete.branchName || '',
         batch: athlete.batch || 'Evening',
-        belt: athlete.currentBelt || 'white',
+        belt: (athlete.currentBelt || 'white') as Belt,
         parentName: athlete.parentName || '',
         phone: athlete.phone || '',
         status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
@@ -220,15 +254,15 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
   } catch (error) {
     console.error('getStudentsByPhone error:', error)
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
-    const athletes = await getAllAthletesLive()
+    const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes
-      .filter((athlete: any) => athlete.phone === phone)
-      .map((athlete: any) => ({
+      .filter((athlete) => athlete.phone === phone)
+      .map((athlete) => ({
         skfId: athlete.registrationNumber,
         name: `${athlete.firstName} ${athlete.lastName}`.trim(),
         branch: athlete.branchName || '',
         batch: athlete.batch || 'Evening',
-        belt: athlete.currentBelt || 'white',
+        belt: (athlete.currentBelt || 'white') as Belt,
         parentName: athlete.parentName || '',
         phone: athlete.phone || '',
         status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
@@ -265,15 +299,142 @@ export const getFeesBySkfId = cacheRead(async (skfId: string): Promise<FeeRow[]>
   }
 }, ['getFeesBySkfId'], 30)
 
+function mapFeeRow(row: SheetRow): FeeRow {
+  return {
+    skfId: cellText(row[0]),
+    month: cellText(row[1]),
+    year: Number(row[2]),
+    amount: Number(row[3]),
+    status: row[4] as FeeRow['status'],
+    paidDate: cellText(row[5]),
+    receiptId: cellText(row[6]),
+    paymentMethod: cellText(row[7])
+  }
+}
+
+async function getFeeRowsWithSheetIndex(): Promise<Array<{ row: SheetRow; sheetRow: number; fee: FeeRow }>> {
+  const sheets = await getSheets()
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Fees!A:I' })
+  const rows = res.data.values || []
+  return rows.slice(1).map((row, index) => ({
+    row,
+    sheetRow: index + 2,
+    fee: mapFeeRow(row)
+  }))
+}
+
+export async function getFeesBySkfIdLive(skfId: string, year?: number): Promise<FeeRow[]> {
+  const fees = await getFeesBySkfId(skfId)
+  return Number.isFinite(Number(year))
+    ? fees.filter((row) => row.year === Number(year))
+    : fees
+}
+
+export async function getAllFeesLive(year?: number): Promise<FeeRow[]> {
+  try {
+    const rows = await getFeeRowsWithSheetIndex()
+    return rows
+      .map((entry) => entry.fee)
+      .filter((row) => (Number.isFinite(Number(year)) ? row.year === Number(year) : true))
+  } catch (error) {
+    console.error('getAllFeesLive error:', error)
+    return []
+  }
+}
+
+export async function findFeeByReceiptIdLive(receiptId: string): Promise<FeeRow | null> {
+  try {
+    const normalizedReceiptId = String(receiptId || '').trim()
+    if (!normalizedReceiptId) return null
+
+    const rows = await getFeeRowsWithSheetIndex()
+    return rows.find((entry) => String(entry.fee.receiptId || '').trim() === normalizedReceiptId)?.fee || null
+  } catch (error) {
+    console.error('findFeeByReceiptIdLive error:', error)
+    return null
+  }
+}
+
+export async function ensureFeeRowsForStudent(
+  skfId: string,
+  options: {
+    monthlyFee: number
+    enrolledDate?: string
+    year: number
+    overwriteAmount?: boolean
+  }
+): Promise<{ created: number; updated: number }> {
+  try {
+    const normalizedSkfId = String(skfId || '').trim().toUpperCase()
+    const year = Number(options.year || new Date().getFullYear())
+    if (!normalizedSkfId || !year) return { created: 0, updated: 0 }
+
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+    const enrolledAt = options.enrolledDate ? new Date(options.enrolledDate) : null
+    const startMonth =
+      enrolledAt && Number.isFinite(enrolledAt.getTime()) && enrolledAt.getFullYear() === year
+        ? enrolledAt.getMonth()
+        : 0
+    const existingRows = await getFeeRowsWithSheetIndex()
+    const existingByMonth = new Map(
+      existingRows
+        .filter((entry) => entry.fee.skfId === normalizedSkfId && entry.fee.year === year)
+        .map((entry) => [entry.fee.month, entry])
+    )
+
+    let created = 0
+    let updated = 0
+    const sheets = await getSheets()
+
+    for (let index = startMonth; index < months.length; index++) {
+      const month = months[index]
+      const existing = existingByMonth.get(month)
+
+      if (!existing) {
+        await sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: 'Fees!A:I',
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {
+            values: [[normalizedSkfId, month, year, options.monthlyFee || 0, 'due', '', '', '', new Date().toISOString()]]
+          }
+        })
+        created++
+        continue
+      }
+
+      if (options.overwriteAmount && Number(existing.fee.amount || 0) !== Number(options.monthlyFee || 0)) {
+        const nextRow = [...existing.row]
+        nextRow[3] = options.monthlyFee || 0
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `Fees!A${existing.sheetRow}:I${existing.sheetRow}`,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: { values: [nextRow] }
+        })
+        updated++
+      }
+    }
+
+    return { created, updated }
+  } catch (error) {
+    console.error('ensureFeeRowsForStudent error:', error)
+    return { created: 0, updated: 0 }
+  }
+}
+
 /**
  * Writes to Fees tab — finds row by SKF_ID + Month, updates Status to 'paid'.
  */
-export async function markFeeAsPaid(skfId: string, month: string, receiptId: string, paymentId: string): Promise<boolean> {
+export async function markFeeAsPaid(skfId: string, month: string, receiptId: string, paymentId: string, year?: number): Promise<boolean> {
   try {
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Fees!A:I' })
     const rows = res.data.values || []
-    const rowIndex = rows.findIndex(r => r[0] === skfId && r[1] === month)
+    const rowIndex = rows.findIndex(r => r[0] === skfId && r[1] === month && (!year || Number(r[2]) === Number(year)))
     if (rowIndex === -1) return false
     
     // Row index for updates is 1-based, rowIndex is 0-based.
@@ -297,6 +458,42 @@ export async function markFeeAsPaid(skfId: string, month: string, receiptId: str
   }
 }
 
+export async function markFeeStatus(
+  skfId: string,
+  month: string,
+  year: number,
+  updates: Partial<Pick<FeeRow, 'status' | 'paidDate' | 'receiptId' | 'paymentMethod'>>
+): Promise<boolean> {
+  try {
+    const rows = await getFeeRowsWithSheetIndex()
+    const entry = rows.find((candidate) =>
+      candidate.fee.skfId === skfId &&
+      candidate.fee.month === month &&
+      candidate.fee.year === Number(year)
+    )
+    if (!entry) return false
+
+    const nextRow = [...entry.row]
+    if (updates.status !== undefined) nextRow[4] = updates.status
+    if (updates.paidDate !== undefined) nextRow[5] = updates.paidDate
+    if (updates.receiptId !== undefined) nextRow[6] = updates.receiptId
+    if (updates.paymentMethod !== undefined) nextRow[7] = updates.paymentMethod
+
+    const sheets = await getSheets()
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `Fees!A${entry.sheetRow}:I${entry.sheetRow}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [nextRow] }
+    })
+
+    return true
+  } catch (error) {
+    console.error('markFeeStatus error:', error)
+    return false
+  }
+}
+
 // ── VIDEOS ──
 /**
  * Reads "Videos" tab, filters by Branch + Batch. Never includes YouTube_URL.
@@ -315,7 +512,7 @@ export const getVideosByBranchAndBatch = cacheRead(async (branch: string, batch:
         branch: row[3],
         batch: row[4],
         section: row[5],
-        beltLevel: row[6] as any,
+        beltLevel: row[6] as Belt,
         unlockDate: row[7],
         locked: row[8] === 'TRUE',
         durationMin: Number(row[9])
@@ -392,17 +589,17 @@ export const getTournamentsBySkfId = cacheRead(async (skfId: string): Promise<To
 }, ['getTournamentsBySkfId'], 300)
 
 // ── ENROLLMENTS (CERTIFICATES) ──
-export const getEnrollmentsBySkfId = cacheRead(async (skfId: string): Promise<any[]> => {
+export const getEnrollmentsBySkfId = cacheRead(async (skfId: string): Promise<EnrollmentSummary[]> => {
   try {
     const sheets = await getSheets()
     // Simulated read from a hypothetical Enrollments sheet
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Summer Camp Enrollments!A:K' }).catch(() => ({ data: { values: [] } }))
     const rows = res.data.values || []
-    const mapped = rows.slice(1).filter(r => r[0] === skfId).map(row => ({
-      id: row[0],
+    const mapped: EnrollmentSummary[] = rows.slice(1).filter(r => r[0] === skfId).map(row => ({
+      id: String(row[0]),
       type: 'enrollment',
       title: 'Summer Camp 2026',
-      date: row[2] || new Date().toISOString()
+      date: String(row[2] || new Date().toISOString())
     }))
     // Return mock cert if empty
     return mapped.length > 0 ? mapped : [
@@ -514,7 +711,7 @@ export async function deactivateStudent(skfId: string): Promise<boolean> {
 }
 
 // ── VIDEOS (ADMIN) ──
-export async function getVideosByBranch(branch: string): Promise<VideoRow[]> {
+export async function getVideosByBranch(branch: string): Promise<AdminVideoRow[]> {
   try {
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Videos!A:K' })
@@ -531,7 +728,7 @@ export async function getVideosByBranch(branch: string): Promise<VideoRow[]> {
         locked: row[8] === 'TRUE',
         durationMin: Number(row[9]),
         youtubeUrl: row[2] // Admin specific
-    } as any))
+    }))
   } catch (error) {
     console.error('getVideosByBranch error:', error)
     return []
@@ -665,7 +862,7 @@ export const getTechniqueVideos = cacheRead(async (beltLevel?: string, category?
 }, ['getTechniqueVideos'], 3600)
 
 // ── EXTERNAL FORMS ──
-export async function submitContactForm(row: any[]): Promise<boolean> {
+export async function submitContactForm(row: SheetRow): Promise<boolean> {
   try {
     const sheets = await getSheets()
     const sheetId = process.env.GOOGLE_SHEET_ID || SPREADSHEET_ID
@@ -729,7 +926,7 @@ export async function submitLead(row: string[]): Promise<boolean> {
   }
 }
 
-export async function submitSummerCampEnrollment(row: any[]): Promise<boolean> {
+export async function submitSummerCampEnrollment(row: SheetRow): Promise<boolean> {
   try {
     const sheets = await getSheets()
     const sheetId = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP || SPREADSHEET_ID
@@ -754,7 +951,7 @@ export const getSummerCampByBranch = cacheRead(async (branch: string) => {
     const rows = res.data.values || []
     
     // Assumption: [Branch, Registration_Open, Month1_Price, Month2_Price, FullCamp_Price, Available_Slots]
-    const row = rows.slice(1).find((r: any[]) => r[0] === branch)
+    const row = rows.slice(1).find((r: SheetRow) => r[0] === branch)
     if (!row) {
       // Mock Fallback
       return {

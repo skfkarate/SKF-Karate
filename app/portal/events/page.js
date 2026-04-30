@@ -108,9 +108,6 @@ export default function PortalEventsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
                 {upcoming.map((event, i) => {
                   const badge = getTypeBadge(event.type)
-                  const slug = event.slug || event.id
-                  const href = event.type === 'tournament' ? `/results/${slug}` : `/events/${slug}`
-
                   return (
                     <motion.div
                       key={event.id}
@@ -186,8 +183,6 @@ export default function PortalEventsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
                 {past.slice(0, 6).map((event, i) => {
                   const badge = getTypeBadge(event.type)
-                  const slug = event.slug || event.id
-                  const href = event.type === 'tournament' ? `/results/${slug}` : `/events/${slug}`
 
                   return (
                     <motion.div

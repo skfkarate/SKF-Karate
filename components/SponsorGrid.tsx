@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { getSponsors, Sponsor } from '@/lib/server/sheets'
+import { getSponsors } from '@/lib/server/sheets'
 
 type Props = {
     tierFilter?: 'Gold' | 'Silver' | 'Bronze'

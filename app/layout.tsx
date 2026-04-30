@@ -9,11 +9,15 @@ import './_components/pages/home/HomeBookTrialCTA.css'
 import './_components/pages/home/HomeContactPopup.css'
 import './_components/pages/home/HomeSenseisTeaser.css'
 import './_components/pages/home/HomeStatsCounter.css'
+import { headers } from 'next/headers'
+import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
 import SessionProvider from '@/app/_components/providers/SessionProvider'
 import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import { absoluteMediaUrl, absoluteSiteUrl, SITE_CONFIG } from '@/data/constants/siteConfig'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,26 +33,31 @@ const outfit = Outfit({
   variable: '--font-heading',
 })
 
-const siteUrl = 'https://skfkarate.org'
-
-import { Metadata } from 'next'
-
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'),
+  metadataBase: new URL(SITE_CONFIG.URL),
   manifest: '/manifest.json',
   title: { default: 'SKF Karate — Karnataka', template: '%s | SKF Karate' },
   description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Bangalore, Kunigal, Tumkur, and Udupi. WKF-affiliated. All ages welcome.',
   keywords: ['SKF karate', 'karate Karnataka', 'karate Bangalore', 'WKF karate', 'sportkarate federation'],
+  alternates: {
+    canonical: absoluteSiteUrl('/'),
+  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
     title: 'SKF Karate — Elite Martial Arts in Karnataka',
     description: 'Join the fastest-growing WKF-affiliated Karate academy in Karnataka. Train with champions.',
-    url: 'https://skfkarate.com',
+    url: absoluteSiteUrl('/'),
     siteName: 'SKF Karate',
-    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'SKF Karate Karnataka' }]
+    images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate students training in Karnataka' }],
   },
-  twitter: { card: 'summary_large_image', site: '@skfkarate' },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@skfkarate',
+    title: 'SKF Karate — Elite Martial Arts in Karnataka',
+    description: 'WKF-affiliated karate classes for kids and adults across Karnataka.',
+    images: [absoluteMediaUrl()],
+  },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || '' },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } }
 }
@@ -57,7 +66,10 @@ export const metadata: Metadata = {
 import { Providers } from '@/app/providers'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import CookieConsent from '@/components/CookieConsent'
-export default function RootLayout({ children }) {
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') || undefined
+
   return (
     <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>
       <body>
@@ -82,7 +94,7 @@ export default function RootLayout({ children }) {
             <CookieConsent />
           </SessionProvider>
         </Providers>
-        <AnalyticsLoader />
+        <AnalyticsLoader nonce={nonce} />
       </body>
     </html>
   )

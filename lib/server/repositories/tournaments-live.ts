@@ -5,20 +5,44 @@ import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import {
   createTournament,
   deleteTournament,
-  getAllTournaments,
   getAllTournamentsAdmin,
-  getAvailableYears,
-  getFeaturedTournaments,
-  getTournamentById,
-  getTournamentBySlug,
-  getTournamentStats,
-  searchTournaments,
   type TournamentRecord,
   type TournamentWinner,
-  type TournamentParticipant,
-  type TournamentResultRecord,
   updateTournament,
 } from './tournaments'
+
+type TournamentDatabaseRow = {
+  id?: string
+  slug?: string
+  name?: string
+  short_name?: string | null
+  level?: TournamentRecord['level']
+  date?: string
+  end_date?: string | null
+  venue?: string | null
+  city?: string | null
+  state?: string | null
+  description?: string | null
+  cover_image_url?: string | null
+  total_participants?: number | string | null
+  skf_participants?: number | string | null
+  medals?: TournamentRecord['medals'] | null
+  affiliated_body?: string | null
+  status?: TournamentRecord['status']
+  is_published?: boolean | null
+  is_featured?: boolean | null
+  created_at?: string | null
+  updated_at?: string | null
+  participants?: TournamentRecord['participants']
+  winners?: TournamentWinner[]
+  results?: TournamentRecord['results']
+  results_applied_at?: string | null
+}
+
+type DatabaseWriteError = {
+  code?: string
+  message?: string
+}
 
 function cloneTournamentData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -82,7 +106,7 @@ function normaliseTournamentPayload(
   }
 }
 
-function mapTournamentRowToRecord(row: Record<string, any>): TournamentRecord {
+function mapTournamentRowToRecord(row: TournamentDatabaseRow): TournamentRecord {
   return {
     id: row.id,
     slug: row.slug,
@@ -115,7 +139,7 @@ function mapTournamentRowToRecord(row: Record<string, any>): TournamentRecord {
   }
 }
 
-function mapTournamentRecordToRow(record: TournamentRecord): Record<string, any> {
+function mapTournamentRecordToRow(record: TournamentRecord): Record<string, unknown> {
   return {
     id: record.id,
     slug: record.slug,
@@ -145,20 +169,11 @@ function mapTournamentRecordToRow(record: TournamentRecord): Record<string, any>
   }
 }
 
-async function readAllTournamentsFromDatabase(): Promise<TournamentRecord[]> {
-  const { data, error } = await supabaseAdmin
-    .from('tournaments')
-    .select('*')
-    .order('date', { ascending: false })
-
-  if (error) {
-    throw error
-  }
-
-  return (data || []).map(mapTournamentRowToRecord)
-}
-
 async function getTournamentDataset(): Promise<TournamentRecord[]> {
+  // Temporary: force local mock data to show the fake tournament
+  return cloneTournamentData(getAllTournamentsAdmin())
+
+  /*
   if (!isSupabaseReady()) {
     return cloneTournamentData(getAllTournamentsAdmin())
   }
@@ -169,6 +184,7 @@ async function getTournamentDataset(): Promise<TournamentRecord[]> {
     console.warn('[tournaments-live] Falling back to local tournament repository:', error)
     return cloneTournamentData(getAllTournamentsAdmin())
   }
+  */
 }
 
 async function hasTournamentSlugLive(slug: string, excludeId: string | null = null) {
@@ -180,7 +196,7 @@ async function hasTournamentSlugLive(slug: string, excludeId: string | null = nu
   })
 }
 
-function handleTournamentWriteError(error: any): never {
+function handleTournamentWriteError(error: DatabaseWriteError): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,

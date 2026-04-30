@@ -31,8 +31,8 @@ export default function NewCertificateProgram() {
       if (!res.ok) throw new Error(data.error || 'Failed to create program')
       
       router.push(`/admin/certificates/programs/${data.programId}/template-editor`)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create program')
       setLoading(false)
     }
   }

@@ -19,7 +19,48 @@ const beltOptions = BELTS.map((belt) => ({
   label: belt.label,
 }))
 
-function buildInitialResult(participant: any, type: string) {
+export type ResultEventParticipant = {
+  id: string
+  athleteId?: string
+  athleteName: string
+  registrationNumber: string
+  branchName?: string
+}
+
+export type ManagedResult = {
+  id?: string
+  participantId?: string
+  athleteId?: string
+  athleteName?: string
+  registrationNumber?: string
+  notes?: string
+  category?: string
+  ageGroup?: string
+  weightCategory?: string
+  medal?: string
+  result?: string
+  difficultyLevel?: number | string
+  wins?: number | string
+  beltAwarded?: string
+  promotion?: string
+  examiner?: string
+  doublePromotion?: boolean
+  grade?: string
+  score?: number | string
+  daysAttended?: number | string
+  specialAward?: string
+  award?: string
+}
+
+type ResultsManagerProps = {
+  eventId: string
+  participants: ResultEventParticipant[]
+  results: ManagedResult[]
+  type: string
+  senseis?: SenseiSummary[]
+}
+
+function buildInitialResult(participant: ResultEventParticipant, type: string): ManagedResult {
   const base = {
     id: `res_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     participantId: participant.id,
@@ -69,7 +110,11 @@ function buildInitialResult(participant: any, type: string) {
   }
 }
 
-function getResultForParticipant(localResults: any[], participant: any, type: string) {
+function getResultForParticipant(
+  localResults: ManagedResult[],
+  participant: ResultEventParticipant,
+  type: string
+): ManagedResult {
   const existing = localResults.find((result) => result.participantId === participant.id)
   if (!existing) return buildInitialResult(participant, type)
 
@@ -102,15 +147,9 @@ export default function ResultsManager({
   results = [],
   type,
   senseis = [],
-}: {
-  eventId: string
-  participants: any[]
-  results: any[]
-  type: string
-  senseis?: SenseiSummary[]
-}) {
+}: ResultsManagerProps) {
   const router = useRouter()
-  const [localResults, setLocalResults] = useState<any[]>(results || [])
+  const [localResults, setLocalResults] = useState<ManagedResult[]>(results || [])
   const [publishing, setPublishing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -119,7 +158,10 @@ export default function ResultsManager({
   const isAttendanceStyleEvent =
     type !== 'tournament' && type !== 'grading' && !isBeltExam
 
-  const updateResult = (participant: any, updater: (current: any) => any) => {
+  const updateResult = (
+    participant: ResultEventParticipant,
+    updater: (current: ManagedResult) => ManagedResult
+  ) => {
     setLocalResults((previous) => {
       const index = previous.findIndex((entry) => entry.participantId === participant.id)
       const current = getResultForParticipant(previous, participant, type)
@@ -135,12 +177,16 @@ export default function ResultsManager({
     })
   }
 
-  const handleResultChange = (participant: any, field: string, value: any) => {
+  const handleResultChange = <Field extends keyof ManagedResult>(
+    participant: ResultEventParticipant,
+    field: Field,
+    value: ManagedResult[Field]
+  ) => {
     updateResult(participant, (current) => {
       const next = { ...current, [field]: value }
 
       if (type === 'tournament' && field === 'medal') {
-        next.result = value || 'participation'
+        next.result = typeof value === 'string' && value ? value : 'participation'
       }
 
       if (type === 'grading' && field === 'result' && value !== 'pass') {
@@ -152,7 +198,7 @@ export default function ResultsManager({
     })
   }
 
-  const handleCheckboxChange = (participant: any, field: string, checked: boolean) => {
+  const handleCheckboxChange = (participant: ResultEventParticipant, field: 'doublePromotion', checked: boolean) => {
     handleResultChange(participant, field, checked)
   }
 

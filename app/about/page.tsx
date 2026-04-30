@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaShieldAlt, FaCertificate, FaMapMarkerAlt } from 'react-icons/fa'
 import { getExecutiveCommittee } from '@/data/seed/instructors'
+import JsonLdScript from '@/components/JsonLdScript'
 
 export const metadata: Metadata = {
     title: "About SKF Karate — Karnataka's WKF-Affiliated Academy Since 2011",
@@ -20,10 +21,7 @@ export default function AboutPage() {
 
     return (
         <div className="abt-page">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            <JsonLdScript data={jsonLd} />
             
             {/* ── AMBIENT ORBS ── */}
             <div className="abt-orb abt-orb--1" />
@@ -94,7 +92,7 @@ export default function AboutPage() {
                         
                         <div className="abt-quote">
                             <div className="abt-quote__text">
-                                "Our singular mission is to build highly resilient, confident athletes equipped completely for the real world."
+                                &quot;Our singular mission is to build highly resilient, confident athletes equipped completely for the real world.&quot;
                             </div>
                             <div className="abt-quote__author">— {founder.name}</div>
                         </div>
@@ -118,7 +116,7 @@ export default function AboutPage() {
                 <div className="abt-legacy-grid abt-legacy-grid--reverse">
                     <div className="abt-legacy-text">
                         <div className="abt-section__tag">Results</div>
-                        <h2 className="abt-section__title">The Champions' Legacy</h2>
+                        <h2 className="abt-section__title">The Champions&apos; Legacy</h2>
                         <p>
                             Over a decade of rigorous training has yielded unparalleled results cross multiple national and state platforms. Our athletes consistently break barriers and redefine combat excellence.
                         </p>
@@ -205,7 +203,7 @@ export default function AboutPage() {
                         <div className="abt-section__tag" style={{ marginBottom: '1rem' }}>Take Action</div>
                         <h3 className="abt-cta-title">Ready To Join The Legacy?</h3>
                         <p className="abt-cta-desc">
-                            Step onto the tatami. Forge unparalleled discipline, tactical mastery, and resilience with Karnataka's premier WKF academy.
+                            Step onto the tatami. Forge unparalleled discipline, tactical mastery, and resilience with Karnataka&apos;s premier WKF academy.
                         </p>
                         <Link href="/book-trial" className="abt-cta-btn">
                             <span>Book Your Free Trial</span>

@@ -1,76 +1,102 @@
 # SKF Karate Website
 
-Next.js 16 website for SKF Karate with:
-- public marketing pages
-- athlete search and profile pages
-- results and events pages
-- admin-only athlete and tournament management
-- JSON-backed local data storage for development and lightweight deployments
+Next.js App Router platform for SKF Karate, covering the public website, athlete portal, admin operations, certificates, events/results, shop stubs, and Supabase-backed operational data.
 
 ## Commands
 
 ```bash
 npm run dev
+npm run lint
+npm run type-check
+npm run test:unit
+npm run test:e2e
+npm run check:env
+npm run check:supabase
 npm run build
 npm run start
 ```
+
+`npm run build` and `npm run build:ci` both use `NODE_OPTIONS=--max-old-space-size=4096` because the production build needs a larger heap.
 
 ## Project Structure
 
 ```text
 app/
-  _components/         shared and feature UI used by routes
-  admin/               admin routes
-  api/                 route handlers
-  ...                  public app routes
+  _components/         shared and feature UI used by App Router pages
+  admin/               admin panel pages
+  api/                 Next.js route handlers
+  portal/              athlete portal pages
+  shop/                shop/catalog/checkout pages
 
+components/            shared cross-route React components
+data/                  static constants, seed data, and route constants
+database/
+  schema.sql           canonical schema snapshot
+  migrations/          ordered production migrations
 lib/
-  data/                compatibility facades for domain data access
+  admin/               admin data-shaping helpers
   server/
-    auth/              NextAuth options and session guards
-    repositories/      server-owned athlete, tournament, and event data logic
-    validation/        request validation
-    api.js             API helpers and error handling
-    data-store.js      JSON file persistence helpers
-  types/               shared domain constants and labels
-  utils/               domain utilities used by app and repositories
+    auth/              portal auth helpers and NextAuth session guards
+    repositories/      server-owned Supabase/domain data access
+    validation/        server-side payload validation
+  shop/                shop domain logic
+src/server/
+  api/validators/      Zod route schemas
+  config/env.ts        validated environment contract
+  lib/                 route wrapper, errors, logging, rate limits
+  services/            route-facing application services
 
 public/                static assets
-proxy.js               admin route protection
+proxy.ts               CSP, route protection, and host routing
 ```
 
-## Structure Rules
+## Environment
 
-- Keep route entry files in `app/**/page.js`, `layout.js`, and `route.js` thin.
-- Put reusable UI in `app/_components`, grouped by domain when possible.
-- Keep server-only business logic in `lib/server/**`.
-- Treat `lib/data/*.js` as stable public entrypoints that forward to `lib/server/repositories/*`.
-- Do not make server helpers import from `app/api/**`; API routes should depend on server modules, not the other way around.
+Copy `.env.example` and fill the required production values. `JWT_SECRET` is the canonical athlete portal token secret and must be at least 32 characters.
 
-## Data Storage
-
-By default, mutable athlete, event, and tournament data is written under:
-
-```text
-.data/
-```
-
-You can override that location with:
+Validate the documented env contract with:
 
 ```bash
-SKF_DATA_DIR=/path/to/data
+npm run check:env
 ```
 
-## Auth Environment
-
-Admin auth uses NextAuth credentials and expects environment variables such as:
+Validate live Supabase table/RLS/storage readiness with:
 
 ```bash
-NEXTAUTH_SECRET=
-ADMIN_USERNAME=
-ADMIN_PASSWORD=
-INSTRUCTOR_USERNAME=
-INSTRUCTOR_PASSWORD=
+npm run check:supabase
 ```
 
-The contact form integrations also rely on the Google Sheets and Telegram environment variables already referenced in `app/api/contact/route.js`.
+Only `NEXT_PUBLIC_*` variables are bundled client-side. Do not expose `SUPABASE_SERVICE_ROLE_KEY`, Razorpay secrets, Resend keys, Google private keys, or `JWT_SECRET`.
+
+## Database And Migrations
+
+`database/schema.sql` is the canonical schema snapshot. All incremental production changes must be added under `database/migrations/` with a numbered filename.
+
+Apply migrations in order in Supabase SQL Editor or your deployment migration runner. Current security-relevant migrations include atomic points RPCs, certificate lookup indexing, athlete data consent, and the private `training-videos` storage bucket.
+
+The `training-videos` bucket must be private. Its per-file size limit should use the Supabase project default unless the project plan explicitly supports a higher limit.
+
+Deprecated schema files were removed to prevent accidentally applying stale RLS policies.
+
+## Deployment
+
+Use the default build command:
+
+```bash
+npm run build
+```
+
+Required production checks before deployment:
+
+```bash
+npm run check:env
+npm run check:supabase
+npm run lint
+npm run type-check
+npm run test:unit
+npm audit --omit=dev --audit-level=high
+npm run build
+npm run test:e2e
+```
+
+Razorpay/shop checkout must remain disabled unless `SHOP_ENABLED=true` and all Razorpay keys are configured. Certificates and public technique videos are separately feature-flagged.

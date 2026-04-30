@@ -3,6 +3,8 @@
  * Single source of truth for brand strings, URLs, and structured data.
  */
 
+import { CONTACT, SOCIAL_LINKS_LIST } from './contact'
+
 export const SITE_CONFIG = Object.freeze({
   ORG_NAME: 'SKF Karate',
   ORG_FULL_NAME: 'Sports Karate-do Fitness & Self Defence Association®',
@@ -16,6 +18,21 @@ export const SITE_CONFIG = Object.freeze({
   STATE: 'Karnataka',
   COUNTRY: 'IN',
 })
+
+export const DEFAULT_OG_IMAGE = '/og-image.png'
+export const MAP_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.ADDRESS.full)}`
+
+export function absoluteSiteUrl(path = '/') {
+  if (/^https?:\/\//i.test(path)) return path
+
+  const base = SITE_CONFIG.URL.replace(/\/+$/, '')
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${base}${normalizedPath}`
+}
+
+export function absoluteMediaUrl(path = DEFAULT_OG_IMAGE) {
+  return absoluteSiteUrl(path)
+}
 
 /** About page dashboard stats */
 export const ORG_STATS = Object.freeze({
@@ -43,23 +60,28 @@ export const AFFILIATIONS = Object.freeze([
 export function buildOrgJsonLd() {
   return {
     '@context': 'https://schema.org',
-    '@type': 'SportsOrganization',
+    '@type': ['SportsOrganization', 'LocalBusiness', 'SportsActivityLocation'],
     name: SITE_CONFIG.ORG_NAME,
+    legalName: SITE_CONFIG.ORG_FULL_NAME,
     url: SITE_CONFIG.URL,
-    logo: `${SITE_CONFIG.URL}${SITE_CONFIG.LOGO_PATH}`,
+    logo: absoluteMediaUrl(SITE_CONFIG.LOGO_PATH),
+    image: absoluteMediaUrl(DEFAULT_OG_IMAGE),
     sport: SITE_CONFIG.SPORT,
+    telephone: CONTACT.PHONE,
+    email: CONTACT.EMAIL,
+    priceRange: '₹₹',
+    openingHours: ['Mo-Su 06:00-21:00'],
+    hasMap: MAP_URL,
     foundingDate: String(SITE_CONFIG.FOUNDED_YEAR),
     description: 'WKF-affiliated karate federation in Bangalore',
     address: {
       '@type': 'PostalAddress',
+      streetAddress: CONTACT.ADDRESS.full,
       addressLocality: SITE_CONFIG.CITY,
       addressRegion: SITE_CONFIG.STATE,
       addressCountry: SITE_CONFIG.COUNTRY,
     },
-    sameAs: [
-      'https://www.instagram.com/skf_karate/',
-      'https://www.facebook.com/share/1DG1UZ3vKp/?mibextid=wwXIfr',
-      'https://www.youtube.com/@skfkarate',
-    ],
+    areaServed: ['Bangalore', 'Kunigal', 'Tumkur', 'Udupi'],
+    sameAs: SOCIAL_LINKS_LIST,
   }
 }

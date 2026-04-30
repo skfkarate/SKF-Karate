@@ -19,7 +19,20 @@ const getHexColor = (beltStr: string) => {
   return '#ffffff'
 }
 
-export default function JourneyClient({ timelineNodes, athlete }: { timelineNodes: any[], athlete: any }) {
+export type TimelineNode = {
+  id: string
+  type: 'origin' | 'belt' | 'event'
+  date: string
+  title: string
+  description: string
+  isCurrent: boolean
+  isUpcoming: boolean
+  timestamp: number
+  beltColor?: string
+  eventType?: string
+}
+
+export default function JourneyClient({ timelineNodes }: { timelineNodes: TimelineNode[] }) {
   usePortalAuth()
 
   return (

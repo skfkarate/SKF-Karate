@@ -17,7 +17,7 @@ export default function AdminSettingsPage() {
       const res = await fetch('/api/admin/settings/status')
       const data = await res.json()
       setStatus(data)
-    } catch (e) {
+    } catch {
       setStatus({ error: true })
     } finally {
       setLoading(false)

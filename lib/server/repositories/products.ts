@@ -23,6 +23,19 @@ export interface AdminProduct {
   created_at?: string
 }
 
+type LegacyProduct = {
+    id: string
+    name: string
+    description: string
+    category: AdminProduct['category']
+    price: number
+    images?: string[]
+    variants?: ProductVariant[]
+    rating?: number
+    reviewCount?: number
+    requiresTier?: string
+}
+
 /**
  * Fetches products from Supabase 'skf_products'.
  * If the table does not exist yet (or Supabase fails), falls back to seed data.
@@ -44,7 +57,7 @@ export async function getProducts(): Promise<AdminProduct[]> {
         }
 
         return data as AdminProduct[];
-    } catch (e) {
+    } catch {
         console.warn('[Products/DB] Failed to fetch from Supabase, returning Seed data fallback.');
         return fallbackMapping(seedProducts);
     }
@@ -83,7 +96,7 @@ export async function upsertProduct(product: AdminProduct): Promise<boolean> {
 }
 
 // Map the old ts seed schema to the new robust DB schema
-function fallbackMapping(oldItems: any[]): AdminProduct[] {
+function fallbackMapping(oldItems: LegacyProduct[]): AdminProduct[] {
     return oldItems.map(p => ({
         id: p.id,
         name: p.name,

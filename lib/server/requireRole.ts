@@ -1,27 +1,15 @@
 import { cookies } from 'next/headers'
 import type { UserRole, JWTPayload } from '@/types'
+import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth/portal'
 import { getAthleteByRegistrationNumberLive } from './repositories/athletes-live'
-
-const jwt = require('jsonwebtoken')
-
-function verifyPortalToken(token: string): JWTPayload | null {
-  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
-  if (!secret) return null
-  try {
-    return jwt.verify(token, secret) as JWTPayload
-  } catch {
-    return null
-  }
-}
 
 export async function requireRole(
   allowedRoles: UserRole[]
 ): Promise<JWTPayload> {
   const cookieStore = await cookies()
-  // The portal login sets 'skf_portal_token'
-  const token = cookieStore.get('skf_portal_token')?.value
+  const token = cookieStore.get(COOKIE_NAME)?.value
   if (!token) throw new Error('UNAUTHORIZED')
-  const payload = verifyPortalToken(token)
+  const payload = verifyJWT(token)
   if (!payload) throw new Error('UNAUTHORIZED')
   if (!allowedRoles.includes(payload.role)) throw new Error('FORBIDDEN')
   

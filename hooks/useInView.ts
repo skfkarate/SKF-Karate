@@ -4,18 +4,19 @@ import { useEffect, useRef } from 'react'
 
 export function useInView(options = { threshold: 0.1, triggerOnce: true }) {
     const ref = useRef<Element | null>(null)
+    const { threshold, triggerOnce } = options
 
     useEffect(() => {
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible')
-                if (options.triggerOnce) {
+                if (triggerOnce) {
                     observer.unobserve(entry.target)
                 }
-            } else if (!options.triggerOnce) {
+            } else if (!triggerOnce) {
                 entry.target.classList.remove('visible')
             }
-        }, options)
+        }, { threshold })
 
         const currentRef = ref.current
         if (currentRef) {
@@ -27,7 +28,7 @@ export function useInView(options = { threshold: 0.1, triggerOnce: true }) {
                 observer.unobserve(currentRef)
             }
         }
-    }, [options.threshold, options.triggerOnce])
+    }, [threshold, triggerOnce])
 
     return ref
 }

@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { FaTrophy, FaStar } from 'react-icons/fa'
 
-function AnimatedCounter({ target, duration = 1800, suffix = '+' }) {
+function AnimatedCounter({ target, duration = 1800, suffix = '+' }: { target: number, duration?: number, suffix?: string }) {
   const [count, setCount] = useState(0)
   const ref = useRef(null)
   const hasAnimated = useRef(false)
@@ -17,7 +16,6 @@ function AnimatedCounter({ target, duration = 1800, suffix = '+' }) {
           const animate = (now) => {
             const elapsed = now - startTime
             const progress = Math.min(elapsed / duration, 1)
-            // Ease-out cubic for smooth deceleration
             const eased = 1 - Math.pow(1 - progress, 3)
             setCount(Math.floor(eased * target))
             if (progress < 1) requestAnimationFrame(animate)
@@ -36,69 +34,64 @@ function AnimatedCounter({ target, duration = 1800, suffix = '+' }) {
 
 export default function TournamentHero({ stats }) {
   return (
-    <section className="results-hero">
-      <div className="results-hero__bg">
-        <div className="glow glow-red results-hero__glow-1"></div>
-        <div className="glow glow-gold results-hero__glow-2"></div>
-      </div>
-
-      <div className="container results-hero__content">
-        <span className="section-label animate-in">
-          <FaTrophy /> Championship Legacy
-        </span>
-
-        <h1 className="page-hero__title animate-in delay-1">
-          Our <span className="text-gradient">Tournament Record</span>
+    <>
+      <section className="res-hero">
+        <div className="res-hero__badge animate-in">
+          <span className="res-hero__badge-dot" /> Championship Legacy
+        </div>
+        <h1 className="res-hero__title animate-in delay-1">
+          <span className="res-hero__line1">Tournament</span>
+          <span className="res-hero__line2">Results</span>
         </h1>
-
-        <p className="page-hero__subtitle animate-in delay-2">
+        <p className="res-hero__sub animate-in delay-2">
           From district podiums to national glory — every medal SKF has earned, preserved forever.
         </p>
+      </section>
 
-        <div className="results-hero__stats animate-in delay-3">
-          <div className="results-hero__stat">
-            <span className="results-hero__stat-number">
-              <AnimatedCounter target={stats.totalTournaments} />
-            </span>
-            <span className="results-hero__stat-label">Tournaments</span>
+      <section className="res-section animate-in delay-3">
+        <div className="res-section__header">
+          <span className="res-section__tag">📊 At a Glance</span>
+          <h2 className="res-section__title">All-Time Statistics</h2>
+          <p className="res-section__sub">
+            A combined total of {stats.totalTournaments} tournaments participated and {stats.nationalChampions} national champions produced.
+          </p>
+        </div>
+        
+        <div className="res-podium">
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--silver">🥈</div>
+            <h3 className="res-pod__name">Silver</h3>
+            <div className="res-pod__pillar res-pod__pillar--silver">
+              <span><AnimatedCounter target={stats.totalSilver} /></span>
+            </div>
           </div>
-          <div className="results-hero__stat">
-            <span className="results-hero__stat-number">
-              <AnimatedCounter target={stats.totalGold} />
-            </span>
-            <span className="results-hero__stat-label">Gold Medals</span>
+
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--gold">🥇</div>
+            <h3 className="res-pod__name">Gold</h3>
+            <div className="res-pod__pillar res-pod__pillar--gold">
+              <span><AnimatedCounter target={stats.totalGold} /></span>
+            </div>
           </div>
-          <div className="results-hero__stat">
-            <span className="results-hero__stat-number">
-              <AnimatedCounter target={stats.totalSilver} />
-            </span>
-            <span className="results-hero__stat-label">Silver Medals</span>
-          </div>
-          <div className="results-hero__stat">
-            <span className="results-hero__stat-number">
-              <AnimatedCounter target={stats.totalBronze} />
-            </span>
-            <span className="results-hero__stat-label">Bronze Medals</span>
-          </div>
-          <div className="results-hero__stat">
-            <span className="results-hero__stat-number">
-              <AnimatedCounter target={stats.nationalChampions} />
-            </span>
-            <span className="results-hero__stat-label">National Champions</span>
+          
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--bronze">🥉</div>
+            <h3 className="res-pod__name">Bronze</h3>
+            <div className="res-pod__pillar res-pod__pillar--bronze">
+              <span><AnimatedCounter target={stats.totalBronze} /></span>
+            </div>
           </div>
         </div>
 
-        <div className="results-hero__affiliations animate-in delay-4">
-          <div className="results-hero__logos">
-            <span className="results-hero__logo-badge">WKF</span>
-            <span className="results-hero__logo-badge">KIO</span>
-            <span className="results-hero__logo-badge">AKSKA</span>
+        <div className="res-section__affiliations">
+          <span className="res-section__affiliations-caption">Recognised By</span>
+          <div className="res-section__logos">
+            <span className="res-section__logo-badge">WKF</span>
+            <span className="res-section__logo-badge">KIO</span>
+            <span className="res-section__logo-badge">AKSKA</span>
           </div>
-          <span className="results-hero__affiliations-caption">
-            Results recognised by our affiliated bodies
-          </span>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

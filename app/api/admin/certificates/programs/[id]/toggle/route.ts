@@ -1,25 +1,21 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const PATCH = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'write' } },
+  async ({ params }) => {
     // First get current status
-    const { data: current } = await supabaseAdmin
+    const { data: current, error: readError } = await supabaseAdmin
       .from('programs')
       .select('is_active')
       .eq('id', params.id)
       .single()
 
+    if (readError) throw readError
     if (!current) {
-      return NextResponse.json({ error: 'Program not found' }, { status: 404 })
+      throw new NotFoundError('Program')
     }
 
     // Toggle
@@ -33,8 +29,5 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     if (error) throw error
 
     return NextResponse.json({ success: true, program: data })
-  } catch (error) {
-    console.error('[API] Failed to toggle program:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)

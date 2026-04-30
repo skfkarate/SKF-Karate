@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { normaliseRegistrationNumber, isValidRegistrationNumber } from '../../../lib/utils/registration';
 import { FaSpinner } from 'react-icons/fa';
 
 export default function SearchBox({ defaultValue = '', autoFocus = true }) {
@@ -69,13 +68,6 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     }
     if (!inputVal.trim()) return;
 
-    // If it looks like a registration number, navigate directly
-    const normalised = normaliseRegistrationNumber(inputVal);
-    if (isValidRegistrationNumber(normalised)) {
-      navigateToAthlete(normalised);
-      return;
-    }
-
     // If there are results, go to the first one
     if (results.length > 0) {
       navigateToAthlete(results[0].registrationNumber);
@@ -95,17 +87,11 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     }
   };
 
-  const beltColorMap = {
-    'white': '#ffffff', 'yellow': '#FFD700', 'orange': '#FF8C00', 'green': '#22c55e',
-    'blue': '#3b82f6', 'brown': '#8B4513', 'black-1st-dan': '#111', 'black-2nd-dan': '#111',
-    'black-3rd-dan': '#111', 'black-4th-dan': '#111', 'black-5th-dan': '#111',
-  };
-
   return (
     <div className="profile-search-container" ref={wrapperRef}>
       <form onSubmit={handleSubmit} className="relative group">
         <label htmlFor="registration-search" className="sr-only">
-          Search by name or registration number
+          Search by athlete name
         </label>
 
         <div className="profile-search-input-wrapper">
@@ -121,10 +107,10 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={() => results.length > 0 && setIsOpen(true)}
-            placeholder="Search by name or SKF number..."
+            placeholder="Search by athlete name..."
             autoFocus={autoFocus}
             autoComplete="off"
-            aria-label="Search by name or registration number"
+            aria-label="Search by athlete name"
             className="profile-search-input"
           />
 
@@ -164,8 +150,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
                   {s.firstName} {s.lastName}
                 </span>
 
-                {/* SKF ID */}
-                <span className="search-dropdown__reg">{s.registrationNumber}</span>
+                <span className="search-dropdown__reg">{s.branchName}</span>
               </button>
             ))}
           </div>

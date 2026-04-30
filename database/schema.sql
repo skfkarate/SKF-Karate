@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS otp_attempts (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE otp_attempts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_otp_attempts" ON otp_attempts
+  FOR ALL USING (auth.role() = 'service_role');
+
 -- ══════════════════════════════════════
 -- SECTION 3: Programs & Certificates
 -- NOTE: programs.type is for CERTIFICATE PROGRAMS only.
@@ -72,8 +76,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_template_program_belt
   ON certificate_templates (program_id, COALESCE(belt_level, '__NULL__'));
 
 ALTER TABLE certificate_templates ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "public_read_templates" ON certificate_templates
-  FOR SELECT USING (true);
 CREATE POLICY "service_role_full_templates" ON certificate_templates
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -129,8 +131,6 @@ CREATE TABLE IF NOT EXISTS certificate_events (
 CREATE INDEX IF NOT EXISTS idx_cert_events_skf ON certificate_events (skf_id);
 
 ALTER TABLE certificate_events ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "anyone_insert_cert_events" ON certificate_events
-  FOR INSERT WITH CHECK (true);
 CREATE POLICY "service_role_full_cert_events" ON certificate_events
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -202,6 +202,7 @@ CREATE TABLE IF NOT EXISTS athletes (
   batch TEXT,
   monthly_fee NUMERIC DEFAULT 0,
   photo_consent BOOLEAN DEFAULT false,
+  consent_given_at TIMESTAMPTZ,
   is_public BOOLEAN DEFAULT true,
   is_featured BOOLEAN DEFAULT false,
   achievements JSONB DEFAULT '[]',
@@ -224,6 +225,7 @@ CREATE POLICY "service_role_full_athletes" ON athletes
 ALTER TABLE athletes ADD COLUMN IF NOT EXISTS batch TEXT;
 ALTER TABLE athletes ADD COLUMN IF NOT EXISTS monthly_fee NUMERIC DEFAULT 0;
 ALTER TABLE athletes ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN DEFAULT false;
+ALTER TABLE athletes ADD COLUMN IF NOT EXISTS consent_given_at TIMESTAMPTZ;
 
 -- ══════════════════════════════════════
 -- SECTION 5: Classes, Cities & Training Centres
@@ -342,16 +344,44 @@ ALTER TABLE video_progress ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_video_progress" ON video_progress
   FOR ALL USING (auth.role() = 'service_role');
 
+CREATE TABLE IF NOT EXISTS fee_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  skf_id TEXT NOT NULL,
+  month TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  amount NUMERIC NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'due'
+    CHECK (status IN ('paid', 'due', 'overdue')),
+  paid_date TIMESTAMPTZ,
+  receipt_id TEXT,
+  payment_method TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (skf_id, month, year)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fee_records_receipt_id
+  ON fee_records (receipt_id)
+  WHERE receipt_id IS NOT NULL AND receipt_id <> '';
+
+CREATE INDEX IF NOT EXISTS idx_fee_records_skf_year
+  ON fee_records (skf_id, year);
+
+CREATE INDEX IF NOT EXISTS idx_fee_records_status
+  ON fee_records (status, year);
+
+ALTER TABLE fee_records ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_fee_records" ON fee_records
+  FOR ALL USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
+
 CREATE TABLE IF NOT EXISTS portal_videos (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT DEFAULT '',
   category TEXT NOT NULL DEFAULT 'techniques',
   duration_label TEXT DEFAULT '',
-  provider TEXT NOT NULL DEFAULT 'google-drive',
-  source_url TEXT NOT NULL,
-  playback_url TEXT,
-  thumbnail_url TEXT,
+  youtube_id TEXT NOT NULL CHECK (youtube_id ~ '^[A-Za-z0-9_-]{11}$'),
   branch_slugs JSONB DEFAULT '[]',
   batch_names JSONB DEFAULT '[]',
   belt_levels JSONB DEFAULT '[]',
@@ -366,8 +396,30 @@ CREATE TABLE IF NOT EXISTS portal_videos (
 ALTER TABLE portal_videos
   ADD COLUMN IF NOT EXISTS show_in_techniques BOOLEAN DEFAULT false;
 
+ALTER TABLE portal_videos
+  ADD COLUMN IF NOT EXISTS youtube_id TEXT;
+
+ALTER TABLE portal_videos
+  ALTER COLUMN youtube_id SET NOT NULL;
+
+ALTER TABLE portal_videos
+  DROP CONSTRAINT IF EXISTS portal_videos_youtube_id_format;
+
+ALTER TABLE portal_videos
+  ADD CONSTRAINT portal_videos_youtube_id_format
+  CHECK (youtube_id ~ '^[A-Za-z0-9_-]{11}$');
+
+ALTER TABLE portal_videos
+  DROP COLUMN IF EXISTS provider,
+  DROP COLUMN IF EXISTS source_url,
+  DROP COLUMN IF EXISTS playback_url,
+  DROP COLUMN IF EXISTS thumbnail_url;
+
 CREATE INDEX IF NOT EXISTS idx_portal_videos_published
   ON portal_videos (is_published, is_featured, sort_order);
+
+CREATE INDEX IF NOT EXISTS idx_portal_videos_youtube_id
+  ON portal_videos (youtube_id);
 
 ALTER TABLE portal_videos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_portal_videos" ON portal_videos
@@ -613,7 +665,7 @@ CREATE TABLE IF NOT EXISTS skf_products (
 
 ALTER TABLE skf_products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_read_products" ON skf_products
-  FOR SELECT USING (true);
+  FOR SELECT USING (is_public = true);
 CREATE POLICY "service_role_full_products" ON skf_products
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -782,3 +834,72 @@ BEGIN
   RETURN created_order;
 END;
 $$;
+
+REVOKE EXECUTE ON FUNCTION place_shop_order(
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB
+) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION place_shop_order(
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB
+) FROM anon;
+REVOKE EXECUTE ON FUNCTION place_shop_order(
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB
+) FROM authenticated;
+GRANT EXECUTE ON FUNCTION place_shop_order(
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  INTEGER,
+  TEXT,
+  TEXT,
+  TEXT,
+  JSONB
+) TO service_role;

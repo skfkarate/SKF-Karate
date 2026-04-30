@@ -2,182 +2,219 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
-import { FaArrowRight, FaFistRaised } from 'react-icons/fa'
-import { GiBlackBelt, GiYinYang } from 'react-icons/gi'
+import { FaArrowRight } from 'react-icons/fa'
+import { GiBlackBelt } from 'react-icons/gi'
 import './grading.css'
-import { allDojos } from '@/data/seed/dojos'
 import { kyuBelts } from '@/data/seed/kyuBelts'
 import { danGrades } from '@/data/seed/danGrades'
 
+/**
+ * One sentence per Dan — precise, poetic, zero syllabus.
+ * Each line captures the essence of what that rank *means*.
+ */
+const danDesc: Record<string, string> = {
+    dan_001: 'The door opens. True training begins now.',
+    dan_002: 'Strength becomes silk. Teaching becomes understanding.',
+    dan_003: 'Every kata holds a life. Read between the movements.',
+    dan_004: 'Shape the dojo. Forge the next generation.',
+    dan_005: 'No technique remains — only truth in motion.',
+}
+
 export default function GradingPage() {
     useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                }
-            });
-        }, { threshold: 0.1, rootMargin: '0px 0px -15% 0px' });
-
-        document.querySelectorAll('.reveal-elem').forEach(el => observer.observe(el));
-        return () => observer.disconnect();
-    }, []);
+        const observer = new IntersectionObserver(
+            (entries) =>
+                entries.forEach((e) => {
+                    if (e.isIntersecting) e.target.classList.add('grd-in-view')
+                }),
+            { threshold: 0.08, rootMargin: '0px 0px -8% 0px' }
+        )
+        document.querySelectorAll('.grd-reveal').forEach((el) => observer.observe(el))
+        return () => observer.disconnect()
+    }, [])
 
     return (
-        <div className="grad-redesign">
-            {/* ═══════ THE ZENITH HERO ═══════ */}
-            <section className="grad-hero">
-                <div className="grad-hero__vid-overlay" />
-                <div className="grad-hero__vignette" />
-                
-                <div className="container grad-hero__content text-center">
-                    <div className="grad-hero__badge reveal-elem">
-                        <GiYinYang className="spin-icon"/> The Path Overcomes All
-                    </div>
-                    <h1 className="grad-hero__title reveal-elem">
-                        Ascension of <br /><span className="text-gradient">Body & Spirit</span>
-                    </h1>
-                    <p className="grad-hero__subtitle reveal-elem">
-                        Grading is not a test. It is a rite of passage. 
-                        Trace the ancient steps from the humble white belt to the ultimate mastery of the Dan grades.
-                    </p>
+        <div className="grd-page">
+            {/* Ambient Orbs */}
+            <div className="grd-orb grd-orb--1" />
+            <div className="grd-orb grd-orb--2" />
+
+            {/* Japanese Watermark */}
+            <div className="grd-watermark" aria-hidden="true">段</div>
+
+            {/* ═══════ HERO ═══════ */}
+            <section className="grd-hero">
+                <div className="grd-hero__badge">
+                    <span className="grd-hero__badge-dot" />
+                    Belt Grading System
                 </div>
 
-                <div className="grad-hero__scroll-down indicator-bounce">
-                    <span>Begin Journey</span>
-                    <div className="scroll-line-vertical"></div>
-                </div>
-            </section>
+                <h1 className="grd-hero__title">
+                    The Path of<br />
+                    <span className="grd-hero__accent">Mastery</span>
+                </h1>
 
-            {/* ═══════ THE KYU JOURNEY (Central Path Design) ═══════ */}
-            <section className="grad-kyu-section">
-                <div className="container">
-                    
-                    <div className="kyu-header text-center reveal-elem">
-                        <span className="section-label"><FaFistRaised /> Foundational Testing</span>
-                        <h2 className="section-title">The <span className="text-gradient">Kyu</span> Ranks</h2>
-                        <p className="section-desc max-w-2xl mx-auto">
-                            The vibrant colors of the Kyu belts represent the shifting elements of nature as a student grows. An arduous journey of shedding ego and building unbreakable spirit.
-                        </p>
-                    </div>
+                <p className="grd-hero__sub">
+                    Every rank earned is a chapter written in discipline.
+                    Know the journey — every grade that stands between you and black belt.
+                </p>
 
-                    <div className="kyu-timeline-container">
-                        <div className="kyu-timeline-spine">
-                            <div className="kyu-timeline-tracker"></div>
-                        </div>
-
-                        <div className="kyu-timeline-events">
-                            {kyuBelts.map((rank, i) => (
-                                <div className={`kyu-belt-ribbon reveal-elem ${i % 2 === 0 ? 'ribbon-left' : 'ribbon-right'}`} key={rank.kyu}>
-                                    
-                                    {/* Connection Point */}
-                                    <div className="kyu-belt-node" style={{ borderColor: rank.color, boxShadow: `0 0 20px ${rank.color}60` }}>
-                                        <div className="kyu-belt-dot" style={{ background: rank.color }}></div>
-                                    </div>
-
-                                    {/* The Card */}
-                                    <div className="kyu-ribbon-card">
-                                        <div className="kyu-ribbon__glow" style={{ background: `radial-gradient(ellipse at top, ${rank.color} 0%, transparent 70%)` }}></div>
-                                        
-                                        <div className="kyu-ribbon__content">
-                                            <div className="kyu-ribbon__header">
-                                                <div className="kyu-ribbon__rank-num" style={{ WebkitTextStrokeColor: rank.color }}>
-                                                    {10 - i}
-                                                </div>
-                                                <div className="kyu-ribbon__titles">
-                                                    <span className="kyu-belt-name" style={{ color: rank.color }}>{rank.belt}</span>
-                                                    <h3>{rank.kyu}</h3>
-                                                </div>
-                                            </div>
-                                            <p className="kyu-ribbon__desc">{rank.desc}</p>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════ THE DAN SANCTUARY (Imposing Monolith Grid) ═══════ */}
-            <section className="grad-dan-sanctuary">
-                <div className="sanctuary-bg-glow"></div>
-                
-                <div className="container">
-                    <div className="dan-header text-center reveal-elem">
-                        <GiBlackBelt className="sanctuary-icon" />
-                        <h2 className="section-title">The <span className="text-gradient-gold">Black Belt</span> Sanctuary</h2>
-                        <p className="section-desc text-secondary max-w-2xl mx-auto">
-                            The black belt is not the finish line—it is the beginning of true understanding. Physical execution transcends into sheer artistry and pedagogy.
-                        </p>
-                    </div>
-
-                    <div className="dan-monolith-grid">
-                        {danGrades.map((dan, idx) => (
-                            <div className={`dan-monolith reveal-elem delay-${idx % 3}`} key={dan.dan}>
-                                <div className="monolith-glow"></div>
-                                
-                                <div className="monolith-header">
-                                    <div className="monolith-kanji">{dan.kanji}</div>
-                                    <div className="monolith-titles">
-                                        <h3 className="monolith-title">{dan.dan}</h3>
-                                        <span className="monolith-level">{dan.level}</span>
-                                    </div>
-                                </div>
-                                
-                                <div className="monolith-content">
-                                    <span className="monolith-role">{dan.role}</span>
-                                    <p className="monolith-desc">{dan.desc}</p>
-                                    <div className="monolith-principle">
-                                        <em>"{dan.principle}"</em>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════ GRADING LOCATION SELECTOR ═══════ */}
-            <section className="grad-branches-section reveal-elem pb-standard pt-huge center-text">
-                <div className="container">
-                    <span className="section-label">Find Your Examiner</span>
-                    <h2 className="section-title">Book Your <span className="text-gradient">Grading</span></h2>
-                    <p className="text-secondary contained-subtitle mb-standard mx-auto">
-                        Grading sessions are conducted locally at your primary dojo. Select your branch below to view Sensei details and arrange your Kyu test.
-                    </p>
-                    <div className="flex-center-wrap gap-small jc-center">
-                        {allDojos.map(dojo => (
-                            <Link 
-                                key={dojo.id} 
-                                href={`/dojos/${dojo.slug}`}
-                                className="styled-dojo-link"
+                {/* Belt colour preview strip */}
+                <div className="grd-belt-strip">
+                    <div className="grd-belt-strip__track">
+                        {kyuBelts.map((belt) => (
+                            <div
+                                key={belt.id}
+                                className="grd-belt-chip"
+                                style={{ '--chip-color': belt.color } as React.CSSProperties}
                             >
-                                {dojo.name.split(' ')[0]} <FaArrowRight className="link-arrow"/>
-                            </Link>
+                                <span className="grd-belt-chip__swatch" style={{ background: belt.color }} />
+                                <span className="grd-belt-chip__label">{belt.belt.split(' ')[0]}</span>
+                            </div>
                         ))}
+                        <div className="grd-belt-chip grd-belt-chip--dan">
+                            <GiBlackBelt className="grd-belt-chip__dan-icon" />
+                            <span className="grd-belt-chip__label">Dan</span>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* ═══════ JOURNEY CTA ═══════ */}
-            <section className="grad-cta-section">
+            {/* ═══════ KYU JOURNEY — ASCENDING LADDER ═══════ */}
+            <section className="grd-kyu-section">
                 <div className="container">
-                    <div className="grad-cta-portal reveal-elem">
-                        <div className="grad-cta-portal__bg"></div>
-                        <div className="grad-cta-portal__kanji">道</div>
-                        
-                        <div className="grad-cta-portal__content">
-                            <h2 className="grad-cta-portal__title">The Path <span className="text-gradient">Awaits</span></h2>
-                            <p className="grad-cta-portal__subtitle">
-                                "A black belt is simply a white belt who never gave up."<br />
-                                Speak with your Sensei. The grading board will summon you when you are ready.
-                            </p>
-                            <div className="grad-cta-portal__actions">
-                                <Link href="/events" className="btn-portal btn-portal--primary">Events Calendar <FaArrowRight /></Link>
-                                <Link href="/classes" className="btn-portal btn-portal--secondary">Start Training</Link>
+
+                    <div className="grd-section-header grd-reveal">
+                        <span className="grd-section-tag">Colour Grades</span>
+                        <h2 className="grd-section-title">
+                            The <span className="text-gradient">Kyu</span> Journey
+                        </h2>
+                        <p className="grd-section-desc">
+                            {kyuBelts.length} colour grades stand between white belt and black belt.
+                            Know where you are. Know what remains.
+                        </p>
+                    </div>
+
+                    {/* Grade count label */}
+                    <div className="grd-kyu-count grd-reveal">
+                        <span className="grd-kyu-count__highlight">{kyuBelts.length} Kyu Grades</span>
+                        <span className="grd-kyu-count__divider">·</span>
+                        <span>Ascending to Black Belt</span>
+                    </div>
+
+                    {/* The ladder */}
+                    <div className="grd-kyu-ladder">
+
+                        {kyuBelts.map((rank, i) => (
+                            <div
+                                className="grd-kyu-rung grd-reveal"
+                                key={rank.id}
+                                style={{ '--rung-color': rank.color } as React.CSSProperties}
+                            >
+                                {/* Step number */}
+                                <span className="grd-kyu-rung__index">
+                                    {String(kyuBelts.length - i).padStart(2, '0')}
+                                </span>
+
+                                {/* Belt pill + name */}
+                                <div className="grd-kyu-rung__bar-group">
+                                    <div
+                                        className="grd-kyu-rung__swatch"
+                                        style={{
+                                            background: rank.color,
+                                            boxShadow: `0 0 12px ${rank.color}55`,
+                                        }}
+                                    />
+                                    <span className="grd-kyu-rung__name">{rank.belt}</span>
+                                </div>
+
+                                {/* Kyu label */}
+                                <span className="grd-kyu-rung__kyu">{rank.kyu}</span>
                             </div>
+                        ))}
+
+                        {/* Destination row — Black Belt */}
+                        <div className="grd-kyu-rung grd-kyu-rung--black grd-reveal">
+                            <span className="grd-kyu-rung__index">★</span>
+                            <div className="grd-kyu-rung__bar-group">
+                                <div className="grd-kyu-rung__swatch grd-kyu-rung__swatch--black" />
+                                <span className="grd-kyu-rung__name grd-kyu-rung__name--black">
+                                    Black Belt
+                                </span>
+                            </div>
+                            <span className="grd-kyu-rung__kyu grd-kyu-rung__kyu--black">Dan</span>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══════ DAN SANCTUARY ═══════ */}
+            <section className="grd-dan-section">
+                <div className="grd-dan-section__glow" />
+                <div className="container">
+
+                    <div className="grd-section-header grd-reveal">
+                        <GiBlackBelt className="grd-dan-icon" />
+                        <h2 className="grd-section-title">
+                            The <span className="grd-text-gold">Dan</span> Ranks
+                        </h2>
+                        <p className="grd-section-desc">
+                            The black belt is not the finish line — it is where Karate-do truly begins.
+                        </p>
+                    </div>
+
+                    <div className="grd-dan-grid">
+                        {danGrades.map((dan) => (
+                            <div className="grd-dan-card grd-reveal" key={dan.id}>
+                                <div className="grd-dan-card__shine" />
+
+                                {/* Kanji + Dan name */}
+                                <div className="grd-dan-card__top">
+                                    <div className="grd-dan-card__kanji">{dan.kanji}</div>
+                                    <div>
+                                        <h3 className="grd-dan-card__name">{dan.dan}</h3>
+                                        <span className="grd-dan-card__level">{dan.level}</span>
+                                    </div>
+                                </div>
+
+                                {/* Role badge */}
+                                <span className="grd-dan-card__role">{dan.role}</span>
+
+                                {/* Single-sentence essence — no syllabus */}
+                                <p className="grd-dan-card__desc">
+                                    {danDesc[dan.id] ?? dan.desc}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                </div>
+            </section>
+
+            {/* ═══════ CTA ═══════ */}
+            <section className="grd-cta-section">
+                <div className="container">
+                    <div className="grd-cta-box grd-reveal">
+                        <div className="grd-cta-box__kanji" aria-hidden="true">道</div>
+
+                        <h2 className="grd-cta-box__title">
+                            The Path <span className="text-gradient">Awaits</span>
+                        </h2>
+
+                        <p className="grd-cta-box__text">
+                            &ldquo;A black belt is a white belt who never gave up.&rdquo;
+                            <br />
+                            Speak with your Sensei. The grading board will summon you when you are ready.
+                        </p>
+
+                        <div className="grd-cta-box__actions">
+                            <Link href="/events" className="grd-cta-btn grd-cta-btn--primary">
+                                Events Calendar <FaArrowRight className="grd-cta-btn__icon" />
+                            </Link>
+                            <Link href="/classes" className="grd-cta-btn grd-cta-btn--ghost">
+                                Start Training
+                            </Link>
                         </div>
                     </div>
                 </div>

@@ -53,7 +53,7 @@ function DojoLoginInner() {
         setError(data.error || 'Authentication failed')
         setLoading(false)
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
       setLoading(false)
     }

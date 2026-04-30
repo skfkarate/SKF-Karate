@@ -1,40 +1,60 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+
+type DanHolder = {
+  id: string
+  profileHref?: string
+  registrationNumber?: string
+  displayName?: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  danLabel?: string
+  dan?: string
+  currentBelt?: string
+  subtitle?: string
+  assignments?: Array<{ branchName?: string }>
+  branchName?: string
+  title?: string
+  imageUrl?: string
+  photoUrl?: string
+  gender?: string
+}
 
 function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
 }
 
-function getCardHref(holder: any) {
+function getCardHref(holder: DanHolder) {
   if (holder?.profileHref) return holder.profileHref
   if (holder?.registrationNumber) return `/athlete/${holder.registrationNumber}`
   return '/athlete/search'
 }
 
-function getCardName(holder: any) {
+function getCardName(holder: DanHolder) {
   if (holder?.displayName) return holder.displayName
   if (holder?.name) return holder.name
   return `${holder?.firstName || ''} ${holder?.lastName || ''}`.trim()
 }
 
-function getCardBadge(holder: any) {
+function getCardBadge(holder: DanHolder) {
   if (holder?.danLabel) return holder.danLabel
   if (holder?.dan) return holder.dan
   return beltLabel(holder?.currentBelt)
 }
 
-function getCardSubtitle(holder: any) {
+function getCardSubtitle(holder: DanHolder) {
   if (holder?.subtitle) return holder.subtitle
   if (holder?.assignments?.[0]?.branchName) return `SKF ${holder.assignments[0].branchName}`
   if (holder?.branchName) return `SKF ${holder.branchName}`
   return holder?.title || 'SKF Karate'
 }
 
-function getCardImage(holder: any) {
+function getCardImage(holder: DanHolder) {
   return (
     holder?.imageUrl ||
     holder?.photoUrl ||
@@ -44,29 +64,16 @@ function getCardImage(holder: any) {
   )
 }
 
-function ProfileSvg({ size = 60 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
-
 function getDailyIndex(length: number): number {
   const now = new Date()
   const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000)
   return dayOfYear % length
 }
 
-export default function DanCarousel({ danHolders }: { danHolders: any[] }) {
-  const [centerIdx, setCenterIdx] = useState(0)
-
-  useEffect(() => {
-    if (danHolders.length > 0) {
-      setCenterIdx(getDailyIndex(danHolders.length))
-    }
-  }, [danHolders.length])
+export default function DanCarousel({ danHolders }: { danHolders: DanHolder[] }) {
+  const [centerIdx, setCenterIdx] = useState(() =>
+    danHolders.length > 0 ? getDailyIndex(danHolders.length) : 0
+  )
 
   if (danHolders.length === 0) return null
 
@@ -83,7 +90,7 @@ export default function DanCarousel({ danHolders }: { danHolders: any[] }) {
 
   // We want to extract exactly MAX_VISIBLE items based on the current centerIdx
   // Order: center, next 1 right, next 1 left, next 2 right, next 2 left.
-  const carouselOrder: { athlete: any; depth: number }[] = []
+  const carouselOrder: { athlete: DanHolder; depth: number }[] = []
   
   if (n > 0) {
     const ordered: number[] = [centerIdx]

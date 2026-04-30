@@ -1,5 +1,5 @@
 import React from 'react';
-import { SkeletonLine, SkeletonCircle, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
+import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives';
 
 export const EventsPageSkeleton = () => (
   <div style={{ padding: '2rem 1rem', maxWidth: '1420px', margin: '0 auto', width: '100%', minHeight: '70vh', display: 'flex', flexDirection: 'column' }} aria-label="Loading events" aria-busy="true">

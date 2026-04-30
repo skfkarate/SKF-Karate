@@ -21,6 +21,8 @@ export default function NewStudentClient({ initialCities }: { initialCities: Cit
         photoUrl: '',
         monthlyFee: 0,
         photoConsent: false,
+        dataConsent: false,
+        consentGivenAt: null,
         isPublic: true,
         isFeatured: false,
         status: 'Active',

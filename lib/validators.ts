@@ -42,6 +42,13 @@ export const createStudentSchema = z.object({
   photoUrl: optionalUrl.default(''),
   monthlyFee: z.coerce.number().min(0).max(10000),
   photoConsent: z.boolean().default(false),
+  dataConsent: z
+    .boolean()
+    .refine(
+      Boolean,
+      'Parent/guardian consent is required before storing student data.'
+    ),
+  consentGivenAt: z.string().datetime().nullable().optional(),
   isPublic: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   status: z.enum(['Active', 'Inactive']).default('Active'),

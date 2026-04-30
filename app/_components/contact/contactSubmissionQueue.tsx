@@ -20,7 +20,7 @@ type SubmissionApiError = Error & {
   status?: number
 }
 
-export function readQueue() {
+export function readQueue(): QueuedSubmission[] {
   try {
     const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]')
     const now = Date.now()
@@ -37,7 +37,7 @@ export function readQueue() {
   }
 }
 
-export function queueSubmission(data) {
+export function queueSubmission(data: Omit<QueuedSubmission, 'queuedAt'>) {
   try {
     const queue = readQueue().slice(-4)
     queue.push({ ...data, queuedAt: Date.now() })
@@ -47,7 +47,7 @@ export function queueSubmission(data) {
   }
 }
 
-export function persistQueue(queue) {
+export function persistQueue(queue: QueuedSubmission[]) {
   if (queue.length) {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
   } else {
@@ -55,7 +55,7 @@ export function persistQueue(queue) {
   }
 }
 
-export async function sendToAPI(payload) {
+export async function sendToAPI(payload: Omit<QueuedSubmission, 'queuedAt'>) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 15000)
 

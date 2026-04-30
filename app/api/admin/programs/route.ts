@@ -1,21 +1,29 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
 
-export async function GET(request) {
-  try {
-    // 1. Authenticate Admin
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { adminProgramCreateSchema } from '@/src/server/api/validators/programs.validator'
+import { withRoute } from '@/src/server/lib/route'
 
+function mapProgram(row: Record<string, unknown>) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    branch: row.branch,
+    hasBeltSubtypes: Boolean(row.has_belt_subtypes),
+    isActive: Boolean(row.is_active),
+    createdAt: row.created_at,
+    certificateTemplates: row.certificate_templates || [],
+  }
+}
+
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     if (!isSupabaseReady()) {
-      return NextResponse.json({ programs: [], warning: 'Database missing' })
+      return NextResponse.json({ error: 'Database missing' }, { status: 503 })
     }
 
-    // 2. Fetch all programs with their template configurations
     const { data: programs, error } = await supabaseAdmin
       .from('programs')
       .select(`
@@ -26,58 +34,34 @@ export async function GET(request) {
 
     if (error) throw error
 
-    return NextResponse.json({ programs })
-
-  } catch (error) {
-    console.error('[API] Failed to fetch programs:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ programs: (programs || []).map(mapProgram) })
   }
-}
+)
 
-export async function POST(request) {
-  try {
-    const body = await request.json()
-    const { name, type, requires_exam, batch_id, price } = body
-
-    if (!name || !type) {
-      return NextResponse.json({ error: 'Name and Type are required' }, { status: 400 })
-    }
-
-    if (!name || !type) {
-      return NextResponse.json({ error: 'Name and Type are required' }, { status: 400 })
-    }
-
-    // 1. Authenticate Admin
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: adminProgramCreateSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body: input }) => {
     if (!isSupabaseReady()) {
-      return NextResponse.json({ success: true, mock: true })
+      return NextResponse.json({ error: 'Database missing' }, { status: 503 })
     }
 
-    // Insert new program
     const { data, error } = await supabaseAdmin
       .from('programs')
-      .insert([
-        { 
-          name, 
-          type, 
-          requires_exam: !!requires_exam, 
-          batch_id: batch_id || null,
-          price: price || 0
-        }
-      ])
+      .insert([{
+        name: input.name,
+        type: input.type,
+        branch: input.branch || null,
+        has_belt_subtypes: Boolean(input.hasBeltSubtypes),
+      }])
       .select()
       .single()
 
     if (error) throw error
 
-    return NextResponse.json({ success: true, program: data })
-
-  } catch (error) {
-    console.error('[API] Failed to create program:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ success: true, program: mapProgram(data) })
   }
-}
+)

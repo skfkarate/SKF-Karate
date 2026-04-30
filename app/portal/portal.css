@@ -2,9 +2,6 @@
    KUROOBI THEME — Portal Layout & Shared Styles
    A completely bespoke, immersive, app-like floating island layout.
    ═══════════════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
-
 .hub-layout {
   display: flex;
   min-height: 100dvh;

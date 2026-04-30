@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 const CERTIFICATE_FONTS = [
   'Helvetica',
@@ -34,6 +34,33 @@ interface FieldConfig {
   bold: boolean
 }
 
+type FieldAlignment = FieldConfig['align']
+type AvailableField = {
+  id: string
+  label: string
+  sample: string
+}
+
+type TemplateApiRow = {
+  belt_level?: string | null
+  template_image_url?: string | null
+  fields?: FieldConfig[]
+  use_qr_code?: boolean
+}
+
+type TemplatesResponse = {
+  templates?: TemplateApiRow[]
+}
+
+type ProgramApiRow = {
+  id: string
+  type?: string
+}
+
+type ProgramsResponse = {
+  programs?: ProgramApiRow[]
+}
+
 const AVAILABLE_FIELDS = [
   { id: 'student_name', label: 'student_name', sample: 'John Karateka' },
   { id: 'skf_id', label: 'skf_id', sample: 'SKF20410001' },
@@ -46,8 +73,7 @@ const AVAILABLE_FIELDS = [
 const BELT_TABS = ['White', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black']
 
 export default function TemplateEditor() {
-  const { id: programId } = useParams()
-  const router = useRouter()
+  const { id: programId } = useParams<{ id: string }>()
   
   const [templateImageUrl, setTemplateImageUrl] = useState('')
   const [useQrCode, setUseQrCode] = useState(false)
@@ -71,7 +97,7 @@ export default function TemplateEditor() {
     // We'll fetch current templates to hydrate state.
     const load = async () => {
       const res = await fetch(`/api/admin/certificates/templates?programId=${programId}`)
-      const data = await res.json()
+      const data = await res.json() as TemplatesResponse
       if (data.templates && data.templates.length > 0) {
          const t = data.templates[0] // just grab first to see if belt_exam exists
          setIsBeltExam(t.belt_level !== null)
@@ -82,15 +108,15 @@ export default function TemplateEditor() {
       } else {
          // Need to fetch program to check if belt_exam
          const pRes = await fetch(`/api/admin/certificates/programs`)
-         const pData = await pRes.json()
-         const program = pData.programs?.find((p: any) => p.id === programId)
+         const pData = await pRes.json() as ProgramsResponse
+         const program = pData.programs?.find((p) => p.id === programId)
          if (program?.type === 'belt_exam') setIsBeltExam(true)
       }
     }
     load()
   }, [programId])
 
-  const addField = (fieldBase: any) => {
+  const addField = (fieldBase: AvailableField) => {
     if (fields.find(f => f.label === fieldBase.label)) return
     setFields([...fields, {
       id: fieldBase.id,
@@ -185,8 +211,8 @@ export default function TemplateEditor() {
       })
       if (!res.ok) throw new Error('Failed to save template')
       alert('Template configuration saved successfully!')
-    } catch (e: any) {
-      alert(e.message)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to save template')
     } finally {
       setSaving(false)
     }
@@ -255,7 +281,12 @@ export default function TemplateEditor() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
                   <input type="checkbox" checked={activeField.bold} onChange={e => updateActiveField({ bold: e.target.checked })} /> Bold
                 </label>
-                <select value={activeField.align} onChange={e => updateActiveField({ align: e.target.value as any })} style={{ background: '#000', color: '#fff', border: '1px solid #333', padding: '2px 4px' }}>
+                <select value={activeField.align} onChange={e => {
+                  const nextAlign = e.target.value
+                  if (nextAlign === 'left' || nextAlign === 'center' || nextAlign === 'right') {
+                    updateActiveField({ align: nextAlign as FieldAlignment })
+                  }
+                }} style={{ background: '#000', color: '#fff', border: '1px solid #333', padding: '2px 4px' }}>
                   <option value="left">Left Align</option>
                   <option value="center">Center</option>
                   <option value="right">Right Align</option>

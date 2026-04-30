@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { downloadCertificatePng, renderCertificateToCanvas } from '@/lib/certificates/exportPng'
-import { Download, Share2, X, Copy, MessageCircle } from 'lucide-react'
+import type { CertificateData } from '@/lib/certificates/CertificateRenderer'
+import { Download, Share2, X, MessageCircle } from 'lucide-react'
 
 interface CertificateModalProps {
   isOpen: boolean
@@ -11,42 +12,24 @@ interface CertificateModalProps {
 }
 
 export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: CertificateModalProps) {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<CertificateData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [shareTooltip, setShareTooltip] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  useEffect(() => {
-    if (isOpen) {
-      loadDataAndRender()
-      logEvent('viewed')
-    } else {
-       setData(null)
-       setError('')
-       setShareTooltip(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, enrollmentId])
-
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    }
-    return () => { document.body.style.overflow = '' }
-  }, [isOpen])
-
-  const logEvent = async (eventType: string) => {
+  async function logEvent(eventType: string) {
     try {
       await fetch('/api/certificates/events', {
         method: 'POST',
         body: JSON.stringify({ enrollmentId, skfId, eventType })
       })
-    } catch (e) { } // silent telemetry
+    } catch {
+      // silent telemetry
+    }
   }
 
-  const loadDataAndRender = async () => {
+  async function loadDataAndRender() {
     setLoading(true)
     setError('')
     try {
@@ -63,12 +46,35 @@ export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: Certi
         canvasRef.current.height = canvas.height
         ctx?.drawImage(canvas, 0, 0)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load certificate')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load certificate')
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      if (isOpen) {
+        void loadDataAndRender()
+        void logEvent('viewed')
+      } else {
+        setData(null)
+        setError('')
+        setShareTooltip(false)
+      }
+    }, 0)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, enrollmentId])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
 
   const handleShare = async () => {
     const url = `${window.location.origin}/verify/${skfId}/${enrollmentId}`
@@ -81,7 +87,7 @@ export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: Certi
           text: shareText,
           url
         })
-      } catch (e) {
+      } catch {
         // User cancelled share
       }
     } else {

@@ -22,6 +22,8 @@ export const POINT_RULES = {
   ANNIVERSARY: 500
 } as const
 
+export type PointAwardReason = keyof typeof POINT_RULES | 'REDEMPTION_REVERSAL'
+
 export const TIERS = [
   { name: 'white',  label: 'White Belt Member',  min: 0,     color: '#e0e0e0' },
   { name: 'yellow', label: 'Yellow Belt Member', min: 1000,  color: '#f1c40f' },
@@ -43,41 +45,32 @@ export const REDEMPTION_OPTIONS = [
 
 export async function awardPoints(
   skfId: string,
-  reason: keyof typeof POINT_RULES,
-  metadata: Record<string, unknown> = {}
+  reason: PointAwardReason,
+  metadata: Record<string, unknown> = {},
+  pointsOverride?: number
 ): Promise<{ newBalance: number; pointsAwarded: number }> {
-    const points = POINT_RULES[reason]
+  const points =
+    pointsOverride ??
+    (reason in POINT_RULES ? POINT_RULES[reason as keyof typeof POINT_RULES] : 0)
 
-    const { data: existing } = await supabaseAdmin
-        .from('student_points')
-        .select('*')
-        .eq('skf_id', skfId)
-        .single()
+  if (!skfId || points <= 0) {
+    throw new Error('Invalid points award request')
+  }
 
-    const currentBalance = existing?.current_balance ?? 0
-    const totalEarned = (existing?.total_earned ?? 0) + points
-    const newBalance = currentBalance + points
-    const newTier = TIERS.filter(t => totalEarned >= t.min).pop()!.name
+  const { data, error } = await supabaseAdmin.rpc('award_points', {
+    p_skf_id: skfId,
+    p_reason: reason,
+    p_points: points,
+    p_metadata: metadata,
+  })
 
-    await supabaseAdmin.from('point_transactions').insert({
-        skf_id: skfId,
-        type: 'EARN',
-        reason,
-        points,
-        balance_before: currentBalance,
-        balance_after: newBalance,
-        metadata
-    })
+  if (error) throw error
 
-    await supabaseAdmin.from('student_points').upsert({
-        skf_id: skfId,
-        current_balance: newBalance,
-        total_earned: totalEarned,
-        tier: newTier,
-        updated_at: new Date().toISOString()
-    }, { onConflict: 'skf_id' })
-
-    return { newBalance, pointsAwarded: points }
+  const result = data as { new_balance?: number; points_awarded?: number } | null
+  return {
+    newBalance: Number(result?.new_balance ?? 0),
+    pointsAwarded: Number(result?.points_awarded ?? points),
+  }
 }
 
 export async function redeemPoints(
@@ -86,36 +79,32 @@ export async function redeemPoints(
   reason: string,
   metadata: Record<string, unknown> = {}
 ): Promise<{ newBalance: number } | { error: string }> {
-    const { data: existing } = await supabaseAdmin
-        .from('student_points')
-        .select('current_balance')
-        .eq('skf_id', skfId)
-        .single()
+  if (!skfId || points <= 0) {
+    return { error: 'Invalid points redemption request' }
+  }
 
-    const currentBalance = existing?.current_balance ?? 0
-    if (currentBalance < points) return { error: 'Insufficient points' }
+  const { data, error } = await supabaseAdmin.rpc('redeem_points', {
+    p_skf_id: skfId,
+    p_reason: reason,
+    p_points: points,
+    p_metadata: metadata,
+  })
 
-    const newBalance = currentBalance - points
+  if (error) {
+    if (String(error.message || '').includes('INSUFFICIENT_POINTS')) {
+      return { error: 'Insufficient points' }
+    }
+    throw error
+  }
 
-    await supabaseAdmin.from('point_transactions').insert({
-        skf_id: skfId,
-        type: 'REDEEM',
-        reason,
-        points: -points,
-        balance_before: currentBalance,
-        balance_after: newBalance,
-        metadata
-    })
+  const result = data as { new_balance?: number } | null
+  return { newBalance: Number(result?.new_balance ?? 0) }
+}
 
-    // Supabase rpc increment needs to be defined, if not, we can just fetch and add
-    // Prompt indicated `total_redeemed: supabaseAdmin.rpc('increment', { x: points })` but standard JS client does not evaluate it like that directly in update.
-    // I will fetch existing and add.
-    const { data: dbPoints } = await supabaseAdmin.from('student_points').select('total_redeemed').eq('skf_id', skfId).single()
-    const currentRedeemed = dbPoints?.total_redeemed ?? 0
-
-    await supabaseAdmin.from('student_points')
-        .update({ current_balance: newBalance, total_redeemed: currentRedeemed + points })
-        .eq('skf_id', skfId)
-
-    return { newBalance }
+export async function restoreRedeemedPoints(
+  skfId: string,
+  points: number,
+  metadata: Record<string, unknown> = {}
+): Promise<{ newBalance: number; pointsAwarded: number }> {
+  return awardPoints(skfId, 'REDEMPTION_REVERSAL', metadata, points)
 }

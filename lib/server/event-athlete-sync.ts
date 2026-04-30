@@ -19,8 +19,83 @@ import {
 } from '@/lib/server/repositories/athletes-live'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
 
-type AthleteRecord = Record<string, any>
-type EventRecord = Record<string, any>
+type EventResultRecord = {
+  id?: string
+  athleteId?: string
+  registrationNumber?: string
+  medal?: string
+  result?: string
+  completed?: boolean
+  attended?: boolean
+  beltAwarded?: string
+  promotion?: string
+  doublePromotion?: boolean
+  notes?: string
+  examiner?: string
+  grade?: string
+  score?: number | string
+  daysAttended?: number
+  specialAward?: string
+  award?: string
+  category?: string
+  ageGroup?: string
+  weightCategory?: string
+  wins?: number | string | null
+  difficultyLevel?: number | string | null
+  position?: number | string
+  participantId?: string
+}
+
+type AthleteAchievement = {
+  id: string
+  type: string
+  date: string
+  title: string
+  description: string
+  pointsAwarded: number
+  sourceEventId?: string
+  sourceEventSlug?: string
+  sourceParticipantId?: string
+  sourceEventType?: string
+  sourceEventLevel?: string
+  location?: string
+  beltEarned?: string
+  grade?: string
+  examiner?: string
+  result?: string
+  tournamentName?: string
+  tournamentLevel?: string
+  eventCategory?: string
+  ageGroup?: string
+  weightCategory?: string
+  competitionResult?: string
+  position?: number | string
+  difficultyLevel?: number | null
+  wins?: number
+  awardReason?: string
+  awardedBy?: string
+}
+
+type AthleteRecord = {
+  id?: string
+  registrationNumber?: string
+  currentBelt?: string
+  achievements?: AthleteAchievement[]
+}
+
+type EventRecord = {
+  id?: string
+  slug?: string
+  name?: string
+  type?: string
+  level?: string
+  venue?: string
+  city?: string
+  date?: string
+  hostingBranch?: string
+  results?: EventResultRecord[]
+  winners?: EventResultRecord[]
+}
 
 function formatTitleCase(value: string) {
   return String(value || '')
@@ -95,7 +170,7 @@ function getSourceMeta(event: EventRecord, participantId?: string) {
   }
 }
 
-function getEventResultValue(event: EventRecord, result: Record<string, any>) {
+function getEventResultValue(event: EventRecord, result: EventResultRecord) {
   if (event.type === 'tournament') {
     return String(result.medal || result.result || 'participation').toLowerCase()
   }
@@ -144,7 +219,7 @@ function getTournamentOutcomeLabel(resultValue: string) {
   return 'Participation'
 }
 
-function buildTournamentAchievement(event: EventRecord, tournamentResult: Record<string, any>) {
+function buildTournamentAchievement(event: EventRecord, tournamentResult: EventResultRecord): AthleteAchievement {
   const resultValue = normaliseResult(
     tournamentResult.medal || tournamentResult.result || 'participation'
   )
@@ -206,11 +281,11 @@ function buildTournamentAchievement(event: EventRecord, tournamentResult: Record
   }
 }
 
-function buildStandaloneEventAchievements(event: EventRecord, result: Record<string, any>) {
+function buildStandaloneEventAchievements(event: EventRecord, result: EventResultRecord): AthleteAchievement[] {
   const resultValue = getEventResultValue(event, result)
   const sourceMeta = getSourceMeta(event, result.id)
   const pointsAwarded = getPointsForEventOutcome(event, resultValue)
-  const achievements: Record<string, any>[] = []
+  const achievements: AthleteAchievement[] = []
 
   if (event.type === 'grading') {
     const beltAwarded = String(result.beltAwarded || result.promotion || '').toLowerCase()
@@ -314,7 +389,7 @@ function buildStandaloneEventAchievements(event: EventRecord, result: Record<str
   return achievements
 }
 
-function deriveCurrentBelt(athlete: AthleteRecord, achievements: Record<string, any>[]) {
+function deriveCurrentBelt(athlete: AthleteRecord, achievements: AthleteAchievement[]) {
   const latestBeltAchievement = sortByDateDesc(
     achievements.filter((achievement) => achievement.type === 'belt-grading' && achievement.beltEarned)
   ).sort((a, b) => {
@@ -331,9 +406,9 @@ async function syncAchievementsForSource(
   buildArtifacts: (
     athletesById: Map<string, AthleteRecord>,
     athletesByRegistration: Map<string, AthleteRecord>
-  ) => Map<string, Record<string, any>[]>
+  ) => Map<string, AthleteAchievement[]>
 ) {
-  const athletes = await getAllAthletesLive()
+  const athletes = (await getAllAthletesLive()) as unknown as AthleteRecord[]
   const athletesById = new Map<string, AthleteRecord>()
   const athletesByRegistration = new Map<string, AthleteRecord>()
 
@@ -349,7 +424,7 @@ async function syncAchievementsForSource(
   const athleteIdsWithExistingSourceData = athletes
     .filter((athlete) =>
       Array.isArray(athlete.achievements) &&
-      athlete.achievements.some((achievement: Record<string, any>) => achievement.sourceEventId === sourceEventId)
+      athlete.achievements.some((achievement) => achievement.sourceEventId === sourceEventId)
     )
     .map((athlete) => String(athlete.id))
 
@@ -365,7 +440,7 @@ async function syncAchievementsForSource(
     if (!athlete) continue
 
     const preservedAchievements = Array.isArray(athlete.achievements)
-      ? athlete.achievements.filter((achievement: Record<string, any>) => achievement.sourceEventId !== sourceEventId)
+      ? athlete.achievements.filter((achievement) => achievement.sourceEventId !== sourceEventId)
       : []
     const nextAchievements = nextAchievementsByAthlete.get(athleteId) || []
     const mergedAchievements = sortByDateDesc([...nextAchievements, ...preservedAchievements])
@@ -398,7 +473,7 @@ async function syncAchievementsForSource(
 }
 
 function resolveAthlete(
-  entry: Record<string, any>,
+  entry: EventResultRecord,
   athletesById: Map<string, AthleteRecord>,
   athletesByRegistration: Map<string, AthleteRecord>
 ) {
@@ -420,7 +495,7 @@ export async function clearSyncedEventArtifactsFromAthletes(sourceEventId: strin
 
 export async function syncStandaloneEventResultsToAthletes(event: EventRecord) {
   return syncAchievementsForSource(String(event.id), (athletesById, athletesByRegistration) => {
-    const achievementsByAthlete = new Map<string, Record<string, any>[]>()
+    const achievementsByAthlete = new Map<string, AthleteAchievement[]>()
 
     for (const result of Array.isArray(event.results) ? event.results : []) {
       const athlete = resolveAthlete(result, athletesById, athletesByRegistration)
@@ -438,7 +513,7 @@ export async function syncStandaloneEventResultsToAthletes(event: EventRecord) {
 
 export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
   return syncAchievementsForSource(String(tournament.id), (athletesById, athletesByRegistration) => {
-    const achievementsByAthlete = new Map<string, Record<string, any>[]>()
+    const achievementsByAthlete = new Map<string, AthleteAchievement[]>()
     const sourceEntries =
       Array.isArray(tournament.results) && tournament.results.length > 0
         ? tournament.results

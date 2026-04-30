@@ -2,12 +2,92 @@ import { randomUUID } from 'node:crypto'
 
 import { findClassBranchByName, findClassBranchBySlug } from '@/lib/classes/catalog'
 import { ApiError } from '@/lib/server/api'
+import { isPublicTechniqueVideosEnabled } from '@/lib/server/feature-flags'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { extractYouTubeId, getYouTubeThumbnailUrl, YOUTUBE_ID_PATTERN } from '@/lib/youtube'
 
 import { getAllCitiesLive } from './classes-live'
 
-type PortalVideoRow = Record<string, any>
-type TimetableRow = Record<string, any>
+type PortalVideoRow = {
+  id?: unknown
+  title?: unknown
+  description?: unknown
+  category?: unknown
+  duration_label?: unknown
+  youtube_id?: unknown
+  branch_slugs?: unknown
+  batch_names?: unknown
+  belt_levels?: unknown
+  is_featured?: unknown
+  is_published?: unknown
+  show_in_techniques?: unknown
+  sort_order?: unknown
+  created_at?: unknown
+  updated_at?: unknown
+}
+
+type TimetableRow = {
+  id?: unknown
+  branch_slug?: unknown
+  title?: unknown
+  drive_url?: unknown
+  image_url?: unknown
+  month_label?: unknown
+  effective_from?: unknown
+  effective_to?: unknown
+  is_active?: unknown
+  notes?: unknown
+  created_at?: unknown
+  updated_at?: unknown
+}
+
+type PortalVideoPayload = {
+  id?: unknown
+  title?: unknown
+  description?: unknown
+  category?: unknown
+  durationLabel?: unknown
+  duration_label?: unknown
+  youtubeId?: unknown
+  youtube_id?: unknown
+  youtubeInput?: unknown
+  youtube_input?: unknown
+  branchSlugs?: unknown
+  branch_slugs?: unknown
+  batchNames?: unknown
+  batch_names?: unknown
+  beltLevels?: unknown
+  belt_levels?: unknown
+  isFeatured?: unknown
+  isPublished?: unknown
+  showInTechniques?: unknown
+  show_in_techniques?: unknown
+  sortOrder?: unknown
+}
+
+type BranchTimetablePayload = {
+  id?: unknown
+  branchSlug?: unknown
+  branch_slug?: unknown
+  title?: unknown
+  driveUrl?: unknown
+  drive_url?: unknown
+  imageUrl?: unknown
+  image_url?: unknown
+  monthLabel?: unknown
+  month_label?: unknown
+  effectiveFrom?: unknown
+  effective_from?: unknown
+  effectiveTo?: unknown
+  effective_to?: unknown
+  isActive?: unknown
+  notes?: unknown
+}
+
+type DatabaseWriteError = {
+  code?: string
+  message?: string
+}
 
 export type PortalVideoRecord = {
   id: string
@@ -15,11 +95,8 @@ export type PortalVideoRecord = {
   description: string
   category: string
   durationLabel: string
-  provider: string
-  sourceUrl: string
-  playbackUrl: string
+  youtubeId: string
   thumbnailUrl: string
-  playbackMode: 'video' | 'iframe'
   branchSlugs: string[]
   batchNames: string[]
   beltLevels: string[]
@@ -30,6 +107,8 @@ export type PortalVideoRecord = {
   createdAt: string
   updatedAt: string
 }
+
+export type AthletePortalVideoRecord = PortalVideoRecord
 
 export type BranchTimetableRecord = {
   id: string
@@ -69,81 +148,8 @@ function normalizeBeltLevel(value?: string | null) {
   return normalized.startsWith('black') ? 'black' : normalized
 }
 
-function extractGoogleDriveFileId(value: string) {
-  const text = String(value || '').trim()
-  if (!text) return null
-
-  const directMatch = text.match(/\/file\/d\/([^/]+)/i)
-  if (directMatch) return directMatch[1]
-
-  const openMatch = text.match(/[?&]id=([^&]+)/i)
-  if (openMatch) return openMatch[1]
-
-  const ucMatch = text.match(/uc\?(?:[^#]*&)??id=([^&]+)/i)
-  if (ucMatch) return ucMatch[1]
-
-  return null
-}
-
-function extractYouTubeVideoId(value: string) {
-  const text = String(value || '').trim()
-  if (!text) return null
-
-  const watchMatch = text.match(/[?&]v=([^&]+)/i)
-  if (watchMatch) return watchMatch[1]
-
-  const shortMatch = text.match(/youtu\.be\/([^?&/]+)/i)
-  if (shortMatch) return shortMatch[1]
-
-  const embedMatch = text.match(/youtube\.com\/embed\/([^?&/]+)/i)
-  if (embedMatch) return embedMatch[1]
-
-  return null
-}
-
-function buildGoogleDrivePlayback(fileId: string) {
-  return {
-    playbackUrl: `https://drive.google.com/file/d/${fileId}/preview`,
-    playbackMode: 'iframe' as const,
-  }
-}
-
-function resolvePlayback(sourceUrl: string, provider?: string, explicitPlaybackUrl?: string | null) {
-  const normalizedProvider = String(provider || 'google-drive').trim().toLowerCase()
-  const preferredUrl = String(explicitPlaybackUrl || '').trim()
-
-  if (preferredUrl) {
-    return {
-      playbackUrl: preferredUrl,
-      playbackMode: preferredUrl.includes('drive.google.com') ? ('iframe' as const) : ('video' as const),
-    }
-  }
-
-  if (normalizedProvider === 'google-drive') {
-    const fileId = extractGoogleDriveFileId(sourceUrl)
-    if (fileId) {
-      return buildGoogleDrivePlayback(fileId)
-    }
-  }
-
-  const youtubeId = extractYouTubeVideoId(sourceUrl)
-  if (normalizedProvider === 'youtube' || youtubeId) {
-    return {
-      playbackUrl: `https://www.youtube.com/embed/${youtubeId}`,
-      playbackMode: 'iframe' as const,
-    }
-  }
-
-  return {
-    playbackUrl: sourceUrl,
-    playbackMode: 'video' as const,
-  }
-}
-
 function mapPortalVideoRow(row: PortalVideoRow): PortalVideoRecord {
-  const sourceUrl = String(row.source_url || '').trim()
-  const playback = resolvePlayback(sourceUrl, row.provider, row.playback_url)
-  const youtubeId = extractYouTubeVideoId(sourceUrl)
+  const youtubeId = String(row.youtube_id || '').trim()
 
   return {
     id: String(row.id),
@@ -151,13 +157,8 @@ function mapPortalVideoRow(row: PortalVideoRow): PortalVideoRecord {
     description: String(row.description || '').trim(),
     category: String(row.category || 'techniques').trim().toLowerCase(),
     durationLabel: String(row.duration_label || '').trim(),
-    provider: String(row.provider || 'google-drive').trim().toLowerCase(),
-    sourceUrl,
-    playbackUrl: playback.playbackUrl,
-    playbackMode: playback.playbackMode,
-    thumbnailUrl:
-      String(row.thumbnail_url || '').trim() ||
-      (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : ''),
+    youtubeId,
+    thumbnailUrl: youtubeId ? getYouTubeThumbnailUrl(youtubeId) : '',
     branchSlugs: normalizeTextList(row.branch_slugs),
     batchNames: normalizeTextList(row.batch_names),
     beltLevels: normalizeTextList(row.belt_levels).map((belt) => normalizeBeltLevel(belt)),
@@ -187,7 +188,7 @@ function mapTimetableRow(row: TimetableRow): BranchTimetableRecord {
   }
 }
 
-function handlePortalContentError(error: any, entityLabel: string): never {
+function handlePortalContentError(error: DatabaseWriteError, entityLabel: string): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,
@@ -204,16 +205,24 @@ function ensureSupabaseForPortalContent() {
   }
 }
 
-function normalisePortalVideoPayload(payload: Record<string, any>) {
+function normalisePortalVideoPayload(payload: PortalVideoPayload) {
   const title = String(payload.title || '').trim()
-  const sourceUrl = String(payload.sourceUrl || payload.source_url || '').trim()
+  const youtubeId = extractYouTubeId(
+    String(
+      payload.youtubeId ||
+        payload.youtube_id ||
+        payload.youtubeInput ||
+        payload.youtube_input ||
+        ''
+    )
+  )
 
   if (!title) {
     throw new ApiError(400, 'Video title is required.')
   }
 
-  if (!sourceUrl) {
-    throw new ApiError(400, 'Video source URL is required.')
+  if (!youtubeId || !YOUTUBE_ID_PATTERN.test(youtubeId)) {
+    throw new ApiError(400, 'A valid 11-character YouTube video ID is required.')
   }
 
   const branchSlugs = normalizeTextList(payload.branchSlugs || payload.branch_slugs)
@@ -233,10 +242,7 @@ function normalisePortalVideoPayload(payload: Record<string, any>) {
     description: String(payload.description || '').trim(),
     category: String(payload.category || 'techniques').trim().toLowerCase() || 'techniques',
     duration_label: String(payload.durationLabel || payload.duration_label || '').trim(),
-    provider: String(payload.provider || 'google-drive').trim().toLowerCase() || 'google-drive',
-    source_url: sourceUrl,
-    playback_url: String(payload.playbackUrl || payload.playback_url || '').trim() || null,
-    thumbnail_url: String(payload.thumbnailUrl || payload.thumbnail_url || '').trim() || null,
+    youtube_id: youtubeId,
     branch_slugs: branchSlugs,
     batch_names: batchNames,
     belt_levels: normalizeTextList(payload.beltLevels || payload.belt_levels).map((belt) => normalizeBeltLevel(belt)),
@@ -248,7 +254,7 @@ function normalisePortalVideoPayload(payload: Record<string, any>) {
   }
 }
 
-function normaliseBranchTimetablePayload(payload: Record<string, any>) {
+function normaliseBranchTimetablePayload(payload: BranchTimetablePayload) {
   const branchSlug = String(payload.branchSlug || payload.branch_slug || '').trim()
   const driveUrl = String(payload.driveUrl || payload.drive_url || '').trim()
 
@@ -355,10 +361,22 @@ export async function getPortalVideosForAthlete(context: {
   )
 }
 
+export async function getProtectedPortalVideosForAthlete(context: {
+  branchName?: string | null
+  batch?: string | null
+  belt?: string | null
+}) {
+  return getPortalVideosForAthlete(context)
+}
+
 export async function getTechniqueLibraryVideos(filters: {
   beltLevel?: string | null
   category?: string | null
 } = {}) {
+  if (!isPublicTechniqueVideosEnabled()) {
+    return []
+  }
+
   const beltLevel = normalizeBeltLevel(filters.beltLevel)
   const category = String(filters.category || '').trim().toLowerCase()
 
@@ -373,7 +391,7 @@ export async function getTechniqueLibraryVideos(filters: {
   )
 }
 
-export async function createPortalVideo(payload: Record<string, any>) {
+export async function createPortalVideo(payload: PortalVideoPayload) {
   ensureSupabaseForPortalContent()
   const normalized = normalisePortalVideoPayload(payload)
 
@@ -390,7 +408,7 @@ export async function createPortalVideo(payload: Record<string, any>) {
   return mapPortalVideoRow(data)
 }
 
-export async function updatePortalVideo(id: string, payload: Record<string, any>) {
+export async function updatePortalVideo(id: string, payload: PortalVideoPayload) {
   ensureSupabaseForPortalContent()
 
   const normalized = normalisePortalVideoPayload({
@@ -467,7 +485,7 @@ export async function getActiveTimetableForBranchName(branchName?: string | null
   }
 }
 
-export async function createBranchTimetable(payload: Record<string, any>) {
+export async function createBranchTimetable(payload: BranchTimetablePayload) {
   ensureSupabaseForPortalContent()
   const normalized = normaliseBranchTimetablePayload(payload)
 
@@ -484,7 +502,7 @@ export async function createBranchTimetable(payload: Record<string, any>) {
   return mapTimetableRow(data)
 }
 
-export async function updateBranchTimetable(id: string, payload: Record<string, any>) {
+export async function updateBranchTimetable(id: string, payload: BranchTimetablePayload) {
   ensureSupabaseForPortalContent()
   const normalized = normaliseBranchTimetablePayload({
     ...payload,

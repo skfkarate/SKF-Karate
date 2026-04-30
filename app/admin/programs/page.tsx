@@ -1,19 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import { ROUTES } from '@/data/constants/routes'
+import { adminProgramCreateSchema } from '@/src/server/api/validators/programs.validator'
+
+type AdminProgram = {
+  id: string
+  name: string
+  type: string
+  branch?: string | null
+  hasBeltSubtypes?: boolean
+}
 
 export default function AdminProgramsPage() {
-  const [programs, setPrograms] = useState([])
+  const [programs, setPrograms] = useState<AdminProgram[]>([])
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState('')
 
-  useEffect(() => {
-    fetchPrograms()
-  }, [])
-
-  async function fetchPrograms() {
+  const fetchPrograms = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/programs')
@@ -24,7 +30,14 @@ export default function AdminProgramsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void fetchPrograms()
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [fetchPrograms])
 
   const handleCreateNew = async () => {
     setLoading(true)
@@ -32,12 +45,11 @@ export default function AdminProgramsPage() {
       const res = await fetch('/api/admin/programs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'New Program Template',
-          description: 'Define syllabus, tests, and fees.',
-          baseFee: 1500,
-          beltLevels: ['White Belt', 'Yellow Belt']
-        })
+        body: JSON.stringify(adminProgramCreateSchema.parse({
+          name: 'New Program Template',
+          type: 'training',
+          hasBeltSubtypes: true,
+        }))
       })
       if (res.ok) {
         setNotification('Template registered.')
@@ -110,7 +122,7 @@ export default function AdminProgramsPage() {
           ) : programs.length === 0 ? (
             <div style={{ color: '#666', padding: '2rem', border: '1px dashed #222', textAlign: 'center' }}>No templates found.</div>
           ) : (
-            programs.map(prog => (
+            programs.map((prog) => (
               <div key={prog.id} style={{
                 background: '#050505',
                 border: '1px solid #1a1a1a',
@@ -123,33 +135,26 @@ export default function AdminProgramsPage() {
               onMouseOut={e => e.currentTarget.style.borderColor = '#1a1a1a'}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 500, letterSpacing: '-0.02em' }}>{prog.title}</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 500, letterSpacing: '-0.02em' }}>{prog.name}</h3>
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', background: '#111', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                    ₹{prog.baseFee}
+                    {prog.type}
                   </span>
                 </div>
                 
                 <p style={{ fontSize: '0.85rem', color: '#888', margin: '0 0 2rem 0', lineHeight: 1.5, flex: 1 }}>
-                  {prog.description}
+                  {prog.branch || 'Certificate and training configuration'}
                 </p>
 
                 <div style={{ marginBottom: '2rem' }}>
                   <p style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', fontWeight: 600 }}>Coverage</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {prog.beltLevels?.slice(0, 3).map(belt => (
-                      <span key={belt} style={{ fontSize: '0.7rem', color: '#ccc', padding: '0.2rem 0.5rem', background: '#111', border: '1px solid #222', borderRadius: '4px' }}>
-                        {belt}
+                    <span style={{ fontSize: '0.7rem', color: '#ccc', padding: '0.2rem 0.5rem', background: '#111', border: '1px solid #222', borderRadius: '4px' }}>
+                      {prog.hasBeltSubtypes ? 'Belt-specific templates' : 'General template'}
                       </span>
-                    ))}
-                    {(prog.beltLevels?.length || 0) > 3 && (
-                      <span style={{ fontSize: '0.7rem', color: '#666', padding: '0.2rem 0.5rem' }}>
-                        +{prog.beltLevels.length - 3} more
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                <Link href={`/admin/programs/${prog.id}/template`} style={{
+                <Link href={ROUTES.ADMIN_PROGRAM_TEMPLATE_EDITOR(prog.id)} style={{
                   display: 'block',
                   textAlign: 'center',
                   background: 'transparent',

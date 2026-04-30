@@ -199,7 +199,7 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                         </div>
                         
                         <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: '2rem' }}>
-                            "{branch.senseiProfile?.description || 'True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential.'}"
+                            &quot;{branch.senseiProfile?.description || 'True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential.'}&quot;
                         </p>
                         
                         <a 

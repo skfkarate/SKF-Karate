@@ -62,16 +62,6 @@ export default function ProductDetailPage() {
             .catch(() => setIsLoading(false))
     }, [productId])
 
-    useEffect(() => {
-        if (!product) return
-
-        const variant = product.variants.find(v => v.id === selectedVariant)
-        const inCart = cart.find(item => item.variantId === selectedVariant)?.quantity || 0
-        const availableToAdd = Math.max(1, (variant?.stock || 0) - inCart)
-
-        setQuantity(current => Math.min(current, availableToAdd))
-    }, [product, selectedVariant, cart])
-
     if (isLoading) return <ShopProductSkeleton />
     if (!product) return <div className="obsidian-store" style={{ padding: '6rem', color: '#fff', textAlign: 'center' }}>Product not found.</div>
 
@@ -89,6 +79,8 @@ export default function ProductDetailPage() {
     // Check if this variant is already in cart
     const existingCartItem = cart.find(item => item.variantId === selectedVariant)
     const maxPurchasableQuantity = Math.max(0, (activeVariantObj?.stock || 0) - (existingCartItem?.quantity || 0))
+    const maxSelectableQuantity = Math.max(1, maxPurchasableQuantity || 1)
+    const selectedQuantity = Math.min(quantity, maxSelectableQuantity)
     const hasReachedCartLimit = !isOutOfStock && maxPurchasableQuantity === 0
 
     // Sizing Matrix Engine
@@ -109,6 +101,7 @@ export default function ProductDetailPage() {
         
         if (targetVar) {
             setSelectedVariant(targetVar.id)
+            setQuantity(1)
             setIsSizingModalOpen(false)
             setCalcHeight('')
             setCalcWeight('')
@@ -124,7 +117,7 @@ export default function ProductDetailPage() {
             return
         }
 
-        const quantityToAdd = Math.min(quantity, maxPurchasableQuantity)
+        const quantityToAdd = Math.min(selectedQuantity, maxPurchasableQuantity)
 
         if (!activeVariantObj || isOutOfStock || isBeltLocked || quantityToAdd <= 0) return
         
@@ -348,7 +341,11 @@ export default function ProductDetailPage() {
                                     <button
                                         key={v.id}
                                         className={`obsidian-variant-btn ${selectedVariant === v.id ? 'active' : ''} ${v.stock === 0 ? 'out-of-stock' : ''}`}
-                                        onClick={() => v.stock > 0 && setSelectedVariant(v.id)}
+                                        onClick={() => {
+                                            if (v.stock <= 0) return
+                                            setSelectedVariant(v.id)
+                                            setQuantity(1)
+                                        }}
                                         disabled={v.stock === 0}
                                         style={selectedVariant === v.id ? { background: '#fff', color: '#000', borderColor: '#fff' } : {}}
                                     >
@@ -371,9 +368,9 @@ export default function ProductDetailPage() {
                             {/* Quantity + Stock */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
                                 <div className="obsidian-stepper">
-                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
-                                    <span className="obsidian-stepper__val">{quantity}</span>
-                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.min(Math.max(1, maxPurchasableQuantity || 1), quantity + 1))}>+</button>
+                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.max(1, selectedQuantity - 1))}>−</button>
+                                    <span className="obsidian-stepper__val">{selectedQuantity}</span>
+                                    <button className="obsidian-stepper__btn" onClick={() => setQuantity(Math.min(maxSelectableQuantity, selectedQuantity + 1))}>+</button>
                                 </div>
                                 <div style={{ color: isOutOfStock ? '#ff6b6b' : 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Package size={14} /> 

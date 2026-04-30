@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto'
-
 import { type Branch, type City, type School, cities as staticCities } from '@/lib/classesData'
 import type { SenseiSummary } from '@/lib/types/sensei'
 
@@ -58,6 +56,11 @@ type SchoolRow = {
   name: string
   city: string | null
   sort_order: number | null
+}
+
+type DatabaseWriteError = {
+  code?: string
+  message?: string
 }
 
 function cloneData<T>(value: T): T {
@@ -274,7 +277,7 @@ function getStaticCityDataset() {
   return cloneData(staticCities)
 }
 
-function handleClassesWriteError(error: any, entityLabel: string): never {
+function handleClassesWriteError(error: DatabaseWriteError, entityLabel: string): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,
@@ -383,7 +386,7 @@ export async function createCityLive(input: Partial<City> & { sortOrder?: number
   const slug = normalizeSlug(input.slug, name, 'City slug')
   const state = normalizeText(input.state || 'Karnataka', 'State', { required: true, max: 120 })
   const photo = normalizeText(input.photo || '/gallery/In Dojo.jpeg', 'Photo', { max: 500 })
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, 0)
 
   const { error } = await supabaseAdmin.from('class_cities').insert({
     slug,
@@ -409,7 +412,7 @@ export async function updateCityLive(slug: string, input: Partial<City> & { sort
   const nextSlug = normalizeSlug(input.slug ?? slug, nextName, 'City slug')
   const nextState = normalizeText(input.state ?? existing.state, 'State', { required: true, max: 120 })
   const nextPhoto = normalizeText(input.photo ?? existing.photo, 'Photo', { max: 500 }) || '/gallery/In Dojo.jpeg'
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, 0)
 
   const { error } = await supabaseAdmin
     .from('class_cities')
@@ -458,7 +461,7 @@ export async function createBranchLive(input: Partial<Branch> & { sortOrder?: nu
   const citySlug = normalizeText(input.city, 'City slug', { required: true, max: 120 })
   const name = normalizeText(input.name, 'Training centre name', { required: true, max: 160 })
   const slug = normalizeSlug(input.slug, name, 'Training centre slug')
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, 0)
   const senseiPayload = await resolveBranchSenseiPayload(input)
 
   const { error } = await supabaseAdmin.from('class_branches').insert({
@@ -503,7 +506,7 @@ export async function updateBranchLive(slug: string, input: Partial<Branch> & { 
   const nextCitySlug = normalizeText(input.city ?? existing.city_slug, 'City slug', { required: true, max: 120 })
   const nextName = normalizeText(input.name ?? existing.name, 'Training centre name', { required: true, max: 160 })
   const nextSlug = normalizeSlug(input.slug ?? existing.slug, nextName, 'Training centre slug')
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, existing.sort_order || 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, existing.sort_order || 0)
   const senseiPayload = await resolveBranchSenseiPayload(input, existing)
 
   const { error } = await supabaseAdmin
@@ -553,7 +556,7 @@ export async function createSchoolLive(input: Partial<SchoolRecord>) {
   const citySlug = normalizeText(input.city, 'City slug', { required: true, max: 120 })
   const name = normalizeText(input.name, 'School name', { required: true, max: 200 })
   const id = normalizeSlug(input.id, `${citySlug}-${name}`, 'School id')
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, 0)
 
   const { error } = await supabaseAdmin.from('class_schools').insert({
     id,
@@ -587,7 +590,7 @@ export async function updateSchoolLive(id: string, input: Partial<SchoolRecord>)
   const nextCitySlug = normalizeText(input.city ?? existing.city_slug, 'City slug', { required: true, max: 120 })
   const nextName = normalizeText(input.name ?? existing.name, 'School name', { required: true, max: 200 })
   const nextId = normalizeSlug(input.id ?? existing.id, `${nextCitySlug}-${nextName}`, 'School id')
-  const sortOrder = normalizeSortOrder((input as any).sortOrder, existing.sort_order || 0)
+  const sortOrder = normalizeSortOrder(input.sortOrder, existing.sort_order || 0)
 
   const { error } = await supabaseAdmin
     .from('class_schools')

@@ -14,9 +14,22 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
-const redis = Redis.fromEnv()
-
+let redis: Redis | null = null
 const limiters = new Map<string, Ratelimit>()
+
+function getRedis(): Redis {
+  if (redis) return redis
+
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+
+  if (!url || !token) {
+    throw new Error('Upstash Redis is not configured.')
+  }
+
+  redis = new Redis({ url, token })
+  return redis
+}
 
 function getLimiter(name: string, limit: number, windowMs: number): Ratelimit {
   const key = `${name}_${limit}_${windowMs}`
@@ -25,7 +38,7 @@ function getLimiter(name: string, limit: number, windowMs: number): Ratelimit {
 
   const windowSec = Math.max(1, Math.ceil(windowMs / 1000))
   const limiter = new Ratelimit({
-    redis,
+    redis: getRedis(),
     limiter: Ratelimit.slidingWindow(limit, `${windowSec} s`),
     analytics: true,
     prefix: `skf_${name}_`,

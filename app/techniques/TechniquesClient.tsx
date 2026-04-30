@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { FaPlay, FaTimes } from 'react-icons/fa'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { PortalVideoRecord } from '@/lib/server/repositories/portal-content-live'
+import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
+import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 
 type Props = {
     videos: PortalVideoRecord[]
@@ -151,17 +153,13 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                 }}
                             >
                                 <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000' }}>
-                                    {video.thumbnailUrl ? (
-                                        <Image
-                                            src={video.thumbnailUrl}
-                                            alt={video.title}
-                                            style={{ objectFit: 'cover', opacity: 0.8 }}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 400px"
-                                        />
-                                    ) : (
-                                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.25), rgba(255,183,3,0.12))' }} />
-                                    )}
+                                    <YouTubeThumbnail
+                                        youtubeId={video.youtubeId}
+                                        alt={video.title}
+                                        style={{ objectFit: 'cover', opacity: 0.8 }}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 400px"
+                                    />
                                     <div style={{ 
                                         position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         background: 'rgba(0,0,0,0.3)'
@@ -209,11 +207,18 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
             )}
 
             {/* Video Modal */}
+            <AnimatePresence>
             {activeVideo && (
-                <div style={{ 
-                    position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' 
-                }} onClick={() => setActiveVideo(null)}>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
+                    }}
+                    onClick={() => setActiveVideo(null)}
+                >
                     
                     <button style={{ 
                         position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', 
@@ -223,25 +228,16 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                     </button>
                     
                     <div style={{ width: '100%', maxWidth: '1000px', aspectRatio: '16/9', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
-                        {activeVideo.playbackMode === 'iframe' ? (
-                            <iframe 
-                                src={activeVideo.playbackUrl} 
-                                style={{ width: '100%', height: '100%', border: 'none' }}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        ) : (
-                            <video
-                                src={activeVideo.playbackUrl}
-                                style={{ width: '100%', height: '100%' }}
-                                controls
-                                autoPlay
-                                playsInline
-                            />
-                        )}
+                        <YouTubeNativePlayer
+                            youtubeId={activeVideo.youtubeId}
+                            title={activeVideo.title}
+                            posterUrl={activeVideo.thumbnailUrl}
+                            onEscape={() => setActiveVideo(null)}
+                        />
                     </div>
-                </div>
+                </motion.div>
             )}
+            </AnimatePresence>
         </div>
     )
 }

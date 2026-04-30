@@ -1,4 +1,8 @@
-import { products as seedProducts } from '@/data/seed/products'
+import {
+  products as seedProducts,
+  type Product as SeedProduct,
+  type ProductVariant as SeedProductVariant,
+} from '@/data/seed/products'
 
 import type {
   RequestedShopCartItem,
@@ -6,6 +10,7 @@ import type {
   ShopOrderItem,
   ShopOrderStatus,
   ShopProduct,
+  ShopProductCategory,
   ShopProductVariant,
 } from './types'
 import { BELT_HIERARCHY } from './types'
@@ -17,7 +22,17 @@ const VALID_PRODUCT_CATEGORIES = new Set([
   'merchandise',
 ])
 
-export function seedProductToShopProduct(seedProduct: any): ShopProduct {
+type RawShopProduct = Partial<Omit<ShopProduct, 'category' | 'images' | 'variants'>> & {
+  category?: unknown
+  images?: unknown
+  variants?: unknown
+  reviewCount?: unknown
+  review_count?: unknown
+}
+
+type RawShopProductVariant = Partial<SeedProductVariant> & Partial<ShopProductVariant>
+
+export function seedProductToShopProduct(seedProduct: SeedProduct): ShopProduct {
   return {
     id: String(seedProduct.id),
     name: String(seedProduct.name),
@@ -30,7 +45,7 @@ export function seedProductToShopProduct(seedProduct: any): ShopProduct {
       ? seedProduct.images.map((image: unknown) => String(image)).filter(Boolean)
       : [],
     variants: Array.isArray(seedProduct.variants)
-      ? seedProduct.variants.map((variant: any) => ({
+      ? seedProduct.variants.map((variant) => ({
           id: String(variant.id),
           size: String(variant.size),
           stock: normalizeWholeNumber(variant.stock),
@@ -48,13 +63,15 @@ export function seedProductToShopProduct(seedProduct: any): ShopProduct {
 
 export const seedShopProducts: ShopProduct[] = seedProducts.map(seedProductToShopProduct)
 
-export function normalizeShopProduct(record: any): ShopProduct {
+export function normalizeShopProduct(record: RawShopProduct): ShopProduct {
+  const category = String(record?.category || '') as ShopProductCategory
+
   return {
     id: String(record?.id || ''),
     name: String(record?.name || ''),
     description: String(record?.description || ''),
-    category: VALID_PRODUCT_CATEGORIES.has(record?.category)
-      ? record.category
+    category: VALID_PRODUCT_CATEGORIES.has(category)
+      ? category
       : 'merchandise',
     price: normalizeCurrencyAmount(record?.price),
     images: Array.isArray(record?.images)
@@ -62,7 +79,7 @@ export function normalizeShopProduct(record: any): ShopProduct {
       : [],
     variants: Array.isArray(record?.variants)
       ? record.variants
-          .map((variant: any) => normalizeShopProductVariant(variant))
+          .map((variant) => normalizeShopProductVariant(variant as RawShopProductVariant))
           .filter((variant: ShopProductVariant) => variant.id && variant.size)
       : [],
     rating: normalizeDecimal(record?.rating),
@@ -74,7 +91,7 @@ export function normalizeShopProduct(record: any): ShopProduct {
   }
 }
 
-export function normalizeShopProductVariant(variant: any): ShopProductVariant {
+export function normalizeShopProductVariant(variant: RawShopProductVariant): ShopProductVariant {
   return {
     id: String(variant?.id || ''),
     size: String(variant?.size || ''),
@@ -218,7 +235,6 @@ export function buildPreparedShopOrder(input: {
   availablePoints?: number
   requestedPoints?: number
   promoCode?: string | null
-  paymentBypass?: boolean
 }): {
   items: ShopOrderItem[]
   subtotal: number
@@ -316,11 +332,7 @@ export function buildPreparedShopOrder(input: {
     pointsDiscount,
     discount,
     total,
-    status: requiresApproval
-      ? 'pending-approval'
-      : input.paymentBypass
-        ? 'payment-pending'
-        : 'processing',
+    status: requiresApproval ? 'pending-approval' : 'processing',
     requiresApproval,
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { BELTS } from '@/data/constants/belts';
 import { DEFAULT_POINTS, calculateTournamentPoints } from '@/lib/utils/points';
 

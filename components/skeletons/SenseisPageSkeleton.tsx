@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonCircle, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives'
+import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives'
 
 /**
  * SenseisPageSkeleton — mirrors senseis page: Hero → Alternating spotlight cards → CTA

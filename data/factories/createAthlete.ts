@@ -9,7 +9,7 @@ export interface AthleteInput {
   lastName: string
   branchName?: string
   currentBelt?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function createAthlete(input: AthleteInput) {

@@ -18,7 +18,7 @@ function ensureLoaded() {
     } else {
       categories = [...DEFAULT_CATEGORIES];
     }
-  } catch(e) {
+  } catch {
     categories = [...DEFAULT_CATEGORIES];
   }
 }

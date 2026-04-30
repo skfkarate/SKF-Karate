@@ -212,7 +212,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
   useEffect(() => {
     if (!branchNames.length) return
 
-    setCurrentWinner((previous) => {
+    const id = window.setTimeout(() => setCurrentWinner((previous) => {
       if (previous.branchName && previous.branchName !== 'SKF Karate') {
         return previous
       }
@@ -221,7 +221,8 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
         ...previous,
         branchName: branchNames[0],
       }
-    })
+    }), 0)
+    return () => window.clearTimeout(id)
   }, [branchNames])
 
   // Auto-generate slug from name

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 
-import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth_legacy'
+import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth/portal'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 import { getActiveTimetableForBranchName } from '@/lib/server/repositories/portal-content-live'
 

@@ -1,27 +1,24 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { awardPoints } from '@/lib/points/pointsService'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
+import { enrollmentCompleteSchema } from '@/src/server/api/validators/admin-certificates.validator'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const { completionDate, issuerName } = body
-
+export const PATCH = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: enrollmentCompleteSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body, params, requestId }) => {
     const { data, error } = await supabaseAdmin
       .from('enrollments')
       .update({
         status: 'completed',
         certificate_unlocked: true,
-        completion_date: completionDate || new Date().toISOString().split('T')[0],
-        issuer_name: issuerName || 'Chief Administrative Head',
+        completion_date: body.completionDate || new Date().toISOString().split('T')[0],
+        issuer_name: body.issuerName || 'Chief Administrative Head',
         updated_at: new Date().toISOString()
       })
       .eq('id', params.id)
@@ -35,13 +32,10 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       if (data?.skf_id) {
         await awardPoints(data.skf_id, 'GRADING_PASS', { enrollmentId: params.id })
       }
-    } catch (e) {
-      console.error('Gamification hook for grading failed:', e)
+    } catch (error) {
+      logger.error('admin.enrollment.complete_points_failed', { requestId, enrollmentId: params.id, error })
     }
 
     return NextResponse.json({ success: true, enrollment: data })
-  } catch (error: any) {
-    console.error('[API PATCH] Failed to complete enrollment:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)

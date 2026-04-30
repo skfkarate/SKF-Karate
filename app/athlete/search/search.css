@@ -178,9 +178,15 @@
 }
 
 /* ── SEARCH BAR ── */
-.as-searchbar {
+.as-searchbar-container {
   width: 100%;
   max-width: 660px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.as-searchbar {
+  width: 100%;
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
@@ -259,6 +265,67 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ── SUGGESTIONS DROPDOWN ── */
+.as-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.as-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.as-suggestion-item:hover,
+.as-suggestion-item:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.as-suggestion-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.as-suggestion-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.as-suggestion-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.as-suggestion-id {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ── SPINNER ── */

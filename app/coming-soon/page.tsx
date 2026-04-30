@@ -38,8 +38,8 @@ export default function ComingSoonPage() {
           {submitted ? (
             <div className="contact-success" style={{ padding: '2rem', background: 'rgba(37, 211, 102, 0.05)', borderRadius: '24px', border: '1px solid rgba(37, 211, 102, 0.2)' }}>
               <div className="contact-success-icon" style={{ fontSize: '2rem', marginBottom: '1rem' }}>✓</div>
-              <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>You're on the list!</h3>
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>We'll notify you the moment this Dojo expansion launches.</p>
+              <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>You&apos;re on the list!</h3>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>We&apos;ll notify you the moment this Dojo expansion launches.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

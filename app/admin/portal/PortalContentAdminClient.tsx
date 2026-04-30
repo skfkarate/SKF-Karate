@@ -9,6 +9,8 @@ import type {
   BranchTimetableRecord,
   PortalVideoRecord,
 } from '@/lib/server/repositories/portal-content-live'
+import { extractYouTubeId } from '@/lib/youtube'
+import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 
 const VIDEO_CATEGORIES = [
   { value: 'techniques', label: 'Techniques' },
@@ -27,9 +29,8 @@ type VideoDraft = {
   description: string
   category: string
   durationLabel: string
-  provider: string
-  sourceUrl: string
-  thumbnailUrl: string
+  youtubeInput: string
+  youtubeId: string
   branchSlugs: string[]
   batchNamesText: string
   beltLevels: string[]
@@ -59,9 +60,8 @@ function buildEmptyVideoDraft(): VideoDraft {
     description: '',
     category: 'techniques',
     durationLabel: '',
-    provider: 'google-drive',
-    sourceUrl: '',
-    thumbnailUrl: '',
+    youtubeInput: '',
+    youtubeId: '',
     branchSlugs: [],
     batchNamesText: '',
     beltLevels: [],
@@ -79,9 +79,8 @@ function buildVideoDraft(video: PortalVideoRecord): VideoDraft {
     description: video.description,
     category: video.category,
     durationLabel: video.durationLabel,
-    provider: video.provider,
-    sourceUrl: video.sourceUrl,
-    thumbnailUrl: video.thumbnailUrl,
+    youtubeInput: video.youtubeId,
+    youtubeId: video.youtubeId,
     branchSlugs: video.branchSlugs,
     batchNamesText: video.batchNames.join(', '),
     beltLevels: video.beltLevels,
@@ -127,6 +126,14 @@ function parseCommaList(value: string) {
     .split(',')
     .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean)
+}
+
+function applyYouTubeInput(current: VideoDraft, value: string): VideoDraft {
+  return {
+    ...current,
+    youtubeInput: value,
+    youtubeId: extractYouTubeId(value) || '',
+  }
 }
 
 function fieldStyle() {
@@ -223,6 +230,12 @@ export default function PortalContentAdminClient({
   }
 
   const handleVideoSubmit = async () => {
+    if (!videoDraft.youtubeId) {
+      setStatus('')
+      setError('Paste a valid YouTube URL or 11-character video ID before saving.')
+      return
+    }
+
     const success = await submitAction(
       {
         entity: 'video',
@@ -230,6 +243,7 @@ export default function PortalContentAdminClient({
         id: videoDraft.id || undefined,
         payload: {
           ...videoDraft,
+          youtubeId: videoDraft.youtubeId,
           batchNames: parseCommaList(videoDraft.batchNamesText),
         },
       },
@@ -275,7 +289,7 @@ export default function PortalContentAdminClient({
           Portal Content Studio
         </h1>
         <p style={{ color: '#888', maxWidth: '860px', margin: '0.9rem 0 0', lineHeight: 1.6 }}>
-          Control Drive-backed home-practice videos, the public technique library, and branch timetables from one place.
+          Control YouTube-backed home-practice videos, the public technique library, and branch timetables from one place.
           Visibility is managed by branch, batch, and belt while playback stays inside your own SKF experience.
         </p>
       </header>
@@ -325,7 +339,7 @@ export default function PortalContentAdminClient({
               <SectionHeader
                 eyebrow={videoDraft.id ? 'Edit Video' : 'New Video'}
                 title={videoDraft.id ? 'Update Home Practice' : 'Create Home Practice'}
-                subtitle="Google Drive share links are supported directly. Assign visibility by branch, batch, and belt so each athlete sees the right library, and optionally surface global videos in the public Technique Library."
+                subtitle="Paste a YouTube URL or 11-character video ID. SKF stores only the ID, derives the thumbnail automatically, and plays it through the custom in-platform player."
               />
 
               <div style={{ display: 'grid', gap: '0.9rem' }}>
@@ -341,8 +355,35 @@ export default function PortalContentAdminClient({
                   </select>
                   <input value={videoDraft.durationLabel} onChange={(event) => setVideoDraft((current) => ({ ...current, durationLabel: event.target.value }))} placeholder="Duration label" style={fieldStyle()} />
                 </div>
-                <input value={videoDraft.sourceUrl} onChange={(event) => setVideoDraft((current) => ({ ...current, sourceUrl: event.target.value }))} placeholder="Google Drive share link or direct stream URL" style={fieldStyle()} />
-                <input value={videoDraft.thumbnailUrl} onChange={(event) => setVideoDraft((current) => ({ ...current, thumbnailUrl: event.target.value }))} placeholder="Thumbnail image URL (optional)" style={fieldStyle()} />
+                <input
+                  value={videoDraft.youtubeInput}
+                  onChange={(event) => setVideoDraft((current) => applyYouTubeInput(current, event.target.value))}
+                  placeholder="YouTube URL or 11-character video ID"
+                  style={fieldStyle()}
+                />
+                <div style={subPanelStyle}>
+                  <div style={subPanelHeadingStyle}>YouTube Preview</div>
+                  {videoDraft.youtubeId ? (
+                    <div style={{ display: 'grid', gap: '0.8rem' }}>
+                      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '14px', background: '#000' }}>
+                        <YouTubeThumbnail
+                          youtubeId={videoDraft.youtubeId}
+                          alt="YouTube thumbnail preview"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 420px"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                      <div style={{ color: '#8a8a8a', fontSize: '0.82rem' }}>
+                        Stored ID: <span style={{ color: '#ffcf70', fontFamily: 'monospace' }}>{videoDraft.youtubeId}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ color: '#fca5a5', fontSize: '0.84rem', lineHeight: 1.7 }}>
+                      Paste a valid YouTube URL or ID to preview the thumbnail.
+                    </div>
+                  )}
+                </div>
                 <input value={videoDraft.batchNamesText} onChange={(event) => setVideoDraft((current) => ({ ...current, batchNamesText: event.target.value }))} placeholder="Visible batches (comma separated, leave blank for all)" style={fieldStyle()} />
 
                 <div style={subPanelStyle}>
@@ -401,10 +442,7 @@ export default function PortalContentAdminClient({
 
                 <div style={{ display: 'grid', gap: '0.9rem', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
                   <input type="number" value={videoDraft.sortOrder} onChange={(event) => setVideoDraft((current) => ({ ...current, sortOrder: Number(event.target.value || 0) }))} placeholder="Sort order" style={fieldStyle()} />
-                  <select value={videoDraft.provider} onChange={(event) => setVideoDraft((current) => ({ ...current, provider: event.target.value }))} style={fieldStyle()}>
-                    <option value="google-drive">Google Drive</option>
-                    <option value="direct">Direct Video URL</option>
-                  </select>
+                  <input value={videoDraft.youtubeId} readOnly placeholder="Extracted YouTube ID" style={{ ...fieldStyle(), color: videoDraft.youtubeId ? '#ffcf70' : '#777', fontFamily: 'monospace' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -457,7 +495,17 @@ export default function PortalContentAdminClient({
                   videos.map((video) => (
                     <div key={video.id} style={rowCardStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start' }}>
-                        <div>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                          <div style={{ position: 'relative', width: '140px', aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', background: '#000', flexShrink: 0 }}>
+                            <YouTubeThumbnail
+                              youtubeId={video.youtubeId}
+                              alt={video.title}
+                              fill
+                              sizes="140px"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          </div>
+                          <div>
                           <div style={{ fontSize: '1rem', fontWeight: 600 }}>{video.title}</div>
                           <div style={{ marginTop: '0.35rem', color: '#7c7c7c', fontSize: '0.86rem', lineHeight: 1.6 }}>
                             {video.description || 'No description added yet.'}
@@ -474,6 +522,9 @@ export default function PortalContentAdminClient({
                             Batches: {video.batchNames.length ? video.batchNames.join(', ') : 'All'}
                             <br />
                             Belts: {video.beltLevels.length ? video.beltLevels.join(', ') : 'All'}
+                            <br />
+                            YouTube ID: <span style={{ fontFamily: 'monospace', color: '#b7b7b7' }}>{video.youtubeId}</span>
+                          </div>
                           </div>
                         </div>
 

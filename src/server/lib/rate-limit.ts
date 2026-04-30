@@ -1,6 +1,6 @@
 import { checkRateLimit as checkMemoryRateLimit } from '@/lib/server/rate-limit'
 import { checkRateLimit as checkRedisRateLimit } from '@/lib/server/rate-limit-redis'
-import { hasEnv } from '@/src/server/config/env'
+import { env, hasEnv } from '@/src/server/config/env'
 
 type RateLimitWindow = `${number}${'s' | 'm' | 'h'}`
 
@@ -14,6 +14,9 @@ const RATE_LIMITS = {
   public: { name: 'public', limit: 60, window: '1m' },
   authed: { name: 'authed', limit: 300, window: '1m' },
   write: { name: 'write', limit: 30, window: '1m' },
+  contact: { name: 'contact', limit: 3, window: '15m' },
+  lookup: { name: 'lookup', limit: 5, window: '1m' },
+  certificateLookup: { name: 'certificateLookup', limit: 20, window: '5m' },
   auth: { name: 'auth', limit: 5, window: '15m' },
   sensitive: { name: 'sensitive', limit: 3, window: '1h' },
   upload: { name: 'upload', limit: 10, window: '1h' },
@@ -49,8 +52,21 @@ export async function applyRateLimit(
     limit: config.limit,
     windowMs: windowToMs(config.window),
   }
+  const hasPersistentRateLimit = hasEnv('UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN')
 
-  const result = hasEnv('UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN')
+  if (env.NODE_ENV === 'production' && !hasPersistentRateLimit) {
+    return {
+      allowed: false,
+      headers: {
+        'X-RateLimit-Limit': String(config.limit),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Date.now() + params.windowMs),
+        'Retry-After': String(Math.max(1, Math.ceil(params.windowMs / 1000))),
+      },
+    }
+  }
+
+  const result = hasPersistentRateLimit
     ? await checkRedisRateLimit(config.name, key, params)
     : checkMemoryRateLimit(config.name, key, params)
 

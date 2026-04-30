@@ -56,7 +56,7 @@ export default function CookiePolicy() {
           <section className="privacy-section">
             <h2 className="privacy-section__title">3. Preference Management</h2>
             <p className="privacy-text">
-              You maintain full control over your digital footprint. You can reset your cookie choices at any time by clearing your browser cache or adjusting the settings in your modern browser's privacy dashboard.
+              You maintain full control over your digital footprint. You can reset your cookie choices at any time by clearing your browser cache or adjusting the settings in your modern browser&apos;s privacy dashboard.
             </p>
           </section>
 

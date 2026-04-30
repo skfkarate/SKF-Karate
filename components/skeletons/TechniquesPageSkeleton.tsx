@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonBlock } from './SkeletonPrimitives'
+import { SkeletonLine } from './SkeletonPrimitives'
 
 /**
  * TechniquesPageSkeleton — mirrors techniques page: Hero → Category grid with technique cards

@@ -19,7 +19,6 @@ function AnimatedCounter({ target, duration = 1400, suffix = '' }) {
           const animate = (now) => {
             const elapsed = now - startTime
             const progress = Math.min(elapsed / duration, 1)
-            // Ease-out cubic for smooth deceleration
             const eased = 1 - Math.pow(1 - progress, 3)
             setCount(Math.floor(eased * target))
             if (progress < 1) requestAnimationFrame(animate)
@@ -47,98 +46,82 @@ function formatDate(dateStr) {
 export default function ResultsDetailHero({ tournament }) {
   const [copied, setCopied] = useState(false)
 
-  async function handleShare() {
-    const url = `https://www.skfkarate.org/results/${tournament.slug}`
+  const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(window.location.href)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      const textarea = document.createElement('textarea')
-      textarea.value = url
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy', err)
     }
   }
 
   return (
-    <section className="td-hero">
-      <div className="td-hero__inner container">
-        {/* ── Back nav ── */}
-        <Link href="/results" className="td-hero__back">
+    <>
+      <section className="res-hero res-hero--detail">
+        <Link href="/results" className="res-detail-back">
           <FaArrowLeft size={10} /> All Results
         </Link>
 
-        {/* ── Badge row ── */}
-        <div className="td-hero__badge-row">
-          <span className={`tournament-card__level-badge tournament-card__level-badge--${tournament.level}`}>
+        <div className="res-hero__badge animate-in">
+          <span className={`tournament-card__level-badge tournament-card__level-badge--${tournament.level}`} style={{ border: 'none', background: 'transparent', padding: 0 }}>
             {TOURNAMENT_LEVEL_LABELS[tournament.level]}
           </span>
-          <span className="td-hero__dot" />
-          <span className="td-hero__date">
-            {formatDate(tournament.date)}
-            {tournament.endDate ? ` – ${formatDate(tournament.endDate)}` : ''}
-          </span>
+          <span className="res-hero__badge-dot" />
+          {formatDate(tournament.date)}
         </div>
-
-        {/* ── Title ── */}
-        <h1 className="td-hero__title">{tournament.name}</h1>
-
-        {/* ── Venue ── */}
-        <p className="td-hero__venue">
+        
+        <h1 className="res-hero__title animate-in delay-1">
+          <span className="res-hero__line1">{tournament.name}</span>
+        </h1>
+        
+        <p className="res-hero__sub animate-in delay-2">
           {tournament.venue}, {tournament.city}
         </p>
+      </section>
 
-        {/* ── Stats + Medals unified bar ── */}
-        <div className="td-hero__stats-bar">
-          <div className="td-stat">
-            <span className="td-stat__val">
-              <AnimatedCounter target={tournament.totalParticipants} />
-            </span>
-            <span className="td-stat__lbl">Athletes</span>
+      <section className="res-detail-body animate-in delay-3">
+        <div className="res-top-stats">
+          <div className="res-stat-card">
+            <span className="res-stat-val"><AnimatedCounter target={tournament.totalParticipants} /></span>
+            <span className="res-stat-label">Athletes</span>
           </div>
-          <div className="td-stat-div" />
-          <div className="td-stat">
-            <span className="td-stat__val">
-              <AnimatedCounter target={tournament.skfParticipants} />
-            </span>
-            <span className="td-stat__lbl">SKF</span>
+          <div className="res-stat-card res-stat-card--gold">
+            <span className="res-stat-val"><AnimatedCounter target={tournament.skfParticipants} /></span>
+            <span className="res-stat-label">SKF Team</span>
           </div>
-          <div className="td-stat-div" />
-          <div className="td-stat td-stat--medal">
-            <span className="td-stat__val td-stat__val--gold">
-              <AnimatedCounter target={tournament.medals.gold} duration={1000} />
-            </span>
-            <span className="td-stat__lbl">🥇 Gold</span>
-          </div>
-          <div className="td-stat-div" />
-          <div className="td-stat td-stat--medal">
-            <span className="td-stat__val td-stat__val--silver">
-              <AnimatedCounter target={tournament.medals.silver} duration={1000} />
-            </span>
-            <span className="td-stat__lbl">🥈 Silver</span>
-          </div>
-          <div className="td-stat-div" />
-          <div className="td-stat td-stat--medal">
-            <span className="td-stat__val td-stat__val--bronze">
-              <AnimatedCounter target={tournament.medals.bronze} duration={1000} />
-            </span>
-            <span className="td-stat__lbl">🥉 Bronze</span>
-          </div>
+        </div>
 
-          <div className="td-stat-div" />
-          <button
-            onClick={handleShare}
-            className="td-hero__share"
-          >
-            {copied ? <><FaCheck size={11} /> Copied</> : <><FaShareAlt size={11} /> Share</>}
+        <div className="res-podium">
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--silver">🥈</div>
+            <h3 className="res-pod__name">Silver</h3>
+            <div className="res-pod__pillar res-pod__pillar--silver">
+              <span><AnimatedCounter target={tournament.medals.silver} /></span>
+            </div>
+          </div>
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--gold">🥇</div>
+            <h3 className="res-pod__name">Gold</h3>
+            <div className="res-pod__pillar res-pod__pillar--gold">
+              <span><AnimatedCounter target={tournament.medals.gold} /></span>
+            </div>
+          </div>
+          <div className="res-pod">
+            <div className="res-pod__photo res-pod__photo--bronze">🥉</div>
+            <h3 className="res-pod__name">Bronze</h3>
+            <div className="res-pod__pillar res-pod__pillar--bronze">
+              <span><AnimatedCounter target={tournament.medals.bronze} /></span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="res-detail-share">
+          <button onClick={handleShare} className="detail-nav__share">
+            {copied ? <><FaCheck size={11} /> Copied</> : <><FaShareAlt size={11} /> Share Results</>}
           </button>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

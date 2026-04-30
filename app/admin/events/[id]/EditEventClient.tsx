@@ -5,12 +5,30 @@ import { usePathname, useRouter } from 'next/navigation'
 import EventForm from '../_components/EventForm'
 import AthleteAssigner from '../_components/AthleteAssigner'
 import ResultsManager from '../_components/ResultsManager'
+import type { EventParticipant } from '../_components/AthleteAssigner'
+import type { ManagedResult, ResultEventParticipant } from '../_components/ResultsManager'
 import type { City } from '@/lib/classesData'
 import type { SenseiSummary } from '@/lib/types/sensei'
 
 type EventTab = 'details' | 'athletes' | 'results'
 
-function getWorkflowStatus(eventData: any) {
+type EditableEventData = {
+  id: string
+  name: string
+  type: string
+  status?: string
+  date: string
+  city?: string
+  venue?: string
+  hostingBranch?: string
+  isPublished?: boolean
+  isResultsPublished?: boolean
+  participants: EventParticipant[] & ResultEventParticipant[]
+  results: ManagedResult[]
+  resultsAppliedAt?: string | null
+}
+
+function getWorkflowStatus(eventData: EditableEventData) {
   const participantCount = Array.isArray(eventData.participants)
     ? eventData.participants.length
     : 0
@@ -33,7 +51,7 @@ export default function EditEventClient({
   senseis,
   initialTab = 'details',
 }: {
-  eventData: any
+  eventData: EditableEventData
   classCities: City[]
   senseis: SenseiSummary[]
   initialTab?: EventTab

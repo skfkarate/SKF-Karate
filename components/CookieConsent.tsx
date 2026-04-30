@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { getCookieConsent, saveCookieConsent, CookieConsentData } from '../lib/cookies/consent'
+import { getCookieConsent, saveCookieConsent } from '../lib/cookies/consent'
 import { FaTimes } from 'react-icons/fa'
 
 export default function CookieConsent() {
@@ -11,13 +10,16 @@ export default function CookieConsent() {
   const [preferences, setPreferences] = useState({ analytics: false, marketing: false })
 
   useEffect(() => {
-    const consent = getCookieConsent()
-    if (!consent) {
-      setHasConsented(false)
-    } else {
-      setHasConsented(true)
-      setPreferences({ analytics: consent.analytics, marketing: consent.marketing })
-    }
+    const id = window.setTimeout(() => {
+      const consent = getCookieConsent()
+      if (!consent) {
+        setHasConsented(false)
+      } else {
+        setHasConsented(true)
+        setPreferences({ analytics: consent.analytics, marketing: consent.marketing })
+      }
+    }, 0)
+    return () => window.clearTimeout(id)
   }, [])
 
   const handleAcceptAll = () => {

@@ -5,7 +5,7 @@ import { COOKIE_NAME, verifyStudentJWT } from '@/lib/server/auth/student'
 import { getShopOrdersBySkfId } from '@/lib/server/repositories/shop'
 import '../shop.css'
 
-export default async function ShopOrdersPage(props: { searchParams: Promise<any> }) {
+export default async function ShopOrdersPage(props: { searchParams: Promise<{ success?: string }> }) {
     const searchParams = await props.searchParams
     const cookieStore = await cookies()
     const token = cookieStore.get(COOKIE_NAME)?.value

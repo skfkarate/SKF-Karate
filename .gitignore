@@ -35,6 +35,7 @@ tsc-errors.log
 .env
 .env.local
 .env.production
+.env*.local
 !.env.example
 
 # Misc junk

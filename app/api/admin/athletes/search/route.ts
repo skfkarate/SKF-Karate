@@ -1,21 +1,32 @@
 import { NextResponse } from 'next/server'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
+import { adminSearchQuerySchema } from '@/src/server/api/validators/admin-general.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+type AdminAthleteSearchRow = {
+  id: string
+  registrationNumber: string
+  firstName: string
+  lastName: string
+  branchName?: string
+  currentBelt?: string
+  photoUrl?: string
+  status?: string
+}
 
-    const { searchParams } = new URL(request.url)
-    const q = searchParams.get('q')?.toLowerCase() || ''
+export const GET = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    querySchema: adminSearchQuerySchema,
+    rateLimit: { tier: 'authed' },
+  },
+  async ({ query }) => {
+    const q = query.q?.toLowerCase() || ''
 
-    let athletes = await getAllAthletesLive()
+    let athletes = (await getAllAthletesLive()) as AdminAthleteSearchRow[]
 
     if (q) {
-      athletes = athletes.filter((a: any) => 
+      athletes = athletes.filter((a) =>
         a.firstName.toLowerCase().includes(q) || 
         a.lastName.toLowerCase().includes(q) ||
         a.registrationNumber.toLowerCase().includes(q)
@@ -23,13 +34,13 @@ export async function GET(request: Request) {
     }
 
     athletes = athletes
-      .filter((a: any) => String(a.status || '').toLowerCase() !== 'inactive')
-      .sort((a: any, b: any) =>
+      .filter((a) => String(a.status || '').toLowerCase() !== 'inactive')
+      .sort((a, b) =>
         `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
       )
 
     // Return limited dataset for assignment search
-    const results = athletes.map((a: any) => ({
+    const results = athletes.map((a) => ({
       id: a.id,
       registrationNumber: a.registrationNumber,
       firstName: a.firstName,
@@ -40,7 +51,5 @@ export async function GET(request: Request) {
     })).slice(0, 50)
 
     return NextResponse.json({ athletes: results })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { FaEnvelope, FaArrowRight, FaChevronDown, FaMapMarkerAlt } from 'react-icons/fa'
+import { FaEnvelope, FaChevronDown, FaMapMarkerAlt } from 'react-icons/fa'
 import ContactFormCard from '@/app/_components/contact/ContactFormCard'
 import ContactInfoPanel from '@/app/_components/contact/ContactInfoPanel'
 import PrefetchLink from '@/components/navigation/PrefetchLink'
@@ -12,7 +12,6 @@ import {
   readQueue,
   sendToAPI,
 } from '@/app/_components/contact/contactSubmissionQueue'
-import { getAllCities, type City } from '@/lib/classesData'
 import './contact.css'
 
 const FAQS = [
@@ -23,12 +22,16 @@ const FAQS = [
     { q: "Are the certificates valid globally?", a: "Yes. As a World Karate Federation (WKF) affiliated academy, our black belt grading and tournament certificates carry immense global recognition." },
 ]
 
+type ContactStatus = 'idle' | 'loading' | 'success' | 'error'
+type RetryableContactError = Error & {
+    retryable?: boolean
+}
+
 export default function ContactPage() {
     const [formData, setFormData] = useState({ ...INITIAL_CONTACT_FORM_STATE })
-    const [status, setStatus] = useState('idle')
+    const [status, setStatus] = useState<ContactStatus>('idle')
     const [errorMsg, setErrorMsg] = useState('')
     const [openFaq, setOpenFaq] = useState<number | null>(null)
-    const [cities, setCities] = useState<City[]>(() => getAllCities())
 
     const flushQueue = useCallback(async () => {
         try {
@@ -38,8 +41,15 @@ export default function ContactPage() {
             const remaining = []
             for (const item of queue) {
                 try {
-                    const { queuedAt, ...payload } = item
-                    await sendToAPI(payload)
+                    await sendToAPI({
+                        name: item.name,
+                        email: item.email,
+                        phone: item.phone,
+                        preferredTime: item.preferredTime,
+                        interest: item.interest,
+                        message: item.message,
+                        website: item.website,
+                    })
                 } catch {
                     remaining.push(item)
                 }
@@ -52,30 +62,12 @@ export default function ContactPage() {
         flushQueue()
     }, [flushQueue])
 
-    useEffect(() => {
-        let isMounted = true
-
-        fetch('/api/classes')
-            .then((res) => res.json())
-            .then((data) => {
-                if (!isMounted || !Array.isArray(data?.cities)) return
-                setCities(data.cities)
-            })
-            .catch((error) => {
-                console.error('Failed to load classes for contact page:', error)
-            })
-
-        return () => {
-            isMounted = false
-        }
-    }, [])
-
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
     const emailRef = useRef<HTMLInputElement>(null)
-    const handleEmailChange = (e) => {
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value
         const prev = formData.email
 
@@ -93,7 +85,7 @@ export default function ContactPage() {
         }
     }
 
-    const handlePhoneChange = (e) => {
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let raw = e.target.value
         raw = raw.replace(/^\+91\s*/, '')
         const digits = raw.replace(/\D/g, '').slice(0, 10)
@@ -107,7 +99,7 @@ export default function ContactPage() {
         setFormData({ ...formData, phone: formatted })
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setStatus('loading')
         setErrorMsg('')
@@ -127,15 +119,16 @@ export default function ContactPage() {
             await sendToAPI(payload)
             setStatus('success')
             setFormData({ ...INITIAL_CONTACT_FORM_STATE })
-        } catch (err: any) {
+        } catch (err) {
+            const error = err as RetryableContactError
             console.error('Submission error:', err)
             
-            if (err.retryable !== false) {
+            if (error.retryable !== false) {
                 queueSubmission(payload)
             }
             
             setStatus('error')
-            setErrorMsg(err.message || 'Something went wrong. If the issue continues, please call us directly.')
+            setErrorMsg(error.message || 'Something went wrong. If the issue continues, please call us directly.')
         }
     }
 
@@ -153,7 +146,7 @@ export default function ContactPage() {
                 </div>
                 <h1 className="contact-hero__title">Contact <span className="contact-hero__accent">Us</span></h1>
                 <p className="contact-hero__sub">
-                    Have questions? We're here to help you begin your journey. Request a callback or visit one of our branches.
+                    Have questions? We&apos;re here to help you begin your journey. Request a callback or visit one of our branches.
                 </p>
             </section>
 

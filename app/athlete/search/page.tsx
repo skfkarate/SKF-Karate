@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, User, MapPin, Award, ChevronRight, Trophy, Sparkles, ArrowRight } from 'lucide-react'
+import { Search, MapPin, Award, ChevronRight, Sparkles, ArrowRight } from 'lucide-react'
 import './search.css'
 
 // Belt color mapping for visual indicators
@@ -20,6 +20,19 @@ const BELT_COLORS: Record<string, string> = {
   'black-3rd-dan': '#1a1a1a',
 }
 
+type AthleteSearchResult = {
+  registrationNumber: string
+  firstName?: string
+  lastName?: string
+  branchName?: string
+  currentBelt?: string
+}
+
+type AthleteSearchResponse = {
+  results?: AthleteSearchResult[]
+  athletes?: AthleteSearchResult[]
+}
+
 function getBeltDisplay(belt: string) {
   if (!belt) return { label: 'White', color: '#f5f5f5' }
   const lower = belt.toLowerCase()
@@ -34,42 +47,71 @@ export default function FindProfilePage() {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<AthleteSearchResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
-  const [featuredAthletes, setFeaturedAthletes] = useState<any[]>([])
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    const saved = window.localStorage.getItem('recentSearches')
+    if (!saved) return []
+
+    try {
+      return JSON.parse(saved) as string[]
+    } catch {
+      return []
+    }
+  })
+  const [suggestions, setSuggestions] = useState<AthleteSearchResult[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
 
-  // Load featured athletes on mount
+  // Debounced suggestions fetch
   useEffect(() => {
-    fetch('/api/athletes/search?featured=1&limit=4')
-      .then(res => res.json())
-      .then(data => {
-        const athletes = data.results || data.athletes || []
-        setFeaturedAthletes(athletes.slice(0, 4))
-      })
-      .catch(() => {})
-  }, [])
+    const q = query.trim()
+    if (!q || q.length < 2) {
+      const timer = setTimeout(() => setSuggestions([]), 0)
+      return () => clearTimeout(timer)
+    }
+    const timer = setTimeout(() => {
+      fetch(`/api/athletes/search?q=${encodeURIComponent(q)}`)
+        .then(res => res.json())
+        .then(data => {
+          setSuggestions(data.results || data.athletes || [])
+        })
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
 
-  async function handleSearch(e?: React.FormEvent) {
+  function addToRecentSearches(q: string) {
+    if (!q) return;
+    const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 5)
+    setRecentSearches(updated)
+    localStorage.setItem('recentSearches', JSON.stringify(updated))
+  }
+
+  async function handleSearch(e?: React.FormEvent, explicitQuery?: string) {
     if (e) e.preventDefault()
-    if (!query.trim()) return
+    const q = explicitQuery !== undefined ? explicitQuery : query
+    if (!q.trim()) return
 
     setIsLoading(true)
     setError('')
     setHasSearched(true)
+    setShowSuggestions(false)
+    addToRecentSearches(q.trim())
     
-    const isSkfId = /^SKF[-\s]?\d{2,4}[-\s]?\d{2,4}$/i.test(query.trim()) || /^SKF\d+/i.test(query.trim().replace(/[-\s]/g, ''))
+    const isSkfId = /^SKF[-\s]?\d{2,4}[-\s]?\d{2,4}$/i.test(q.trim()) || /^SKF\d+/i.test(q.trim().replace(/[-\s]/g, ''))
 
     try {
       if (isSkfId) {
-        router.push(`/athlete/${query.trim().toUpperCase()}`)
+        router.push(`/athlete/${q.trim().toUpperCase()}`)
         return
       }
 
-      const res = await fetch(`/api/athletes/search?q=${encodeURIComponent(query.trim())}`)
+      const res = await fetch(`/api/athletes/search?q=${encodeURIComponent(q.trim())}`)
       if (!res.ok) throw new Error('Search failed')
       
-      const data = await res.json()
+      const data = await res.json() as AthleteSearchResponse
       setResults(data.results || data.athletes || [])
     } catch (err) {
       console.error(err)
@@ -105,33 +147,69 @@ export default function FindProfilePage() {
         </p>
 
         {/* ═══ SEARCH BAR ═══ */}
-        <form onSubmit={handleSearch} className={`as-searchbar ${inputFocused ? 'as-searchbar--focused' : ''}`}>
-          <div className="as-searchbar__icon">
-            <Search size={20} />
-          </div>
-          <input 
-            ref={inputRef}
-            type="text" 
-            placeholder="Enter SKF ID (e.g. SKF-2024-0042) or athlete name..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            className="as-searchbar__input"
-            autoComplete="off"
-          />
-          <button 
-            type="submit" 
-            disabled={isLoading || !query.trim()}
-            className="as-searchbar__btn"
-          >
-            {isLoading ? (
-              <span className="as-spinner" />
-            ) : (
-              <>Search<ArrowRight size={16} /></>
-            )}
-          </button>
-        </form>
+        <div className="as-searchbar-container">
+          <form onSubmit={(e) => handleSearch(e)} className={`as-searchbar ${inputFocused ? 'as-searchbar--focused' : ''}`}>
+            <div className="as-searchbar__icon">
+              <Search size={20} />
+            </div>
+            <input 
+              ref={inputRef}
+              type="text" 
+              placeholder="Enter SKF ID (e.g. SKF-2024-0042) or athlete name..."
+              value={query}
+              onChange={e => {
+                setQuery(e.target.value)
+                setShowSuggestions(true)
+                setHasSearched(false) // reset search state to show suggestions/recent
+              }}
+              onFocus={() => {
+                setInputFocused(true)
+                setShowSuggestions(true)
+              }}
+              onBlur={() => setInputFocused(false)}
+              className="as-searchbar__input"
+              autoComplete="off"
+            />
+            <button 
+              type="submit" 
+              disabled={isLoading || !query.trim()}
+              className="as-searchbar__btn"
+            >
+              {isLoading ? (
+                <span className="as-spinner" />
+              ) : (
+                <>Search<ArrowRight size={16} /></>
+              )}
+            </button>
+          </form>
+
+          {/* Suggestions Dropdown */}
+          {inputFocused && showSuggestions && suggestions.length > 0 && (
+            <div className="as-suggestions-dropdown">
+              {suggestions.slice(0, 5).map((s) => (
+                <div 
+                  key={s.registrationNumber} 
+                  className="as-suggestion-item" 
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // prevent blur
+                    const name = `${s.firstName} ${s.lastName}`;
+                    setQuery(name);
+                    setShowSuggestions(false);
+                    handleSearch(undefined, name);
+                  }}
+                >
+                  <div className="as-suggestion-avatar">
+                    {s.firstName?.[0]}{s.lastName?.[0]}
+                  </div>
+                  <div className="as-suggestion-info">
+                    <span className="as-suggestion-name">{s.firstName} {s.lastName}</span>
+                    <span className="as-suggestion-id">{s.registrationNumber}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
 
       </section>
@@ -155,7 +233,7 @@ export default function FindProfilePage() {
               </div>
               <h3 className="as-empty-state__title">No Athletes Found</h3>
               <p className="as-empty-state__desc">
-                Try searching by exact SKF Registration ID or check the spelling of the name. Names are case-insensitive.
+                Try searching by athlete name and check the spelling. Names are case-insensitive.
               </p>
             </div>
           )}
@@ -170,7 +248,7 @@ export default function FindProfilePage() {
               </div>
               
               <div className="as-results__grid">
-                {results.map((athlete: any) => {
+                {results.map((athlete) => {
                   const belt = getBeltDisplay(athlete.currentBelt)
                   return (
                     <div
@@ -192,8 +270,6 @@ export default function FindProfilePage() {
                           <h4 className="as-athlete-card__name">
                             {athlete.firstName} {athlete.lastName}
                           </h4>
-                          <span className="as-athlete-card__id">{athlete.registrationNumber}</span>
-                          
                           <div className="as-athlete-card__meta">
                             <span className="as-athlete-card__meta-item">
                               <MapPin size={12} /> {athlete.branchName}
@@ -218,42 +294,27 @@ export default function FindProfilePage() {
             </div>
           )}
 
-          {/* ═══ FEATURED ATHLETES (shown when no search yet) ═══ */}
-          {!hasSearched && featuredAthletes.length > 0 && (
-            <div className="as-featured">
+          {/* ═══ RECENT SEARCHES (shown when no search yet) ═══ */}
+          {!hasSearched && query.trim() === '' && recentSearches.length > 0 && (
+            <div className="as-featured" style={{ marginTop: '3rem' }}>
               <div className="as-featured__header">
-                <Trophy size={18} className="as-featured__icon" />
-                <h3 className="as-featured__heading">Featured Athletes</h3>
+                <Search size={18} className="as-featured__icon" />
+                <h3 className="as-featured__heading">Recent Searches</h3>
               </div>
               
-              <div className="as-featured__grid">
-                {featuredAthletes.map((athlete: any) => {
-                  const belt = getBeltDisplay(athlete.currentBelt)
-                  return (
-                    <div
-                      key={athlete.registrationNumber}
-                      className="as-featured-card"
-                      onClick={() => router.push(`/athlete/${athlete.registrationNumber}`)}
-                    >
-                      <div className="as-featured-card__glow" style={{ background: belt.color }} />
-                      
-                      <div className="as-featured-card__avatar" style={{ borderColor: belt.color }}>
-                        <span>{athlete.firstName?.[0]}{athlete.lastName?.[0]}</span>
-                      </div>
-                      
-                      <h4 className="as-featured-card__name">
-                        {athlete.firstName} {athlete.lastName}
-                      </h4>
-                      
-                      <div className="as-featured-card__belt">
-                        <span className="as-belt-dot" style={{ background: belt.color, boxShadow: `0 0 6px ${belt.color}` }} />
-                        {belt.label}
-                      </div>
-                      
-                      <span className="as-featured-card__branch">{athlete.branchName}</span>
-                    </div>
-                  )
-                })}
+              <div className="as-quick-tags" style={{ justifyContent: 'flex-start', marginTop: '1rem' }}>
+                {recentSearches.map((s, i) => (
+                  <button 
+                    key={i} 
+                    className="as-quick-tag" 
+                    onClick={() => {
+                      setQuery(s)
+                      handleSearch(undefined, s)
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           )}

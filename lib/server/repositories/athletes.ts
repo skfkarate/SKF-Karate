@@ -433,6 +433,20 @@ let mockAthletes = [
   }
 ];
 
+type AthleteRecord = (typeof mockAthletes)[number] & {
+  parentName?: string;
+  phone?: string;
+  email?: string;
+  batch?: string;
+  monthlyFee?: number;
+  photoConsent?: boolean;
+  consentGivenAt?: string | null;
+  achievements?: unknown[];
+  pointsHistory?: unknown[];
+};
+
+type AthletePayload = Partial<AthleteRecord>;
+
 let athletesLoadedFromDisk = false;
 
 function cloneAthleteData(value) {
@@ -446,7 +460,7 @@ function ensureAthletesLoaded() {
   try {
     const stored = readJsonArray(ATHLETES_DATA_FILE);
     if (Array.isArray(stored) && stored.length > 0) {
-      mockAthletes = stored as any
+      mockAthletes = stored as typeof mockAthletes
     }
   } catch (error) {
     console.error('Failed to load athlete store:', error);
@@ -550,8 +564,8 @@ export function getAthleteRank(athleteId) {
 }
 
 function normaliseAthletePayload(
-  input: Record<string, any> = {},
-  existing: Record<string, any> | null = null
+  input: AthletePayload = {},
+  existing: AthletePayload | null = null
 ) {
   const now = new Date().toISOString();
   const joinDate = input.joinDate || existing?.joinDate || new Date().toISOString().split('T')[0];
@@ -585,6 +599,10 @@ function normaliseAthletePayload(
       typeof input.photoConsent === 'boolean'
         ? input.photoConsent
         : existing?.photoConsent ?? false,
+    consentGivenAt:
+      input.consentGivenAt === null
+        ? null
+        : input.consentGivenAt || existing?.consentGivenAt || null,
     isPublic: typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured: typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
     achievements: Array.isArray(input.achievements) ? input.achievements : existing?.achievements || [],

@@ -10,22 +10,110 @@ const BELT_EXAM_TYPES = new Set([
 
 const ATHLETE_BELTS = new Set(['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black'])
 
+type AthleteAchievement = {
+  type?: string
+  pointsAwarded?: unknown
+  date?: string
+}
+
+type AthleteLike = {
+  registrationNumber?: string
+  firstName?: string
+  lastName?: string
+  dateOfBirth?: string
+  gender?: string
+  photoUrl?: string
+  branchName?: string
+  currentBelt?: string
+  joinDate?: string
+  status?: string
+  parentName?: string
+  phone?: string
+  email?: string
+  batch?: string
+  monthlyFee?: unknown
+  photoConsent?: boolean
+  consentGivenAt?: string | null
+  isPublic?: boolean
+  isFeatured?: boolean
+  achievements?: AthleteAchievement[]
+}
+
+type LegacyStudentLike = {
+  skfId?: string
+  name?: string
+  dob?: string
+  enrolledDate?: string
+  branch?: string
+  batch?: string
+  belt?: string
+  parentName?: string
+  phone?: string
+  email?: string
+  photoUrl?: string
+  monthlyFee?: unknown
+  photoConsent?: boolean
+  consentGivenAt?: string | null
+  status?: string
+}
+
+type AdminRecordInput = AthleteLike & LegacyStudentLike
+
+type AdminFormValues = {
+  registrationNumber?: string
+  skfId?: string
+  name?: string
+  dob?: string
+  gender?: string
+  photoUrl?: string
+  branch?: string
+  belt?: string
+  enrolledDate?: string
+  status?: string
+  parentName?: string
+  phone?: string
+  email?: string
+  batch?: string
+  monthlyFee?: unknown
+  photoConsent?: unknown
+  dataConsent?: unknown
+  consentGivenAt?: string | null
+  isPublic?: unknown
+  isFeatured?: unknown
+}
+
+type AthleteAutomationSummary = {
+  competitionResults: number
+  beltEntries: number
+  specialEvents: number
+  lifetimePoints: number
+  achievementCount: number
+  lastActivityDate: string | null
+}
+
+type MergedStudentAthleteRecord = LegacyStudentLike &
+  ReturnType<typeof buildAthleteAdminFormDefaults> & {
+    displayName: string
+    automation: AthleteAutomationSummary
+    publicProfileHref: string | null
+  }
+
 function toNumber(value: unknown, fallback = 0) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : fallback
 }
 
-function hasAthleteShape(record?: Record<string, any> | null) {
+function hasAthleteShape(record?: AdminRecordInput | null) {
   return Boolean(record?.registrationNumber || record?.firstName || record?.lastName)
 }
 
-function formatAthleteName(record?: Record<string, any> | null) {
+function formatAthleteName(record?: AthleteLike | null) {
   return [record?.firstName, record?.lastName].filter(Boolean).join(' ').trim()
 }
 
 function formatName(
-  legacyStudent?: Record<string, any> | null,
-  athlete?: Record<string, any> | null
+  legacyStudent?: LegacyStudentLike | null,
+  athlete?: AthleteLike | null
 ) {
   return String(legacyStudent?.name || formatAthleteName(athlete) || '').trim()
 }
@@ -60,7 +148,7 @@ function splitAthleteName(name: string) {
   }
 }
 
-export function buildAthleteAutomationSummary(athlete?: Record<string, any> | null) {
+export function buildAthleteAutomationSummary(athlete?: AthleteLike | null): AthleteAutomationSummary {
   const achievements = Array.isArray(athlete?.achievements) ? athlete.achievements : []
   const competitionResults = achievements.filter((entry) =>
     String(entry?.type || '').startsWith('tournament')
@@ -91,8 +179,8 @@ export function buildAthleteAutomationSummary(athlete?: Record<string, any> | nu
 }
 
 export function buildAthleteAdminFormDefaults(
-  legacyStudentOrAthlete?: Record<string, any> | null,
-  athleteRecord?: Record<string, any> | null
+  legacyStudentOrAthlete?: AdminRecordInput | null,
+  athleteRecord?: AthleteLike | null
 ) {
   const athlete = athleteRecord || (hasAthleteShape(legacyStudentOrAthlete) ? legacyStudentOrAthlete : null)
   const legacyStudent = athleteRecord ? legacyStudentOrAthlete : hasAthleteShape(legacyStudentOrAthlete) ? null : legacyStudentOrAthlete
@@ -119,13 +207,15 @@ export function buildAthleteAdminFormDefaults(
     photoUrl: String(legacyStudent?.photoUrl || athlete?.photoUrl || '').trim(),
     monthlyFee: toNumber(legacyStudent?.monthlyFee ?? athlete?.monthlyFee, 0),
     photoConsent: Boolean(legacyStudent?.photoConsent ?? athlete?.photoConsent),
+    dataConsent: Boolean(athlete?.consentGivenAt),
+    consentGivenAt: athlete?.consentGivenAt || null,
     isPublic: athlete?.isPublic ?? true,
     isFeatured: athlete?.isFeatured ?? false,
     status: String(legacyStudent?.status || mapAthleteStatusToAdminStatus(athlete?.status) || 'Active'),
   }
 }
 
-export function buildAdminAthleteRecord(athlete: Record<string, any>) {
+export function buildAdminAthleteRecord(athlete: AthleteLike) {
   const registrationNumber = athlete?.registrationNumber
     ? normaliseRegistrationNumber(String(athlete.registrationNumber))
     : null
@@ -148,6 +238,8 @@ export function buildAdminAthleteRecord(athlete: Record<string, any>) {
     photoUrl: athlete?.photoUrl || '',
     monthlyFee: toNumber(athlete?.monthlyFee, 0),
     photoConsent: Boolean(athlete?.photoConsent),
+    dataConsent: Boolean(athlete?.consentGivenAt),
+    consentGivenAt: athlete?.consentGivenAt || null,
     isPublic: athlete?.isPublic ?? true,
     isFeatured: athlete?.isFeatured ?? false,
     automation: buildAthleteAutomationSummary(athlete),
@@ -157,9 +249,9 @@ export function buildAdminAthleteRecord(athlete: Record<string, any>) {
 }
 
 export function mergeStudentAndAthleteRecord(
-  legacyStudent: Record<string, any>,
-  athlete?: Record<string, any> | null
-): Record<string, any> {
+  legacyStudent: LegacyStudentLike,
+  athlete?: AthleteLike | null
+): MergedStudentAthleteRecord {
   const athleteDefaults = buildAthleteAdminFormDefaults(legacyStudent, athlete)
   return {
     ...legacyStudent,
@@ -173,7 +265,7 @@ export function mergeStudentAndAthleteRecord(
   }
 }
 
-export function buildAthletePayloadFromAdminForm(values: Record<string, any>) {
+export function buildAthletePayloadFromAdminForm(values: AdminFormValues) {
   const { firstName, lastName } = splitAthleteName(String(values?.name || ''))
 
   return {
@@ -193,6 +285,9 @@ export function buildAthletePayloadFromAdminForm(values: Record<string, any>) {
     batch: String(values?.batch || '').trim(),
     monthlyFee: toNumber(values?.monthlyFee, 0),
     photoConsent: Boolean(values?.photoConsent),
+    consentGivenAt: Boolean(values?.dataConsent)
+      ? values?.consentGivenAt || new Date().toISOString()
+      : null,
     isPublic: Boolean(values?.isPublic ?? true),
     isFeatured: Boolean(values?.isFeatured ?? false),
   }

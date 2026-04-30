@@ -1,6 +1,7 @@
 import type { City } from '@/lib/classesData'
 
 import AthleteRecordEditor from '../../_components/AthleteRecordEditor'
+import type { AthleteEditorValues, AutomationSummary } from '../../_components/AthleteRecordEditor'
 
 export default function EditStudentClient({
   initialCities,
@@ -9,8 +10,8 @@ export default function EditStudentClient({
   publicProfileHref,
 }: {
   initialCities: City[]
-  profile: any
-  automationSummary: any
+  profile: AthleteEditorValues
+  automationSummary: AutomationSummary
   publicProfileHref?: string | null
 }) {
   return (

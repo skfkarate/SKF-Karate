@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Lock, ShieldCheck } from 'lucide-react'
+import { Lock, ShieldCheck, ShoppingBag } from 'lucide-react'
 import { SHOP_FILTER_TABS } from '@/data/constants/categories'
 import { getProductTotalStock } from '@/lib/shop/logic'
 import type { ShopProduct } from '@/lib/shop/types'
@@ -36,71 +36,86 @@ export default function ShopListingPage() {
                     </p>
                 </header>
 
-                {/* FILTERS */}
-                <div className="obsidian-filters">
-                    {CATEGORIES.map(c => (
-                        <button
-                            key={c.id}
-                            onClick={() => setActiveTab(c.id)}
-                            className={`obsidian-filter-btn ${activeTab === c.id ? 'active' : ''}`}
-                        >
-                            {c.label}
-                        </button>
-                    ))}
-                </div>
+                {/* MAIN CONTENT */}
+                {products.length > 0 ? (
+                    <>
+                        {/* FILTERS */}
+                        <div className="obsidian-filters">
+                            {CATEGORIES.map(c => (
+                                <button
+                                    key={c.id}
+                                    onClick={() => setActiveTab(c.id)}
+                                    className={`obsidian-filter-btn ${activeTab === c.id ? 'active' : ''}`}
+                                >
+                                    {c.label}
+                                </button>
+                            ))}
+                        </div>
 
-                {/* THE GRID */}
-                <div className="obsidian-grid">
-                    {filtered.map((product) => {
-                        const totalStock = getProductTotalStock(product)
-                        const outOfStock = totalStock === 0
+                        {/* THE GRID */}
+                        <div className="obsidian-grid">
+                            {filtered.map((product) => {
+                                const totalStock = getProductTotalStock(product)
+                                const outOfStock = totalStock === 0
 
-                        return (
-                            <Link 
-                                href={`/shop/${product.id}`} 
-                                key={product.id} 
-                                className={`obsidian-card ${outOfStock ? 'card-sold-out' : ''}`}
-                            >
-                                {outOfStock && (
-                                    <div className="obsidian-badge-soldout">Sold Out</div>
-                                )}
-
-                                {/* Exclusivity Badges */}
-                                {!product.is_public && (
-                                    <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 5, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(214,40,40,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff' }}>
-                                            <ShieldCheck size={10} /> Athletes Only
-                                        </span>
-                                        {product.requires_belt && (
-                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,183,3,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#000' }}>
-                                                <Lock size={10} /> {product.requires_belt}+
-                                            </span>
+                                return (
+                                    <Link 
+                                        href={`/shop/${product.id}`} 
+                                        key={product.id} 
+                                        className={`obsidian-card ${outOfStock ? 'card-sold-out' : ''}`}
+                                    >
+                                        {outOfStock && (
+                                            <div className="obsidian-badge-soldout">Sold Out</div>
                                         )}
-                                    </div>
-                                )}
 
-                                <div className="obsidian-card__image-wrapper">
-                                    <Image 
-                                        src={product.images[0] || '/images/placeholder.jpg'} 
-                                        alt={product.name}
-                                        fill
-                                        className="obsidian-card__image"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    />
-                                </div>
-                                
-                                <div className="obsidian-card__info">
-                                    <span className="obsidian-card__category">{product.category.replace('-', ' ')}</span>
-                                    <h3 className="obsidian-card__title">{product.name}</h3>
-                                    
-                                    <div className="obsidian-card__price-row">
-                                        <span className="obsidian-card__price">₹{product.price.toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        )
-                    })}
-                </div>
+                                        {/* Exclusivity Badges */}
+                                        {!product.is_public && (
+                                            <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 5, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(214,40,40,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff' }}>
+                                                    <ShieldCheck size={10} /> Athletes Only
+                                                </span>
+                                                {product.requires_belt && (
+                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,183,3,0.85)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '50px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#000' }}>
+                                                        <Lock size={10} /> {product.requires_belt}+
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div className="obsidian-card__image-wrapper">
+                                            <Image 
+                                                src={product.images[0] || '/images/placeholder.jpg'} 
+                                                alt={product.name}
+                                                fill
+                                                className="obsidian-card__image"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            />
+                                        </div>
+                                        
+                                        <div className="obsidian-card__info">
+                                            <span className="obsidian-card__category">{product.category.replace('-', ' ')}</span>
+                                            <h3 className="obsidian-card__title">{product.name}</h3>
+                                            
+                                            <div className="obsidian-card__price-row">
+                                                <span className="obsidian-card__price">₹{product.price.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )
+                            })}
+                        </div>
+                    </>
+                ) : (
+                    <div className="obsidian-empty-state">
+                        <div className="obsidian-empty-icon">
+                            <ShoppingBag size={32} />
+                        </div>
+                        <h2 className="obsidian-empty-title">Armory Restocking</h2>
+                        <p className="obsidian-empty-desc">
+                            We are currently preparing a new lineup of premium martial arts equipment and apparel. Check back soon for exclusive official gear.
+                        </p>
+                    </div>
+                )}
                 
             </div>
         </div>

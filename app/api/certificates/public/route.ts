@@ -1,13 +1,25 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/server/supabase'
+import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-flags'
+import { publicCertificatesQuerySchema } from '@/src/server/api/validators/certificates.validator'
+import { AuthorizationError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const skfId = searchParams.get('skfId')
+export const GET = withRoute(
+  {
+    auth: { type: 'portal', roles: ['student'] },
+    querySchema: publicCertificatesQuerySchema,
+    rateLimit: { tier: 'certificateLookup' },
+  },
+  async ({ portalSession, query }) => {
+  if (!isCertificatesEnabled()) {
+    return disabledResponse('Certificates', 503)
+  }
 
-    if (!skfId) {
-      return NextResponse.json({ error: 'Missing SKF ID' }, { status: 400 })
+    const skfId = query.skfId
+
+    if (portalSession!.skfId.toUpperCase() !== skfId.toUpperCase()) {
+      throw new AuthorizationError()
     }
 
     const { data: enrollments, error } = await supabaseAdmin
@@ -38,7 +50,5 @@ export async function GET(request: Request) {
         }
       }),
     })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
-}
+)

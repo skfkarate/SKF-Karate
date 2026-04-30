@@ -1,7 +1,7 @@
 /**
  * Factory: createInstructor
  */
-import { generateId, isoNow, slugify } from './helpers'
+import { generateId, slugify } from './helpers'
 import type { Instructor } from '../seed/instructors'
 
 type InstructorInput = Partial<Instructor> & Pick<Instructor, 'name' | 'dan'>

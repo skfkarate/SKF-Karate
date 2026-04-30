@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
+import { programTemplateSaveSchema } from '@/src/server/api/validators/admin-certificates.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params
-  try {
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'authed' } },
+  async ({ params }) => {
     const { id: programId } = params
 
     if (!isSupabaseReady()) {
-      return NextResponse.json({ template: null, mock: true })
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 })
     }
 
     const { data: template, error } = await supabaseAdmin
@@ -22,17 +24,17 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     }
 
     return NextResponse.json({ template })
-  } catch (error) {
-    console.error('[API] Failed to fetch template:', error)
-    return NextResponse.json({ error: 'Failed to fetch template' }, { status: 500 })
   }
-}
+)
 
-export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params
-  try {
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: programTemplateSaveSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body, params }) => {
     const { id: programId } = params
-    const body = await request.json()
     const { 
       background_url, 
       text_configs,
@@ -40,12 +42,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       height_px
     } = body
 
-    if (!background_url || !text_configs) {
-      return NextResponse.json({ error: 'Background URL and Text Configs are required' }, { status: 400 })
-    }
-
     if (!isSupabaseReady()) {
-      return NextResponse.json({ success: true, mock: true })
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 })
     }
 
     // Upsert the template configuration for this program
@@ -68,8 +66,5 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (error) throw error
 
     return NextResponse.json({ success: true, template })
-  } catch (error) {
-    console.error('[API] Failed to save template:', error)
-    return NextResponse.json({ error: 'Failed to save template' }, { status: 500 })
   }
-}
+)

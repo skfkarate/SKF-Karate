@@ -74,7 +74,7 @@ export default async function ClassesPage() {
                 </div>
                 
                 <div className="obs-grid">
-                    {cities.map((city, i) => {
+                    {cities.map((city) => {
                         const branchCount = city.branches.length
                         const schoolCount = city.schools.length
                         const hasHQ = city.branches.some(b => b.isHQ)

@@ -36,6 +36,11 @@ type SenseiRow = {
   sort_order: number | null
 }
 
+type SupabaseWriteError = {
+  code?: string
+  message?: string
+}
+
 type BranchAssignmentRow = {
   slug: string
   name: string
@@ -155,7 +160,7 @@ function ensureSupabaseForSenseisAdmin() {
   }
 }
 
-function handleSenseiWriteError(error: any, label: string): never {
+function handleSenseiWriteError(error: SupabaseWriteError, label: string): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,

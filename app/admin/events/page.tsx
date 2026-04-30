@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -20,6 +20,29 @@ import { TOURNAMENT_LEVEL_LABELS } from '@/lib/types/tournament'
 
 type EventLane = 'timeline' | 'standard' | 'tournaments' | 'attention'
 
+type AdminEventRow = {
+  id: string
+  slug: string
+  name: string
+  type: string
+  status: string
+  level?: string
+  date: string
+  venue?: string
+  city?: string
+  description?: string
+  hostingBranch?: string
+  isPublished?: boolean
+  isResultsPublished?: boolean
+  participants?: unknown[]
+  results?: unknown[]
+  resultsAppliedAt?: string
+}
+
+type AdminEventsResponse = {
+  events?: AdminEventRow[]
+}
+
 function formatFullDate(value: string) {
   return new Date(value).toLocaleDateString('en-IN', {
     day: 'numeric',
@@ -35,7 +58,7 @@ function formatTimelineHeading(value: string) {
   })
 }
 
-function getWorkflowStatus(event: any) {
+function getWorkflowStatus(event: AdminEventRow) {
   const participantCount = Array.isArray(event.participants) ? event.participants.length : 0
   const resultCount = Array.isArray(event.results) ? event.results.length : 0
 
@@ -48,7 +71,7 @@ function getWorkflowStatus(event: any) {
   return 'Scheduled'
 }
 
-function getTypeLabel(event: any) {
+function getTypeLabel(event: AdminEventRow) {
   if (event.type === 'tournament') {
     return TOURNAMENT_LEVEL_LABELS[event.level as keyof typeof TOURNAMENT_LEVEL_LABELS] || 'Tournament'
   }
@@ -56,7 +79,7 @@ function getTypeLabel(event: any) {
   return getEventLabel(event.type || 'seminar')
 }
 
-function needsAttention(event: any) {
+function needsAttention(event: AdminEventRow) {
   const participantCount = Array.isArray(event.participants) ? event.participants.length : 0
   const resultCount = Array.isArray(event.results) ? event.results.length : 0
 
@@ -66,7 +89,7 @@ function needsAttention(event: any) {
   return false
 }
 
-function sortEventsForTimeline(events: any[]) {
+function sortEventsForTimeline(events: AdminEventRow[]) {
   return [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
@@ -74,7 +97,7 @@ export default function AdminEventsPage() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [events, setEvents] = useState<any[]>([])
+  const [events, setEvents] = useState<AdminEventRow[]>([])
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState('')
   const initialLane =
@@ -86,9 +109,25 @@ export default function AdminEventsPage() {
   const [lane, setLane] = useState<EventLane>(initialLane)
   const [query, setQuery] = useState('')
 
-  useEffect(() => {
-    fetchEvents()
+  const fetchEvents = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/events')
+      const data = await res.json() as AdminEventsResponse
+      setEvents(Array.isArray(data.events) ? data.events : [])
+    } catch (error) {
+      console.error('Failed to load events hub:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void fetchEvents()
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [fetchEvents])
 
   useEffect(() => {
     if (!searchParams) return
@@ -100,22 +139,10 @@ export default function AdminEventsPage() {
       requestedLane === 'attention' ||
       requestedLane === 'timeline'
     ) {
-      setLane(requestedLane)
+      const id = window.setTimeout(() => setLane(requestedLane), 0)
+      return () => window.clearTimeout(id)
     }
   }, [searchParams])
-
-  async function fetchEvents() {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/events')
-      const data = await res.json()
-      setEvents(Array.isArray(data.events) ? data.events : [])
-    } catch (error) {
-      console.error('Failed to load events hub:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return
@@ -168,7 +195,7 @@ export default function AdminEventsPage() {
   }, [events, lane, query])
 
   const groupedTimeline = useMemo(() => {
-    const map = new Map<string, any[]>()
+    const map = new Map<string, AdminEventRow[]>()
     for (const event of scopedEvents) {
       const key = formatTimelineHeading(event.date)
       const bucket = map.get(key) || []

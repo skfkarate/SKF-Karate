@@ -77,7 +77,7 @@ checkFk('Dojo', 'senseiId', dojos.map(d => d.senseiId), instructorIds, 'instruct
 checkFk('Event', 'hostingBranch', events.map(e => e.hostingBranch), dojoIds, 'dojos')
 
 // Testimonial.branch → Dojo.id
-checkFk('Testimonial', 'branch', testimonials.map(t => (t as any).branch), dojoIds, 'dojos')
+checkFk('Testimonial', 'branch', testimonials.map(t => t.branch), dojoIds, 'dojos')
 
 /* ── 3. Enum Validation ── */
 checkEnum('Event', 'type', events.map(e => e.type), EVENT_TYPES_LIST)

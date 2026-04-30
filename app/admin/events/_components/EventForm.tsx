@@ -1,6 +1,6 @@
 'use client'
 
-import type { FormEvent, ReactNode } from 'react'
+import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -12,6 +12,27 @@ import { EVENT_STATUSES } from '@/lib/types/event'
 
 type SubmitMode = 'stay' | 'continue' | 'draft' | 'publish'
 type RedirectTab = 'details' | 'athletes' | 'results'
+
+type EventFormData = {
+  id?: string
+  name: string
+  shortName: string
+  slug: string
+  type: string
+  hostingBranch: string
+  status: string
+  date: string
+  endDate: string
+  venue: string
+  city: string
+  state: string
+  description: string
+  isPublished: boolean
+  isFeatured: boolean
+  isResultsPublished: boolean
+}
+
+type EventFieldChange = ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 
 function slugify(value: string) {
   return String(value || '')
@@ -28,7 +49,7 @@ export default function EventForm({
   classCities = [],
   redirectTab = 'details',
 }: {
-  initialData?: any
+  initialData?: Partial<EventFormData>
   isEdit?: boolean
   classCities?: City[]
   redirectTab?: RedirectTab
@@ -149,7 +170,7 @@ export default function EventForm({
 
     if (!selectedBranch || formData.type === 'tournament') return
 
-    setFormData((previous) => {
+    const id = window.setTimeout(() => setFormData((previous) => {
       const nextVenue = previous.venue || selectedBranch.venue
       const nextCity = previous.city || selectedBranch.cityName
       const nextState = previous.state || selectedBranch.state || 'Karnataka'
@@ -170,11 +191,14 @@ export default function EventForm({
         city: nextCity,
         state: nextState,
       }
-    })
+    }), 0)
+    return () => window.clearTimeout(id)
   }, [classBranches, formData.hostingBranch, formData.type])
 
-  const handleChange = (event: any) => {
-    const { name, value, type, checked } = event.target
+  const handleChange = (event: EventFieldChange) => {
+    const target = event.target
+    const { name, value } = target
+    const isCheckbox = target instanceof HTMLInputElement && target.type === 'checkbox'
     setErrorMessage('')
 
     setFormData((previous) => {
@@ -224,7 +248,7 @@ export default function EventForm({
 
       return {
         ...previous,
-        [name]: type === 'checkbox' ? checked : value,
+        [name]: isCheckbox ? target.checked : value,
       }
     })
   }
@@ -323,9 +347,9 @@ export default function EventForm({
 
       router.push(`/admin/events/${savedEvent.id}?tab=${redirectTab}`)
       router.refresh()
-    } catch (error: any) {
+    } catch (error) {
       console.error(error)
-      setErrorMessage(error?.message || 'Failed to save event')
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to save event')
     } finally {
       setLoadingMode(null)
     }
@@ -683,7 +707,7 @@ function ToggleField({
 }: {
   checked: boolean
   name: string
-  onChange: (event: any) => void
+  onChange: (event: EventFieldChange) => void
   title: string
   description: string
   accent?: string

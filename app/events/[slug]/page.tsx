@@ -9,14 +9,56 @@ import {
   FaArrowLeft,
   FaMedal,
   FaTrophy,
-  FaStar,
   FaChevronUp,
 } from "react-icons/fa"
 import { getEventBySlugLive } from "@/lib/server/repositories/events-live"
 import { getEventLabel } from "@/data/constants/categories"
+import { absoluteMediaUrl, absoluteSiteUrl } from "@/data/constants/siteConfig"
+import JsonLdScript from "@/components/JsonLdScript"
 import "./event-detail.css"
 
 export const dynamic = "force-dynamic"
+
+type EventParticipant = {
+  registrationNumber: string
+  athleteName?: string
+  branchName?: string
+}
+
+type EventResult = EventParticipant & {
+  id?: string
+  medal?: string
+  result?: string
+  specialAward?: string
+  award?: string
+  category?: string
+  ageGroup?: string
+  weightCategory?: string
+  grade?: string | number
+  score?: string | number
+  doublePromotion?: boolean
+  notes?: string
+  beltAwarded?: string
+  promotion?: string
+}
+
+type EventDetail = {
+  id?: string
+  slug: string
+  type: string
+  name: string
+  description?: string
+  date?: string
+  venue?: string
+  city?: string
+  isResultsPublished?: boolean
+  participants?: EventParticipant[]
+  results?: EventResult[]
+}
+
+type EventPageProps = {
+  params: Promise<{ slug: string }>
+}
 
 function formatDate(date: string) {
   if (!date) return null
@@ -37,7 +79,7 @@ function formatDateShort(date: string) {
   }
 }
 
-function getResultLabel(result: any) {
+function getResultLabel(result: EventResult) {
   if (result.medal) {
     if (result.medal === 'gold') return 'Gold Medal'
     if (result.medal === 'silver') return 'Silver Medal'
@@ -54,7 +96,7 @@ function getResultLabel(result: any) {
   return result.result || "Recorded"
 }
 
-function getMedalClass(result: any) {
+function getMedalClass(result: EventResult) {
   if (result.medal === 'gold') return 'evd-badge--gold'
   if (result.medal === 'silver') return 'evd-badge--silver'
   if (result.medal === 'bronze') return 'evd-badge--bronze'
@@ -63,8 +105,8 @@ function getMedalClass(result: any) {
   return 'evd-badge--default'
 }
 
-function getResultMeta(result: any) {
-  const parts = []
+function getResultMeta(result: EventResult) {
+  const parts: string[] = []
 
   if (result.category) parts.push(result.category.replace(/-/g, ' '))
   if (result.ageGroup) parts.push(result.ageGroup.replace(/-/g, ' '))
@@ -77,22 +119,27 @@ function getResultMeta(result: any) {
   return parts.join(' · ')
 }
 
-export async function generateMetadata({ params }: any) {
+export async function generateMetadata({ params }: EventPageProps) {
   const { slug } = await params
-  const event = await getEventBySlugLive(slug)
+  const event = await getEventBySlugLive(slug) as EventDetail | null
 
   if (!event) {
     return { title: "Event Not Found | SKF Karate" }
   }
 
-  const imageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skfkarate.org'}/icon.png`
+  const imageUrl = absoluteMediaUrl()
+  const canonicalUrl = absoluteSiteUrl(`/events/${event.slug}`)
 
   return {
     title: `${event.name} | SKF Karate`,
     description: event.description || 'SKF Karate Event Details',
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${event.name} | SKF Karate`,
       description: event.description || 'SKF Karate Event Details',
+      url: canonicalUrl,
       type: 'website',
       images: [
         {
@@ -112,9 +159,9 @@ export async function generateMetadata({ params }: any) {
   }
 }
 
-export default async function EventDetailPage({ params }: any) {
+export default async function EventDetailPage({ params }: EventPageProps) {
   const { slug } = await params
-  const event = await getEventBySlugLive(slug)
+  const event = await getEventBySlugLive(slug) as EventDetail | null
 
   if (!event) {
     notFound()
@@ -129,30 +176,40 @@ export default async function EventDetailPage({ params }: any) {
     "@type": "SportsEvent",
     "name": event.name,
     "startDate": event.date,
-    ...(event.venue && { "location": { "@type": "Place", "name": event.venue, "address": event.city } }),
-    "organizer": { "@type": "Organization", "name": "SKF Karate" }
+    "description": event.description || "SKF Karate event",
+    "image": absoluteMediaUrl(),
+    "url": absoluteSiteUrl(`/events/${event.slug}`),
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    ...(event.venue && {
+      "location": {
+        "@type": "Place",
+        "name": event.venue,
+        "address": event.city,
+      },
+    }),
+    "organizer": { "@type": "Organization", "name": "SKF Karate", "url": absoluteSiteUrl('/') }
   }
 
-  const hasParticipants = event.participants && event.participants.length > 0
-  const hasResults = event.results && event.results.length > 0
+  const participants = Array.isArray(event.participants) ? event.participants : []
+  const results = Array.isArray(event.results) ? event.results : []
+  const hasParticipants = participants.length > 0
+  const hasResults = results.length > 0
   const dateInfo = event.date ? formatDateShort(event.date) : null
 
   // Count results by type
   const resultsSummary = hasResults ? {
-    total: event.results.length,
-    gold: event.results.filter((r: any) => r.medal === 'gold').length,
-    silver: event.results.filter((r: any) => r.medal === 'silver').length,
-    bronze: event.results.filter((r: any) => r.medal === 'bronze').length,
-    passed: event.results.filter((r: any) => r.result === 'pass' || r.result === 'completed').length,
-    promotions: event.results.filter((r: any) => r.beltAwarded || r.promotion).length,
+    total: results.length,
+    gold: results.filter((r) => r.medal === 'gold').length,
+    silver: results.filter((r) => r.medal === 'silver').length,
+    bronze: results.filter((r) => r.medal === 'bronze').length,
+    passed: results.filter((r) => r.result === 'pass' || r.result === 'completed').length,
+    promotions: results.filter((r) => r.beltAwarded || r.promotion).length,
   } : null
 
   return (
     <div className="evd-page">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
-      />
+      <JsonLdScript data={eventSchema} />
 
       {/* ── AMBIENT EFFECTS ── */}
       <div className="evd-orb evd-orb--1" />
@@ -199,7 +256,7 @@ export default async function EventDetailPage({ params }: any) {
             {event.isResultsPublished && hasParticipants && (
               <div className="evd-pill">
                 <FaUsers className="evd-pill__icon" />
-                <span>{event.participants.length} Athletes</span>
+                <span>{participants.length} Athletes</span>
               </div>
             )}
           </div>
@@ -216,7 +273,7 @@ export default async function EventDetailPage({ params }: any) {
               </div>
               <div className="evd-stat-card__content">
                 <span className="evd-stat-card__label">Date</span>
-                <span className="evd-stat-card__value">{formatDate(event.date!)}</span>
+                <span className="evd-stat-card__value">{formatDate(event.date)}</span>
               </div>
             </div>
           )}
@@ -249,7 +306,7 @@ export default async function EventDetailPage({ params }: any) {
               </div>
               <div className="evd-stat-card__content">
                 <span className="evd-stat-card__label">Athletes</span>
-                <span className="evd-stat-card__value">{event.participants.length}</span>
+                <span className="evd-stat-card__value">{participants.length}</span>
               </div>
             </div>
           )}
@@ -319,13 +376,13 @@ export default async function EventDetailPage({ params }: any) {
                         <h2 className="evd-panel__title">Assigned Athletes</h2>
                       </div>
                     </div>
-                    <span className="evd-panel__count">{event.participants.length}</span>
+                    <span className="evd-panel__count">{participants.length}</span>
                   </div>
 
                   <div className="evd-panel__divider" />
 
                   <div className="evd-roster">
-                    {event.participants.map((participant: any, idx: number) => (
+                    {participants.map((participant, idx) => (
                       <Link
                         key={participant.registrationNumber}
                         href={`/athlete/${participant.registrationNumber}`}
@@ -362,13 +419,13 @@ export default async function EventDetailPage({ params }: any) {
                         <h2 className="evd-panel__title">Outcomes & Awards</h2>
                       </div>
                     </div>
-                    <span className="evd-panel__count">{event.results.length}</span>
+                    <span className="evd-panel__count">{results.length}</span>
                   </div>
 
                   <div className="evd-panel__divider" />
 
                   <div className="evd-results-list">
-                    {event.results.map((result: any, idx: number) => (
+                    {results.map((result, idx) => (
                       <div
                         key={`${result.registrationNumber}-${result.id || result.award || result.medal || idx}`}
                         className="evd-result-row"

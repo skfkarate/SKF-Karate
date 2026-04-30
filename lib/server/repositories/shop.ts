@@ -52,7 +52,32 @@ type ShopOrderRow = {
   updated_at: string | null
 }
 
-export interface SaveShopProductInput extends Partial<ShopProduct> {}
+type LegacyShopOrderRow = {
+  orderId?: unknown
+  skfId?: unknown
+  status?: unknown
+  addressJson?: unknown
+  itemsJson?: unknown
+  total?: unknown
+  discount?: unknown
+  pointsUsed?: unknown
+  date?: unknown
+}
+
+type RawOrderItem = {
+  productId?: unknown
+  variantId?: unknown
+  name?: unknown
+  size?: unknown
+  quantity?: unknown
+  unitPrice?: unknown
+  price?: unknown
+  lineTotal?: unknown
+  image?: unknown
+  requiresApproval?: unknown
+}
+
+export type SaveShopProductInput = Partial<ShopProduct>
 
 export interface PersistShopOrderInput {
   orderId: string
@@ -294,11 +319,11 @@ async function getLegacyOrders(): Promise<ShopOrder[]> {
 }
 
 async function getLegacyShopHelpers() {
-  const module = await import('@/lib/server/sheets')
+  const sheetsModule = await import('@/lib/server/sheets')
   return {
-    createShopOrder: module.createShopOrder,
-    getAllShopOrders: module.getAllShopOrders,
-    updateShopOrderStatus: module.updateShopOrderStatus,
+    createShopOrder: sheetsModule.createShopOrder,
+    getAllShopOrders: sheetsModule.getAllShopOrders,
+    updateShopOrderStatus: sheetsModule.updateShopOrderStatus,
   }
 }
 
@@ -332,16 +357,16 @@ function normalizeDatabaseOrder(record: Partial<ShopOrderRow>): ShopOrder {
   }
 }
 
-function normalizeLegacyOrder(record: any): ShopOrder {
-  const status = normalizeShopOrderStatus(record?.status)
-  const address = normalizeOrderAddress(record?.addressJson)
-  const items = normalizeOrderItems(record?.itemsJson)
-  const skfId = normalizeOptionalText(record?.skfId)
+function normalizeLegacyOrder(record: LegacyShopOrderRow): ShopOrder {
+  const status = normalizeShopOrderStatus(String(record.status || ''))
+  const address = normalizeOrderAddress(record.addressJson)
+  const items = normalizeOrderItems(record.itemsJson)
+  const skfId = normalizeOptionalText(record.skfId)
   const isAthleteOrder = Boolean(skfId && skfId.toUpperCase() !== 'GUEST')
   const pickupOrder = address.addressLine1 === 'CLASS PICKUP'
 
   return {
-    orderId: String(record?.orderId || ''),
+    orderId: String(record.orderId || ''),
     skfId,
     customerName: address.fullName || (isAthleteOrder ? skfId || 'Athlete' : 'Guest'),
     customerPhone: normalizeOptionalText(address.phone),
@@ -351,15 +376,15 @@ function normalizeLegacyOrder(record: any): ShopOrder {
       items.reduce((total, item) => total + item.lineTotal, 0)
     ),
     shippingFee: pickupOrder ? 0 : 0,
-    total: normalizeCurrencyAmount(record?.total),
-    discount: normalizeCurrencyAmount(record?.discount),
-    pointsUsed: normalizeWholeNumber(record?.pointsUsed),
+    total: normalizeCurrencyAmount(record.total),
+    discount: normalizeCurrencyAmount(record.discount),
+    pointsUsed: normalizeWholeNumber(record.pointsUsed),
     promoCode: null,
     status,
     statusLabel: getShopOrderStatusLabel(status),
     fulfillmentMethod: pickupOrder ? 'dojo-pickup' : 'shipping',
     address,
-    createdAt: String(record?.date || new Date().toISOString()),
+    createdAt: String(record.date || new Date().toISOString()),
     updatedAt: null,
   }
 }
@@ -369,22 +394,23 @@ function normalizeOrderItems(value: unknown): ShopOrderItem[] {
   const items = Array.isArray(parsed) ? parsed : []
 
   return items
-    .map((item: any) => {
-      const quantity = normalizeWholeNumber(item?.quantity)
-      const unitPrice = normalizeCurrencyAmount(item?.unitPrice ?? item?.price)
+    .filter(isRecord)
+    .map((item: RawOrderItem) => {
+      const quantity = normalizeWholeNumber(item.quantity)
+      const unitPrice = normalizeCurrencyAmount(item.unitPrice ?? item.price)
 
       return {
-        productId: String(item?.productId || ''),
-        variantId: String(item?.variantId || ''),
-        name: String(item?.name || 'Unnamed Product'),
-        size: String(item?.size || 'Standard'),
+        productId: String(item.productId || ''),
+        variantId: String(item.variantId || ''),
+        name: String(item.name || 'Unnamed Product'),
+        size: String(item.size || 'Standard'),
         quantity,
         unitPrice,
         lineTotal: normalizeCurrencyAmount(
-          item?.lineTotal ?? unitPrice * quantity
+          item.lineTotal ?? unitPrice * quantity
         ),
-        image: String(item?.image || ''),
-        requiresApproval: Boolean(item?.requiresApproval),
+        image: String(item.image || ''),
+        requiresApproval: Boolean(item.requiresApproval),
       }
     })
     .filter((item: ShopOrderItem) => item.variantId && item.quantity > 0)
@@ -392,17 +418,21 @@ function normalizeOrderItems(value: unknown): ShopOrderItem[] {
 
 function normalizeOrderAddress(value: unknown): ShopOrderAddress {
   const parsed = parseJsonValue(value)
-  const address = typeof parsed === 'object' && parsed ? parsed : {}
+  const address = isRecord(parsed) ? parsed : {}
 
   return {
-    fullName: String((address as any).fullName || ''),
-    phone: String((address as any).phone || ''),
-    addressLine1: String((address as any).addressLine1 || ''),
-    addressLine2: normalizeOptionalText((address as any).addressLine2) || undefined,
-    city: String((address as any).city || ''),
-    state: String((address as any).state || ''),
-    pincode: String((address as any).pincode || ''),
+    fullName: String(address.fullName || ''),
+    phone: String(address.phone || ''),
+    addressLine1: String(address.addressLine1 || ''),
+    addressLine2: normalizeOptionalText(address.addressLine2) || undefined,
+    city: String(address.city || ''),
+    state: String(address.state || ''),
+    pincode: String(address.pincode || ''),
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function parseJsonValue(value: unknown): unknown {
@@ -665,7 +695,7 @@ async function reserveInventoryFallback(items: ShopOrderItem[]): Promise<void> {
     }
 
     const variants = Array.isArray(data.variants)
-      ? data.variants.map((variant: any) => normalizeShopProductVariant(variant))
+      ? data.variants.map((variant: unknown) => normalizeShopProductVariant(variant))
       : []
     let inventoryChanged = false
 
