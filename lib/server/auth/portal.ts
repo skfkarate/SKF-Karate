@@ -9,10 +9,6 @@ const COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 
 export const COOKIE_NAME = 'skf_portal_token'
 
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('[SKF Auth] JWT_SECRET is required for portal authentication.')
-}
-
 function getJwtSecret() {
   if (!JWT_SECRET) {
     throw new Error('[SKF Auth] JWT_SECRET is not configured.')
