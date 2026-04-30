@@ -49,6 +49,9 @@ jobs:
           JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
           NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: E2E tests
         run: npm run test:e2e
         env:
