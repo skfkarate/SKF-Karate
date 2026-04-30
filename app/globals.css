@@ -215,16 +215,28 @@ button {
 }
 
 /* Section tonal-shift utilities — "same world, different rooms" */
+.section--tint-dark {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 60%),
+    linear-gradient(180deg, #020306 0%, var(--bg-body) 100%);
+}
+
 .section--tint-warm {
-  background: linear-gradient(180deg, #0c0a10 0%, var(--bg-body) 100%);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(214, 40, 40, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #05080f 0%, var(--bg-body) 100%);
 }
 
 .section--tint-cool {
-  background: linear-gradient(180deg, #080c16 0%, var(--bg-body) 100%);
+  background:
+    radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #04060b 0%, var(--bg-body) 100%);
 }
 
 .section--tint-mid {
-  background: linear-gradient(180deg, #0a0e18 0%, var(--bg-body) 100%);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 183, 3, 0.03) 0%, transparent 60%),
+    linear-gradient(180deg, #060912 0%, var(--bg-body) 100%);
 }
 
 .section-label {
@@ -338,12 +350,12 @@ button {
   transition: border-color 0.2s;
   width: 100%;
 }
-.input-field:focus { 
-  border-color: var(--accent-crimson); 
-  outline: none; 
+.input-field:focus {
+  border-color: var(--accent-crimson);
+  outline: none;
 }
-.input-field::placeholder { 
-  color: var(--text-muted); 
+.input-field::placeholder {
+  color: var(--text-muted);
 }
 
 /* Glow orbs */
@@ -443,8 +455,8 @@ button {
   }
 
   .fade-in-up, .fade-in-up.visible {
-    opacity: 1; 
-    transform: none; 
+    opacity: 1;
+    transform: none;
     transition: none;
   }
 }

@@ -1,6 +1,8 @@
 import { BELT_HEX_COLORS, getBelt } from '@/data/constants/belts'
 import { DEFAULT_COUNTRY_FLAG, DEFAULT_PROFILE_PHOTO } from '@/data/seed/beltExaminations'
 import { EVENT_TYPE_LABELS, canonicalizeEventType } from '@/lib/types/event'
+import { findClassBranchByName } from '@/lib/classes/catalog'
+import { getAllCities } from '@/lib/classesData'
 import {
   EVENT_CATEGORY_LABELS,
   TOURNAMENT_LEVEL_LABELS,
@@ -523,6 +525,7 @@ export function buildAthleteProfileData(
   const winRate = totalBouts > 0
     ? `${Math.round((totalWins / totalBouts) * 100)}%`
     : '0%'
+  const branchRecord = findClassBranchByName(getAllCities(), athlete.branchName)
 
   return {
     athlete: {
@@ -546,6 +549,7 @@ export function buildAthleteProfileData(
       lifetimePoints,
       totalMedals: totals.totalMedals,
       coachName: branchCoachMap[athlete.branchName] || 'Sensei SKF',
+      branchHref: branchRecord ? `/classes/${branchRecord.citySlug}/${branchRecord.slug}` : '/classes',
       biography:
         totals.totalEvents > 0
           ? `${athlete.firstName} trains at SKF ${athlete.branchName} and has ${totals.totalMedals} podium finish${totals.totalMedals === 1 ? '' : 'es'} recorded across ${totals.totalEvents} competition result${totals.totalEvents === 1 ? '' : 's'}.`
@@ -580,6 +584,7 @@ export function buildRestoredAthleteProfileData(
       winRate: profile.athlete.winRate,
       branchName: profile.athlete.branchName,
       branchSlug: slugify(profile.athlete.branchName) || 'mp-sports-club',
+      branchHref: profile.athlete.branchHref,
       publicProfileHref: athlete?.registrationNumber ? `/athlete/${athlete.registrationNumber}` : '',
     },
     categories: profile.categories,

@@ -59,6 +59,14 @@ get_ids.js
 public/sitemap*.xml
 public/Samay Raina - STILL ALIVE (Full Special).webm
 
+# Camera/source media originals
+*.HEIC
+*.MOV
+*.mov
+
+# Unused oversized news originals
+public/news/*.png
+
 # Local test artifacts
 test-results/
 

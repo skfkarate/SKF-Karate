@@ -17,7 +17,7 @@ export default function NotFound() {
         </p>
 
         <Link
-          href="/athlete"
+          href="/athlete/search"
           className="inline-block relative overflow-hidden group bg-[rgba(255,183,3,0.1)] border border-[rgba(255,183,3,0.3)] text-gold px-8 py-4 font-bold tracking-[0.2em] uppercase rounded hover:text-white transition-all w-full md:w-auto"
         >
           <span className="relative z-10">Search Again</span>

@@ -132,6 +132,7 @@ export const PORTAL_NAV_ITEMS = [
   { href: '/portal/dashboard', label: 'Identity', iconName: 'UserCircle' },
   { href: '/portal/grading', label: 'Grading', iconName: 'TrendingUp' },
   { href: '/portal/trophy-room', label: 'Trophy Room', iconName: 'Trophy' },
+  { href: '/portal/points', label: 'Points', iconName: 'Award' },
   { href: '/portal/events', label: 'Events', iconName: 'Flag' },
   { href: '/portal/videos', label: 'Home Practice', iconName: 'PlayCircle' },
   { href: '/portal/timetable', label: 'Timetable', iconName: 'Calendar' },

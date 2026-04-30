@@ -226,7 +226,7 @@ export default function CartPage() {
                         {cart.map(item => (
                             <div key={item.variantId} className="obsidian-cart-item">
                                 <div style={{ width: '90px', height: '90px', position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
-                                    <Image src={item.image || '/images/placeholder.jpg'} alt={item.name} fill style={{ objectFit: 'cover' }} />
+                                    <Image src={item.image || '/og-default.jpg'} alt={item.name} fill style={{ objectFit: 'cover' }} />
                                 </div>
                                 
                                 <div style={{ flex: 1, minWidth: 0 }}>

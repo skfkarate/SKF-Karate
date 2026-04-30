@@ -6,7 +6,7 @@ export default async function sitemap() {
     const routes = [
         { path: '/', priority: 1.0, changeFrequency: 'weekly' },
         { path: '/about', priority: 0.9, changeFrequency: 'monthly' },
-        { path: '/dojos', priority: 0.9, changeFrequency: 'monthly' },
+        { path: '/classes', priority: 0.9, changeFrequency: 'monthly' },
         { path: '/grading', priority: 0.85, changeFrequency: 'monthly' },
         { path: '/senseis', priority: 0.8, changeFrequency: 'monthly' },
         { path: '/events', priority: 0.8, changeFrequency: 'weekly' },

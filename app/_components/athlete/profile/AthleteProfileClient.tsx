@@ -147,7 +147,7 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
               <div className="ap-hero-meta-row">
                 <span className="ap-hero__id">{athleteInfo.id}</span>
                 {athleteInfo.branchName && (
-                  <Link href={`/dojos/${athleteInfo.branchSlug}`} className="ap-hero__branch-link">
+                  <Link href={athleteInfo.branchHref || '/classes'} className="ap-hero__branch-link">
                     Trains at SKF {athleteInfo.branchName}
                   </Link>
                 )}

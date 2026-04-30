@@ -15,16 +15,6 @@ export const homeWhyParentsChooseData = [
     desc: 'All classes led by certified Dan-graded black belt instructors with competition experience.',
   },
   {
-    iconType: 'trophy',
-    title: 'Competition Ready',
-    desc: 'From local tournaments to international championships — we prepare champions at every level.',
-  },
-  {
-    iconType: 'users',
-    title: 'Small Class Sizes',
-    desc: 'Personal attention guaranteed. Every student gets the coaching they deserve.',
-  },
-  {
     iconType: 'award',
     title: 'Character First',
     desc: 'Discipline, respect, confidence — values that go far beyond the dojo.',
@@ -92,10 +82,10 @@ export const homeBookTrialCTAFeatures = [
 
 /** Hero section copy */
 export const HERO_COPY = Object.freeze({
-  BADGE: 'Nothing is Impossible',
-  TITLE_PRE: 'SKF',
-  TITLE_ACCENT: 'KARATE',
+  BADGE: 'WKF Affiliated · Est. Karnataka',
+  TITLE_LINE1: 'Where Champions',
+  TITLE_ACCENT: 'Are Made',
   SUBTITLE: 'Sports Karate-do Fitness & Self Defence Association®',
-  DESCRIPTION: 'Where discipline meets excellence. Train with masters, compete with champions, and forge an unbreakable spirit.',
+  DESCRIPTION: 'Train with masters. Compete with champions. Forge an unbreakable spirit across Bangalore, Tumkur, Kunigal & Udupi.',
   WATERMARK: '空手',
 })
