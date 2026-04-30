@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import type { Student } from '@/types'
 import { FaUserFriends, FaCheckCircle } from 'react-icons/fa'
 
+function setChildSelectionCookie(skfId: string) {
+  document.cookie = `skf_portal_child_selection=${skfId}; path=/; max-age=2592000`
+}
+
 export function ChildSwitcher({ 
   students, 
   activeSkfId 
@@ -19,7 +23,7 @@ export function ChildSwitcher({
 
   const handleSelect = (skfId: string) => {
     // Setting cookie on the document
-    document.cookie = `skf_portal_child_selection=${skfId}; path=/; max-age=2592000`
+    setChildSelectionCookie(skfId)
     setIsOpen(false)
     router.refresh()
   }

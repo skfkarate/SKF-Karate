@@ -1,8 +1,8 @@
-import { createJWT, buildPortalCookie } from '@/lib/server/auth_legacy'
+import { createJWT, buildPortalCookie } from '@/lib/server/auth/portal'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import type { PortalAuthInput } from '@/src/server/api/validators/portal.validator'
-import { AuthenticationError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
+import { AuthenticationError, ValidationError } from '@/src/server/lib/errors'
 
 function normaliseDob(input: string) {
   const parts = input.split(/[-/\s.]+/).filter(Boolean)
@@ -35,11 +35,11 @@ export class PortalAuthService {
         path: '/portal/login',
         pageTitle: 'Athlete Portal Login',
         referrer: requestMeta.referrer,
-        metadata: { reason: 'athlete-not-found', skfId: normalizedId },
+        metadata: { reason: 'invalid-credentials' },
         userAgent: requestMeta.userAgent,
         ipAddress: requestMeta.ipAddress,
       })
-      throw new NotFoundError('Athlete')
+      throw new AuthenticationError('Invalid SKF ID or date of birth.')
     }
 
     if (athlete.dateOfBirth !== normalizedDob) {
@@ -48,12 +48,12 @@ export class PortalAuthService {
         path: '/portal/login',
         pageTitle: 'Athlete Portal Login',
         referrer: requestMeta.referrer,
-        metadata: { reason: 'dob-mismatch', skfId: normalizedId },
+        metadata: { reason: 'invalid-credentials' },
         userAgent: requestMeta.userAgent,
         ipAddress: requestMeta.ipAddress,
       })
 
-      throw new AuthenticationError('Date of Birth does not match our records.')
+      throw new AuthenticationError('Invalid SKF ID or date of birth.')
     }
 
     const token = createJWT({
@@ -63,6 +63,7 @@ export class PortalAuthService {
       batch: athlete.batch || null,
       belt: athlete.currentBelt || null,
       name: athlete.firstName || '',
+      parentPhone: athlete.phone || null,
     })
 
     await recordSiteAnalyticsEvent({

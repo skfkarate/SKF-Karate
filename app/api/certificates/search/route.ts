@@ -1,39 +1,40 @@
 import { NextResponse } from 'next/server'
-import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-flags'
+import { supabaseAdmin } from '@/lib/server/supabase'
+import { certificateSearchQuerySchema } from '@/src/server/api/validators/certificates.validator'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
-
-  if (!id) {
-    return NextResponse.json({ error: 'Certificate ID is required' }, { status: 400 })
+export const GET = withRoute(
+  {
+    querySchema: certificateSearchQuerySchema,
+    rateLimit: { tier: 'certificateLookup' },
+  },
+  async ({ query }) => {
+  if (!isCertificatesEnabled()) {
+    return disabledResponse('Certificates', 503)
   }
 
-  try {
-    const athletes = await getAllAthletesLive()
-    
-    // Search all athletes' achievements for a matching ID
-    for (const athlete of athletes) {
-      if (athlete.achievements && Array.isArray(athlete.achievements)) {
-        const matchingAchievement = athlete.achievements.find(a => a.id === id)
-        
-        if (matchingAchievement) {
-          // If the achievement doesn't support certificates, we still return 404
-          if (!['belt-grading', 'enrollment'].includes(matchingAchievement.type) && !matchingAchievement.type.startsWith('tournament-')) {
-            break;
-          }
+  const id = query.id
 
-          return NextResponse.json({
-            skfId: athlete.registrationNumber,
-            enrollmentId: matchingAchievement.id
-          })
-        }
-      }
-    }
+  const { data, error } = await supabaseAdmin
+    .from('certificates')
+    .select('skf_id, enrollment_id')
+    .or(`verification_code.eq.${id},enrollment_id.eq.${id}`)
+    .limit(1)
+    .maybeSingle()
 
-    return NextResponse.json({ error: 'Certificate not found' }, { status: 404 })
-  } catch (error) {
-    console.error('Error searching certificates:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  if (error) {
+    return NextResponse.json({ error: 'Certificate lookup failed' }, { status: 500 })
   }
-}
+
+  if (!data) {
+    throw new NotFoundError('Certificate')
+  }
+
+  return NextResponse.json({
+    skfId: data.skf_id,
+    enrollmentId: data.enrollment_id,
+  })
+  }
+)

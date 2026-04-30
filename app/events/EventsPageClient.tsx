@@ -7,12 +7,8 @@ import {
     FaArrowRight,
     FaFilter,
     FaHistory,
-    FaClock,
-    FaTrophy,
     FaFire,
     FaUsers,
-    FaChevronLeft,
-    FaChevronRight,
 } from 'react-icons/fa'
 import ScrollReveal from '@/app/_components/ScrollReveal'
 import { EVENT_TYPE_BADGE_CLASS, getEventLabel } from '@/data/constants/categories'
@@ -55,11 +51,6 @@ function useCountdown(targetDate: number) {
 const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-const MONTHS_SHORT = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ]
 
 export default function EventsPageClient({

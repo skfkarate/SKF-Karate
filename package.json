@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "build:ci": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
@@ -17,6 +17,8 @@
     "type-check": "tsc --noEmit",
     "audit:assets": "node scripts/audit-static-assets.mjs",
     "audit:assets:ci": "node scripts/audit-static-assets.mjs --ci",
+    "check:env": "node scripts/check-env-contract.mjs",
+    "check:supabase": "node scripts/check-supabase-readiness.mjs",
     "convert:heic": "node scripts/convert-heic-images.mjs",
     "convert:heic:dry": "node scripts/convert-heic-images.mjs --dry-run",
     "optimize:images": "node scripts/optimize-public-images.mjs",
@@ -27,7 +29,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@next/third-parties": "^16.2.3",
+    "@next/third-parties": "^16.2.4",
     "@react-pdf/renderer": "^4.4.0",
     "@sentry/nextjs": "^10.47.0",
     "@supabase/ssr": "^0.10.2",
@@ -45,12 +47,11 @@
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.577.0",
-    "next": "16.1.6",
+    "next": "^16.2.4",
     "next-auth": "^4.24.13",
-    "next-pwa": "^5.6.0",
     "next-sitemap": "^4.2.3",
     "papaparse": "^5.5.3",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.10",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "react": "19.2.3",
@@ -72,11 +73,22 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.3",
+    "eslint-config-next": "^16.2.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "heic-convert": "^2.1.0",
     "prettier": "^3.8.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "minimatch@9.0.9": {
+      "brace-expansion": "2.0.3"
+    },
+    "next": {
+      "postcss": "8.5.12"
+    },
+    "resend": {
+      "svix": "1.92.2"
+    }
   }
 }

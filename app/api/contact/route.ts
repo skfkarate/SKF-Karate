@@ -1,20 +1,33 @@
 
 import { NextResponse } from 'next/server'
-import { ApiError, enforceRateLimit, readJsonBody } from '@/lib/server/api'
+import { z } from 'zod'
+import { ApiError } from '@/lib/server/api'
 import { validateContactPayload } from '@/lib/server/validation'
 import { retryWithBackoff } from '@/lib/utils/retry'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
+const contactBodySchema = z.object({
+    name: z.string().trim().min(1).max(120),
+    email: z.string().trim().max(160).optional(),
+    phone: z.string().trim().min(6).max(30),
+    preferredTime: z.string().trim().max(80).optional(),
+    interest: z.string().trim().max(120).optional(),
+    message: z.string().trim().max(1000).optional(),
+    website: z.string().trim().max(120).optional(),
+})
 
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : String(error)
+}
 
-export async function POST(request: Request) {
+export const POST = withRoute(
+  {
+    bodySchema: contactBodySchema,
+    rateLimit: { tier: 'contact' },
+  },
+  async ({ body, requestId }) => {
     try {
-        await enforceRateLimit(request, {
-            name: 'contact_form',
-            limit: 3,
-            windowMs: 15 * 60 * 1000,
-        })
-
-        const body = await readJsonBody(request)
         const { data, isSpam } = validateContactPayload(body)
 
         if (isSpam) {
@@ -37,8 +50,8 @@ export async function POST(request: Request) {
         //    Success = at least one of them worked
         let sheetOk = false
         let telegramOk = false
-        let sheetError = null
-        let telegramError = null
+        let sheetError: unknown = null
+        let telegramError: unknown = null
 
         // --- Google Sheets (with retry) ---
         try {
@@ -56,13 +69,13 @@ export async function POST(request: Request) {
                 if (!ok) throw new Error('Sheets DAO returned false')
             })
             sheetOk = true
-        } catch (err: any) {
+        } catch (err: unknown) {
             sheetError = err
-            console.error('Google Sheets error:', err?.message || err)
+            logger.error('contact.sheets_failed', { requestId, error: err })
         }
 
         // --- Telegram (with retry) ---
-        const escapeTelegramMarkdown = (value) =>
+        const escapeTelegramMarkdown = (value: unknown) =>
             String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
 
         const telegramMessage = [
@@ -104,7 +117,7 @@ export async function POST(request: Request) {
             telegramOk = true
         } catch (err) {
             telegramError = err
-            console.error('Telegram error:', err?.message || err)
+            logger.error('contact.telegram_failed', { requestId, error: err })
         }
 
         // 4. Return success if at least one channel captured the data
@@ -117,7 +130,11 @@ export async function POST(request: Request) {
         }
 
         // 5. Both failed — tell client to queue locally
-        console.error('BOTH channels failed. Sheet:', sheetError?.message, 'Telegram:', telegramError?.message)
+        logger.error('contact.delivery_failed', {
+            requestId,
+            sheetError: getErrorMessage(sheetError),
+            telegramError: getErrorMessage(telegramError),
+        })
         return NextResponse.json(
             {
                 error: 'Could not send your message. Please try again or call us directly.',
@@ -140,10 +157,11 @@ export async function POST(request: Request) {
             )
         }
 
-        console.error('Contact form error:', error?.message || error)
+        logger.error('contact.failed', { requestId, error })
         return NextResponse.json(
             { error: 'Something went wrong. Please try again shortly.', retryable: true },
             { status: 500 }
         )
     }
-}
+  }
+)

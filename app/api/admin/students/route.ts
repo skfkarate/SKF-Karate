@@ -1,37 +1,29 @@
 import { NextResponse } from 'next/server'
 
 import { buildAdminAthleteRecord, buildAthletePayloadFromAdminForm } from '@/lib/admin/athlete-records'
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { createAthleteLive, getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { validateAthletePayload } from '@/lib/server/validation'
 import { createStudentSchema } from '@/lib/validators'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET() {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const athletes = await getAllAthletesLive()
     return NextResponse.json({ students: athletes.map(buildAdminAthleteRecord) })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to fetch athlete profiles.')
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const payload = await readJsonBody(request)
-    const formValues = createStudentSchema.parse(payload)
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: createStudentSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body: formValues, requestId }) => {
     const athlete = await createAthleteLive(
       validateAthletePayload(buildAthletePayloadFromAdminForm(formValues))
     )
@@ -50,7 +42,11 @@ export async function POST(request: Request) {
     )
 
     if (authError) {
-      console.error('Supabase auth session upsert failed:', authError)
+      logger.error('admin.students.auth_session_upsert_failed', {
+        requestId,
+        skfId: athlete.registrationNumber,
+        error: authError,
+      })
     }
 
     return NextResponse.json(
@@ -62,11 +58,5 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     )
-  } catch (error: any) {
-    if (error?.name === 'ZodError') {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    return createErrorResponse(error, 'Unable to create the athlete profile.')
   }
-}
+)

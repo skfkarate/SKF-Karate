@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createEventRecordLive, getAllEventsAdminLive } from '@/lib/server/repositories/events-live'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
-import {
-  createErrorResponse,
-  readJsonBody,
-} from '@/lib/server/api'
 import {
   validateEventPayload,
   validateTournamentPayload,
@@ -13,29 +8,24 @@ import {
   revalidateEventSitePaths,
   revalidateTournamentSitePaths,
 } from '@/lib/server/revalidation'
+import { looseObjectSchema } from '@/src/server/api/validators/admin-general.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const events = await getAllEventsAdminLive()
     return NextResponse.json({ events })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to fetch events.')
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await readJsonBody(request)
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: looseObjectSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body }) => {
     const payload =
       body?.type === 'tournament'
         ? { ...validateTournamentPayload(body), type: 'tournament' }
@@ -49,7 +39,5 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, event: newEvent }, { status: 201 })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to create the event.')
   }
-}
+)

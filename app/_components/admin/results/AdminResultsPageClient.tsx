@@ -240,7 +240,7 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
           <div style={{ background: '#050505', border: '1px solid #333', padding: '2.5rem', maxWidth: 400, borderRadius: '8px' }}>
             <h3 style={{ color: '#fff', marginTop: 0, fontWeight: 400, fontSize: '1.5rem', letterSpacing: '-0.02em' }}>Confirm Deletion</h3>
             <p style={{ color: '#888', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '2rem' }}>
-              Are you sure you want to permanently delete "{deleteTarget.name}"?
+              Are you sure you want to permanently delete &quot;{deleteTarget.name}&quot;?
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteTarget(null)} style={{ background: 'transparent', color: '#ccc', border: '1px solid #333', padding: '0.75rem 1.5rem', cursor: 'pointer', borderRadius: '4px', fontWeight: 500, fontFamily: 'system-ui, sans-serif' }}>Cancel</button>

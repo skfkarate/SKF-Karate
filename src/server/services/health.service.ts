@@ -7,8 +7,8 @@ async function checkDatabase() {
   }
 
   try {
-    await supabaseAdmin.from('programs').select('id').limit(1)
-    return 'healthy'
+    const { error } = await supabaseAdmin.from('programs').select('id').limit(1)
+    return error ? 'unhealthy' : 'healthy'
   } catch {
     return 'unhealthy'
   }
@@ -30,6 +30,7 @@ export class HealthService {
         checks: {
           database,
           cache,
+          sentry: process.env.SENTRY_DSN ? 'configured' : 'not_configured',
         },
       },
     }

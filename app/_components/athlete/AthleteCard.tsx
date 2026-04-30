@@ -1,19 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { CSSProperties } from 'react'
 
 /**
  * AthleteCard — Reusable full-photo athlete card
  * Used on: Honours Board, Homepage spotlight
  */
-
-function ProfileSvg({ size = 56 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
 
 type AthleteCardProps = {
   name: string
@@ -31,7 +23,7 @@ export default function AthleteCard({ name, belt, branch, photoUrl, gender, cate
   const fallbackPhoto = gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'
 
   const card = (
-    <div className="ath-card" style={{ '--ath-accent': medalColor } as any}>
+    <div className="ath-card" style={{ '--ath-accent': medalColor } as CSSProperties}>
       <div className="ath-card__photo-wrap" style={{ position: 'relative' }}>
         <Image className="ath-card__img" src={photoUrl || fallbackPhoto} alt={name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 300px" />
       </div>

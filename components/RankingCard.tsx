@@ -1,6 +1,7 @@
 'use client'
 
 import React, { forwardRef } from 'react'
+import Image from 'next/image'
 import type { Student } from '@/types'
 import { beltColors } from '@/app/_components/athlete/profile/athleteProfileData'
 
@@ -307,7 +308,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             </p>
           </div>
           {athleteInfo.countryFlag && (
-            <img src={athleteInfo.countryFlag} alt="" style={{ height: '36px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} crossOrigin="anonymous" />
+            <Image src={athleteInfo.countryFlag} alt="" width={54} height={36} unoptimized style={{ height: '36px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} crossOrigin="anonymous" />
           )}
         </div>
 
@@ -326,10 +327,13 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             }}
           >
             {athleteInfo.photo ? (
-              <img
+              <Image
                 src={athleteInfo.photo}
                 alt={athleteInfo.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                fill
+                sizes="320px"
+                unoptimized
+                style={{ objectFit: 'cover' }}
                 crossOrigin="anonymous"
               />
             ) : null}

@@ -4,24 +4,23 @@ import {
   getTournamentByIdLive,
   updateTournamentLive,
 } from '@/lib/server/repositories/tournaments-live'
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
 import { validateTournamentPayload } from '@/lib/server/validation'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import {
   clearSyncedEventArtifactsFromAthletes,
   syncTournamentResultsToAthletes,
 } from '@/lib/server/event-athlete-sync'
 import { revalidateTournamentSitePaths } from '@/lib/server/revalidation'
+import { looseObjectSchema } from '@/src/server/api/validators/admin-general.validator'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-  try {
-    const params = await props.params;
-    const session = await getAuthorizedApiSession('admin')
-    if (!session) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const payload = await readJsonBody(request)
+export const PUT = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: looseObjectSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body: payload, params }) => {
     // Add the ID from URL to payload for updating
     const updatePayload = { ...payload, id: params.id }
     
@@ -31,7 +30,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     )
 
     if (!tournament) {
-      return NextResponse.json({ error: 'Tournament not found.' }, { status: 404 })
+      throw new NotFoundError('Tournament')
     }
 
     if (tournament.isPublished) {
@@ -46,24 +45,17 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     revalidateTournamentSitePaths(tournament)
 
     return NextResponse.json({ tournament })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to update the tournament.')
   }
-}
+)
 
-export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
-  try {
-    const params = await props.params;
-    const session = await getAuthorizedApiSession('admin')
-    if (!session) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
+export const DELETE = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'write' } },
+  async ({ params }) => {
     const existing = await getTournamentByIdLive(params.id)
     const deleted = await deleteTournamentLive(params.id)
     
     if (!deleted) {
-      return NextResponse.json({ error: 'Tournament not found.' }, { status: 404 })
+      throw new NotFoundError('Tournament')
     }
 
     if (existing) {
@@ -73,9 +65,7 @@ export async function DELETE(_request: Request, props: { params: Promise<{ id: s
     revalidateTournamentSitePaths(existing || { id: params.id })
 
     return new NextResponse(null, { status: 204 })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to delete the tournament.')
   }
-}
+)
 
 export const PATCH = PUT

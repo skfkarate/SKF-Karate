@@ -29,6 +29,7 @@ export const ROUTES = Object.freeze({
   ADMIN: '/admin',
   ADMIN_LOGIN: '/admin/login',
   ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_PROGRAM_TEMPLATE_EDITOR: (id: string) => `/admin/programs/${id}/template-editor`,
   PRIVACY: '/privacy-policy',
   COOKIES: '/cookie-policy',
   TERMS: '/terms-of-service',

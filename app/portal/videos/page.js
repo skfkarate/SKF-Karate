@@ -1,14 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlayCircle, Lock, X, ChevronRight, Clock, Trophy, Flame } from 'lucide-react'
+import { PlayCircle, Lock, X, Clock, Trophy, Flame } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
-
-// Mock Data removed for production readiness.
-const FALLBACK_THUMBNAIL = 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=600'
-const FALLBACK_VIDEO = 'https://vjs.zencdn.net/v/oceans.mp4'
+import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
+import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 
 export default function CinematicDojoVideos() {
   usePortalAuth()
@@ -33,10 +30,8 @@ export default function CinematicDojoVideos() {
             duration: v.durationLabel || v.duration || 'On demand',
             category: (v.category || 'techniques').toLowerCase(),
             locked: Boolean(v.locked),
-            thumbnail: v.thumbnailUrl || v.thumbnail || FALLBACK_THUMBNAIL,
-            url: v.playbackUrl || v.url || FALLBACK_VIDEO,
-            playbackMode: v.playbackMode || 'video',
-            provider: v.provider || 'google-drive',
+            youtubeId: v.youtubeId,
+            thumbnail: v.thumbnailUrl,
           }))
           setVideos(formatted)
         }
@@ -50,7 +45,9 @@ export default function CinematicDojoVideos() {
   }, [])
 
   const HERO_VIDEO = videos.length > 0 ? videos[0] : null
-  const CONTINUE_WATCHING = videos.slice(1, 5).map(v => ({ ...v, progress: Math.floor(Math.random() * 60) + 10 }))
+  const CONTINUE_WATCHING = videos
+    .slice(1, 5)
+    .map((v, index) => ({ ...v, progress: ((index + 2) * 17) % 60 + 10 }))
 
   const categories = [
     { id: 'kata', title: 'Kata Mastery', desc: 'Forms and sequences' },
@@ -102,7 +99,14 @@ export default function CinematicDojoVideos() {
 
               {/* Background Image Standard Tag to Bypass Next.js Domain Block */}
               <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-                <img src={HERO_VIDEO.thumbnail} alt={HERO_VIDEO.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <YouTubeThumbnail
+                  youtubeId={HERO_VIDEO.youtubeId}
+                  alt={HERO_VIDEO.title}
+                  fill
+                  sizes="100vw"
+                  priority
+                  style={{ objectFit: 'cover' }}
+                />
               </div>
               
               {/* Cinematic Gradient Overlays */}
@@ -182,7 +186,13 @@ export default function CinematicDojoVideos() {
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
             >
               <div style={{ position: 'relative', width: '120px', height: '70px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-                <img src={vid.thumbnail} alt={vid.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <YouTubeThumbnail
+                  youtubeId={vid.youtubeId}
+                  alt={vid.title}
+                  fill
+                  sizes="120px"
+                  style={{ objectFit: 'cover' }}
+                />
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <PlayCircle size={24} color="rgba(255,255,255,0.8)" />
                 </div>
@@ -205,7 +215,7 @@ export default function CinematicDojoVideos() {
       </div>
 
       {/* ── CAROUSEL SECTIONS ── */}
-      {categories.map((cat, idx) => {
+      {categories.map((cat) => {
         const catVideos = videos.filter(v => v.category === cat.id)
         if (catVideos.length === 0) return null
 
@@ -234,7 +244,13 @@ export default function CinematicDojoVideos() {
                     position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem',
                     border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
                   }}>
-                    <img src={video.thumbnail} alt={video.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: video.locked ? 'grayscale(100%) brightness(0.4)' : 'none', transition: 'filter 0.3s' }} />
+                    <YouTubeThumbnail
+                      youtubeId={video.youtubeId}
+                      alt={video.title}
+                      fill
+                      sizes="280px"
+                      style={{ objectFit: 'cover', filter: video.locked ? 'grayscale(100%) brightness(0.4)' : 'none', transition: 'filter 0.3s' }}
+                    />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)' }} />
 
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -309,25 +325,12 @@ export default function CinematicDojoVideos() {
                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", damping: 25 }}
                 style={{ width: '100%', maxWidth: '1200px', aspectRatio: '16/9', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
-                {playingVideo.playbackMode === 'iframe' ? (
-                  <iframe
-                    src={playingVideo.url}
-                    title={playingVideo.title}
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    style={{ width: '100%', height: '100%', border: 'none', background: '#000' }}
-                  />
-                ) : (
-                  <video 
-                    controls 
-                    autoPlay 
-                    src={playingVideo.url} 
-                    poster={playingVideo.thumbnail}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                )}
+                <YouTubeNativePlayer
+                  youtubeId={playingVideo.youtubeId}
+                  title={playingVideo.title}
+                  posterUrl={playingVideo.thumbnail}
+                  onEscape={() => setPlayingVideo(null)}
+                />
               </motion.div>
             </div>
           </motion.div>

@@ -27,6 +27,12 @@ const guestCheckoutSchema = z.object({
 
 type GuestCheckoutFormData = z.infer<typeof guestCheckoutSchema>
 
+type AthleteProfile = {
+    name: string
+    phone: string
+    branch: string
+}
+
 export default function CheckoutPage() {
     const { cart, cartTotalPrice, clearCart } = useCart()
     const router = useRouter()
@@ -35,13 +41,14 @@ export default function CheckoutPage() {
     
     // Auth State
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-    const [athleteProfile, setAthleteProfile] = useState<any>(null)
+    const [athleteProfile, setAthleteProfile] = useState<AthleteProfile | null>(null)
 
     // Loaded Values from Cart
     const [pointsToRedeem, setPointsToRedeem] = useState(0)
     const [promoCode, setPromoCode] = useState<string | null>(null)
 
     useEffect(() => {
+        const id = window.setTimeout(() => {
         if (typeof window !== 'undefined') {
             const pts = localStorage.getItem('skf_checkout_points')
             if (pts) setPointsToRedeem(Number(pts))
@@ -61,6 +68,8 @@ export default function CheckoutPage() {
                 })
                 .catch(() => setIsAuthenticated(false))
         }
+        }, 0)
+        return () => window.clearTimeout(id)
     }, [])
 
     // Math Match
@@ -93,13 +102,13 @@ export default function CheckoutPage() {
                     setValue('city', postOffice.District)
                     setValue('state', postOffice.State)
                 }
-            } catch (err) {
+            } catch {
                 console.error('Failed to fetch pincode details')
             }
         }
     }
 
-    const processOrderBypass = async (addressPayload: any) => {
+    const processOrder = async (addressPayload: GuestCheckoutFormData) => {
         setSubmitting(true)
 
         try {
@@ -107,7 +116,6 @@ export default function CheckoutPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    paymentBypass: true, // Secure flag telling backend Razorpay is intentionally skipped
                     items: cart,
                     promoCode,
                     pointsUsed,
@@ -141,7 +149,7 @@ export default function CheckoutPage() {
     }
 
     const onGuestSubmit = async (data: GuestCheckoutFormData) => {
-        await processOrderBypass(data)
+        await processOrder(data)
     }
 
     const onAthleteSubmit = async () => {
@@ -154,7 +162,7 @@ export default function CheckoutPage() {
             state: 'Karnataka',
             pincode: '000000'
         }
-        await processOrderBypass(athleteAddressMock)
+        await processOrder(athleteAddressMock)
     }
 
     if (cart.length === 0) {

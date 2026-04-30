@@ -106,7 +106,7 @@ export default function TestimonialCarousel() {
                             {[...Array(t.rating)].map((_, i) => <FaStar key={i} />)}
                         </div>
                         <p style={{ fontSize: '1.05rem', fontStyle: 'italic', color: '#fff', lineHeight: 1.6, marginBottom: '2rem' }}>
-                            "{t.quote}"
+                            &quot;{t.quote}&quot;
                         </p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
                             <div>

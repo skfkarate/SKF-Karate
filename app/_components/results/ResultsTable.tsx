@@ -19,6 +19,7 @@ const eventFilterOptions = [
 ]
 
 const MEDAL_LABELS = { gold: '🥇', silver: '🥈', bronze: '🥉' }
+const MEDAL_ORDER = { gold: 1, silver: 2, bronze: 3 }
 
 export default function ResultsTable({ winners }) {
   const [filterText, setFilterText] = useState('')
@@ -27,8 +28,6 @@ export default function ResultsTable({ winners }) {
   const [sortKey, setSortKey] = useState('medal')
   const [sortDir, setSortDir] = useState('asc')
   const [page, setPage] = useState(1)
-
-  const medalOrder = { gold: 1, silver: 2, bronze: 3 }
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -60,7 +59,7 @@ export default function ResultsTable({ winners }) {
       let cmp = 0
       switch (sortKey) {
         case 'medal':
-          cmp = medalOrder[a.medal] - medalOrder[b.medal]
+          cmp = MEDAL_ORDER[a.medal] - MEDAL_ORDER[b.medal]
           if (cmp === 0) cmp = a.position - b.position
           if (cmp === 0) cmp = a.athleteName.localeCompare(b.athleteName)
           break
@@ -74,7 +73,7 @@ export default function ResultsTable({ winners }) {
           cmp = a.branchName.localeCompare(b.branchName)
           break
         default:
-          cmp = medalOrder[a.medal] - medalOrder[b.medal]
+          cmp = MEDAL_ORDER[a.medal] - MEDAL_ORDER[b.medal]
       }
       return sortDir === 'desc' ? -cmp : cmp
     })
@@ -143,17 +142,14 @@ export default function ResultsTable({ winners }) {
         {/* ── Scrollable Table Area ── */}
         <div className="td-table-scroll">
           {/* ── Table Header ── */}
-          <div className="lb-thead">
-            <span className="lb-th" style={{ width: 50, flexShrink: 0 }}></span>
-            <span className="lb-th lb-th--name" style={{ flex: 1.5, cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => handleSort('athlete')}>
+          <div className="res-table-thead">
+            <span className="res-tc-medal"></span>
+            <span className="res-tc-athlete" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => handleSort('athlete')}>
               Athlete
             </span>
-            <span className="lb-th" style={{ width: 130, flexShrink: 0, cursor: 'pointer' }} onClick={() => handleSort('branch')}>
-              Branch
-            </span>
-            <span className="lb-th" style={{ flex: 1, cursor: 'pointer' }} onClick={() => handleSort('event')}>
-              Event
-            </span>
+            <span className="res-tc-branch" style={{ cursor: 'pointer' }} onClick={() => handleSort('branch')}>Branch</span>
+            <span className="res-tc-event" style={{ cursor: 'pointer' }} onClick={() => handleSort('event')}>Event</span>
+            <span className="res-tc-wins" style={{ cursor: 'pointer' }}>Wins</span>
           </div>
 
           {/* ── Rows ── */}
@@ -162,16 +158,16 @@ export default function ResultsTable({ winners }) {
               <div className="lb-empty">No results match your filter.</div>
             )}
             {paginatedRows.map(w => (
-              <div key={w.id} className="lb-row" style={{ minHeight: 52 }}>
+              <div key={w.id} className="res-table-row">
                 {/* Medal emoji as rank indicator */}
-                <div className="lb-cell" style={{ width: 50, flexShrink: 0, justifyContent: 'center' }}>
+                <div className="res-tc-medal">
                   <span style={{ fontSize: '1.1rem' }} title={`${w.medal} — Position ${w.position}`}>
                     {MEDAL_LABELS[w.medal] || ''}
                   </span>
                 </div>
 
                 {/* Athlete name */}
-                <div className="lb-cell lb-cell--name" style={{ flex: 1.5 }}>
+                <div className="res-tc-athlete">
                   {w.registrationNumber ? (
                     <Link href={`/athlete/${w.registrationNumber}`} className="lb-name" style={{ textDecoration: 'none' }}>
                       {w.athleteName}
@@ -182,18 +178,25 @@ export default function ResultsTable({ winners }) {
                 </div>
 
                 {/* Branch */}
-                <div className="lb-cell" style={{ width: 130, flexShrink: 0 }}>
-                  <span className="lb-branch">{w.branchName}</span>
+                <div className="res-tc-branch">
+                  <span className="lb-branch" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>{w.branchName}</span>
                 </div>
 
                 {/* Event + Age group combined */}
-                <div className="lb-cell" style={{ flex: 1 }}>
-                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.35 }}>
+                <div className="res-tc-event">
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.35, display: 'block' }}>
                     {EVENT_CATEGORY_LABELS[w.category] || w.category}
                     <br />
                     <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)' }}>
                       {AGE_GROUP_LABELS[w.ageGroup] || w.ageGroup}
                     </span>
+                  </span>
+                </div>
+
+                {/* Wins */}
+                <div className="res-tc-wins">
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: w.wins ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.1)' }}>
+                    {w.wins ? `${w.wins} wins` : '-'}
                   </span>
                 </div>
 

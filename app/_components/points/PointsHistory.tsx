@@ -1,9 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { IconType } from 'react-icons'
 import { FaGraduationCap, FaVideo, FaBirthdayCake, FaCoins, FaShoppingBag, FaTrophy, FaHandshake, FaMedal } from 'react-icons/fa'
 
-const IconMap: Record<string, any> = {
+type PointsTransaction = {
+    id: string
+    type: string
+    reason: string
+    created_at: string
+    points: number
+}
+
+const IconMap: Record<string, { icon: IconType; color: string }> = {
     GRADING_PASS: { icon: FaGraduationCap, color: '#4caf50' },
     WATCH_VIDEO: { icon: FaVideo, color: '#2196f3' },
     BIRTHDAY: { icon: FaBirthdayCake, color: '#e91e63' },
@@ -17,7 +26,7 @@ const IconMap: Record<string, any> = {
 }
 
 export default function PointsHistory() {
-    const [transactions, setTransactions] = useState<any[]>([])
+    const [transactions, setTransactions] = useState<PointsTransaction[]>([])
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(true)
     const [hasMore, setHasMore] = useState(true)
@@ -27,11 +36,12 @@ export default function PointsHistory() {
         try {
             const res = await fetch(`/api/points/history?page=${p}&limit=10`)
             if (res.ok) {
-                const data = await res.json()
-                if (p === 1) setTransactions(data.transactions)
-                else setTransactions(prev => [...prev, ...data.transactions])
+                const data = await res.json() as { transactions?: PointsTransaction[] }
+                const nextTransactions = data.transactions || []
+                if (p === 1) setTransactions(nextTransactions)
+                else setTransactions(prev => [...prev, ...nextTransactions])
                 
-                if (data.transactions.length < 10) setHasMore(false)
+                if (nextTransactions.length < 10) setHasMore(false)
             }
         } catch (e) {
             console.error(e)
@@ -41,7 +51,10 @@ export default function PointsHistory() {
     }
 
     useEffect(() => {
-        fetchHistory(1)
+        const id = window.setTimeout(() => {
+            void fetchHistory(1)
+        }, 0)
+        return () => window.clearTimeout(id)
     }, [])
 
     const loadMore = () => {

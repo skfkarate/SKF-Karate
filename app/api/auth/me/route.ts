@@ -1,32 +1,14 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { getPortalSession } from '@/lib/server/auth/portal'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-// Use the same JWT verification as the portal login sets
-// auth_legacy uses: cookie name 'skf_portal_token', and JWT_SECRET || NEXTAUTH_SECRET
-const jwt = require('jsonwebtoken')
-
-function verifyToken(token: string): any {
-    const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET
-    if (!secret) return null
+export const GET = withRoute(
+  { rateLimit: { tier: 'public' }, cacheControl: 'private, no-store' },
+  async ({ request, requestId }) => {
     try {
-        return jwt.verify(token, secret)
-    } catch {
-        return null
-    }
-}
-
-export async function GET() {
-    try {
-        const cookieStore = await cookies()
-        // The portal login sets 'skf_portal_token', NOT 'skf_student_token'
-        const token = cookieStore.get('skf_portal_token')?.value
-
-        if (!token) {
-            return NextResponse.json({ authenticated: false }, { status: 200 })
-        }
-
-        const session = verifyToken(token)
+        const session = getPortalSession(request)
         if (!session || !session.skfId) {
             return NextResponse.json({ authenticated: false }, { status: 200 })
         }
@@ -48,8 +30,9 @@ export async function GET() {
             }
         })
 
-    } catch (e: any) {
-        console.error('[Auth/Me] Failed to pull session:', e)
+    } catch (e: unknown) {
+        logger.error('auth.me.failed', { requestId, error: e })
         return NextResponse.json({ authenticated: false }, { status: 200 })
     }
-}
+  }
+)

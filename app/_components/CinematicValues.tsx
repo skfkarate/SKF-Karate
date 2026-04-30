@@ -2,11 +2,12 @@
 import { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, MotionValue, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import Image from 'next/image';
+import type { StaticImageData } from 'next/image';
 
 import { cinematicValuesData as values } from '@/data/constants/homeContent';
 
 interface SlideProps {
-    img?: string | any;
+    img?: string | StaticImageData;
     text: string;
     index: number;
     total: number;
@@ -22,30 +23,20 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
 
     // Fast cinematic crossfade for regular photos
     const fadeInEnd = start + duration * 0.15;
-    const opacity = index === 0
-        ? 1
-        : useTransform(scrollYProgress, [start, fadeInEnd], [0, 1]);
-
+    const opacity = useTransform(scrollYProgress, [start, fadeInEnd], index === 0 ? [1, 1] : [0, 1]);
     const scale = useTransform(scrollYProgress, [start, end], [1.1, 1]);
 
+    const textReadyIn = start + duration * 0.35;
+    const textReadyFull = start + duration * 0.65;
+    const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
+    const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["30px", "0px"]);
+    const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
+    const logoScale = useTransform(scrollYProgress, [start, start + duration * 0.8], [1.2, 1]);
+    const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
+    const logoTrackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
+    const logoLetterSpacing = useTransform(logoTrackingProgress, (v) => `calc(${v * 10}px + ${v * 0.5}vw)`);
+
     if (isLogo) {
-        // --- FINAL SLIDE MASTERPIECE LOGIC ---
-        // Text fades in smoothly later in the scroll
-        const textReadyIn = start + duration * 0.35;
-        const textReadyFull = start + duration * 0.65;
-        const textOpacity = useTransform(scrollYProgress, [textReadyIn, textReadyFull], [0, 1]);
-        const textY = useTransform(scrollYProgress, [textReadyIn, textReadyFull], ["30px", "0px"]); // Shift down to avoid logo overlap
-
-        // Background turns to a deep cinematic crimson glow smoothly over the same duration as text
-        const bgOpacity = useTransform(scrollYProgress, [start, textReadyFull], [0, 1]);
-
-        // Logo starts large and scales into its resting position
-        const logoScale = useTransform(scrollYProgress, [start, start + duration * 0.8], [1.2, 1]);
-        const logoOpacity = useTransform(scrollYProgress, [start, start + duration * 0.2], [0, 1]);
-
-        const trackingProgress = useTransform(scrollYProgress, [textReadyIn, end], [0.2, 1]);
-        const letterSpacing = useTransform(trackingProgress, (v) => `calc(${v * 10}px + ${v * 0.5}vw)`);
-
         return (
             <motion.div
                 style={{
@@ -86,7 +77,7 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
                     style={{
                         opacity: textOpacity,
                         y: textY,
-                        letterSpacing,
+                        letterSpacing: logoLetterSpacing,
                         margin: 0,
                         textAlign: "center",
                         fontWeight: 900,
@@ -139,8 +130,6 @@ function SlideBackground({ img, text, index, total, scrollYProgress, isLogo, pos
 }
 
 function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) {
-    if (isLogo) return null; // Controlled explicitly inside SlideBackground!
-
     const start = index / total;
     const duration = 1 / total;
     const end = start + duration;
@@ -162,6 +151,8 @@ function SlideText({ text, index, total, scrollYProgress, isLogo }: SlideProps) 
     // Dynamic viewport-responsive tracking to ensure text doesn't overflow mobile boundaries
     const trackingProgress = useTransform(scrollYProgress, [start, end], [0.1, 1.2]);
     const letterSpacing = useTransform(trackingProgress, (v) => `${v}vw`);
+
+    if (isLogo) return null; // Controlled explicitly inside SlideBackground!
 
     return (
         <motion.div

@@ -6,10 +6,7 @@ import {
   buildUnifiedTournamentEvent,
   createEventRecord,
   deleteEventRecord,
-  getAllEvents,
   getAllEventsAdmin,
-  getEventByIdAdmin,
-  getEventBySlug,
   updateEventRecord,
 } from './events'
 import {
@@ -31,6 +28,42 @@ import type {
 type EventParticipant = TournamentParticipant
 type EventResult = TournamentResultRecord
 type EventWinner = TournamentWinner
+
+type EventDatabaseRow = {
+  id?: string
+  slug?: string
+  name?: string
+  short_name?: string | null
+  type?: string | null
+  status?: string | null
+  level?: string | null
+  date?: string | null
+  end_date?: string | null
+  venue?: string | null
+  city?: string | null
+  state?: string | null
+  description?: string | null
+  cover_image_url?: string | null
+  affiliated_body?: string | null
+  is_published?: boolean | null
+  is_featured?: boolean | null
+  is_results_published?: boolean | null
+  hosting_branch?: string | null
+  participants?: unknown
+  results?: unknown
+  results_applied_at?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+type LegacyEventRecord = EventRecord & {
+  sourceKind?: string
+}
+
+type DatabaseWriteError = {
+  code?: string
+  message?: string
+}
 
 export type EventRecord = {
   id: string
@@ -123,7 +156,7 @@ function buildUnifiedStoredEvent(event: EventRecord): EventRecord & { sourceKind
   }
 }
 
-function mapEventRowToRecord(row: Record<string, any>): EventRecord {
+function mapEventRowToRecord(row: EventDatabaseRow): EventRecord {
   return {
     id: row.id,
     slug: row.slug,
@@ -153,7 +186,7 @@ function mapEventRowToRecord(row: Record<string, any>): EventRecord {
   }
 }
 
-function mapEventRecordToRow(record: EventRecord): Record<string, any> {
+function mapEventRecordToRow(record: EventRecord): Record<string, unknown> {
   return {
     id: record.id,
     slug: record.slug,
@@ -198,7 +231,7 @@ async function readAllStandaloneEventsFromDatabase(): Promise<EventRecord[]> {
 async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   if (!isSupabaseReady()) {
     return cloneEventData(
-      getAllEventsAdmin().filter((event: any) => event.sourceKind !== 'tournament')
+      (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
   }
 
@@ -207,7 +240,7 @@ async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   } catch (error) {
     console.warn('[events-live] Falling back to local standalone events:', error)
     return cloneEventData(
-      getAllEventsAdmin().filter((event: any) => event.sourceKind !== 'tournament')
+      (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
   }
 }
@@ -219,7 +252,7 @@ async function hasStandaloneEventSlugLive(slug: string, excludeId: string | null
   return events.some((event) => event.slug.toLowerCase() === normalized && event.id !== excludeId)
 }
 
-function handleEventWriteError(error: any): never {
+function handleEventWriteError(error: DatabaseWriteError): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,

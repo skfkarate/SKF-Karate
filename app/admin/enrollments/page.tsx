@@ -33,6 +33,11 @@ interface SenseiOption {
   dan: string
 }
 
+type SenseiApiRow = SenseiOption & {
+  isAssignable?: boolean
+  isActive?: boolean
+}
+
 export default function AdminEnrollmentsPage() {
   const searchParams = useSearchParams()
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
@@ -41,7 +46,7 @@ export default function AdminEnrollmentsPage() {
   // Filters
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('ALL')
-  const [filterBranch, setFilterBranch] = useState('ALL')
+  const [filterBranch] = useState('ALL')
   const [filterProgram, setFilterProgram] = useState(searchParams?.get('program') || 'ALL')
   const [programs, setPrograms] = useState<{id: string, name: string}[]>([])
   const [senseis, setSenseis] = useState<SenseiOption[]>([])
@@ -95,25 +100,29 @@ export default function AdminEnrollmentsPage() {
        const res = await fetch('/api/admin/certificates/programs')
        const data = await res.json()
        setPrograms(data.programs || [])
-    } catch (e) { }
+    } catch {
+       setPrograms([])
+    }
   }
 
   async function fetchSenseis() {
     try {
       const res = await fetch('/api/admin/senseis')
-      const data = await res.json()
+      const data = await res.json() as { senseis?: SenseiApiRow[] }
       setSenseis(
         Array.isArray(data?.senseis)
           ? data.senseis
-              .filter((sensei: any) => sensei?.isAssignable !== false && sensei?.isActive !== false)
-              .map((sensei: any) => ({
+              .filter((sensei) => sensei?.isAssignable !== false && sensei?.isActive !== false)
+              .map((sensei) => ({
                 id: sensei.id,
                 name: sensei.name,
                 dan: sensei.dan || '',
               }))
           : []
       )
-    } catch (e) {}
+    } catch {
+      setSenseis([])
+    }
   }
 
   // Filtered List
@@ -166,7 +175,9 @@ export default function AdminEnrollmentsPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       alert(`Sent ${data.count} emails successfully!`)
-    } catch (e: any) { alert(e.message) }
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error))
+    }
   }
 
   // Single Actions
@@ -205,8 +216,8 @@ export default function AdminEnrollmentsPage() {
       if (!res.ok) throw new Error('Failed to update')
       setEditModalOpen(false)
       fetchEnrollments()
-    } catch (e: any) {
-      alert(e.message)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error))
     } finally {
       setEditSaving(false)
     }
@@ -244,7 +255,7 @@ export default function AdminEnrollmentsPage() {
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ skfId: row.skf_id, programId: row.program_id, beltLevel: row.belt_level, completionDate: row.completion_date, issuerName: row.issuer_name })
         })
-      } catch (e) { errs++ }
+      } catch { errs++ }
     }
     setImporting(false)
     setShowImportModal(false)

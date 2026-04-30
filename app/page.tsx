@@ -6,13 +6,31 @@ import HomeTopAthletes from '@/app/_components/pages/home/HomeTopAthletes'
 import HomeWhyParentsChoose from '@/app/_components/pages/home/HomeWhyParentsChoose'
 import HomeYourFirstClass from '@/app/_components/pages/home/HomeYourFirstClass'
 import './home.css'
-import { buildOrgJsonLd, SITE_CONFIG } from '@/data/constants/siteConfig'
+import { absoluteMediaUrl, absoluteSiteUrl, buildOrgJsonLd } from '@/data/constants/siteConfig'
 import { HERO_COPY } from '@/data/constants/homeContent'
 import { Metadata } from 'next'
+import JsonLdScript from '@/components/JsonLdScript'
 
 export const metadata: Metadata = {
   title: 'SKF Karate Classes in Karnataka | Expert Self-Defense Training',
   description: 'Join SKF Karate across Karnataka. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
+  alternates: {
+    canonical: absoluteSiteUrl('/'),
+  },
+  openGraph: {
+    title: 'SKF Karate Classes in Karnataka',
+    description: 'Professional karate and self-defense classes for kids and adults across Karnataka.',
+    url: absoluteSiteUrl('/'),
+    siteName: 'SKF Karate',
+    type: 'website',
+    images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate students training' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SKF Karate Classes in Karnataka',
+    description: 'Book a free trial with SKF Karate across Karnataka.',
+    images: [absoluteMediaUrl()],
+  },
 }
 
 export default function HomePage() {
@@ -20,10 +38,7 @@ export default function HomePage() {
 
   return (
     <div className="home">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
-      />
+      <JsonLdScript data={orgSchema} />
 
       {/* ===== 1. HERO ===== */}
       <section className="hero">

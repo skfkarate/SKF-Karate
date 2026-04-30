@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authMocks = vi.hoisted(() => ({
@@ -11,16 +10,6 @@ const repositoryMocks = vi.hoisted(() => ({
   getAllSenseisLive: vi.fn(),
   getSenseiByIdLive: vi.fn(),
   updateSenseiLive: vi.fn(),
-}))
-
-const apiMocks = vi.hoisted(() => ({
-  readJsonBody: vi.fn(),
-  createErrorResponse: vi.fn((error: any, fallbackMessage: string) =>
-    NextResponse.json(
-      { error: error?.message || fallbackMessage },
-      { status: error?.status || 500 }
-    )
-  ),
 }))
 
 const revalidationMocks = vi.hoisted(() => ({
@@ -40,11 +29,6 @@ vi.mock('@/lib/server/repositories/senseis-live', () => ({
   updateSenseiLive: repositoryMocks.updateSenseiLive,
 }))
 
-vi.mock('@/lib/server/api', () => ({
-  readJsonBody: apiMocks.readJsonBody,
-  createErrorResponse: apiMocks.createErrorResponse,
-}))
-
 vi.mock('@/lib/server/revalidation', () => ({
   revalidateClassesSitePaths: revalidationMocks.revalidateClassesSitePaths,
   revalidateSenseiSitePaths: revalidationMocks.revalidateSenseiSitePaths,
@@ -60,8 +44,6 @@ describe('/api/admin/senseis', () => {
     repositoryMocks.getAllSenseisLive.mockReset()
     repositoryMocks.getSenseiByIdLive.mockReset()
     repositoryMocks.updateSenseiLive.mockReset()
-    apiMocks.readJsonBody.mockReset()
-    apiMocks.createErrorResponse.mockClear()
     revalidationMocks.revalidateClassesSitePaths.mockReset()
     revalidationMocks.revalidateSenseiSitePaths.mockReset()
   })
@@ -69,19 +51,25 @@ describe('/api/admin/senseis', () => {
   it('rejects unauthorized writes', async () => {
     authMocks.getAuthorizedApiSession.mockResolvedValue(null)
 
-    const response = await POST(new Request('http://localhost/api/admin/senseis', { method: 'POST' }))
+    const response = await POST(new Request('http://localhost/api/admin/senseis', {
+      method: 'POST',
+      body: JSON.stringify({ operation: 'update', id: 'sensei_1', payload: {} }),
+    }))
 
     expect(response.status).toBe(401)
-    await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+    })
   })
 
   it('returns the live sensei directory to authorized admins', async () => {
     const senseis = [{ id: 'sensei_1', name: 'Sensei Usha C' }]
 
-    authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
+    authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { id: 'admin_1', role: 'admin' } })
     repositoryMocks.getAllSenseisLive.mockResolvedValue(senseis)
 
-    const response = await GET()
+    const response = await GET(new Request('http://localhost/api/admin/senseis'))
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ senseis })
@@ -96,12 +84,14 @@ describe('/api/admin/senseis', () => {
     const updatedSensei = { id: 'sensei_1', slug: 'usha-c', name: 'Sensei Usha C' }
     const latestSenseis = [updatedSensei]
 
-    authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
-    apiMocks.readJsonBody.mockResolvedValue(requestBody)
+    authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { id: 'admin_1', role: 'admin' } })
     repositoryMocks.updateSenseiLive.mockResolvedValue(updatedSensei)
     repositoryMocks.getAllSenseisLive.mockResolvedValue(latestSenseis)
 
-    const response = await POST(new Request('http://localhost/api/admin/senseis', { method: 'POST' }))
+    const response = await POST(new Request('http://localhost/api/admin/senseis', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    }))
 
     expect(repositoryMocks.updateSenseiLive).toHaveBeenCalledWith('sensei_1', requestBody.payload)
     expect(revalidationMocks.revalidateSenseiSitePaths).toHaveBeenCalledWith('usha-c')

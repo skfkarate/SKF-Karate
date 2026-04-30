@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET() {
-  try {
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     return NextResponse.json({
       supabase: !!(
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -15,7 +17,5 @@ export async function GET() {
       razorpay: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
       resend: !!process.env.RESEND_API_KEY
     })
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to check status' }, { status: 500 })
   }
-}
+)

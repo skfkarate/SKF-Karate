@@ -1,26 +1,25 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
+import { enrollmentBulkUpdateSchema } from '@/src/server/api/validators/admin-certificates.validator'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session as any)?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+type EnrollmentBulkPayload = {
+  status?: 'completed' | 'revoked'
+  certificate_unlocked?: boolean
+  completion_date?: string
+  updated_at?: string
+}
 
-    const { enrollmentIds, action } = await request.json()
-
-    if (!enrollmentIds || !Array.isArray(enrollmentIds) || enrollmentIds.length === 0) {
-      return NextResponse.json({ error: 'No enrollment IDs provided' }, { status: 400 })
-    }
-
-    if (!['complete', 'unlock', 'revoke'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid action specified' }, { status: 400 })
-    }
-
-    let payload: any = {}
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: enrollmentBulkUpdateSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body, requestId }) => {
+    const { enrollmentIds, action } = body
+    let payload: EnrollmentBulkPayload = {}
     if (action === 'complete') {
       payload = { status: 'completed', certificate_unlocked: true, completion_date: new Date().toISOString().split('T')[0] }
     } else if (action === 'unlock') {
@@ -45,7 +44,7 @@ export async function POST(request: Request) {
         .select('id')
 
       if (error) {
-        console.error(`Batch ${i} failed:`, error)
+        logger.error('admin.enrollments.bulk_batch_failed', { requestId, batchOffset: i, error })
         throw error
       }
       
@@ -56,8 +55,5 @@ export async function POST(request: Request) {
       success: true, 
       count: results.length
     })
-  } catch (error) {
-    console.error('[API] Bulk enrollment update error:', error)
-    return NextResponse.json({ error: 'Failed to complete bulk update' }, { status: 500 })
   }
-}
+)

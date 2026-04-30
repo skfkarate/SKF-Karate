@@ -11,13 +11,87 @@ import {
   getAthleteById,
   getAthleteByRegistrationNumber,
   getAthleteRank,
-  getFeaturedAthletes,
-  getRankSnapshots,
-  searchAthletesByName,
   updateAthlete,
 } from './athletes'
 
-type AthleteRecord = Record<string, any>
+type AthleteAchievement = Record<string, unknown> & {
+  type?: string
+}
+type AthletePointsHistoryEntry = Record<string, unknown>
+
+type AthleteRecord = {
+  id: string
+  registrationNumber: string
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  gender: string
+  photoUrl: string
+  branchName: string
+  currentBelt: string
+  joinDate: string
+  status: string
+  parentName: string
+  phone: string
+  email: string
+  batch: string
+  monthlyFee: number
+  photoConsent: boolean
+  consentGivenAt: string | null
+  isPublic: boolean
+  isFeatured: boolean
+  achievements: AthleteAchievement[]
+  pointsHistory: AthletePointsHistoryEntry[]
+  pointsBalance: number
+  pointsLifetime: number
+  attendanceRate: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+type AthleteInput = Partial<AthleteRecord>
+
+type AthleteDatabaseRow = {
+  id?: string
+  registration_number?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  date_of_birth?: string | null
+  gender?: string | null
+  photo_url?: string | null
+  branch_name?: string | null
+  current_belt?: string | null
+  join_date?: string | null
+  status?: string | null
+  parent_name?: string | null
+  phone?: string | null
+  email?: string | null
+  batch?: string | null
+  monthly_fee?: number | string | null
+  photo_consent?: boolean | null
+  consent_given_at?: string | null
+  is_public?: boolean | null
+  is_featured?: boolean | null
+  achievements?: unknown
+  points_history?: unknown
+  points_balance?: number | string | null
+  points_lifetime?: number | string | null
+  attendance_rate?: number | string | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+type RankSnapshot = {
+  athleteId?: string
+  overallRank?: number | null
+  totalPoints?: number
+  totalMedals?: number
+}
+
+type DatabaseWriteError = {
+  code?: string
+  message?: string
+}
 
 function cloneAthleteData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -25,10 +99,10 @@ function cloneAthleteData<T>(value: T): T {
 
 function buildRankSnapshotsForAthletes(athletes: AthleteRecord[]) {
   const results = buildCompetitionResultsFromAthletes(athletes)
-  return calculateAllRanks(athletes as any, results, new Date())
+  return calculateAllRanks(athletes, results, new Date())
 }
 
-function buildSearchResult(athlete: AthleteRecord, rankSnapshot?: Record<string, any>) {
+function buildSearchResult(athlete: AthleteRecord, rankSnapshot?: RankSnapshot) {
   return {
     registrationNumber: athlete.registrationNumber,
     firstName: athlete.firstName,
@@ -42,7 +116,7 @@ function buildSearchResult(athlete: AthleteRecord, rankSnapshot?: Record<string,
   }
 }
 
-function mapAthleteRowToRecord(row: Record<string, any>): AthleteRecord {
+function mapAthleteRowToRecord(row: AthleteDatabaseRow): AthleteRecord {
   return {
     id: row.id,
     registrationNumber: row.registration_number,
@@ -61,6 +135,7 @@ function mapAthleteRowToRecord(row: Record<string, any>): AthleteRecord {
     batch: row.batch || '',
     monthlyFee: Number(row.monthly_fee || 0),
     photoConsent: Boolean(row.photo_consent),
+    consentGivenAt: row.consent_given_at || null,
     isPublic: Boolean(row.is_public),
     isFeatured: Boolean(row.is_featured),
     achievements: Array.isArray(row.achievements) ? row.achievements : [],
@@ -76,7 +151,7 @@ function mapAthleteRowToRecord(row: Record<string, any>): AthleteRecord {
   }
 }
 
-function mapAthleteRecordToRow(record: AthleteRecord): Record<string, any> {
+function mapAthleteRecordToRow(record: AthleteRecord): Record<string, unknown> {
   return {
     id: record.id,
     registration_number: record.registrationNumber,
@@ -95,6 +170,7 @@ function mapAthleteRecordToRow(record: AthleteRecord): Record<string, any> {
     batch: record.batch || null,
     monthly_fee: Number(record.monthlyFee || 0),
     photo_consent: Boolean(record.photoConsent),
+    consent_given_at: record.consentGivenAt || null,
     is_public: typeof record.isPublic === 'boolean' ? record.isPublic : true,
     is_featured: typeof record.isFeatured === 'boolean' ? record.isFeatured : false,
     achievements: Array.isArray(record.achievements) ? record.achievements : [],
@@ -111,7 +187,7 @@ function mapAthleteRecordToRow(record: AthleteRecord): Record<string, any> {
 }
 
 function normaliseAthletePayload(
-  input: AthleteRecord = {},
+  input: AthleteInput = {},
   existing: AthleteRecord | null = null
 ): AthleteRecord {
   const now = new Date().toISOString()
@@ -140,6 +216,10 @@ function normaliseAthletePayload(
       typeof input.photoConsent === 'boolean'
         ? input.photoConsent
         : existing?.photoConsent ?? false,
+    consentGivenAt:
+      input.consentGivenAt === null
+        ? null
+        : input.consentGivenAt || existing?.consentGivenAt || null,
     isPublic:
       typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured:
@@ -223,7 +303,7 @@ async function hasAthleteRegistrationNumberLive(
   })
 }
 
-function handleAthleteWriteError(error: any): never {
+function handleAthleteWriteError(error: DatabaseWriteError): never {
   if (error?.code === 'PGRST205') {
     throw new ApiError(
       500,
@@ -313,27 +393,23 @@ export async function searchAthletesByNameLive(query: string) {
     .filter(
       (athlete) =>
         athlete.isPublic &&
+        athlete.status === 'active' &&
         (String(athlete.firstName || '').toLowerCase().includes(lowerQuery) ||
-          String(athlete.lastName || '').toLowerCase().includes(lowerQuery) ||
-          String(athlete.registrationNumber || '').toLowerCase().includes(lowerQuery))
+          String(athlete.lastName || '').toLowerCase().includes(lowerQuery))
     )
     .sort((a, b) => {
       const aName = `${a.firstName} ${a.lastName}`.trim().toLowerCase()
       const bName = `${b.firstName} ${b.lastName}`.trim().toLowerCase()
-      const aReg = String(a.registrationNumber || '').toLowerCase()
-      const bReg = String(b.registrationNumber || '').toLowerCase()
       const aRank = rankMap.get(String(a.id))
       const bRank = rankMap.get(String(b.id))
 
-      const getPriority = (name: string, reg: string) => {
-        if (reg === lowerQuery) return 0
-        if (name === lowerQuery) return 1
-        if (reg.startsWith(lowerQuery)) return 2
-        if (name.startsWith(lowerQuery)) return 3
-        return 4
+      const getPriority = (name: string) => {
+        if (name === lowerQuery) return 0
+        if (name.startsWith(lowerQuery)) return 1
+        return 2
       }
 
-      const priorityDiff = getPriority(aName, aReg) - getPriority(bName, bReg)
+      const priorityDiff = getPriority(aName) - getPriority(bName)
       if (priorityDiff !== 0) return priorityDiff
 
       const pointDiff = Number(bRank?.totalPoints || 0) - Number(aRank?.totalPoints || 0)
@@ -375,7 +451,7 @@ export async function getRankSnapshotsLive() {
 export async function getAthleteRankLive(athleteId: string) {
   const athletes = await getAthleteDataset()
   const results = buildCompetitionResultsFromAthletes(athletes)
-  const rankInfo = getAthleteRankEntry(athleteId, athletes as any, results)
+  const rankInfo = getAthleteRankEntry(athleteId, athletes, results)
 
   if (!rankInfo) return null
 
@@ -387,7 +463,7 @@ export async function getAthleteRankLive(athleteId: string) {
   }
 }
 
-export async function createAthleteLive(input: AthleteRecord) {
+export async function createAthleteLive(input: AthleteInput) {
   if (!isSupabaseReady()) {
     return cloneAthleteData(createAthlete(input))
   }
@@ -424,7 +500,7 @@ export async function createAthleteLive(input: AthleteRecord) {
   return mapAthleteRowToRecord(data)
 }
 
-export async function updateAthleteLive(id: string, input: AthleteRecord) {
+export async function updateAthleteLive(id: string, input: AthleteInput) {
   if (!isSupabaseReady()) {
     return cloneAthleteData(updateAthlete(id, input))
   }
@@ -459,7 +535,7 @@ export async function updateAthleteLive(id: string, input: AthleteRecord) {
   return mapAthleteRowToRecord(data)
 }
 
-export async function upsertAthleteMirror(input: AthleteRecord) {
+export async function upsertAthleteMirror(input: AthleteInput) {
   const normalizedRegistration = normaliseRegistrationNumber(input.registrationNumber || '')
   if (!normalizedRegistration) {
     throw new ApiError(400, 'Registration number is required to sync an athlete mirror.')

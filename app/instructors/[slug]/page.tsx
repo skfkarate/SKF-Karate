@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaArrowLeft, FaAward, FaBuilding, FaCheckCircle, FaStar } from 'react-icons/fa'
 import { getExecutiveCommittee } from '@/data/seed/instructors'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 // Generate static params for all defined instructors
 export function generateStaticParams() {
@@ -19,10 +20,29 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     if (!instructor) {
         return { title: 'Instructor Not Found' }
     }
+
+    const canonicalUrl = absoluteSiteUrl(`/instructors/${instructor.slug}`)
+    const imageUrl = absoluteMediaUrl(instructor.image)
     
     return {
         title: `${instructor.name} — SKF Karate Master Profile`,
         description: instructor.desc,
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            title: `${instructor.name} — SKF Karate Master Profile`,
+            description: instructor.desc,
+            url: canonicalUrl,
+            type: 'profile',
+            images: [{ url: imageUrl, width: 1200, height: 630, alt: instructor.name }],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${instructor.name} — SKF Karate Master Profile`,
+            description: instructor.desc,
+            images: [imageUrl],
+        },
     }
 }
 

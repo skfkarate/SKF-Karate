@@ -4,6 +4,43 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, Trophy, Building2, ChevronDown, X, ArrowUp, ArrowDown, Minus, ChevronRight } from 'lucide-react'
 
+type TabKey = 'overall' | 'dojo'
+type TopN = 10 | 30 | 'all'
+
+type RankingBoardItem = {
+  athleteId: string
+  registrationNumber: string
+  athleteName: string
+  currentBelt: string
+  branchName: string
+  totalPoints?: number
+  categoryRank?: number
+}
+
+type RankingItem = RankingBoardItem & {
+  categoryRank: number
+}
+
+type RankingBoard = {
+  key: string
+  label: string
+  items: RankingBoardItem[]
+}
+
+type CategoryOption = {
+  key: string
+  label: string
+  count: number
+}
+
+type RankingDashboardProps = {
+  boards?: RankingBoard[]
+  dojos?: string[]
+  totalRanked?: number
+}
+
+const TOP_N_OPTIONS: TopN[] = [10, 30, 'all']
+
 function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
 }
@@ -15,34 +52,38 @@ function getTrend(id: string, rank: number) {
   return m <= 2 ? 'up' : m >= 5 ? 'down' : 'same'
 }
 
-export default function RankingDashboard({ boards = [], dojos = [], totalRanked = 0 }: any) {
-  const [activeTab, setActiveTab] = useState('overall')
+export default function RankingDashboard({ boards = [], dojos = [], totalRanked = 0 }: RankingDashboardProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>('overall')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [catOpen, setCatOpen] = useState(false)
   const [catSearch, setCatSearch] = useState('')
   const [filterText, setFilterText] = useState('')
-  const [topN, setTopN] = useState<number | 'all'>(10)
+  const [topN, setTopN] = useState<TopN>(10)
   const [selectedDojo, setSelectedDojo] = useState('')
   const [dojoOpen, setDojoOpen] = useState(false)
 
   const catOptions = useMemo(() =>
-    boards.map((b: any) => ({ key: b.key, label: b.label, count: b.items.length }))
+    boards.map((b) => ({ key: b.key, label: b.label, count: b.items.length }))
   , [boards])
 
   const filteredCats = useMemo(() => {
     if (!catSearch.trim()) return catOptions
     const q = catSearch.toLowerCase()
-    return catOptions.filter((c: any) => c.label.toLowerCase().includes(q))
+    return catOptions.filter((c) => c.label.toLowerCase().includes(q))
   }, [catOptions, catSearch])
 
-  const items = useMemo(() => {
-    let list: any[] = []
+  const items = useMemo<RankingItem[]>(() => {
+    let list: RankingItem[] = []
     if (selectedCategory) {
-      const b = boards.find((b: any) => b.key === selectedCategory)
-      list = b ? [...b.items] : []
+      const b = boards.find((board) => board.key === selectedCategory)
+      list = b
+        ? b.items.map((item, index) => ({ ...item, categoryRank: item.categoryRank ?? index + 1 }))
+        : []
     } else {
-      list = boards.flatMap((b: any) => b.items).sort((a: any, b: any) => (b.totalPoints || 0) - (a.totalPoints || 0))
-      list = list.map((item, i) => ({ ...item, categoryRank: i + 1 }))
+      const rankedItems = boards
+        .flatMap((board) => board.items)
+        .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+      list = rankedItems.map((item, i) => ({ ...item, categoryRank: i + 1 }))
     }
     if (activeTab === 'dojo' && selectedDojo) {
       list = list.filter(i => i.branchName === selectedDojo).map((item, i) => ({ ...item, categoryRank: i + 1 }))
@@ -55,8 +96,8 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
     return list
   }, [boards, selectedCategory, activeTab, selectedDojo, filterText, topN])
 
-  const maxPts = items.length > 0 ? Math.max(...items.map((e: any) => e.totalPoints || 0)) : 1
-  const catLabel = selectedCategory ? catOptions.find((c: any) => c.key === selectedCategory)?.label || 'Category' : 'All Categories'
+  const maxPts = items.length > 0 ? Math.max(...items.map((e) => e.totalPoints || 0)) : 1
+  const catLabel = selectedCategory ? catOptions.find((c) => c.key === selectedCategory)?.label || 'Category' : 'All Categories'
 
   return (
     <div className="lb-wrap">
@@ -108,7 +149,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
                 <button className={`lb-dropdown__opt ${!selectedCategory ? 'lb-dropdown__opt--on' : ''}`} onClick={() => { setSelectedCategory(''); setCatOpen(false); setCatSearch('') }}>
                   All Categories <span className="lb-dropdown__count">{totalRanked}</span>
                 </button>
-                {filteredCats.map((c: any) => (
+                {filteredCats.map((c: CategoryOption) => (
                   <button key={c.key} className={`lb-dropdown__opt ${selectedCategory === c.key ? 'lb-dropdown__opt--on' : ''}`} onClick={() => { setSelectedCategory(c.key); setCatOpen(false); setCatSearch('') }}>
                     {c.label} <span className="lb-dropdown__count">{c.count}</span>
                   </button>
@@ -125,8 +166,8 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
             <input type="text" placeholder="Filter athletes..." value={filterText} onChange={e => setFilterText(e.target.value)} />
           </div>
           <div className="lb-topn">
-            {[10, 30, 'all' as const].map(n => (
-              <button key={String(n)} className={`lb-topn__btn ${topN === n ? 'lb-topn__btn--on' : ''}`} onClick={() => setTopN(n as any)}>
+            {TOP_N_OPTIONS.map(n => (
+              <button key={String(n)} className={`lb-topn__btn ${topN === n ? 'lb-topn__btn--on' : ''}`} onClick={() => setTopN(n)}>
                 {n === 'all' ? 'All' : n}
               </button>
             ))}
@@ -147,7 +188,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
           {items.length === 0 && (
             <div className="lb-empty">No athletes match your filters.</div>
           )}
-          {items.map((e: any) => {
+          {items.map((e) => {
             const trend = getTrend(e.athleteId, e.categoryRank)
             const pct = Math.max(6, ((e.totalPoints || 0) / maxPts) * 100)
             return (

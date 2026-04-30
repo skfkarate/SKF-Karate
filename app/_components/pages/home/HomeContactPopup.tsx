@@ -9,21 +9,26 @@ export default function HomeContactPopup({ isOpen, onClose }) {
     const [shouldRender, setShouldRender] = useState(false)
     const [mounted, setMounted] = useState(false)
 
-    useEffect(() => { setMounted(true) }, [])
+    useEffect(() => {
+        const id = window.setTimeout(() => setMounted(true), 0)
+        return () => window.clearTimeout(id)
+    }, [])
 
     useEffect(() => {
         if (isOpen) {
-            setShouldRender(true)
+            const timer = window.setTimeout(() => setShouldRender(true), 0)
             document.body.style.overflow = 'hidden'
+            return () => {
+                window.clearTimeout(timer)
+                document.body.style.overflow = 'unset'
+            }
         } else {
-            const timer = setTimeout(() => {
+            const timer = window.setTimeout(() => {
                 setShouldRender(false)
             }, 300)
             document.body.style.overflow = 'unset'
-            return () => clearTimeout(timer)
+            return () => window.clearTimeout(timer)
         }
-
-        return () => { document.body.style.overflow = 'unset' }
     }, [isOpen])
 
     useEffect(() => {
@@ -71,7 +76,7 @@ export default function HomeContactPopup({ isOpen, onClose }) {
                                 </div>
                                 <div className="contact-option__info">
                                     <span className="contact-option__name">Request a Callback</span>
-                                    <span className="contact-option__detail">We'll reach out to you</span>
+                                    <span className="contact-option__detail">We&apos;ll reach out to you</span>
                                 </div>
                             </div>
                             <FaArrowRight className="contact-option__arrow" />

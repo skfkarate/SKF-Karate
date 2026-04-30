@@ -1,12 +1,41 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth_legacy'
+import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth/portal'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import JourneyClient from './JourneyClient'
+import type { TimelineNode } from './JourneyClient'
 import { getBelt } from '@/data/constants/belts'
 
 export const dynamic = 'force-dynamic'
+
+function getCurrentTimeMs() {
+  return Date.now()
+}
+
+type AthleteAchievement = {
+  id?: string
+  type?: string
+  date?: string
+  beltEarned?: string
+  examiner?: string
+  awardedBy?: string
+}
+
+type JourneyParticipant = {
+  registrationNumber?: string
+}
+
+type JourneyEvent = {
+  id?: string
+  name?: string
+  type?: string
+  date?: string
+  showInJourney?: boolean
+  participants?: JourneyParticipant[]
+  results?: JourneyParticipant[]
+  winners?: JourneyParticipant[]
+}
 
 export default async function JourneyPage() {
   const cookieStore = await cookies()
@@ -17,14 +46,18 @@ export default async function JourneyPage() {
     redirect('/portal/login')
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const [athlete, allEvents] = await Promise.all([
+    getAthleteByRegistrationNumberLive(session.skfId),
+    getAllEventsLive(),
+  ])
+
   if (!athlete) {
     redirect('/portal/login')
   }
 
-  const allEvents = await getAllEventsLive()
+  const currentTimeMs = getCurrentTimeMs()
   
-  const timelineNodes: any[] = []
+  const timelineNodes: TimelineNode[] = []
 
   // 1. Origin (Join Date)
   if (athlete.joinDate) {
@@ -41,8 +74,11 @@ export default async function JourneyPage() {
   }
 
   // 2. Belt Promotions (Anchors)
-  const beltAchievements = (athlete.achievements || []).filter((ach: any) => ach.type === 'belt-pass' || ach.type === 'enrollment')
-  beltAchievements.forEach((ach: any) => {
+  const achievements = Array.isArray(athlete.achievements)
+    ? (athlete.achievements as AthleteAchievement[])
+    : []
+  const beltAchievements = achievements.filter((ach) => ach.type === 'belt-pass' || ach.type === 'enrollment')
+  beltAchievements.forEach((ach) => {
     if (!ach.date) return
     const beltObj = getBelt(ach.beltEarned)
     timelineNodes.push({
@@ -59,22 +95,22 @@ export default async function JourneyPage() {
   })
 
   // 3. Side Quests / Milestones (Events marked showInJourney)
-  const journeyEvents = allEvents.filter((e: any) => e.showInJourney === true)
-  journeyEvents.forEach((event: any) => {
+  const journeyEvents = (allEvents as JourneyEvent[]).filter((event) => event.showInJourney === true)
+  journeyEvents.forEach((event) => {
     if (!event.date) return
-    const isParticipant = (event.participants || []).some((p: any) => p.registrationNumber === athlete.registrationNumber)
-    const hasResult = (event.results || []).some((r: any) => r.registrationNumber === athlete.registrationNumber)
-    const isWinner = (event.winners || []).some((w: any) => w.registrationNumber === athlete.registrationNumber)
+    const isParticipant = (event.participants || []).some((p) => p.registrationNumber === athlete.registrationNumber)
+    const hasResult = (event.results || []).some((r) => r.registrationNumber === athlete.registrationNumber)
+    const isWinner = (event.winners || []).some((w) => w.registrationNumber === athlete.registrationNumber)
 
     if (isParticipant || hasResult || isWinner) {
       timelineNodes.push({
-        id: event.id,
+        id: event.id || `event-${event.date}`,
         type: 'event',
         date: event.date,
         title: event.name,
         description: event.type === 'tournament' ? 'Tournament Participation' : 'Special Event',
         isCurrent: false,
-        isUpcoming: event.date ? new Date(event.date).getTime() > Date.now() : false,
+        isUpcoming: event.date ? new Date(event.date).getTime() > currentTimeMs : false,
         eventType: event.type,
         timestamp: new Date(event.date).getTime(),
       })
@@ -92,5 +128,5 @@ export default async function JourneyPage() {
     timelineNodes[0].isCurrent = true
   }
 
-  return <JourneyClient timelineNodes={timelineNodes} athlete={athlete} />
+  return <JourneyClient timelineNodes={timelineNodes} />
 }

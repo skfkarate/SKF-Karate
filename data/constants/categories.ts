@@ -9,8 +9,6 @@
  */
 import {
   EVENT_TYPES as CANONICAL_EVENT_TYPES,
-  EVENT_TYPE_LABELS,
-  EVENT_STATUSES as CANONICAL_EVENT_STATUSES,
   canonicalizeEventType,
 } from '@/lib/types/event'
 

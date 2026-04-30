@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Eye, UploadCloud, RotateCcw } from 'lucide-react'
+import { Save, Eye, UploadCloud } from 'lucide-react'
 
 // Mock initial field template
 const initialFields = {
@@ -55,7 +55,7 @@ export default function TemplateEditorPage({ params }) {
       } else {
         alert(data.error || 'Failed to save template. (Is DB Connected?)')
       }
-    } catch (e) {
+    } catch {
       alert('Error saving template')
     } finally {
       setIsSaving(false)

@@ -8,6 +8,7 @@ import {
 } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,22 +16,34 @@ export async function generateMetadata({ params }) {
   const { registrationNumber } = await params
   const athlete = await getAthleteByRegistrationNumberLive(registrationNumber)
 
-  if (!athlete) {
+  if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
     return {
       title: 'Athlete Not Found | SKF Karate',
     }
   }
 
-  const name = `${athlete.firstName} ${athlete.lastName}`;
+  const name = `${athlete.firstName} ${athlete.lastName}`
+  const canonicalUrl = absoluteSiteUrl(`/athlete/${registrationNumber}`)
+  const imageUrl = athlete.photoUrl ? absoluteMediaUrl(athlete.photoUrl) : absoluteMediaUrl()
 
   return {
     title: `${name} — SKF Athlete Profile`,
     description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${name} — SKF Karate`,
       type: 'profile',
-      images: [{ url: athlete.photoUrl || '/og-default.jpg' }]
-    }
+      url: canonicalUrl,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: `${name} SKF Karate profile` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} — SKF Athlete Profile`,
+      description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
+      images: [imageUrl],
+    },
   }
 }
 
@@ -38,7 +51,7 @@ export default async function AthleteProfilePage({ params }) {
   const { registrationNumber } = await params
   const athlete = await getAthleteByRegistrationNumberLive(registrationNumber)
 
-  if (!athlete) {
+  if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
     notFound()
   }
 

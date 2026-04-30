@@ -75,7 +75,10 @@ describe('/api/admin/events', () => {
     const response = await POST(new Request('http://localhost/api/admin/events', { method: 'POST' }))
 
     expect(response.status).toBe(401)
-    await expect(response.json()).resolves.toEqual({ error: 'Unauthorized' })
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+    })
   })
 
   it('creates standalone events with validated payloads and revalidates event paths', async () => {
@@ -84,11 +87,13 @@ describe('/api/admin/events', () => {
     const createdEvent = { id: 'evt_1', type: 'camp', slug: 'summer-camp' }
 
     authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
-    apiMocks.readJsonBody.mockResolvedValue(requestBody)
     validationMocks.validateEventPayload.mockReturnValue(validatedPayload)
     repositoryMocks.createEventRecordLive.mockResolvedValue(createdEvent)
 
-    const response = await POST(new Request('http://localhost/api/admin/events', { method: 'POST' }))
+    const response = await POST(new Request('http://localhost/api/admin/events', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    }))
 
     expect(validationMocks.validateEventPayload).toHaveBeenCalledWith(requestBody)
     expect(repositoryMocks.createEventRecordLive).toHaveBeenCalledWith(validatedPayload)
@@ -104,11 +109,13 @@ describe('/api/admin/events', () => {
     const createdEvent = { id: 'tour_1', type: 'tournament', slug: 'nationals-2026' }
 
     authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
-    apiMocks.readJsonBody.mockResolvedValue(requestBody)
     validationMocks.validateTournamentPayload.mockReturnValue(validatedTournament)
     repositoryMocks.createEventRecordLive.mockResolvedValue(createdEvent)
 
-    const response = await POST(new Request('http://localhost/api/admin/events', { method: 'POST' }))
+    const response = await POST(new Request('http://localhost/api/admin/events', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    }))
 
     expect(validationMocks.validateTournamentPayload).toHaveBeenCalledWith(requestBody)
     expect(repositoryMocks.createEventRecordLive).toHaveBeenCalledWith({
@@ -123,17 +130,22 @@ describe('/api/admin/events', () => {
     const error = Object.assign(new Error('An event with this slug already exists.'), { status: 409 })
 
     authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
-    apiMocks.readJsonBody.mockResolvedValue({ name: 'Duplicate Event' })
     validationMocks.validateEventPayload.mockImplementation(() => {
       throw error
     })
 
-    const response = await POST(new Request('http://localhost/api/admin/events', { method: 'POST' }))
+    const response = await POST(new Request('http://localhost/api/admin/events', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Duplicate Event' }),
+    }))
 
-    expect(apiMocks.createErrorResponse).toHaveBeenCalledWith(error, 'Unable to create the event.')
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toEqual({
-      error: 'An event with this slug already exists.',
+      success: false,
+      error: {
+        code: 'REQUEST_ERROR',
+        message: 'An event with this slug already exists.',
+      },
     })
   })
 

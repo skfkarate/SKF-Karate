@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives'
+import { SkeletonLine, SkeletonBlock } from './SkeletonPrimitives'
 
 /**
  * ShopPageSkeleton — mirrors shop listing: Header → Filter tabs → Product grid

@@ -3,10 +3,19 @@ import { NextResponse } from 'next/server'
 import { awardPoints } from '@/lib/points/pointsService'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { supabaseAdmin } from '@/lib/server/supabase'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(request: Request) {
+export const GET = withRoute(
+  { rateLimit: { tier: 'sensitive' } },
+  async ({ request, requestId }) => {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Cron secret not configured' }, { status: 503 })
+  }
+
   const authHeader = request.headers.get('authorization')
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -45,8 +54,9 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, awarded: awardedCount })
-  } catch (error: any) {
-    console.error('Birthday cron error:', error)
+  } catch (error) {
+    logger.error('cron.birthday_points_failed', { requestId, error })
     return NextResponse.json({ error: 'Cron failed' }, { status: 500 })
   }
-}
+  }
+)

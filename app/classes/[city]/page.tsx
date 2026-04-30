@@ -6,7 +6,6 @@ import {
     FaArrowRight,
     FaMapMarkerAlt,
     FaClock,
-    FaSchool,
     FaUserTie,
     FaStar,
     FaWhatsapp,
@@ -16,6 +15,7 @@ import {
 } from 'react-icons/fa'
 import { formatClassDays } from '@/lib/classesData'
 import { getCityBySlugLive } from '@/lib/server/repositories/classes-live'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 import '../obsidian.css' // Import Obsidian styles instead of legacy classes.css
 
 export const dynamic = 'force-dynamic'
@@ -24,9 +24,28 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
     const { city: citySlug } = await params
     const city = await getCityBySlugLive(citySlug)
     if (!city) return {}
+    const canonicalUrl = absoluteSiteUrl(`/classes/${city.slug}`)
+    const imageUrl = absoluteMediaUrl()
+
     return {
         title: `Karate Classes in ${city.name} | SKF`,
         description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}. Group classes and personal training. Book a free trial.`,
+        alternates: {
+            canonical: canonicalUrl,
+        },
+        openGraph: {
+            title: `Karate Classes in ${city.name} | SKF Karate`,
+            description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}.`,
+            url: canonicalUrl,
+            type: 'website',
+            images: [{ url: imageUrl, width: 1200, height: 630, alt: `SKF Karate classes in ${city.name}` }],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `Karate Classes in ${city.name} | SKF Karate`,
+            description: `Book a free trial class with SKF Karate in ${city.name}.`,
+            images: [imageUrl],
+        },
     }
 }
 

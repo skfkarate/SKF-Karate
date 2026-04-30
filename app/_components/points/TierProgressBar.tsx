@@ -53,7 +53,7 @@ export default function TierProgressBar({ currentTier, totalEarned }: { currentT
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#666' }}>
-                {TIERS.map((tier, idx) => {
+                {TIERS.map((tier) => {
                     const isPassed = totalEarned >= tier.min
                     const isCurrent = tier.name === currentTier
                     return (

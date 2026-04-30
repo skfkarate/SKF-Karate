@@ -86,12 +86,18 @@ describe('/api/admin/events/[id]', () => {
     repositoryMocks.getEventByIdAdminLive.mockResolvedValue(null)
 
     const response = await PUT(
-      new Request('http://localhost/api/admin/events/evt_missing', { method: 'PUT' }),
+      new Request('http://localhost/api/admin/events/evt_missing', {
+        method: 'PUT',
+        body: JSON.stringify({}),
+      }),
       { params: { id: 'evt_missing' } }
     )
 
     expect(response.status).toBe(404)
-    await expect(response.json()).resolves.toEqual({ error: 'Event not found' })
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: { code: 'NOT_FOUND', message: 'Event not found' },
+    })
   })
 
   it('merges partial standalone event updates through validation before persistence', async () => {
@@ -136,12 +142,14 @@ describe('/api/admin/events/[id]', () => {
 
     authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
     repositoryMocks.getEventByIdAdminLive.mockResolvedValue(existing)
-    apiMocks.readJsonBody.mockResolvedValue(requestBody)
     validationMocks.validateEventPayload.mockReturnValue(validated)
     repositoryMocks.updateEventRecordLive.mockResolvedValue(updated)
 
     const response = await PUT(
-      new Request('http://localhost/api/admin/events/evt_1', { method: 'PUT' }),
+      new Request('http://localhost/api/admin/events/evt_1', {
+        method: 'PUT',
+        body: JSON.stringify(requestBody),
+      }),
       { params: { id: 'evt_1' } }
     )
 
@@ -199,12 +207,14 @@ describe('/api/admin/events/[id]', () => {
 
     authMocks.getAuthorizedApiSession.mockResolvedValue({ user: { role: 'admin' } })
     repositoryMocks.getEventByIdAdminLive.mockResolvedValue(existingTournament)
-    apiMocks.readJsonBody.mockResolvedValue(requestBody)
     validationMocks.validateTournamentPayload.mockReturnValue(validated)
     repositoryMocks.updateEventRecordLive.mockResolvedValue(updated)
 
     const response = await PATCH(
-      new Request('http://localhost/api/admin/events/tour_1', { method: 'PATCH' }),
+      new Request('http://localhost/api/admin/events/tour_1', {
+        method: 'PATCH',
+        body: JSON.stringify(requestBody),
+      }),
       { params: { id: 'tour_1' } }
     )
 

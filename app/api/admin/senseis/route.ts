@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import {
   createSenseiLive,
   deleteSenseiLive,
@@ -15,29 +13,24 @@ import {
   revalidateSenseiSitePaths,
 } from '@/lib/server/revalidation'
 import { syncBelowThirdDanSenseiAthletes } from '@/lib/server/sensei-athlete-sync'
+import { adminSenseiMutationBodySchema } from '@/src/server/api/validators/admin-general.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET() {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const senseis = await getAllSenseisLive()
     return NextResponse.json({ senseis })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to fetch senseis.')
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await readJsonBody(request)
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: adminSenseiMutationBodySchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body }) => {
     const operation = String(body?.operation || '').trim().toLowerCase()
     const payload = body?.payload || {}
     const targetId = String(body?.id || payload?.id || '').trim()
@@ -73,7 +66,5 @@ export async function POST(request: Request) {
 
     const senseis = await getAllSenseisLive()
     return NextResponse.json({ success: true, senseis })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to update senseis.')
   }
-}
+)

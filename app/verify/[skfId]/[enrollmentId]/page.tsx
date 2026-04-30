@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/server/supabase'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
 import Link from 'next/link'
 import { CheckCircle2, XCircle } from 'lucide-react'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 function getProgramRelation<T extends { name?: string }>(programs: T | T[] | null | undefined) {
   return Array.isArray(programs) ? programs[0] : programs
@@ -21,14 +22,28 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
   if (!data) return { title: 'Certificate Verification Failed | SKF Karate' }
 
   const program = getProgramRelation(data.programs)
+  const canonicalUrl = absoluteSiteUrl(`/verify/${skfId}/${enrollmentId}`)
+  const imageUrl = absoluteMediaUrl()
 
   return {
     title: `Verified SKF Certificate - ${program?.name}`,
     description: `Official verification of SKF Karate certification authenticity for ID: ${skfId}`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `Verified SKF Certificate - ${program?.name}`,
-      description: 'Official SKF Karate Certification Authenticity Check'
-    }
+      description: 'Official SKF Karate Certification Authenticity Check',
+      url: canonicalUrl,
+      type: 'website',
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: 'Verified SKF Karate certificate' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Verified SKF Certificate - ${program?.name}`,
+      description: 'Official SKF Karate Certification Authenticity Check',
+      images: [imageUrl],
+    },
   }
 }
 
@@ -127,7 +142,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
           View Full Athlete Profile
         </Link>
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <a href="/" style={{ color: '#888', textDecoration: 'none', fontSize: '0.85rem' }}>Return to Home</a>
+          <Link href="/" style={{ color: '#888', textDecoration: 'none', fontSize: '0.85rem' }}>Return to Home</Link>
         </div>
       </div>
     </div>

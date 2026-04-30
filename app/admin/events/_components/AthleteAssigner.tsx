@@ -3,10 +3,30 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function AthleteAssigner({ eventId, participants = [] }: { eventId: string, participants: any[] }) {
+export type EventParticipant = {
+  id: string
+  athleteId?: string
+  athleteName: string
+  registrationNumber: string
+  branchName?: string
+  belt?: string
+  photoUrl?: string
+}
+
+type AthleteSearchResult = {
+  id?: string
+  firstName?: string
+  lastName?: string
+  registrationNumber?: string
+  branchName?: string
+  currentBelt?: string
+  photoUrl?: string
+}
+
+export default function AthleteAssigner({ eventId, participants = [] }: { eventId: string, participants: EventParticipant[] }) {
   const router = useRouter()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState<AthleteSearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -25,7 +45,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
     }
   }
 
-  const handleAssign = async (athlete: any) => {
+  const handleAssign = async (athlete: AthleteSearchResult) => {
     if (participants.some(p => p.athleteId === athlete.id || p.registrationNumber === athlete.registrationNumber)) {
       alert('Athlete is already assigned to this event')
       return
@@ -34,10 +54,10 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
     setSaving(true)
     try {
       const newParticipant = {
-        id: `p_${Date.now()}`,
+        id: `p_${eventId}_${athlete.id || athlete.registrationNumber}`,
         athleteId: athlete.id,
-        athleteName: `${athlete.firstName} ${athlete.lastName}`,
-        registrationNumber: athlete.registrationNumber,
+        athleteName: `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() || athlete.registrationNumber || 'Athlete',
+        registrationNumber: athlete.registrationNumber || '',
         branchName: athlete.branchName,
         belt: athlete.currentBelt,
         photoUrl: athlete.photoUrl
@@ -105,7 +125,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
         </form>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {results.map((a: any) => (
+          {results.map((a) => (
             <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0a0a0a', padding: '1rem', border: '1px solid #222', borderRadius: '4px' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '0.95rem' }}>{a.firstName} {a.lastName}</strong>
@@ -128,7 +148,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
       <div>
         <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontWeight: 500, color: '#10b981' }}>Enrolled ({participants.length})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-          {participants.map((p: any) => (
+          {participants.map((p) => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111', padding: '1rem', border: '1px solid #333', borderRadius: '4px' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '0.95rem' }}>{p.athleteName}</strong>

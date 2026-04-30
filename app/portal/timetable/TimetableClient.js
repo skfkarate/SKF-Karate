@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Calendar, MapPin, Download } from 'lucide-react'
 
 export default function TimetableClient({ branchName, timetableData }) {
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  
   const imageUrl = timetableData?.imageUrl || timetableData?.driveUrl || 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=1600'
   const monthLabel = timetableData?.monthLabel || 'Current Term'
   const notes = timetableData?.notes || ''
@@ -68,15 +66,16 @@ export default function TimetableClient({ branchName, timetableData }) {
         }}
       >
         <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10' }}>
-          <img 
-            src={imageUrl} 
-            alt={`Timetable for ${branchName}`} 
-            style={{ 
-              width: '100%', 
-              height: '100%', 
+          <Image
+            src={imageUrl}
+            alt={`Timetable for ${branchName}`}
+            fill
+            sizes="100vw"
+            unoptimized
+            style={{
               objectFit: 'contain',
-              background: '#05070a'
-            }} 
+              background: '#05070a',
+            }}
           />
           
           {/* Action Overlay */}

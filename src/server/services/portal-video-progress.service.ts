@@ -4,6 +4,9 @@ import type { VideoProgressInput } from '@/src/server/api/validators/portal.vali
 export class PortalVideoProgressService {
   static async save(skfId: string, input: VideoProgressInput) {
     if (!isSupabaseReady()) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Database not configured for portal video progress.')
+      }
       return { success: true, mock: true }
     }
 
@@ -27,6 +30,9 @@ export class PortalVideoProgressService {
 
   static async list(skfId: string) {
     if (!isSupabaseReady()) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Database not configured for portal video progress.')
+      }
       return { progressData: [] }
     }
 

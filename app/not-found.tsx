@@ -13,7 +13,7 @@ export default function NotFound() {
         <h1 className="system-code">404</h1>
         <h2 className="system-title">Page <span className="text-gradient">Not Found</span></h2>
         <p className="system-text">
-          The path you're looking for has been moved or no longer exists in our digital academy.
+          The path you&apos;re looking for has been moved or no longer exists in our digital academy.
         </p>
         
         <div className="system-actions">

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
-import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth_legacy'
+import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth/portal'
 import AthleteProfileClient from '@/app/_components/athlete/profile/AthleteProfileClient'
 import { buildRestoredAthleteProfileData } from '@/app/_components/athlete/profile/athleteProfileData'
 import {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FaCoins } from 'react-icons/fa'
-import { supabaseClient, isSupabaseReady } from '@/lib/server/supabase'
+import { supabaseClient, isSupabaseClientReady } from '@/lib/supabase/client'
 
 export default function PointsBadge({ skfId }: { skfId: string }) {
     const [balance, setBalance] = useState<number | null>(null)
@@ -24,7 +24,7 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
         
         fetchBalance()
 
-        if (isSupabaseReady()) {
+        if (isSupabaseClientReady() && supabaseClient) {
             const subscription = supabaseClient
                 .channel('points_channel')
                 .on('postgres_changes', { 
@@ -43,7 +43,7 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
                 .subscribe()
 
             return () => {
-                supabaseClient.removeChannel(subscription)
+              supabaseClient.removeChannel(subscription)
             }
         }
     }, [skfId])

@@ -69,6 +69,10 @@ export default function ResultsPageClient({
 
   return (
     <>
+      <div className="res-orb res-orb--1"></div>
+      <div className="res-orb res-orb--2"></div>
+      <div className="res-watermark">LEGACY</div>
+
       <TournamentHero stats={stats} />
       <TournamentFilters
         filters={filters}
@@ -96,7 +100,7 @@ export default function ResultsPageClient({
             <p className="results-empty__text">
               Try adjusting your filters or search terms.
             </p>
-            <Link href="/contact" className="btn btn-secondary">
+            <Link href="/contact" className="results-empty__cta">
               Contact us about upcoming tournaments
             </Link>
           </div>

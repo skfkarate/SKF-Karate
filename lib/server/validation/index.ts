@@ -658,6 +658,7 @@ export function validateAthletePayload(payload) {
       max: 100000,
     }),
     photoConsent: booleanValue(value.photoConsent, false),
+    consentGivenAt: optionalDate(value.consentGivenAt, 'Consent timestamp'),
     isPublic: booleanValue(value.isPublic, true),
     isFeatured: booleanValue(value.isFeatured, false),
     achievements,

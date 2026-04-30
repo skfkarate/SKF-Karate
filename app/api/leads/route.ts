@@ -5,6 +5,8 @@ import { retryWithBackoff } from '@/lib/utils/retry'
 import { resolveClassBranchLabel } from '@/lib/classes/catalog'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import { extractClientIp, recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
 // The schema matching FreeTrialForm.tsx
 const leadSchema = z.object({
@@ -16,11 +18,17 @@ const leadSchema = z.object({
   hearAboutUs: z.string().optional()
 })
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const validatedData = leadSchema.parse(body)
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
+}
 
+export const POST = withRoute(
+  {
+    bodySchema: leadSchema,
+    rateLimit: { tier: 'contact' },
+  },
+  async ({ request, body: validatedData, requestId }) => {
+  try {
     const timestamp = new Date().toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       dateStyle: 'medium',
@@ -48,8 +56,8 @@ export async function POST(req: Request) {
 
     let sheetOk = false
     let telegramOk = false
-    let sheetError = null
-    let telegramError = null
+    let sheetError: unknown = null
+    let telegramError: unknown = null
 
     // --- Channel 1: Google Sheets ---
     try {
@@ -58,13 +66,13 @@ export async function POST(req: Request) {
         if (!success) throw new Error('submitLead returned false')
       }, 2, 1000)
       sheetOk = true
-    } catch (err: any) {
+    } catch (err: unknown) {
       sheetError = err
-      console.error('Leads Sheets Error:', err?.message || err)
+      logger.error('leads.sheets_failed', { requestId, error: err })
     }
 
     // --- Channel 2: Telegram ---
-    const escapeTelegramMarkdown = (value: any) =>
+    const escapeTelegramMarkdown = (value: unknown) =>
       String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
 
     const telegramMessage = [
@@ -102,11 +110,11 @@ export async function POST(req: Request) {
         }, 2, 800)
         telegramOk = true
       } else {
-        console.warn('Telegram credentials missing in leads API')
+        logger.warn('leads.telegram_missing_credentials', { requestId })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       telegramError = err
-      console.error('Leads Telegram Error:', err?.message || err)
+      logger.error('leads.telegram_failed', { requestId, error: err })
     }
 
     // Return success if AT LEAST ONE channel worked
@@ -115,14 +123,14 @@ export async function POST(req: Request) {
         eventType: 'lead_submit_success',
         path: '/book-trial',
         pageTitle: 'Book Trial',
-        referrer: req.headers.get('referer'),
+        referrer: request.headers.get('referer'),
         metadata: {
           branch: branchLabel,
           sheets: sheetOk,
           telegram: telegramOk,
         },
-        userAgent: req.headers.get('user-agent'),
-        ipAddress: extractClientIp(req.headers),
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
       })
 
       return NextResponse.json({ 
@@ -132,23 +140,23 @@ export async function POST(req: Request) {
     }
 
     // Both failed
-    throw new Error(`Submission failed. Sheets: ${sheetError?.message}, Telegram: ${telegramError?.message}`)
+    throw new Error(`Submission failed. Sheets: ${getErrorMessage(sheetError)}, Telegram: ${getErrorMessage(telegramError)}`)
 
-  } catch (error: any) {
-    console.error('Leads API Error:', error)
+  } catch (error: unknown) {
+    logger.error('leads.failed', { requestId, error })
     
     if (error instanceof z.ZodError) {
       await recordSiteAnalyticsEvent({
         eventType: 'lead_submit_failed',
         path: '/book-trial',
         pageTitle: 'Book Trial',
-        referrer: req.headers.get('referer'),
+        referrer: request.headers.get('referer'),
         metadata: {
           reason: 'validation',
           fields: error.issues.map((issue) => issue.path.join('.')).filter(Boolean),
         },
-        userAgent: req.headers.get('user-agent'),
-        ipAddress: extractClientIp(req.headers),
+        userAgent: request.headers.get('user-agent'),
+        ipAddress: extractClientIp(request.headers),
       })
 
       return NextResponse.json({ 
@@ -162,12 +170,12 @@ export async function POST(req: Request) {
       eventType: 'lead_submit_failed',
       path: '/book-trial',
       pageTitle: 'Book Trial',
-      referrer: req.headers.get('referer'),
+      referrer: request.headers.get('referer'),
       metadata: {
         reason: 'delivery',
       },
-      userAgent: req.headers.get('user-agent'),
-      ipAddress: extractClientIp(req.headers),
+      userAgent: request.headers.get('user-agent'),
+      ipAddress: extractClientIp(request.headers),
     })
     
     return NextResponse.json({ 
@@ -175,4 +183,5 @@ export async function POST(req: Request) {
       retryable: true
     }, { status: 503 })
   }
-}
+  }
+)

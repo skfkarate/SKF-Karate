@@ -1,6 +1,5 @@
 import AdminSidebar from "@/app/_components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/utils/auth";
-import { redirect } from "next/navigation";
 
 export const metadata = {
   robots: {

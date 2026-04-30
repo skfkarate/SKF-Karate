@@ -4,8 +4,6 @@ import {
   buildAthleteAdminFormDefaults,
   buildAthletePayloadFromAdminForm,
 } from '@/lib/admin/athlete-records'
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import {
   getAthleteByRegistrationNumberLive,
   updateAthleteLive,
@@ -14,24 +12,25 @@ import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
 import { validateAthletePayload } from '@/lib/server/validation'
 import { editStudentSchema } from '@/lib/validators'
 import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { adminDeleteConfirmBodySchema } from '@/src/server/api/validators/admin-general.validator'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function PUT(request: Request, props: { params: Promise<{ skfId: string }> }) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { skfId } = await props.params
+export const PUT = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: editStudentSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body: partialFormValues, params }) => {
+    const { skfId } = params
     const registrationNumber = normaliseRegistrationNumber(skfId)
     const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
 
     if (!existingAthlete) {
-      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+      throw new NotFoundError('Athlete')
     }
 
-    const requestBody = await readJsonBody(request)
-    const partialFormValues = editStudentSchema.parse(requestBody)
     const mergedFormValues = {
       ...buildAthleteAdminFormDefaults(existingAthlete),
       ...partialFormValues,
@@ -52,40 +51,29 @@ export async function PUT(request: Request, props: { params: Promise<{ skfId: st
     )
 
     if (!athlete) {
-      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+      throw new NotFoundError('Athlete')
     }
 
     revalidateAthleteSitePaths(existingAthlete.registrationNumber)
     revalidateAthleteSitePaths(athlete.registrationNumber)
 
     return NextResponse.json({ success: true, athlete })
-  } catch (error: any) {
-    if (error?.name === 'ZodError') {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    return createErrorResponse(error, 'Unable to update the athlete profile.')
   }
-}
+)
 
-export async function DELETE(request: Request, props: { params: Promise<{ skfId: string }> }) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { skfId } = await props.params
+export const DELETE = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: adminDeleteConfirmBodySchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ params }) => {
+    const { skfId } = params
     const registrationNumber = normaliseRegistrationNumber(skfId)
     const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
 
     if (!existingAthlete) {
-      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
-    }
-
-    const body = await readJsonBody(request)
-    if (!body?.confirm) {
-      return NextResponse.json({ error: 'Confirmation required.' }, { status: 400 })
+      throw new NotFoundError('Athlete')
     }
 
     const athlete = await updateAthleteLive(existingAthlete.id, {
@@ -94,12 +82,10 @@ export async function DELETE(request: Request, props: { params: Promise<{ skfId:
     })
 
     if (!athlete) {
-      return NextResponse.json({ error: 'Athlete not found.' }, { status: 404 })
+      throw new NotFoundError('Athlete')
     }
 
     revalidateAthleteSitePaths(athlete.registrationNumber)
     return NextResponse.json({ success: true, athlete })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to deactivate the athlete profile.')
   }
-}
+)

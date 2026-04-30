@@ -2,11 +2,117 @@ import { BELT_HEX_COLORS, getBelt } from '@/data/constants/belts'
 import { DEFAULT_COUNTRY_FLAG, DEFAULT_PROFILE_PHOTO } from '@/data/seed/beltExaminations'
 import { EVENT_TYPE_LABELS, canonicalizeEventType } from '@/lib/types/event'
 import {
-  AGE_GROUP_LABELS,
   EVENT_CATEGORY_LABELS,
   TOURNAMENT_LEVEL_LABELS,
 } from '@/lib/types/tournament'
 import { calculateResultPoints } from '@/lib/utils/points'
+
+type AthleteAchievement = {
+  id?: string
+  type?: string
+  competitionResult?: string
+  result?: string
+  wins?: number | string
+  date?: string
+  sourceEventLevel?: string
+  tournamentLevel?: string
+  difficultyLevel?: number | string | null
+  tournamentName?: string
+  title?: string
+  eventCategory?: string
+  ageGroup?: string
+  weightCategory?: string
+  beltEarned?: string
+  grade?: string
+  examiner?: string
+  awardedBy?: string
+  location?: string
+  sourceEventType?: string
+  description?: string
+  awardReason?: string
+  pointsAwarded?: number | string
+}
+
+type AthleteProfileSource = {
+  registrationNumber?: string
+  achievements?: AthleteAchievement[]
+  pointsBalance?: number | string
+  firstName?: string
+  lastName?: string
+  photoUrl?: string
+  gender?: string
+  dateOfBirth?: string
+  branchName?: string
+  currentBelt?: string
+  status?: string
+  joinDate?: string
+}
+
+type EventParticipant = {
+  registrationNumber?: string
+}
+
+type AthleteEventSource = {
+  id?: string
+  date?: string
+  endDate?: string
+  name?: string
+  participants?: EventParticipant[]
+}
+
+type RankInfo = {
+  overallRank?: number | null
+  branchRank?: number | null
+  totalPoints?: number | string
+  rankingCategory?: {
+    discipline?: string
+    weightCategory?: string
+  }
+}
+
+type CompetitionEntry = {
+  id?: string
+  date: string
+  event: string
+  type: string
+  category: string
+  categoryKey: string
+  ageGroup: string
+  weightCategory: string
+  rank: number | '*'
+  wins: number
+  points: number
+  actual: number
+  medal: string
+  level: string
+  difficultyLevel: number | string | null
+}
+
+type CompetitionHonour = {
+  gold: number
+  silver: number
+  bronze: number
+  name: string
+}
+
+type CompetitionCategory = {
+  name: string
+  categoryKey: string
+  isPrimary: boolean
+  rank: number | null
+  points: number
+  honours: CompetitionHonour[]
+  results: Array<{
+    date: string
+    event: string
+    type: string
+    category: string
+    rank: number | '*'
+    wins: number
+    points: number
+    actual: number
+  }>
+}
 
 export const beltColors = {
   White: BELT_HEX_COLORS.White,
@@ -116,7 +222,7 @@ function getTournamentLevelLabel(level: string) {
   return TOURNAMENT_LEVEL_LABELS[level as keyof typeof TOURNAMENT_LEVEL_LABELS] || formatTitleCase(level || 'local')
 }
 
-function getMedalRank(result: string) {
+function getMedalRank(result: string): number | '*' {
   if (result === 'gold') return 1
   if (result === 'silver') return 2
   if (result === 'bronze') return 3
@@ -135,10 +241,10 @@ function stripTournamentPrefix(title: string) {
   return String(title || '').replace(/^(Gold|Silver|Bronze) Medal\s+[—-]\s+/i, '')
 }
 
-function buildCompetitionEntries(athlete: any) {
+function buildCompetitionEntries(athlete: AthleteProfileSource): CompetitionEntry[] {
   return (athlete.achievements || [])
-    .filter((achievement: any) => achievement.type?.startsWith('tournament'))
-    .map((achievement: any) => {
+    .filter((achievement) => achievement.type?.startsWith('tournament'))
+    .map((achievement) => {
       const result = String(
         achievement.competitionResult ||
         achievement.result ||
@@ -174,10 +280,10 @@ function buildCompetitionEntries(athlete: any) {
         difficultyLevel: achievement.difficultyLevel ?? null,
       }
     })
-    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-function getPrimaryCategoryName(rankInfo: any, competitionEntries: any[]) {
+function getPrimaryCategoryName(rankInfo: RankInfo | null | undefined, competitionEntries: CompetitionEntry[]) {
   if (competitionEntries.length > 0) {
     return competitionEntries[0].category
   }
@@ -194,9 +300,12 @@ function getPrimaryCategoryName(rankInfo: any, competitionEntries: any[]) {
   return rankingCategory.discipline === 'kumite' ? 'Kumite Individual' : 'Kata Individual'
 }
 
-function buildCompetitionCategories(athlete: any, rankInfo: any) {
+function buildCompetitionCategories(
+  athlete: AthleteProfileSource,
+  rankInfo: RankInfo | null | undefined
+): CompetitionCategory[] {
   const competitionEntries = buildCompetitionEntries(athlete)
-  const grouped = new Map<string, any[]>()
+  const grouped = new Map<string, CompetitionEntry[]>()
 
   for (const entry of competitionEntries) {
     const bucket = grouped.get(entry.categoryKey) || []
@@ -270,32 +379,32 @@ function buildCompetitionCategories(athlete: any, rankInfo: any) {
   return [normalizedPrimary, ...secondaryCategories]
 }
 
-function buildUpcomingEvents(athlete: any, allEvents: any[]) {
+function buildUpcomingEvents(athlete: AthleteProfileSource, allEvents: AthleteEventSource[]) {
   const now = Date.now()
   return (allEvents || [])
-    .filter((event: any) => new Date(event.date).getTime() >= now)
-    .filter((event: any) =>
+    .filter((event) => new Date(event.date || '').getTime() >= now)
+    .filter((event) =>
       Array.isArray(event.participants) &&
-      event.participants.some((participant: any) => participant.registrationNumber === athlete.registrationNumber)
+      event.participants.some((participant) => participant.registrationNumber === athlete.registrationNumber)
     )
-    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime())
     .slice(0, 4)
-    .map((event: any) => ({
+    .map((event) => ({
       id: event.id,
-      dateRange: formatDateRange(event.date, event.endDate),
+      dateRange: formatDateRange(event.date || '', event.endDate),
       name: event.name,
     }))
 }
 
-function buildBeltExaminations(athlete: any) {
-  const achievements = (athlete.achievements || []).filter((achievement: any) =>
+function buildBeltExaminations(athlete: AthleteProfileSource) {
+  const achievements = (athlete.achievements || []).filter((achievement) =>
     ['belt-grading', 'grading-fail', 'enrollment', 'belt-pass', 'belt-fail'].includes(achievement.type)
   )
 
   return achievements
-    .map((achievement: any) => ({
+    .map((achievement) => ({
       id: achievement.id,
-      date: formatShortDate(achievement.date),
+      date: formatShortDate(achievement.date || ''),
       belt:
         achievement.type === 'belt-pass' || achievement.type === 'belt-fail'
           ? achievement.beltEarned
@@ -320,10 +429,10 @@ function buildBeltExaminations(athlete: any) {
           : 'Pass',
       dojo: achievement.location || athlete.branchName || 'SKF Karate',
     }))
-    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-function getSpecialEventType(achievement: any) {
+function getSpecialEventType(achievement: AthleteAchievement) {
   const normalizedType = canonicalizeEventType(achievement.type || '')
   if (achievement.type === 'special-award') return 'Recognition'
   if (achievement.sourceEventType) return getEventTypeLabel(achievement.sourceEventType)
@@ -334,9 +443,9 @@ function getSpecialEventType(achievement: any) {
   return formatTitleCase(normalizedType || 'Event')
 }
 
-function buildSpecialEvents(athlete: any) {
+function buildSpecialEvents(athlete: AthleteProfileSource) {
   return (athlete.achievements || [])
-    .filter((achievement: any) => {
+    .filter((achievement) => {
       if (achievement.type?.startsWith('tournament')) return false
       if (
         achievement.type === 'belt-grading' ||
@@ -349,26 +458,26 @@ function buildSpecialEvents(athlete: any) {
       }
       return true
     })
-    .map((achievement: any) => ({
+    .map((achievement) => ({
       id: achievement.id,
-      date: formatShortDate(achievement.date),
+      date: formatShortDate(achievement.date || ''),
       title: achievement.title,
       type: getSpecialEventType(achievement),
       location: achievement.location || athlete.branchName || 'SKF Karate',
       description: achievement.description || achievement.awardReason || '',
     }))
-    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-function buildTotals(categories: any[]) {
-  const totalGolds = categories.reduce((sum: number, category: any) => (
-    sum + category.honours.reduce((inner: number, honour: any) => inner + honour.gold, 0)
+function buildTotals(categories: CompetitionCategory[]) {
+  const totalGolds = categories.reduce((sum, category) => (
+    sum + category.honours.reduce((inner, honour) => inner + honour.gold, 0)
   ), 0)
-  const totalSilvers = categories.reduce((sum: number, category: any) => (
-    sum + category.honours.reduce((inner: number, honour: any) => inner + honour.silver, 0)
+  const totalSilvers = categories.reduce((sum, category) => (
+    sum + category.honours.reduce((inner, honour) => inner + honour.silver, 0)
   ), 0)
-  const totalBronzes = categories.reduce((sum: number, category: any) => (
-    sum + category.honours.reduce((inner: number, honour: any) => inner + honour.bronze, 0)
+  const totalBronzes = categories.reduce((sum, category) => (
+    sum + category.honours.reduce((inner, honour) => inner + honour.bronze, 0)
   ), 0)
 
   return {
@@ -376,14 +485,14 @@ function buildTotals(categories: any[]) {
     totalSilvers,
     totalBronzes,
     totalMedals: totalGolds + totalSilvers + totalBronzes,
-    totalEvents: categories.reduce((sum: number, category: any) => sum + category.results.length, 0),
+    totalEvents: categories.reduce((sum, category) => sum + category.results.length, 0),
   }
 }
 
 export function buildAthleteProfileData(
-  athlete: any,
-  rankInfo: any,
-  allEvents: any[] = [],
+  athlete: AthleteProfileSource,
+  rankInfo: RankInfo | null | undefined,
+  allEvents: AthleteEventSource[] = [],
   branchCoachMap: Record<string, string> = {}
 ) {
   const categories = buildCompetitionCategories(athlete, rankInfo)
@@ -391,16 +500,16 @@ export function buildAthleteProfileData(
   const primaryCategory = categories[0]
   const activePoints = Number(rankInfo?.totalPoints ?? primaryCategory?.points ?? athlete.pointsBalance ?? 0)
   const lifetimePoints = Number(
-    (athlete.achievements || []).reduce((sum: number, achievement: any) => (
+    (athlete.achievements || []).reduce((sum, achievement) => (
       sum + Number(achievement.pointsAwarded || 0)
     ), 0)
   )
-  const competitionResults = categories.flatMap((category: any) => category.results || [])
+  const competitionResults = categories.flatMap((category) => category.results || [])
   const totalWins = competitionResults.reduce(
-    (sum: number, result: any) => sum + Number(result.wins || 0),
+    (sum, result) => sum + Number(result.wins || 0),
     0
   )
-  const totalBouts = competitionResults.reduce((sum: number, result: any) => {
+  const totalBouts = competitionResults.reduce((sum, result) => {
     const wins = Number(result.wins || 0)
     const rank = typeof result.rank === 'number' ? result.rank : 0
 
@@ -452,9 +561,9 @@ export function buildAthleteProfileData(
 }
 
 export function buildRestoredAthleteProfileData(
-  athlete: any,
-  rankInfo: any,
-  allEvents: any[] = [],
+  athlete: AthleteProfileSource,
+  rankInfo: RankInfo | null | undefined,
+  allEvents: AthleteEventSource[] = [],
   branchCoachMap: Record<string, string> = {}
 ) {
   const profile = buildAthleteProfileData(athlete, rankInfo, allEvents, branchCoachMap)

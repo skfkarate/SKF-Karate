@@ -17,7 +17,39 @@ type DashboardState = {
   portalLoginFailures: number
 }
 
-function needsAttention(event: any) {
+type DashboardEvent = {
+  status?: string
+  participants?: unknown[]
+  results?: unknown[]
+  isResultsPublished?: boolean
+}
+
+type ClassesResponse = {
+  cities?: Array<{ branches?: unknown[] }>
+}
+
+type StudentsResponse = {
+  students?: unknown[]
+}
+
+type EventsResponse = {
+  events?: DashboardEvent[]
+}
+
+type AnalyticsResponse = {
+  analytics?: {
+    website?: {
+      overview?: {
+        totalVisits?: number
+        visitsToday?: number
+        leadFailures?: number
+        portalLoginFailures?: number
+      }
+    }
+  }
+}
+
+function needsAttention(event: DashboardEvent) {
   const participantCount = Array.isArray(event.participants) ? event.participants.length : 0
   const resultCount = Array.isArray(event.results) ? event.results.length : 0
 
@@ -53,10 +85,10 @@ export default function AdminDashboardPage() {
         ])
 
         const [athletesData, classesData, eventsData, analyticsData] = await Promise.all([
-          athletesRes.json(),
-          classesRes.json(),
-          eventsRes.json(),
-          analyticsRes.json(),
+          athletesRes.json() as Promise<StudentsResponse>,
+          classesRes.json() as Promise<ClassesResponse>,
+          eventsRes.json() as Promise<EventsResponse>,
+          analyticsRes.json() as Promise<AnalyticsResponse>,
         ])
 
         const events = Array.isArray(eventsData.events) ? eventsData.events : []
@@ -66,14 +98,14 @@ export default function AdminDashboardPage() {
           athletes: athletesData.students?.length || 0,
           classes: Array.isArray(classesData.cities)
             ? classesData.cities.reduce(
-                (total: number, city: any) => total + (Array.isArray(city.branches) ? city.branches.length : 0),
+                (total, city) => total + (Array.isArray(city.branches) ? city.branches.length : 0),
                 0
               )
             : 0,
           eventRecords: events.length,
-          upcomingEvents: events.filter((event: any) => event.status === 'upcoming' || event.status === 'ongoing').length,
-          draftEvents: events.filter((event: any) => event.status === 'draft').length,
-          attentionEvents: events.filter((event: any) => needsAttention(event)).length,
+          upcomingEvents: events.filter((event) => event.status === 'upcoming' || event.status === 'ongoing').length,
+          draftEvents: events.filter((event) => event.status === 'draft').length,
+          attentionEvents: events.filter((event) => needsAttention(event)).length,
           totalVisits: website?.overview?.totalVisits || 0,
           visitsToday: website?.overview?.visitsToday || 0,
           leadFailures: website?.overview?.leadFailures || 0,

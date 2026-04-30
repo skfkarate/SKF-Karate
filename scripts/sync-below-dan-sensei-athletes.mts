@@ -96,8 +96,8 @@ async function getNextSequence(year: number) {
 
   if (error) throw error
 
-  const sequences = (data || [])
-    .map((entry: any) => Number.parseInt(String(entry.registration_number || '').split('-')[2] || '0', 10))
+  const sequences = ((data || []) as Array<{ registration_number?: string | null }>)
+    .map((entry) => Number.parseInt(String(entry.registration_number || '').split('-')[2] || '0', 10))
     .filter((value) => Number.isFinite(value))
 
   return sequences.length > 0 ? Math.max(...sequences) + 1 : 1

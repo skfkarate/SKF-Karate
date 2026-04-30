@@ -2,6 +2,7 @@ import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
 import { getEventLabel } from '@/data/constants/categories'
+import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 
 
@@ -16,6 +17,22 @@ function formatDisplayDate(date: string) {
 export const metadata = {
     title: 'Events & Results | SKF Karate',
     description: 'Upcoming SKF Karate events, seminars, and past competition results.',
+    alternates: {
+        canonical: absoluteSiteUrl('/events'),
+    },
+    openGraph: {
+        title: 'Events & Results | SKF Karate',
+        description: 'Upcoming SKF Karate events, seminars, and past competition results.',
+        url: absoluteSiteUrl('/events'),
+        type: 'website',
+        images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate events and results' }],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Events & Results | SKF Karate',
+        description: 'Upcoming SKF Karate events, seminars, and past competition results.',
+        images: [absoluteMediaUrl()],
+    },
 }
 
 export default async function EventsPage() {

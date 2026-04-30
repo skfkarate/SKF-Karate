@@ -45,7 +45,13 @@ export default function Navbar() {
 
 
     // Close drawer on route change
-    useEffect(() => { setDrawerOpen(false); setExpandedMenus(new Set()) }, [pathname])
+    useEffect(() => {
+        const id = window.setTimeout(() => {
+            setDrawerOpen(false)
+            setExpandedMenus(new Set())
+        }, 0)
+        return () => window.clearTimeout(id)
+    }, [pathname])
 
     // Scroll detection
     useEffect(() => {

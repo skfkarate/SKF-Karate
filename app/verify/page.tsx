@@ -44,9 +44,9 @@ export default function CertificateSearchPage() {
             } else {
                 throw new Error('Invalid certificate data from server')
             }
-        } catch (err: any) {
+        } catch (err) {
             console.error(err)
-            setError(err.message || 'Could not complete search. Please try again.')
+            setError(err instanceof Error ? err.message : 'Could not complete search. Please try again.')
             setIsLoading(false)
         }
     }

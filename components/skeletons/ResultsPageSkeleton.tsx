@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonBlock, SkeletonCircle } from './SkeletonPrimitives'
+import { SkeletonLine, SkeletonCircle } from './SkeletonPrimitives'
 
 /**
  * ResultsPageSkeleton — mirrors results page: Hero stats → Tournament list

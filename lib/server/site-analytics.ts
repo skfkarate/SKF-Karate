@@ -60,7 +60,21 @@ type WebsiteAnalyticsSummary = {
   timeWindowLabel: string
 }
 
-function isMissingTableError(error: any) {
+type SupabaseErrorLike = {
+  code?: string
+  message?: string
+} | null | undefined
+
+type AnalyticsEventRow = {
+  id: string
+  event_type: string
+  path?: string | null
+  created_at: string
+  metadata?: unknown
+  skf_id?: string | null
+}
+
+function isMissingTableError(error: SupabaseErrorLike) {
   return (
     error?.code === 'PGRST205' ||
     String(error?.message || '').toLowerCase().includes('site_analytics_events')
@@ -327,14 +341,14 @@ export async function getWebsiteAnalyticsSummary(): Promise<{
         topPages: buildGroupedCounts(topPagesResponse.data || []),
         topLandingPages: buildGroupedCounts(topLandingPagesResponse.data || []),
         dailyTraffic: buildDailyTraffic(dailyTrafficResponse.data || []),
-        recentOperationalEvents: (recentOperationalEventsResponse.data || []).map((entry: any) => ({
+        recentOperationalEvents: ((recentOperationalEventsResponse.data || []) as AnalyticsEventRow[]).map((entry) => ({
           id: entry.id,
           eventType: entry.event_type,
           path: sanitizePath(entry.path) || '/',
           createdAt: entry.created_at,
           metadata:
             entry.metadata && typeof entry.metadata === 'object' && !Array.isArray(entry.metadata)
-              ? entry.metadata
+              ? entry.metadata as Record<string, unknown>
               : {},
           skfId: entry.skf_id || null,
         })),

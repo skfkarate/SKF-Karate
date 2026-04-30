@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonCircle, SkeletonBlock } from './SkeletonPrimitives'
+import { SkeletonLine, SkeletonCircle } from './SkeletonPrimitives'
 
 /**
  * HonoursPageSkeleton — mirrors honours page: Hero → Dan carousel → Podium → Medal grids

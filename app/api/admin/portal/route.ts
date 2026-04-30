@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-import { createErrorResponse, readJsonBody } from '@/lib/server/api'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import {
   createBranchTimetable,
   createPortalVideo,
@@ -13,33 +11,28 @@ import {
   updatePortalVideo,
 } from '@/lib/server/repositories/portal-content-live'
 import { revalidatePortalSitePaths } from '@/lib/server/revalidation'
+import { adminMutableContentBodySchema } from '@/src/server/api/validators/admin-general.validator'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET() {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
+  async () => {
     const [videos, timetables] = await Promise.all([
       getAllPortalVideosAdmin(),
       getAllBranchTimetablesAdmin(),
     ])
 
     return NextResponse.json({ videos, timetables })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to fetch portal content.')
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await readJsonBody(request)
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: adminMutableContentBodySchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body }) => {
     const entity = String(body?.entity || '').trim().toLowerCase()
     const operation = String(body?.operation || '').trim().toLowerCase()
     const payload = body?.payload || {}
@@ -77,7 +70,5 @@ export async function POST(request: Request) {
     ])
 
     return NextResponse.json({ success: true, videos, timetables })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to update portal content.')
   }
-}
+)

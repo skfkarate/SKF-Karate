@@ -14,7 +14,7 @@ import { createStudentSchema } from '@/lib/validators'
 type FormValues = z.output<typeof createStudentSchema>
 type FormInput = z.input<typeof createStudentSchema>
 
-type AutomationSummary = {
+export type AutomationSummary = {
   competitionResults: number
   beltEntries: number
   specialEvents: number
@@ -26,6 +26,15 @@ type AutomationSummary = {
 type CreateResult = {
   skfId: string
   registrationNumber: string | null
+  dob?: string
+}
+
+export type AthleteEditorValues = Omit<FormInput, 'belt' | 'gender' | 'status'> & {
+  belt: string
+  gender: string
+  status: string
+  skfId?: string
+  registrationNumber?: string | null
 }
 
 function SectionCard({
@@ -112,9 +121,24 @@ function formatDate(value?: string | null) {
   })
 }
 
-function buildPortalWelcomeMessage(skfId: string) {
+function formatDobForPortal(value?: string | null) {
+  if (!value) return ''
+  const parts = value.split('-')
+  if (parts.length !== 3) return value
+  const [year, month, day] = parts
+  return `${day}-${month}-${year}`
+}
+
+function maskDobYear(value?: string | null) {
+  if (!value) return 'Not recorded'
+  const year = value.split('-')[0]
+  return year && year.length === 4 ? `Born in ${year}` : 'Year not available'
+}
+
+function buildPortalWelcomeMessage(skfId: string, dob?: string | null) {
   const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/portal`
-  return `Welcome to SKF Karate. Your athlete ID is ${skfId}.\nUse this registration ID and the athlete's date of birth to log in at ${portalUrl}.`
+  const dobLine = dob ? `\nDate of birth: ${formatDobForPortal(dob)}` : ''
+  return `Welcome to SKF Karate. Use these details to log in to the athlete portal:\nSKF ID: ${skfId}${dobLine}\nPortal: ${portalUrl}`
 }
 
 export default function AthleteRecordEditor({
@@ -125,7 +149,7 @@ export default function AthleteRecordEditor({
   publicProfileHref,
 }: {
   mode: 'create' | 'edit'
-  initialValues: FormValues & { skfId?: string; registrationNumber?: string | null }
+  initialValues: AthleteEditorValues
   initialCities: City[]
   automationSummary?: AutomationSummary
   publicProfileHref?: string | null
@@ -174,9 +198,10 @@ export default function AthleteRecordEditor({
     formState: { errors, isDirty },
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(createStudentSchema),
-    defaultValues: initialValues,
+    defaultValues: initialValues as FormInput,
   })
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedBranchValue = watch('branch')
   const currentPublicValue = watch('isPublic')
   const selectedBranch =
@@ -214,7 +239,7 @@ export default function AthleteRecordEditor({
           typeof payload?.error === 'string'
             ? payload.error
             : Array.isArray(payload?.error)
-              ? payload.error.map((entry: any) => entry.message).join(', ')
+              ? payload.error.map((entry: { message?: string }) => entry.message || 'Invalid field').join(', ')
               : `Unable to ${mode === 'create' ? 'create' : 'update'} the athlete profile.`
         )
       }
@@ -223,21 +248,25 @@ export default function AthleteRecordEditor({
         setCreateResult({
           skfId: payload.skfId,
           registrationNumber: payload.registrationNumber || null,
+          dob: data.dob,
         })
       } else {
         setSuccessMsg('Athlete profile updated. Public profile and portal identity are now in sync.')
         router.refresh()
       }
-    } catch (error: any) {
-      setApiError(error.message || 'Something went wrong while saving the athlete profile.')
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : 'Something went wrong while saving the athlete profile.')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleCopy = async () => {
-    if (!createResult?.skfId) return
-    await navigator.clipboard.writeText(buildPortalWelcomeMessage(createResult.skfId))
+    const skfId = createResult?.skfId || initialValues.skfId || ''
+    if (!skfId) return
+    await navigator.clipboard.writeText(
+      buildPortalWelcomeMessage(skfId, createResult?.dob || initialValues.dob)
+    )
     setCopySuccess(true)
     window.setTimeout(() => setCopySuccess(false), 2500)
   }
@@ -296,7 +325,27 @@ export default function AthleteRecordEditor({
                 whiteSpace: 'pre-line',
               }}
             >
-              {buildPortalWelcomeMessage(createResult.skfId)}
+              {buildPortalWelcomeMessage(createResult.skfId, createResult.dob)}
+            </div>
+
+            <div
+              style={{
+                border: '1px solid rgba(255, 183, 3, 0.25)',
+                background: 'rgba(255, 183, 3, 0.06)',
+                borderRadius: '16px',
+                padding: '1rem',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <h3 style={{ margin: '0 0 0.75rem', color: '#ffb703', fontSize: '1rem' }}>
+                Student Onboarding Checklist
+              </h3>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#dedede', lineHeight: 1.8 }}>
+                <li>Student record created</li>
+                <li>SKF ID assigned: {createResult.skfId}</li>
+                <li>Portal login ready for DOB + SKF ID test</li>
+                <li>Share login information with the parent/guardian</li>
+              </ul>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -440,6 +489,50 @@ export default function AthleteRecordEditor({
           </div>
         ) : null}
 
+        {mode === 'edit' ? (
+          <div style={{ marginBottom: '1.25rem' }}>
+            <SectionCard
+              title="Student Portal Access"
+              description="Use this when a parent loses the SKF ID or needs the portal login details resent."
+            >
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                <div style={{ padding: '1rem', border: '1px solid #1f1f1f', borderRadius: '16px', background: '#050505' }}>
+                  <div style={{ color: '#7d7d7d', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Current SKF ID
+                  </div>
+                  <div style={{ marginTop: '0.4rem', color: '#ffb703', fontSize: '1.15rem', fontWeight: 700 }}>
+                    {initialValues.skfId || 'Not assigned'}
+                  </div>
+                </div>
+                <div style={{ padding: '1rem', border: '1px solid #1f1f1f', borderRadius: '16px', background: '#050505' }}>
+                  <div style={{ color: '#7d7d7d', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Date of Birth
+                  </div>
+                  <div style={{ marginTop: '0.4rem', color: '#d8d8d8', fontSize: '1.15rem', fontWeight: 700 }}>
+                    {maskDobYear(initialValues.dob)}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopy}
+                style={{
+                  marginTop: '1rem',
+                  background: copySuccess ? '#194d33' : '#fff',
+                  color: copySuccess ? '#baf7cf' : '#000',
+                  border: 'none',
+                  padding: '0.85rem 1.2rem',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {copySuccess ? 'Copied' : 'Copy Login Credentials'}
+              </button>
+            </SectionCard>
+          </div>
+        ) : null}
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>
             <SectionCard title="Identity & Access" description="Core athlete identity used across admin, portal login, search, and the public profile.">
@@ -565,6 +658,17 @@ export default function AthleteRecordEditor({
                     <input type="checkbox" {...register('photoConsent')} style={{ width: '18px', height: '18px' }} />
                     <span style={{ color: '#f2f2f2' }}>Photo / video consent available</span>
                   </label>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', cursor: 'pointer' }}>
+                    <input type="checkbox" {...register('dataConsent')} style={{ width: '18px', height: '18px', marginTop: '0.2rem' }} />
+                    <span style={{ color: '#f2f2f2', lineHeight: 1.5 }}>
+                      Parent/guardian consents to this student&apos;s data being stored and used for club management purposes.
+                    </span>
+                  </label>
+                  {errors.dataConsent?.message ? (
+                    <span style={{ color: '#ff6b6b', fontSize: '0.78rem' }}>
+                      {errors.dataConsent.message}
+                    </span>
+                  ) : null}
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
                     <input type="checkbox" {...register('isPublic')} style={{ width: '18px', height: '18px' }} />
                     <span style={{ color: '#f2f2f2' }}>Public athlete profile visible</span>

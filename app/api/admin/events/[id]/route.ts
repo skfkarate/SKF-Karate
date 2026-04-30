@@ -5,11 +5,6 @@ import {
   updateEventRecordLive,
 } from '@/lib/server/repositories/events-live'
 import { clearSyncedEventArtifactsFromAthletes } from '@/lib/server/event-athlete-sync'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
-import {
-  createErrorResponse,
-  readJsonBody,
-} from '@/lib/server/api'
 import {
   validateEventPayload,
   validateTournamentPayload,
@@ -18,22 +13,23 @@ import {
   revalidateEventSitePaths,
   revalidateTournamentSitePaths,
 } from '@/lib/server/revalidation'
+import { looseObjectSchema } from '@/src/server/api/validators/admin-general.validator'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function PUT(request: Request, context: { params: any }) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const params = await Promise.resolve(context.params)
+export const PUT = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin', 'instructor'] },
+    bodySchema: looseObjectSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body, params }) => {
     const { id } = params
     const existing = await getEventByIdAdminLive(id)
     if (!existing) {
-       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      throw new NotFoundError('Event')
     }
 
-    const body = await readJsonBody(request)
     const payload =
       existing.type === 'tournament'
         ? validateTournamentPayload({ ...existing, ...body, id })
@@ -41,7 +37,7 @@ export async function PUT(request: Request, context: { params: any }) {
     
     const updated = await updateEventRecordLive(id, payload)
     if (!updated) {
-       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      throw new NotFoundError('Event')
     }
 
     if (
@@ -59,25 +55,18 @@ export async function PUT(request: Request, context: { params: any }) {
     }
 
     return NextResponse.json({ success: true, event: updated })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to update the event.')
   }
-}
+)
 
-export async function DELETE(request: Request, context: { params: any }) {
-  try {
-    const session = await getAuthorizedApiSession(['admin', 'instructor'])
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const params = await Promise.resolve(context.params)
+export const DELETE = withRoute(
+  { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'write' } },
+  async ({ params }) => {
     const { id } = params
     const existing = await getEventByIdAdminLive(id)
 
     const deleted = await deleteEventRecordLive(id)
     if (!deleted) {
-       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      throw new NotFoundError('Event')
     }
 
     if (existing) {
@@ -91,9 +80,7 @@ export async function DELETE(request: Request, context: { params: any }) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
-    return createErrorResponse(error, 'Unable to delete the event.')
   }
-}
+)
 
 export const PATCH = PUT

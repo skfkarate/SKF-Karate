@@ -43,6 +43,57 @@ function medalEmoji(medal: string) {
   return medal === 'gold' ? '🥇' : medal === 'silver' ? '🥈' : '🥉'
 }
 
+type AthleteAchievement = {
+  id?: string
+  type?: string
+  competitionResult?: string
+  result?: string
+  sourceEventLevel?: string
+  tournamentLevel?: string
+  tournamentName?: string
+  title?: string
+  date?: string
+  eventCategory?: string
+  sourceEventId?: string
+}
+
+type PublicAthlete = {
+  id: string
+  registrationNumber: string
+  firstName: string
+  lastName: string
+  branchName: string
+  currentBelt: string
+  photoUrl?: string
+  isPublic?: boolean
+  achievements?: AthleteAchievement[]
+}
+
+type RankingSnapshot = {
+  athleteId: string
+  registrationNumber: string
+  athleteName: string
+  branchName: string
+  currentBelt: string
+  totalPoints?: number
+}
+
+type TournamentAchievement = {
+  id: string
+  athleteId: string
+  athleteName: string
+  registrationNumber: string
+  branchName: string
+  belt: string
+  photoUrl?: string
+  medal: string
+  level: string
+  tournament: string
+  date: string
+  category: string
+  sourceEventId: string
+}
+
 function ProfileSvg({ size = 60 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -52,12 +103,12 @@ function ProfileSvg({ size = 60 }: { size?: number }) {
   )
 }
 
-function buildTournamentAchievements(publicAthletes: any[]) {
+function buildTournamentAchievements(publicAthletes: PublicAthlete[]): TournamentAchievement[] {
   return publicAthletes
     .flatMap((athlete) =>
       (athlete.achievements || [])
-        .filter((achievement: any) => achievement.type?.startsWith('tournament'))
-        .map((achievement: any, index: number) => ({
+        .filter((achievement) => achievement.type?.startsWith('tournament'))
+        .map((achievement, index) => ({
           id: achievement.id || `${athlete.id}-${index}`,
           athleteId: athlete.id,
           athleteName: `${athlete.firstName} ${athlete.lastName}`,
@@ -72,7 +123,7 @@ function buildTournamentAchievements(publicAthletes: any[]) {
           ),
           level: normaliseEventTier(achievement.sourceEventLevel || achievement.tournamentLevel),
           tournament: achievement.tournamentName || achievement.title || 'Tournament',
-          date: achievement.date,
+          date: achievement.date || '',
           category: achievement.eventCategory || '',
           sourceEventId: achievement.sourceEventId || '',
         }))
@@ -80,7 +131,7 @@ function buildTournamentAchievements(publicAthletes: any[]) {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-function getLatestSpotlight(achievements: any[]) {
+function getLatestSpotlight(achievements: TournamentAchievement[]) {
   const latestGold = achievements.find((achievement) => achievement.medal === 'gold')
   if (!latestGold) {
     return {
@@ -110,9 +161,9 @@ export default async function HonoursPage() {
     getRankSnapshotsLive(),
     getPublicSenseisLive(),
   ])
-  const publicAthletes = athletes.filter((athlete) => athlete.isPublic)
+  const publicAthletes = (athletes as PublicAthlete[]).filter((athlete) => athlete.isPublic)
   const publicAthleteMap = new Map(publicAthletes.map((athlete) => [String(athlete.id), athlete]))
-  const filteredSnapshots = snapshots.filter(
+  const filteredSnapshots = (snapshots as RankingSnapshot[]).filter(
     (entry) => publicAthleteMap.has(String(entry.athleteId)) && Number(entry.totalPoints || 0) > 0
   )
   const tournamentAchievements = buildTournamentAchievements(publicAthletes)
@@ -238,7 +289,7 @@ export default async function HonoursPage() {
             <h2 className="hon-section__title">National Gold Medalists</h2>
           </div>
           <div className="hon-medal-grid">
-            {nationalGolds.map((achievement: any) => (
+            {nationalGolds.map((achievement) => (
               <Link
                 key={`nat-${achievement.id}`}
                 href={`/athlete/${achievement.registrationNumber}`}
@@ -263,7 +314,7 @@ export default async function HonoursPage() {
             <h2 className="hon-section__title">State Gold Medalists</h2>
           </div>
           <div className="hon-medal-grid">
-            {stateGolds.map((achievement: any) => (
+            {stateGolds.map((achievement) => (
               <Link
                 key={`state-${achievement.id}`}
                 href={`/athlete/${achievement.registrationNumber}`}
@@ -298,7 +349,7 @@ export default async function HonoursPage() {
           </div>
 
           <div className="hon-spotlight-grid">
-            {latestSpotlight.athletes.map((achievement: any) => (
+            {latestSpotlight.athletes.map((achievement) => (
               <AthleteCard
                 key={`spot-${achievement.id}`}
                 name={achievement.athleteName}

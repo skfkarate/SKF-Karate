@@ -1,3 +1,5 @@
+import JsonLdScript from '@/components/JsonLdScript'
+
 export const metadata = {
   title: 'Karate Belt Grading System & Syllabus | SKF Karate',
   description: 'Understand the traditional karate belt system from white to black belt. Prepare for your next grading examination with SKF Karate.',
@@ -27,12 +29,7 @@ function JsonLd() {
     ],
   }
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-    />
-  )
+  return <JsonLdScript data={faqSchema} />
 }
 
 export default function GradingLayout({ children }) {

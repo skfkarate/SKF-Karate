@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/server/auth/options'
 import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { enrollmentCreateSchema } from '@/src/server/api/validators/admin-certificates.validator'
+import { NotFoundError } from '@/src/server/lib/errors'
+import { logger } from '@/src/server/lib/logger'
+import { withRoute } from '@/src/server/lib/route'
 
-export async function GET(_request: Request) {
-  try {
-    // 1. Authenticate Admin
-    const session = await getServerSession(authOptions)
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+export const GET = withRoute(
+  { auth: { type: 'admin', roles: ['admin'] }, rateLimit: { tier: 'authed' } },
+  async ({ requestId }) => {
     if (!isSupabaseReady()) {
-      return NextResponse.json({ enrollments: [], warning: 'Database missing' })
+      return NextResponse.json({ error: 'Database missing' }, { status: 503 })
     }
 
     // 2. Fetch all enrollments joined with programs
@@ -44,8 +41,12 @@ export async function GET(_request: Request) {
             belt = athlete.currentBelt || 'white'
             branch = athlete.branchName || 'Unknown'
           }
-        } catch (e) {
-          // Ignore fetch errors per student
+        } catch (error) {
+          logger.warn('admin.enrollments.athlete_lookup_failed', {
+            requestId,
+            skfId: rec.skf_id,
+            error,
+          })
         }
 
         return {
@@ -64,32 +65,28 @@ export async function GET(_request: Request) {
     )
 
     return NextResponse.json({ enrollments: enrichedEnrollments })
-
-  } catch (error) {
-    console.error('[API] Failed to fetch enrollments:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)
 
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
+export const POST = withRoute(
+  {
+    auth: { type: 'admin', roles: ['admin'] },
+    bodySchema: enrollmentCreateSchema,
+    rateLimit: { tier: 'write' },
+  },
+  async ({ body }) => {
     const { skfId, programId, beltLevel, completionDate, issuerName } = body
-
-    if (!skfId || !programId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
     const athlete = await getAthleteByRegistrationNumberLive(skfId)
-    if (!athlete) return NextResponse.json({ error: 'Invalid SKF ID' }, { status: 404 })
+    if (!athlete) throw new NotFoundError('Athlete')
 
-    const { data: program } = await supabaseAdmin.from('programs').select('id').eq('id', programId).single()
-    if (!program) return NextResponse.json({ error: 'Invalid Program' }, { status: 404 })
+    const { data: program, error: programError } = await supabaseAdmin
+      .from('programs')
+      .select('id')
+      .eq('id', programId)
+      .single()
+
+    if (programError) throw programError
+    if (!program) throw new NotFoundError('Program')
 
     const { data, error } = await supabaseAdmin
       .from('enrollments')
@@ -108,8 +105,5 @@ export async function POST(request: Request) {
     if (error) throw error
 
     return NextResponse.json({ success: true, enrollmentId: data.id })
-  } catch (error: any) {
-    console.error('[API POST] Failed to link enrollment:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-}
+)

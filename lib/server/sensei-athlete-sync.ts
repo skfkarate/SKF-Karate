@@ -4,8 +4,9 @@ import {
   updateAthleteLive,
 } from './repositories/athletes-live'
 import { getAllSenseisLive } from './repositories/senseis-live'
+import type { SenseiProfile } from '@/lib/types/sensei'
 
-type SenseiRecord = Record<string, any>
+type SenseiRecord = SenseiProfile
 
 const MIRROR_PREFIX = 'athlete_sensei_'
 

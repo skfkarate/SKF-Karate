@@ -1,33 +1,46 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { withRoute } from '@/src/server/lib/route'
 
-function formatLeaderboardName(athlete?: Record<string, any> | null) {
+type LeaderboardAthlete = {
+  firstName?: string | null
+  lastName?: string | null
+  currentBelt?: string | null
+}
+
+function formatLeaderboardName(athlete?: LeaderboardAthlete | null) {
   const first = String(athlete?.firstName || '').trim()
   const lastInitial = String(athlete?.lastName || '').trim().charAt(0)
   const combined = [first, lastInitial ? `${lastInitial}.` : ''].filter(Boolean).join(' ').trim()
   return combined || 'Unknown Athlete'
 }
 
-function formatLeaderboardBelt(athlete?: Record<string, any> | null) {
+function formatLeaderboardBelt(athlete?: LeaderboardAthlete | null) {
   const belt = String(athlete?.currentBelt || 'white').trim().toLowerCase()
   if (!belt) return 'white'
   if (belt.startsWith('black')) return 'black'
   return belt
 }
 
-export async function GET() {
-  try {
+export const GET = withRoute(
+  {
+    auth: { type: 'portal', roles: ['student'] },
+    rateLimit: { tier: 'authed' },
+    cacheControl: 'private, max-age=60',
+  },
+  async () => {
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
 
-    const { data: transactions } = await supabaseAdmin
+    const { data: transactions, error } = await supabaseAdmin
       .from('point_transactions')
       .select('skf_id, points')
       .eq('type', 'EARN')
       .gte('created_at', startOfMonth.toISOString())
 
+    if (error) throw error
     if (!transactions) return Response.json({ leaderboard: [] })
 
     const sums: Record<string, number> = {}
@@ -58,8 +71,5 @@ export async function GET() {
     })
 
     return Response.json({ leaderboard })
-  } catch (error: any) {
-    console.error('Leaderboard error:', error)
-    return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 })
   }
-}
+)

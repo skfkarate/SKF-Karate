@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
-import Image from 'next/image'
 import TechniquesClient from './TechniquesClient'
 import { FaStar } from 'react-icons/fa'
 import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
+import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 
 export const revalidate = 3600
 
@@ -44,17 +44,13 @@ export default async function TechniqueLibraryPage() {
                                         background: '#000'
                                     }}>
                                         <div style={{ width: '100%', paddingTop: '56.25%', position: 'relative' }}>
-                                            {video.thumbnailUrl ? (
-                                                <Image
-                                                    src={video.thumbnailUrl}
-                                                    alt={video.title}
-                                                    style={{ objectFit: 'cover', opacity: 0.7 }}
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, 400px"
-                                                />
-                                            ) : (
-                                                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(214,40,40,0.3), rgba(255,183,3,0.12))' }} />
-                                            )}
+                                            <YouTubeThumbnail
+                                                youtubeId={video.youtubeId}
+                                                alt={video.title}
+                                                style={{ objectFit: 'cover', opacity: 0.7 }}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 400px"
+                                            />
                                             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}></div>
                                             <div style={{ position: 'absolute', bottom: 0, left: 0, padding: '1.5rem', width: '100%' }}>
                                                 <span style={{ 

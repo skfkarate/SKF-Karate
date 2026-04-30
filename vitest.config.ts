@@ -13,5 +13,9 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    env: {
+      JWT_SECRET: 'test-jwt-secret-minimum-32-characters',
+      NEXTAUTH_SECRET: 'test-nextauth-secret-minimum-32-chars',
+    },
   },
 })

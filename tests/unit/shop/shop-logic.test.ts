@@ -89,7 +89,6 @@ describe('shop logic', () => {
       availablePoints: 2000,
       requestedPoints: 2000,
       promoCode: 'SKF10',
-      paymentBypass: true,
     })
 
     expect(prepared.subtotal).toBe(2000)

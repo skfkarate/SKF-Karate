@@ -4,8 +4,18 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Settings, Users, PowerOff } from 'lucide-react'
 
+type CertificateProgram = {
+  id: string
+  name: string
+  type: string
+  branch?: string | null
+  is_active: boolean
+  certificate_templates: Array<{ count?: number }>
+  enrollments: Array<{ count?: number }>
+}
+
 export default function AdminCertificatesPage() {
-  const [programs, setPrograms] = useState<any[]>([])
+  const [programs, setPrograms] = useState<CertificateProgram[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -17,8 +27,8 @@ export default function AdminCertificatesPage() {
       const res = await fetch('/api/admin/certificates/programs')
       const data = await res.json()
       setPrograms(data.programs || [])
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -106,7 +116,7 @@ export default function AdminCertificatesPage() {
                       try {
                         await fetch(`/api/admin/certificates/programs/${prog.id}/toggle`, { method: 'PATCH' })
                         fetchPrograms()
-                      } catch (e) { alert('Failed to toggle') }
+                      } catch { alert('Failed to toggle') }
                     }}
                     title={prog.is_active ? 'Archive Program' : 'Reactivate Program'}
                     style={{
