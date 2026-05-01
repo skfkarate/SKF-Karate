@@ -82,10 +82,83 @@ export const homeBookTrialCTAFeatures = [
 
 /** Hero section copy */
 export const HERO_COPY = Object.freeze({
-  BADGE: 'WKF Affiliated · Est. Karnataka',
+  BADGE: 'Team SKF',
   TITLE_LINE1: 'Where Champions',
   TITLE_ACCENT: 'Are Made',
   SUBTITLE: 'Sports Karate-do Fitness & Self Defence Association®',
   DESCRIPTION: 'Train with masters. Compete with champions. Forge an unbreakable spirit across Bangalore, Tumkur, Kunigal & Udupi.',
   WATERMARK: '空手',
 })
+
+/** Philosophy / About section */
+export const PHILOSOPHY_SECTION = Object.freeze({
+  LABEL: 'Our Philosophy',
+  TITLE_1: 'The Art of',
+  TITLE_ACCENT: 'Becoming',
+  BODY: 'SKF Karate is not just a martial arts academy — it is a crucible for character. We believe every strike sharpens focus, every kata builds resilience, and every sparring session forges bonds that transcend the mat. Our WKF-certified curriculum blends centuries-old tradition with modern sports science, creating warriors who excel in competition and in life.',
+  STAT_YEARS: '15+',
+  STAT_YEARS_LABEL: 'Years of Excellence',
+  STAT_BELTS: '87',
+  STAT_BELTS_LABEL: 'Black Belts Produced',
+})
+
+/** Belt Journey / Progression */
+export const BELT_JOURNEY_SECTION = Object.freeze({
+  LABEL: 'The Path',
+  TITLE_1: 'Your Journey to',
+  TITLE_ACCENT: 'Mastery',
+  SUBTITLE: 'Every belt tells a story of perseverance. From the purity of white to the depth of black, each rank is earned through sweat, discipline, and unwavering commitment.',
+  BELTS: [
+    { name: 'White', color: '#FFFFFF', meaning: 'Purity & Beginning', stage: 'Foundation' },
+    { name: 'Yellow', color: '#FFD700', meaning: 'First Light of Knowledge', stage: 'Awareness' },
+    { name: 'Orange', color: '#FF8C00', meaning: 'Growing Strength', stage: 'Development' },
+    { name: 'Green', color: '#228B22', meaning: 'Growth & Refinement', stage: 'Growth' },
+    { name: 'Blue', color: '#4169E1', meaning: 'Depth of Understanding', stage: 'Depth' },
+    { name: 'Brown', color: '#8B4513', meaning: 'Maturity & Preparation', stage: 'Maturity' },
+    { name: 'Black', color: '#1a1a1a', meaning: 'Mastery & New Beginning', stage: 'Mastery' },
+  ],
+})
+
+/** FAQ Section */
+export const FAQ_SECTION = Object.freeze({
+  LABEL: 'Common Questions',
+  TITLE_1: 'Everything You',
+  TITLE_ACCENT: 'Need to Know',
+  ITEMS: [
+    {
+      question: 'What age can my child start karate?',
+      answer: 'We accept students from age 4 and above. Our Little Champions program (ages 4-7) is designed specifically for young learners with age-appropriate exercises, games, and fundamental techniques.',
+    },
+    {
+      question: 'Do I need any prior experience?',
+      answer: 'Absolutely not. Our curriculum is structured to take complete beginners through a progressive journey. Whether you are 5 or 50, our certified instructors will guide you at your own pace.',
+    },
+    {
+      question: 'How often should my child train?',
+      answer: 'We recommend 2-3 sessions per week for consistent progress. Our flexible scheduling allows you to pick class times that work best for your family.',
+    },
+    {
+      question: 'Is karate safe for children?',
+      answer: 'Safety is our top priority. All training is supervised by certified black belt instructors. We use age-appropriate techniques, proper protective equipment for sparring, and emphasize control at every level.',
+    },
+    {
+      question: 'What is the belt grading process?',
+      answer: 'Belt gradings are held every 3-4 months. Students are assessed on kata (forms), kumite (sparring), and theoretical knowledge. Each grading is conducted by senior Dan-graded examiners under WKF standards.',
+    },
+    {
+      question: 'How much does it cost?',
+      answer: 'We offer flexible monthly plans starting at ₹1,500/month. Visit our Fee page for detailed pricing, or contact us for a free trial class to experience SKF before committing.',
+    },
+  ],
+})
+
+/** Sensei Highlights for homepage */
+export const SENSEI_HIGHLIGHTS = Object.freeze([
+  {
+    name: 'Sensei Irfan',
+    title: 'Chief Instructor & Founder',
+    dan: '4th Dan Black Belt',
+    image: '/gallery/In Dojo 3.jpeg',
+    achievement: 'WKF International Instructor',
+  },
+])
