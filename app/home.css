@@ -693,7 +693,7 @@
     right: 1.5rem;
     bottom: 1.25rem;
   }
-  
+
   .home-city-card:hover {
     transform: translateY(-4px);
   }
@@ -703,23 +703,23 @@
   .home-belt-journey__dot { left: 2rem; }
   .home-belt-journey__step { flex-direction: column !important; align-items: flex-end; gap: 1rem; }
   .home-belt-journey__card { width: calc(100% - 4rem); margin-left: auto; }
-  
-  .home-first-class__timeline { 
-    display: flex; 
-    overflow-x: auto; 
-    scroll-snap-type: x mandatory; 
-    gap: 1.5rem; 
-    padding: 1rem 1.5rem 3rem 1.5rem; 
+
+  .home-first-class__timeline {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem 3rem 1.5rem;
     margin: 0 -1.5rem;
-    scrollbar-width: none; 
+    scrollbar-width: none;
   }
-  .step-card-v2 { 
-    min-width: 280px; 
-    scroll-snap-align: center; 
-    background: rgba(255,255,255,0.015); 
-    border: 1px solid rgba(255,255,255,0.04); 
-    border-radius: 16px; 
-    padding: 2.5rem 1.5rem 2rem 1.5rem; 
+  .step-card-v2 {
+    min-width: 280px;
+    scroll-snap-align: center;
+    background: rgba(255,255,255,0.015);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem 2rem 1.5rem;
   }
 }
 
@@ -754,11 +754,11 @@
   .home-testimonials__header {
     margin-bottom: 2.5rem;
   }
-  
+
   .home-city-card__name {
     font-size: 1.2rem;
   }
-  
+
   .why-card-v2 { padding: 1.5rem; flex-direction: column; gap: 1.25rem; }
   .why-card-v2__number { font-size: 3.5rem; }
 }
