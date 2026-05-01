@@ -1,12 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { motion, type Variants } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import HeroVideo from './HeroVideo'
 import { HERO_COPY } from '@/data/constants/homeContent'
 
-const ease: any = [0.25, 0.46, 0.45, 0.94]
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
 
 const container = {
   hidden: {},
@@ -18,22 +18,13 @@ const container = {
   },
 }
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
     transition: { duration: 0.9, ease },
-  },
-}
-
-const scaleFade = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 1.2, ease },
   },
 }
 

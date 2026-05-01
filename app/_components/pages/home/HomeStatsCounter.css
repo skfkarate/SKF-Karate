@@ -76,59 +76,41 @@
 }
 
 @media (max-width: 768px) {
-  .stats-v2__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .stat-v2:nth-child(2)::after {
-    display: none;
-  }
-
-  .stat-v2:nth-child(3)::after,
-  .stat-v2:nth-child(4)::after {
-    display: none;
-  }
-
-  /* Horizontal line between rows */
-  .stat-v2:nth-child(1),
-  .stat-v2:nth-child(2) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  .stat-v2 {
+    padding: 2rem 0.5rem;
   }
 
   .stat-v2__number {
-    font-size: 2.5rem;
+    font-size: 2rem;
+  }
+  
+  .stat-v2__label {
+    font-size: 0.6rem;
+    letter-spacing: 1px;
   }
 }
 
 @media (max-width: 480px) {
   .stats-v2 {
-    padding: 1rem 0;
-  }
-
-  .stats-v2__grid {
-    grid-template-columns: 1fr;
+    padding: 1rem 0.5rem;
   }
 
   .stat-v2 {
-    padding: 2rem 1rem;
+    padding: 1.5rem 0.25rem;
   }
 
-  /* Remove vertical dividers for single column */
-  .stat-v2::after {
-    display: none !important;
-  }
-
-  /* Add horizontal dividers between all items except last */
-  .stat-v2:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  /* Keep vertical dividers but subtle */
+  .stat-v2:not(:last-child)::after {
+    display: block !important;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05), transparent);
   }
 
   .stat-v2__number {
-    font-size: 2.2rem;
+    font-size: 1.35rem;
   }
 
   .stat-v2__label {
-    font-size: 0.65rem;
-    letter-spacing: 2px;
+    font-size: 0.45rem;
+    letter-spacing: 0.5px;
   }
 }
