@@ -1,75 +1,43 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { testimonials } from '@/data/seed/testimonials'
-import { FaStar, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaStar } from 'react-icons/fa'
 
 export default function TestimonialCarousel() {
-    const [currentIndex, setCurrentIndex] = useState(0)
     const [isHovered, setIsHovered] = useState(false)
-    const [isVisible, setIsVisible] = useState(false)
-    const [cardsPerView, setCardsPerView] = useState(3)
     
-    const containerRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth < 768) {
-                setCardsPerView(1)
-            } else if (window.innerWidth < 1024) {
-                setCardsPerView(2)
-            } else {
-                setCardsPerView(3)
-            }
-        }
-        
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            setIsVisible(entry.isIntersecting)
-        }, { threshold: 0.1 })
-
-        if (containerRef.current) {
-            observer.observe(containerRef.current)
-        }
-        return () => observer.disconnect()
-    }, [])
-
-    const maxIndex = Math.max(0, testimonials.length - cardsPerView)
-
-    useEffect(() => {
-        if (!isVisible || isHovered) return
-
-        const timer = setInterval(() => {
-            setCurrentIndex(prev => (prev >= maxIndex ? 0 : prev + 1))
-        }, 4000)
-
-        return () => clearInterval(timer)
-    }, [isVisible, isHovered, maxIndex])
-
-    const next = () => setCurrentIndex(p => p >= maxIndex ? 0 : p + 1)
-    const prev = () => setCurrentIndex(p => p <= 0 ? maxIndex : p - 1)
+    // Duplicate testimonials to ensure enough content for smooth infinite scrolling
+    const infiniteTestimonials = [...testimonials, ...testimonials, ...testimonials, ...testimonials]
 
     return (
         <div 
-            ref={containerRef}
-            style={{ width: '100%', overflow: 'hidden', position: 'relative', padding: '1rem 0 3rem' }}
+            style={{ 
+                width: '100%', 
+                overflow: 'hidden', 
+                position: 'relative', 
+                padding: '2rem 0 4rem' 
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <style>{`
-                .t-carousel-track {
+                .t-marquee-container {
                     display: flex;
-                    gap: 2rem;
-                    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+                    width: max-content;
+                    animation: marquee 40s linear infinite;
+                }
+                .t-marquee-container.paused {
+                    animation-play-state: paused;
+                }
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
                 }
                 .t-card {
-                    flex: 0 0 calc((100% - ${(cardsPerView - 1) * 2}rem) / ${cardsPerView});
-                    background: rgba(15, 23, 42, 0.4);
+                    width: 350px;
+                    margin: 0 1rem;
+                    background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     border-top: 1px solid rgba(255, 255, 255, 0.15);
                     border-radius: 20px;
@@ -77,40 +45,52 @@ export default function TestimonialCarousel() {
                     backdrop-filter: blur(24px);
                     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
                     transition: transform 0.4s, background 0.4s, border-color 0.4s, box-shadow 0.4s;
+                    flex-shrink: 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
                 }
                 .t-card:hover {
                     transform: translateY(-6px);
-                    background: rgba(15, 23, 42, 0.6);
-                    border-color: rgba(255, 183, 3, 0.3);
-                    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+                    background: rgba(255, 255, 255, 0.06);
+                    border-color: rgba(255, 183, 3, 0.4);
+                    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 183, 3, 0.1);
+                }
+                @media (max-width: 480px) {
+                    .t-card {
+                        width: 280px;
+                        padding: 2rem 1.5rem;
+                        margin: 0 0.5rem;
+                    }
                 }
                 @media (prefers-reduced-motion: reduce) {
-                    .t-carousel-track {
-                        transition: none;
+                    .t-marquee-container {
+                        animation: none;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        width: 100%;
                     }
                     .t-card {
-                        transition: none;
-                    }
-                    .t-card:hover {
-                        transform: none;
+                        margin-bottom: 2rem;
                     }
                 }
             `}</style>
             
-            <div 
-                className="t-carousel-track"
-                style={{
-                    transform: `translateX(calc(-${currentIndex * (100 / cardsPerView)}% - ${currentIndex * (2 / cardsPerView)}rem))`
-                }}
-            >
-                {testimonials.map((t, idx) => (
-                    <div className="t-card" key={t.id} style={{ opacity: (idx >= currentIndex && idx < currentIndex + cardsPerView) ? 1 : 0.4 }}>
-                        <div style={{ display: 'flex', gap: '0.2rem', color: 'var(--gold, #ffb703)', marginBottom: '1.2rem' }}>
-                            {[...Array(t.rating)].map((_, i) => <FaStar key={i} />)}
+            {/* Left/Right Fade Masks for Marquee */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '100px', background: 'linear-gradient(to right, #000, transparent)', zIndex: 10, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', background: 'linear-gradient(to left, #000, transparent)', zIndex: 10, pointerEvents: 'none' }} />
+
+            <div className={`t-marquee-container ${isHovered ? 'paused' : ''}`}>
+                {infiniteTestimonials.map((t, idx) => (
+                    <div className="t-card" key={`${t.id}-${idx}`}>
+                        <div>
+                            <div style={{ display: 'flex', gap: '0.2rem', color: 'var(--gold, #ffb703)', marginBottom: '1.2rem' }}>
+                                {[...Array(t.rating)].map((_, i) => <FaStar key={i} />)}
+                            </div>
+                            <p style={{ fontSize: '1rem', fontStyle: 'italic', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.7, marginBottom: '2rem' }}>
+                                &quot;{t.quote}&quot;
+                            </p>
                         </div>
-                        <p style={{ fontSize: '1.05rem', fontStyle: 'italic', color: '#fff', lineHeight: 1.6, marginBottom: '2rem' }}>
-                            &quot;{t.quote}&quot;
-                        </p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
                             <div>
                                 <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0 }}>{t.name}</h4>
@@ -131,34 +111,6 @@ export default function TestimonialCarousel() {
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Controls */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginTop: '3rem' }}>
-                <button onClick={prev} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}>
-                    <FaChevronLeft />
-                </button>
-                <div style={{ display: 'flex', gap: '0.6rem' }}>
-                    {[...Array(maxIndex + 1)].map((_, i) => (
-                        <button 
-                            key={i} 
-                            onClick={() => setCurrentIndex(i)}
-                            style={{ 
-                                width: i === currentIndex ? '30px' : '10px', 
-                                height: '10px', 
-                                borderRadius: '10px', 
-                                background: i === currentIndex ? 'var(--gold, #ffb703)' : 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s'
-                            }} 
-                            aria-label={`Go to slide ${i + 1}`}
-                        />
-                    ))}
-                </div>
-                <button onClick={next} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}>
-                    <FaChevronRight />
-                </button>
             </div>
         </div>
     )

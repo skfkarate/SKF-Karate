@@ -1,63 +1,14 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { FaArrowRight, FaMapMarkerAlt } from 'react-icons/fa'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
-import ScrollReveal from '@/app/_components/ScrollReveal'
+import HomeClassesGrid from './HomeClassesGrid'
 
 export default async function HomeClassesPreview() {
-    const cities = await getAllCitiesLive()
+  const cities = await getAllCitiesLive()
 
-    return (
-        <section className="home-classes-preview section section--tint-cool">
-            <div className="container">
-                <ScrollReveal>
-                    <div className="home-classes-preview__header">
-                        <span className="section-label"><FaMapMarkerAlt /> Training Locations</span>
-                        <h2 className="section-title">
-                            Find Classes <span className="text-gradient">Near You</span>
-                        </h2>
-                        <p className="section-subtitle">
-                            Group classes and personal training across 4 cities.
-                        </p>
-                    </div>
-                </ScrollReveal>
-
-                <div className="home-classes-preview__grid">
-                    {cities.map((city, i) => (
-                        <ScrollReveal key={city.slug} delay={i * 0.1}>
-                            <Link
-                                href={`/classes/${city.slug}`}
-                                className="home-city-card"
-                            >
-                                <div className="home-city-card__image">
-                                    <Image
-                                        src={city.photo}
-                                        alt={`SKF Karate ${city.name}`}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 25vw"
-                                        style={{ objectFit: 'cover' }}
-                                    />
-                                    <div className="home-city-card__overlay" />
-                                </div>
-                                <div className="home-city-card__content">
-                                    <h3 className="home-city-card__name">{city.name}</h3>
-                                    <span className="home-city-card__count">
-                                        {city.branches.length} {city.branches.length === 1 ? 'Branch' : 'Branches'}
-                                    </span>
-                                </div>
-                            </Link>
-                        </ScrollReveal>
-                    ))}
-                </div>
-
-                <ScrollReveal delay={0.4}>
-                    <div className="home-classes-preview__cta">
-                        <Link href="/classes" className="btn btn-secondary">
-                            View All Classes <FaArrowRight />
-                        </Link>
-                    </div>
-                </ScrollReveal>
-            </div>
-        </section>
-    )
+  return (
+    <section className="home-classes-preview section section--tint-cool" id="classes">
+      <div className="container">
+        <HomeClassesGrid cities={cities} />
+      </div>
+    </section>
+  )
 }
