@@ -5,15 +5,9 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { MapPin, ArrowRight, ArrowUpRight } from 'lucide-react'
 import SectionReveal from './SectionReveal'
+import type { City } from '@/lib/classesData'
 
-interface CityData {
-  slug: string
-  name: string
-  photo: string
-  branches: any[]
-}
-
-function CityCard({ city, index }: { city: CityData; index: number }) {
+function CityCard({ city, index }: { city: City; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -49,7 +43,7 @@ function CityCard({ city, index }: { city: CityData; index: number }) {
   )
 }
 
-export default function HomeClassesGrid({ cities }: { cities: CityData[] }) {
+export default function HomeClassesGrid({ cities }: { cities: City[] }) {
   return (
     <>
       <SectionReveal className="home-classes-preview__header">

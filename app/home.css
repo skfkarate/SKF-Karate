@@ -227,130 +227,102 @@
 }
 
 
-/* ===== CLASSES PREVIEW ===== */
+/* ===== CLASSES PREVIEW (Ultra Minimal Redesign) ===== */
 .home-classes-preview {
   position: relative;
   z-index: 2;
+  padding: 4rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .home-classes-preview__grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
   margin-bottom: 3rem;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .home-city-card {
   position: relative;
-  display: block;
-  border-radius: 20px;
-  overflow: hidden;
-  aspect-ratio: 3/4;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  backdrop-filter: blur(10px);
 }
 
 .home-city-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(255, 183, 3, 0.3);
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 183, 3, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 183, 3, 0.15);
+  transform: translateX(8px);
 }
 
 .home-city-card__image {
-  position: absolute;
-  inset: 0;
-}
-
-.home-city-card__image img {
-  filter: grayscale(80%) brightness(0.5);
-  transition: all 0.7s var(--ease-out);
-  opacity: 0.6;
-}
-
-.home-city-card:hover .home-city-card__image img {
-  filter: grayscale(20%) brightness(0.7);
-  transform: scale(1.05);
-  opacity: 1;
-}
-
-.home-city-card__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 30%, #030508 100%);
+  display: none; /* Hide images for ultra-clean look */
 }
 
 .home-city-card__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem;
-  z-index: 2;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
 }
 
 .home-city-card__pin {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 183, 3, 0.15);
-  color: var(--gold);
-  margin-bottom: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
 }
 
 .home-city-card__name {
   font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
+  letter-spacing: 1px;
 }
 
 .home-city-card__count {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
+  margin-left: auto;
+  padding-right: 1.5rem;
 }
 
 .home-city-card__arrow {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  z-index: 3;
-  opacity: 0;
-  transform: translate(-4px, 4px);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  color: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.home-city-card:hover .home-city-card__pin {
+  background: rgba(255, 183, 3, 0.1);
+  border-color: rgba(255, 183, 3, 0.2);
+  color: var(--gold);
 }
 
 .home-city-card:hover .home-city-card__arrow {
-  opacity: 1;
-  transform: translate(0, 0);
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #000;
+  color: var(--gold);
+  transform: translateX(4px) translateY(-4px);
 }
 
 .home-classes-preview__cta,
@@ -374,35 +346,18 @@
 }
 
 
-/* ===== BOOK TRIAL CTA (Redesigned for Premium Slate Look) ===== */
+/* ===== BOOK TRIAL CTA (Hyper-Minimalist Redesign) ===== */
 .trial-cta {
   position: relative;
   padding: 8rem 0;
-  overflow: hidden;
-  margin: 4rem 1.5rem; /* Margin to make it look like a huge card */
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: transparent;
   z-index: 2;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.trial-cta__bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: grayscale(100%) brightness(0.25) blur(2px);
-  opacity: 0.6;
-}
-
+.trial-cta__bg,
 .trial-cta__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(3, 5, 8, 0.95) 0%, rgba(3, 5, 8, 0.6) 100%);
+  display: none;
 }
 
 .trial-cta__container {
@@ -422,11 +377,11 @@
 
 .trial-cta__title {
   font-family: var(--font-heading);
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1;
   text-transform: uppercase;
-  letter-spacing: -1px;
+  letter-spacing: -2px;
   margin-bottom: 1.5rem;
   color: #fff;
 }
@@ -440,38 +395,37 @@
 }
 
 .trial-cta__desc {
-  font-size: 1.15rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.8;
-  margin-bottom: 2.5rem;
-  max-width: 600px;
+  margin-bottom: 3rem;
+  max-width: 500px;
 }
 
 .trial-cta__features {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: 2rem;
+  margin-bottom: 4rem;
 }
 
 .trial-cta__feature {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #fff;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
 }
 
 .trial-cta__feature-dot {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--gold);
-  box-shadow: 0 0 10px rgba(255, 183, 3, 0.5);
   flex-shrink: 0;
 }
 

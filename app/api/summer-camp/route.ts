@@ -1,9 +1,38 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
+type SummerCampRegistrationPayload = {
+  registrationType?: string;
+  skfId?: string;
+  studentName?: string;
+  dob?: string;
+  age?: string;
+  gender?: string;
+  parentName?: string;
+  contactNumber?: string;
+  whatsappNumber?: string;
+  area?: string;
+  schoolName?: string;
+  schoolKarate?: string;
+  karateExperience?: string;
+  previouslyTrained?: string;
+  emergencyContact?: string;
+  medicalConditions?: string;
+  paymentProofBase64?: string;
+  paymentProofName?: string;
+  parentConsent?: boolean;
+  photoPermission?: boolean;
+  campRules?: boolean;
+};
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return typeof error === 'string' ? error : 'Internal Server Error';
+}
+
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const data = (await req.json()) as SummerCampRegistrationPayload;
 
     // Environment variables
     const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -14,8 +43,6 @@ export async function POST(req: Request) {
     const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     let telegramNotified = 'No';
-    let telegramError = '';
-
     // 1. Send to Telegram
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
       try {
@@ -33,6 +60,9 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
         if (data.paymentProofBase64) {
           // Convert base64 to Buffer
           const base64Data = data.paymentProofBase64.split(';base64,').pop();
+          if (!base64Data) {
+            throw new Error('Invalid payment proof upload');
+          }
           const buffer = Buffer.from(base64Data, 'base64');
           
           const formData = new FormData();
@@ -47,7 +77,7 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           });
           
           if (tgRes.ok) telegramNotified = 'Yes';
-          else telegramError = await tgRes.text();
+          else console.warn('Telegram photo send failed:', await tgRes.text());
         } else {
           const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -60,11 +90,10 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           });
           
           if (tgRes.ok) telegramNotified = 'Yes';
-          else telegramError = await tgRes.text();
+          else console.warn('Telegram message send failed:', await tgRes.text());
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Telegram Error:', e);
-        telegramError = e.message;
       }
     }
 
@@ -121,11 +150,11 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
             values: [row],
           },
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Google Sheets Error:', e);
         // If sheet fails but telegram succeeded, we still return success with warning maybe?
         // Or fail the whole thing. Better to throw so user knows.
-        throw new Error('Failed to save to database (Google Sheets): ' + e.message);
+        throw new Error('Failed to save to database (Google Sheets): ' + getErrorMessage(e));
       }
     } else {
       console.warn('Google Sheets credentials not fully configured.');
@@ -133,8 +162,8 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 
     return NextResponse.json({ success: true, telegramNotified });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration API Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }

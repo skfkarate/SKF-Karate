@@ -1,10 +1,83 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import './summer-camp.css';
 
+type ExistingStudentRecord = {
+  name: string;
+  dob: string;
+  parentName: string;
+  contactNumber: string;
+  whatsappNumber: string;
+  schoolName: string;
+  area: string;
+  schoolKarate: string;
+};
+
+type RegistrationFormData = {
+  registrationType: string;
+  skfId: string;
+  verificationData: string;
+  studentName: string;
+  dob: string;
+  age: string;
+  gender: string;
+  parentName: string;
+  contactNumber: string;
+  whatsappNumber: string;
+  area: string;
+  schoolName: string;
+  schoolKarate: string;
+  karateExperience: string;
+  previouslyTrained: string;
+  emergencyContact: string;
+  medicalConditions: string;
+  paymentProofBase64: string;
+  paymentProofName: string;
+  parentConsent: boolean;
+  campRules: boolean;
+  photoPermission: boolean;
+};
+
+type BooleanFieldName = 'parentConsent' | 'campRules' | 'photoPermission';
+
+const BOOLEAN_FIELD_NAMES: ReadonlySet<keyof RegistrationFormData> = new Set([
+  'parentConsent',
+  'campRules',
+  'photoPermission',
+]);
+
+function isBooleanField(name: keyof RegistrationFormData): name is BooleanFieldName {
+  return BOOLEAN_FIELD_NAMES.has(name);
+}
+
+function calculateCampAge(dob: string) {
+  if (dob.length !== 10) return '';
+
+  const parts = dob.split('/');
+  if (parts.length !== 3) return '';
+
+  const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+  const today = new Date('2026-05-01'); // Fixed date for camp context
+  if (Number.isNaN(birthDate.getTime())) return '';
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age.toString();
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return typeof error === 'string' ? error : 'An error occurred during submission. Please try again.';
+}
+
 // 1) In-code static data for existing SKF students
-const EXISTING_STUDENTS: Record<string, any> = {
+const EXISTING_STUDENTS: Record<string, ExistingStudentRecord> = {
   'SKF25MP001': {
     name: 'Neshu Ram',
     dob: '2018-11-09',
@@ -120,30 +193,15 @@ export default function SummerCampRegistration() {
     photoPermission: false
   });
 
-  // Auto-calculate age from DOB
-  useEffect(() => {
-    if (formData.dob && formData.dob.length === 10) {
-      const parts = formData.dob.split('/');
-      if (parts.length === 3) {
-        const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-        const today = new Date('2026-05-01'); // Fixed date for camp context
-        if (!isNaN(birthDate.getTime())) {
-          let age = today.getFullYear() - birthDate.getFullYear();
-          const m = today.getMonth() - birthDate.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
-          setFormData(prev => ({ ...prev, age: age.toString() }));
-        }
-      }
-    }
-  }, [formData.dob]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
+    const fieldName = name as keyof RegistrationFormData;
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      if (isBooleanField(fieldName)) {
+        setFormData(prev => ({ ...prev, [fieldName]: checked }));
+      }
     } else if (name === 'verificationData' || name === 'dob') {
       // Auto-format DD/MM/YYYY
       let val = value.replace(/\D/g, ''); // strip non-digits
@@ -155,7 +213,12 @@ export default function SummerCampRegistration() {
       } else if (val.length >= 3) {
         formatted = `${val.substring(0, 2)}/${val.substring(2)}`;
       }
-      setFormData(prev => ({ ...prev, [name]: formatted }));
+
+      if (fieldName === 'dob') {
+        setFormData(prev => ({ ...prev, dob: formatted, age: calculateCampAge(formatted) }));
+      } else {
+        setFormData(prev => ({ ...prev, verificationData: formatted }));
+      }
     } else if (name === 'contactNumber' || name === 'whatsappNumber' || name === 'emergencyContact') {
       let val = value.replace(/\D/g, ''); // numbers only
       if (val.length > 10) val = val.substring(0, 10);
@@ -168,8 +231,8 @@ export default function SummerCampRegistration() {
         }
         return next;
       });
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+    } else if (!isBooleanField(fieldName)) {
+      setFormData(prev => ({ ...prev, [fieldName]: value }));
     }
   };
 
@@ -217,10 +280,12 @@ export default function SummerCampRegistration() {
       }
 
       if (student.dob === inputVerification) {
+        const formattedDob = student.dob.split('-').reverse().join('/');
         setFormData(prev => ({
           ...prev,
           studentName: student.name,
-          dob: student.dob.split('-').reverse().join('/'),
+          dob: formattedDob,
+          age: calculateCampAge(formattedDob),
           parentName: student.parentName,
           contactNumber: student.contactNumber,
           whatsappNumber: student.whatsappNumber,
@@ -327,8 +392,8 @@ export default function SummerCampRegistration() {
       }
 
       setIsSuccess(true);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during submission. Please try again.');
+    } catch (err: unknown) {
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -525,7 +590,7 @@ export default function SummerCampRegistration() {
                 <p>Since this camp is highly requested and seats are limited, we require a ₹300 deposit to confirm your spot. This will be <strong>fully refunded</strong> at the end of the camp provided you maintain at least 90% attendance.</p>
 
                 <div className="qr-container">
-                  <img src="/scanner-to-pay.jpeg" alt="UPI QR Code" className="qr-image" />
+                  <Image src="/scanner-to-pay.jpeg" alt="UPI QR Code" className="qr-image" width={200} height={200} />
                   <a href="/scanner-to-pay.jpeg" download="skf-karate-qr.jpeg" className="download-qr-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     Download QR Code
@@ -581,7 +646,7 @@ export default function SummerCampRegistration() {
               <div className="checkbox-group">
                 <input type="checkbox" id="photoPermission" name="photoPermission" checked={formData.photoPermission} onChange={handleInputChange} />
                 <label htmlFor="photoPermission">
-                  I happily grant SKF Karate permission to capture and showcase my child's epic training highlights and action shots to inspire others! 📸🥋
+                  I happily grant SKF Karate permission to capture and showcase my child&apos;s epic training highlights and action shots to inspire others! 📸🥋
                 </label>
               </div>
             </div>

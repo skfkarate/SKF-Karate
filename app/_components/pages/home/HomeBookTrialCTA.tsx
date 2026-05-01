@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { CalendarCheck, ArrowRight, Phone } from 'lucide-react'
 import { homeBookTrialCTAFeatures } from '@/data/constants/homeContent'
 
@@ -12,7 +12,7 @@ const container = {
   },
 }
 
-const item: any = {
+const item: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,

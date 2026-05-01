@@ -1093,115 +1093,62 @@
     display: none;
   }
 
-  /* Podium — beautiful stacked mobile layout */
+  /* ── podium scaling on mobile (keep horizontal) ── */
   .hon-podium {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    padding-top: 0.5rem;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding-top: 0;
   }
 
-  /* Gold card — full width, prominent, comes FIRST visually */
+  .hon-pcard {
+    padding: 1rem 0.25rem;
+    border-radius: 12px;
+  }
+
   .hon-pcard--1 {
-    order: 1;
-    width: 100%;
-    max-width: 340px;
-    margin-bottom: 0;
-    flex: none;
-    padding: 2.5rem 2rem 2rem;
-    border-width: 1px;
-    border-color: rgba(255, 215, 0, 0.25);
-    border-radius: 24px 24px 0 0;
+    width: 40%;
+    order: 2;
   }
 
   .hon-pcard--1 .hon-pcard__photo--gold {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.5rem;
   }
 
-  .hon-pcard--1 .hon-pcard__name {
-    font-size: 1.05rem;
-  }
-
-  .hon-pcard--1 .hon-pcard__pts {
-    font-size: 1.8rem;
-  }
-
-  /* Silver card — order 2, slightly inset */
   .hon-pcard--2 {
-    order: 2;
-    width: 100%;
-    max-width: 340px;
-    flex: none;
-    border-radius: 0;
-    border-top: none;
-    padding: 1.5rem 2rem;
-    border-color: rgba(200, 200, 200, 0.12);
+    width: 30%;
+    order: 1;
   }
 
-  /* Bronze card — order 3, bottom rounded */
   .hon-pcard--3 {
+    width: 30%;
     order: 3;
-    width: 100%;
-    max-width: 340px;
-    flex: none;
-    border-radius: 0 0 24px 24px;
-    border-top: none;
-    padding: 1.5rem 2rem;
-    border-color: rgba(205, 127, 50, 0.12);
-  }
-
-  /* Silver + Bronze: compact horizontal layout */
-  .hon-pcard--2,
-  .hon-pcard--3 {
-    flex-direction: row;
-    text-align: left;
-    justify-content: flex-start;
-    gap: 1.25rem;
-  }
-
-  .hon-pcard--2 .hon-pcard__medal,
-  .hon-pcard--3 .hon-pcard__medal {
-    font-size: 1.6rem;
-    margin-bottom: 0;
-    align-self: center;
-    flex-shrink: 0;
   }
 
   .hon-pcard--2 .hon-pcard__photo--silver,
   .hon-pcard--3 .hon-pcard__photo--bronze {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 0;
-    flex-shrink: 0;
-    align-self: center;
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.5rem;
   }
 
-  /* Info group for horizontal silver/bronze */
-  .hon-pcard--2 .hon-pcard__name,
-  .hon-pcard--3 .hon-pcard__name {
-    font-size: 0.85rem;
-    margin-bottom: 0.2rem;
+  .hon-pcard__name {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
-  .hon-pcard--2 .hon-pcard__belt,
-  .hon-pcard--3 .hon-pcard__belt {
-    margin-bottom: 0;
+  .hon-pcard__belt, .hon-pcard__branch {
+    font-size: 0.6rem;
   }
 
-  .hon-pcard--2 .hon-pcard__branch,
-  .hon-pcard--3 .hon-pcard__branch {
-    margin-bottom: 0;
-  }
-
-  .hon-pcard--2 .hon-pcard__pts,
-  .hon-pcard--3 .hon-pcard__pts {
-    font-size: 1.1rem;
-    border-top: none;
-    padding-top: 0;
-    width: auto;
-    margin-left: auto;
-    align-self: center;
+  .hon-pcard__pts {
+    font-size: 1rem;
+    padding-top: 0.5rem;
   }
 
   /* Medal grid */
@@ -1317,25 +1264,7 @@
     /* handled by JS */
   }
 
-  /* Podium — single column, clean */
-  .hon-pcard--1 {
-    max-width: 100%;
-    border-radius: 20px 20px 0 0;
-    padding: 2rem 1.5rem 1.75rem;
-  }
-
-  .hon-pcard--2,
-  .hon-pcard--3 {
-    max-width: 100%;
-  }
-
-  .hon-pcard--3 {
-    border-radius: 0 0 20px 20px;
-  }
-
-  .hon-pcard--1 .hon-pcard__pts {
-    font-size: 1.6rem;
-  }
+  /* Disable further stacking */
 
   /* Medal grid */
   .hon-medal-card {
