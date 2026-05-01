@@ -12,7 +12,7 @@ const container = {
   },
 }
 
-const item = {
+const item: any = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,

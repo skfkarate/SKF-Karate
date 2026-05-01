@@ -10,7 +10,7 @@ interface CityData {
   slug: string
   name: string
   photo: string
-  branches: { id: string }[]
+  branches: any[]
 }
 
 function CityCard({ city, index }: { city: CityData; index: number }) {

@@ -6,7 +6,7 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 import HeroVideo from './HeroVideo'
 import { HERO_COPY } from '@/data/constants/homeContent'
 
-const ease = [0.25, 0.46, 0.45, 0.94]
+const ease: any = [0.25, 0.46, 0.45, 0.94]
 
 const container = {
   hidden: {},
