@@ -1,15 +1,18 @@
 import { defineConfig } from '@playwright/test'
 
+const port = Number(process.env.PLAYWRIGHT_PORT || 3000)
+const baseURL = `http://localhost:${port}`
+
 export default defineConfig({
   testDir: './tests/e2e',
   webServer: {
-    command: 'npm run build && npm run start',
-    url: 'http://localhost:3000',
+    command: `npm run build && npm run start -- -p ${port}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 300_000,
   },
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     screenshot: 'only-on-failure'
   }
 })
