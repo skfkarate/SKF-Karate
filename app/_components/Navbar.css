@@ -60,19 +60,9 @@ nextjs-portal {
     gap: 5px;
     font-family: var(--font-heading);
     font-size: 1.6rem;
-    line-height: 1;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-}
-
-.nav__brand-name {
-    font-weight: 300;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
-}
-
-.nav__brand-accent {
     font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.5px;
     background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 100%);
     -webkit-background-clip: text;
     background-clip: text;
