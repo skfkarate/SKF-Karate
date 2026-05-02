@@ -33,7 +33,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.URL),
   manifest: '/manifest.json',
-  title: { default: 'SKF Karate — Karnataka', template: '%s | SKF Karate' },
+  title: 'SKF Karate',
   description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Bangalore, Kunigal, Tumkur, and Udupi. WKF-affiliated. All ages welcome.',
   keywords: ['SKF karate', 'karate Karnataka', 'karate Bangalore', 'WKF karate', 'sportkarate federation'],
   alternates: {
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    title: 'SKF Karate — Elite Martial Arts in Karnataka',
+    title: 'SKF Karate',
     description: 'Join the fastest-growing WKF-affiliated Karate academy in Karnataka. Train with champions.',
     url: absoluteSiteUrl('/'),
     siteName: 'SKF Karate',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     site: '@skfkarate',
-    title: 'SKF Karate — Elite Martial Arts in Karnataka',
+    title: 'SKF Karate',
     description: 'WKF-affiliated karate classes for kids and adults across Karnataka.',
     images: [absoluteMediaUrl()],
   },
