@@ -374,11 +374,17 @@ export default function SummerCampRegistration() {
       }
     }
 
-    if (step === 5) {
+    if (step === 5 && formData.registrationType === 'new') {
       if (!formData.paymentProofBase64) {
         setErrorMsg('Please upload a screenshot of your payment');
         return;
       }
+    }
+
+    // Existing students skip step 5 (deposit)
+    if (step === 4 && formData.registrationType === 'existing') {
+      setStep(6);
+      return;
     }
 
     setStep(prev => prev + 1);
@@ -387,11 +393,17 @@ export default function SummerCampRegistration() {
   const prevStep = () => {
     setErrorMsg('');
     if (step === 2 && formData.registrationType === 'existing') {
-      setStep(1); // Go back to ID verification
+      setStep(1);
+    } else if (step === 6 && formData.registrationType === 'existing') {
+      setStep(4); // Skip back over deposit step
     } else {
       setStep(prev => prev - 1);
     }
   };
+
+  const isExisting = formData.registrationType === 'existing';
+  const totalSteps = isExisting ? 5 : 6;
+  const lastStep = 6;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -457,20 +469,22 @@ export default function SummerCampRegistration() {
             <li><span className="info-label">Training</span><span className="info-value">Nunchaku</span></li>
             <li><span className="info-label">Time</span><span className="info-value">4:30 PM - 5:30 PM</span></li>
             <li><span className="info-label">Fee</span><span className="info-value">Free</span></li>
-            <li style={{ gridColumn: '1 / -1' }}>
-              <span className="info-label">Deposit</span>
-              <span className="info-value" style={{ color: '#ffcc00' }}>₹300 (Refundable if 90% attendance)</span>
-            </li>
+            {!isExisting && (
+              <li style={{ gridColumn: '1 / -1' }}>
+                <span className="info-label">Deposit</span>
+                <span className="info-value" style={{ color: '#ffcc00' }}>₹300 (Refundable if 90% attendance)</span>
+              </li>
+            )}
           </ul>
         </div>
 
         <div className="step-indicator">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {(isExisting ? [1, 2, 3, 4, 6] : [1, 2, 3, 4, 5, 6]).map(i => (
             <div key={i} className={`step-dot ${step === i ? 'active' : ''} ${step > i ? 'completed' : ''}`} />
           ))}
         </div>
 
-        <form onSubmit={step === 6 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
+        <form onSubmit={step === lastStep ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }}>
 
           {/* STEP 1: REGISTRATION TYPE */}
           {step === 1 && (
@@ -611,8 +625,8 @@ export default function SummerCampRegistration() {
             </div>
           )}
 
-          {/* STEP 5: DEPOSIT & PAYMENT */}
-          {step === 5 && (
+          {/* STEP 5: DEPOSIT & PAYMENT (New Participants Only) */}
+          {step === 5 && !isExisting && (
             <div className="form-step">
               <div className="deposit-instructions">
                 <h3>₹300 Commitment Deposit</h3>
@@ -668,7 +682,9 @@ export default function SummerCampRegistration() {
               <div className="checkbox-group">
                 <input type="checkbox" id="campRules" name="campRules" checked={formData.campRules} onChange={handleInputChange} />
                 <label htmlFor="campRules">
-                  I accept the camp rules and understand that the ₹300 deposit is <strong>fully refundable</strong> at the end of the camp provided we maintain 90% or above attendance!
+                  {isExisting
+                    ? 'I accept the camp rules and confirm my child will maintain regular attendance throughout the camp.'
+                    : <>I accept the camp rules and understand that the ₹300 deposit is <strong>fully refundable</strong> at the end of the camp provided we maintain 90% or above attendance!</>}
                 </label>
               </div>
 
@@ -690,7 +706,7 @@ export default function SummerCampRegistration() {
               </button>
             )}
 
-            {step < 6 ? (
+            {step < lastStep ? (
               <button type="submit" className="btn btn-primary">
                 Next
               </button>
