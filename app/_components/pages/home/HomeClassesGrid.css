@@ -18,45 +18,7 @@
   align-items: center;
 }
 
-.obs-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0.5rem 1.2rem;
-  background: rgba(255, 183, 3, 0.08);
-  border: 1px solid rgba(255, 183, 3, 0.2);
-  border-radius: 50px;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--gold, #ffb703);
-  margin-bottom: 1.5rem;
-}
 
-.obs-title {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 900;
-  line-height: 1.1;
-  color: #fff;
-  letter-spacing: -1px;
-  margin-bottom: 1rem;
-}
-
-.obs-title .text-gradient {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--crimson) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.obs-subtitle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.1rem;
-  max-width: 500px;
-  line-height: 1.5;
-}
 
 .obs-classes-list {
   display: flex;
@@ -144,27 +106,7 @@
   width: 100%;
 }
 
-.obs-btn-outline {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 1rem 2.5rem;
-  border: 1px solid rgba(255, 183, 3, 0.3);
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #fff;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
 
-.obs-btn-outline:hover {
-  background: rgba(255, 183, 3, 0.05);
-  border-color: var(--gold);
-  color: var(--gold);
-}
 
 @media (max-width: 480px) {
   .obs-classes-section {
@@ -179,9 +121,5 @@
   .obs-city-card__icon {
     width: 36px;
     height: 36px;
-  }
-  .obs-btn-outline {
-    width: 100%;
-    justify-content: center;
   }
 }
