@@ -18,7 +18,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     const instructor = getExecutiveCommittee().find(i => i.slug === params.slug)
     
     if (!instructor) {
-        return { title: 'Instructor Not Found' }
+        return { title: 'SKF Karate' }
     }
 
     const canonicalUrl = absoluteSiteUrl(`/instructors/${instructor.slug}`)

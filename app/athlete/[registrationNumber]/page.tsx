@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
 
   if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
     return {
-      title: 'Athlete Not Found | SKF Karate',
+      title: 'SKF Karate',
     }
   }
 
