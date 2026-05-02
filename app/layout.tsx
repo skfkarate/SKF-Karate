@@ -77,9 +77,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
         <Providers>
           <SessionProvider>
-            <a href="#main-content" className="skip-to-content">
-              Skip to content
-            </a>
             <ClientLayoutWrapper 
               navbar={<Navbar />} 
               footer={<Footer />}
