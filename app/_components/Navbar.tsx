@@ -97,8 +97,7 @@ export default function Navbar() {
                         <div className="nav__brand-stack">
                             <Image src="/logo/SKF logo.png" alt="SKF Karate" width={42} height={42} className="nav__brand-logo" />
                             <span className="nav__brand-text">
-                                <span className="nav__brand-name">SKF</span>
-                                <span className="nav__brand-accent">KARATE</span>
+                                SKF Karate
                                 <LinkPendingIndicator className="nav__pending-indicator" />
                             </span>
                         </div>
