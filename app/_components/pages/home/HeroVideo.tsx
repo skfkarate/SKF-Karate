@@ -41,8 +41,8 @@ export default function HeroVideo() {
             aria-hidden="true"
         >
             <source
-                src="/train the elite/train_the_elite_compressed.mp4"
-                type="video/mp4"
+                src="/August 4th.MOV"
+                type="video/quicktime"
             />
         </video>
     )
