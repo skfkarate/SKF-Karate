@@ -37,25 +37,25 @@
 
 .bg-watermark {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(2.5rem, 8vw, 10rem);
-  line-height: 0.85;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  font-size: clamp(2.5rem, 15vw, 8rem);
+  line-height: 0.9;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.02);
   pointer-events: none;
   z-index: 0;
   user-select: none;
-  letter-spacing: -0.05em;
-  font-family: var(--font-inter), sans-serif;
-  width: 100%;
+  font-family: var(--font-heading);
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
   .bg-watermark {
-    font-size: 10vw;
+    font-size: 14vw;
   }
 }
 
