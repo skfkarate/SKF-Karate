@@ -6,6 +6,7 @@ import {
 } from '@/lib/server/repositories/athletes-live'
 import ScrollReveal from '@/app/_components/ScrollReveal'
 import '@/app/honours/honours.css'
+import './HomeTopAthletes.css'
 
 function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
@@ -68,15 +69,17 @@ export default async function HomeTopAthletes() {
   if (top3.length < 3) return null
 
   return (
-    <section className="home-top-athletes section section--tint-mid" id="top-athletes">
+    <section className="obs-athletes-section" id="top-athletes">
       <div className="container">
         <ScrollReveal>
-          <div className="home-top-athletes__header">
-            <span className="section-label"><Trophy size={14} /> Champions</span>
-            <h2 className="section-title">
-              Our Top <span className="text-gradient">Athletes</span>
+          <div className="obs-athletes-header">
+            <div className="obs-badge">
+              <Trophy size={12} /> CHAMPIONS
+            </div>
+            <h2 className="obs-title">
+              OUR TOP <span className="text-gradient">ATHLETES</span>
             </h2>
-            <p className="section-subtitle">
+            <p className="obs-subtitle">
               The highest-ranked competitors across all SKF Karate branches.
             </p>
           </div>
@@ -98,7 +101,7 @@ export default async function HomeTopAthletes() {
             {/* 1st Place */}
             <Link href={`/athlete/${top3[0].registrationNumber}`} className="hon-pcard hon-pcard--1">
               <span className="hon-pcard__medal">👑</span>
-              <div className="hon-pcard__photo hon-pcard__photo--gold"><ProfileSvg size={64} /></div>
+              <div className="hon-pcard__photo hon-pcard__photo--gold"><ProfileSvg size={70} /></div>
               <h3 className="hon-pcard__name">{top3[0].name}</h3>
               <span className="hon-pcard__belt">{top3[0].belt}</span>
               <span className="hon-pcard__branch">{top3[0].branch}</span>
@@ -117,12 +120,10 @@ export default async function HomeTopAthletes() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={0.4}>
-          <div className="home-top-athletes__cta">
-            <Link href="/rankings" className="btn btn-secondary">
-              View Full Rankings <ArrowRight size={16} />
-            </Link>
-          </div>
+        <ScrollReveal className="obs-athletes-cta" delay={0.3}>
+          <Link href="/rankings" className="obs-btn-outline">
+            VIEW FULL RANKINGS <ArrowRight size={14} />
+          </Link>
         </ScrollReveal>
       </div>
     </section>
