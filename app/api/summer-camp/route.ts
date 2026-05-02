@@ -42,22 +42,24 @@ export async function POST(req: Request) {
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+    const isExisting = data.registrationType === 'existing';
+
     let telegramNotified = 'No';
     // 1. Send to Telegram
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
       try {
+        const depositLine = isExisting ? '' : '\n*Deposit:* ₹300 (Paid via UPI)';
         const message = `
 🥋 *New Summer Camp Registration*
-*Type:* ${data.registrationType === 'existing' ? 'Existing Member' : 'New Participant'}
+*Type:* ${isExisting ? 'Existing Member' : 'New Participant'}
 *Name:* ${data.studentName}
 ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 *Contact:* ${data.contactNumber}
-*School:* ${data.schoolName}
-*Deposit:* ₹300 (Paid via UPI)
+*School:* ${data.schoolName}${depositLine}
         `;
 
-        // If there's an image, send as photo with caption, else send message
-        if (data.paymentProofBase64) {
+        // If there's a payment proof image, send as photo with caption, else send text message
+        if (data.paymentProofBase64 && !isExisting) {
           // Convert base64 to Buffer
           const base64Data = data.paymentProofBase64.split(';base64,').pop();
           if (!base64Data) {
@@ -128,16 +130,16 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           data.previouslyTrained || '',
           data.emergencyContact,
           data.medicalConditions || '',
-          '300', // Deposit Amount
-          'Paid',
-          data.paymentProofBase64 ? 'Sent via Telegram' : '',
+          isExisting ? '0' : '300', // Deposit Amount
+          isExisting ? 'N/A' : 'Paid',
+          (data.paymentProofBase64 && !isExisting) ? 'Sent via Telegram' : '',
           data.parentConsent ? 'Yes' : 'No',
           data.photoPermission ? 'Yes' : 'No',
           data.campRules ? 'Yes' : 'No',
           telegramNotified, // Telegram Notified
-          'No', // Payment Verified (Admin updates this later)
-          'No', // Refund Eligible
-          'No', // Refund Paid
+          isExisting ? 'N/A' : 'No', // Payment Verified (Admin updates this later)
+          isExisting ? 'N/A' : 'No', // Refund Eligible
+          isExisting ? 'N/A' : 'No', // Refund Paid
           '0', // Attendance %
           '' // Notes
         ];
