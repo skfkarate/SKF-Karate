@@ -16,7 +16,7 @@ import './obsidian.css' // Import the unified Obsidian styling instead of classe
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-    title: 'Karate Classes Across Karnataka | SKF',
+    title: 'SKF Karate',
     description: 'Find SKF Karate classes in Bangalore, Kunigal, Tumkur, and Udupi.',
 }
 

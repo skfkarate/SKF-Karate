@@ -7,7 +7,7 @@ import './rankings.css'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Global Rankings | SKF Karate',
+  title: 'SKF Karate',
   description: 'Official SKF Karate athlete rankings across all belt divisions and academies.',
 }
 

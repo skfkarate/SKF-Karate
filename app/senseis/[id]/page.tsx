@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const sensei = await getSenseiBySlugLive(id)
 
   if (!sensei) {
-    return { title: 'Sensei Not Found' }
+    return { title: 'SKF Karate' }
   }
 
   return {
