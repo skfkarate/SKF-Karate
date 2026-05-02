@@ -86,7 +86,7 @@ export const HERO_COPY = Object.freeze({
   TITLE_LINE1: 'Where Champions',
   TITLE_ACCENT: 'Are Made',
   SUBTITLE: 'Sports Karate-do Fitness & Self Defence Association®',
-  DESCRIPTION: 'Train with masters. Compete with champions. Forge an unbreakable spirit across Bangalore, Tumkur, Kunigal & Udupi.',
+  DESCRIPTION: 'Awaken your true potential. Train alongside the elite. Forge an unbreakable legacy across Bangalore, Tumkur, Kunigal & Udupi.',
   WATERMARK: '空手',
 })
 
