@@ -9,7 +9,6 @@
   position: relative;
   overflow: hidden;
   font-family: var(--font-body), system-ui, sans-serif;
-  padding-bottom: 4rem;
 }
 
 /* ── AMBIENT ORBS (Slate/Glass flow) ── */
