@@ -470,8 +470,21 @@ nextjs-portal {
 
 /* ===== RESPONSIVE ===== */
 
+/* Utility classes for mobile/desktop */
+.nav__mobile-only {
+    display: none !important;
+}
+
 /* Tablet / mobile: hide center nav and desktop CTA */
 @media (max-width: 768px) {
+    .nav__desktop-only {
+        display: none !important;
+    }
+    
+    .nav__mobile-only {
+        display: flex !important;
+    }
+
     .nav__center {
         display: none;
     }

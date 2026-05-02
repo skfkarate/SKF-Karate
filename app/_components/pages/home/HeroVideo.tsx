@@ -41,8 +41,8 @@ export default function HeroVideo() {
             aria-hidden="true"
         >
             <source
-                src="/August 4th.MOV"
-                type="video/quicktime"
+                src="/August 4th.mp4"
+                type="video/mp4"
             />
         </video>
     )

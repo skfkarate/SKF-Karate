@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt } from 'react-icons/fa'
+import { FaBars, FaTimes, FaSearch, FaChartLine, FaShoppingCart, FaCalendarAlt, FaMapMarkerAlt, FaMedal, FaInfoCircle } from 'react-icons/fa'
 import { useCart } from '@/lib/shop/cartState'
 import LinkPendingIndicator from '@/components/navigation/LinkPendingIndicator'
 
@@ -159,7 +159,7 @@ export default function Navbar() {
 
                         <Link
                             href="/events"
-                            className={`nav__icon ${pathname?.startsWith('/events') || pathname?.startsWith('/results') ? 'nav__icon--active' : ''}`}
+                            className={`nav__icon nav__desktop-only ${pathname?.startsWith('/events') || pathname?.startsWith('/results') ? 'nav__icon--active' : ''}`}
                             aria-label="Events"
                             title="Events"
                             onMouseEnter={prefetchPrimaryRoutes}
@@ -171,7 +171,7 @@ export default function Navbar() {
                         </Link>
                         <Link
                             href="/rankings"
-                            className={`nav__icon ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`}
+                            className={`nav__icon nav__desktop-only ${pathname?.startsWith('/rankings') ? 'nav__icon--active' : ''}`}
                             aria-label="Rankings"
                             title="Rankings"
                             onMouseEnter={prefetchPrimaryRoutes}
@@ -183,7 +183,7 @@ export default function Navbar() {
                         </Link>
                         <Link
                             href="/athlete/search"
-                            className={`nav__icon ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`}
+                            className={`nav__icon nav__desktop-only ${pathname?.startsWith('/athlete') ? 'nav__icon--active' : ''}`}
                             aria-label="Search"
                             title="Search Athletes"
                             onMouseEnter={prefetchPrimaryRoutes}
@@ -192,6 +192,32 @@ export default function Navbar() {
                         >
                             <FaSearch />
                             <LinkPendingIndicator className="nav__pending-indicator nav__pending-indicator--icon" />
+                        </Link>
+
+                        {/* Mobile specific icons */}
+                        <Link
+                            href="/classes"
+                            className={`nav__icon nav__mobile-only ${pathname?.startsWith('/classes') ? 'nav__icon--active' : ''}`}
+                            aria-label="Classes"
+                            title="Classes"
+                        >
+                            <FaMapMarkerAlt />
+                        </Link>
+                        <Link
+                            href="/honours"
+                            className={`nav__icon nav__mobile-only ${pathname?.startsWith('/honours') ? 'nav__icon--active' : ''}`}
+                            aria-label="Honours"
+                            title="Honours"
+                        >
+                            <FaMedal />
+                        </Link>
+                        <Link
+                            href="/about"
+                            className={`nav__icon nav__mobile-only ${pathname?.startsWith('/about') ? 'nav__icon--active' : ''}`}
+                            aria-label="About"
+                            title="About"
+                        >
+                            <FaInfoCircle />
                         </Link>
 
                         <button
