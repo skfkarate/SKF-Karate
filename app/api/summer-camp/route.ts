@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 *Name:* ${data.studentName}
 ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 *Contact:* ${data.contactNumber}
-*School:* ${data.schoolName}${depositLine}
+*School:* ${data.schoolName} (Karate in School: ${data.schoolKarate})${depositLine}
         `;
 
         // If there's a payment proof image, send as photo with caption, else send text message
