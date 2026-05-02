@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Training Fee Console — SKF Karate',
+  title: 'SKF Karate',
   description: 'Operations console for monthly training fee tracking, updates, and receipt controls.',
   robots: {
     index: false,

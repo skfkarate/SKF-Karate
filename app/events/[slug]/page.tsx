@@ -124,20 +124,20 @@ export async function generateMetadata({ params }: EventPageProps) {
   const event = await getEventBySlugLive(slug) as EventDetail | null
 
   if (!event) {
-    return { title: "Event Not Found | SKF Karate" }
+    return { title: 'SKF Karate' }
   }
 
   const imageUrl = absoluteMediaUrl()
   const canonicalUrl = absoluteSiteUrl(`/events/${event.slug}`)
 
   return {
-    title: `${event.name} | SKF Karate`,
+    title: 'SKF Karate',
     description: event.description || 'SKF Karate Event Details',
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${event.name} | SKF Karate`,
+      title: 'SKF Karate',
       description: event.description || 'SKF Karate Event Details',
       url: canonicalUrl,
       type: 'website',
@@ -152,7 +152,7 @@ export async function generateMetadata({ params }: EventPageProps) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${event.name} | SKF Karate`,
+      title: 'SKF Karate',
       description: event.description || 'SKF Karate Event Details',
       images: [imageUrl],
     }

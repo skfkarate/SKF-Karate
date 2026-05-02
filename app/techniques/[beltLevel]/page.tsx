@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const capitalizedBelt = beltLevel.charAt(0).toUpperCase() + beltLevel.slice(1)
     
     return {
-        title: `${capitalizedBelt} Belt Techniques — SKF Karate`,
+        title: 'SKF Karate',
         description: `All kata and kumite reference videos for ${capitalizedBelt} belt students`
     }
 }

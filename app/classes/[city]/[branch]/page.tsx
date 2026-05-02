@@ -26,13 +26,13 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
     const imageUrl = absoluteMediaUrl(branch.photos[0] || undefined)
 
     return {
-        title: `Karate Classes in ${branch.name}, ${city.name}`,
+        title: 'SKF Karate',
         description: `SKF Karate ${branch.name} branch in ${city.name}. ${branch.sensei} leads classes on ${branch.classDays.length} days/week. Book a free trial class.`,
         alternates: {
             canonical: canonicalUrl,
         },
         openGraph: {
-            title: `Karate Classes in ${branch.name}, ${city.name}`,
+            title: 'SKF Karate',
             description: `SKF Karate ${branch.name} branch in ${city.name}. Book a free trial class.`,
             url: canonicalUrl,
             type: 'website',
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
         },
         twitter: {
             card: 'summary_large_image',
-            title: `Karate Classes in ${branch.name}, ${city.name}`,
+            title: 'SKF Karate',
             description: `Book a free trial class at SKF Karate ${branch.name}.`,
             images: [imageUrl],
         },

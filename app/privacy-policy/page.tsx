@@ -1,7 +1,7 @@
 import '../legal.css'
 
 export const metadata = {
-  title: 'Privacy Policy | SKF Karate',
+  title: 'SKF Karate',
   description: 'Privacy Policy for Sports Karate-do Fitness & Self Defence Association®',
 }
 

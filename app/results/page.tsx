@@ -4,13 +4,13 @@ import { getAllTournamentsLive } from '@/lib/server/repositories/tournaments-liv
 import '@/app/results/results.css'
 
 export const metadata = {
-    title: 'Results | SKF Karate',
+    title: 'SKF Karate',
     description: 'Past SKF Karate competition results and statistics.',
     alternates: {
         canonical: absoluteSiteUrl('/results'),
     },
     openGraph: {
-        title: 'Results | SKF Karate',
+        title: 'SKF Karate',
         description: 'Past SKF Karate competition results and statistics.',
         url: absoluteSiteUrl('/results'),
         type: 'website',
@@ -18,7 +18,7 @@ export const metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Results | SKF Karate',
+        title: 'SKF Karate',
         description: 'Past SKF Karate competition results and statistics.',
         images: [absoluteMediaUrl()],
     },

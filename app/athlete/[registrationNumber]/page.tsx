@@ -27,20 +27,20 @@ export async function generateMetadata({ params }) {
   const imageUrl = athlete.photoUrl ? absoluteMediaUrl(athlete.photoUrl) : absoluteMediaUrl()
 
   return {
-    title: `${name} — SKF Athlete Profile`,
+    title: 'SKF Karate',
     description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${name} — SKF Karate`,
+      title: 'SKF Karate',
       type: 'profile',
       url: canonicalUrl,
       images: [{ url: imageUrl, width: 1200, height: 630, alt: `${name} SKF Karate profile` }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${name} — SKF Athlete Profile`,
+      title: 'SKF Karate',
       description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
       images: [imageUrl],
     },

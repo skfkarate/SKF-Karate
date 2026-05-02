@@ -1,7 +1,7 @@
 import '../legal.css'
 
 export const metadata = {
-  title: 'Cookie Policy | SKF Karate',
+  title: 'SKF Karate',
   description: 'Cookie Policy for Sports Karate-do Fitness & Self Defence Association®',
 }
 
