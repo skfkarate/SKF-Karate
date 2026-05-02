@@ -46,13 +46,13 @@ export default function HomePage() {
       <HomeHero />
 
       {/* 2. TRUST STATS — Clean minimal blocks */}
-      <HomeStatsCounter />
+      {/* <HomeStatsCounter /> */}
 
       {/* 3. CLASSES — City cards grid */}
-      <HomeClassesPreview />
+      {/* <HomeClassesPreview /> */}
 
       {/* 4. TOP ATHLETES — Honours-style podium */}
-      <HomeTopAthletes />
+      {/* <HomeTopAthletes /> */}
 
       {/* 5. TESTIMONIALS — Carousel (Hidden for now) */}
       {/* <HomeTestimonials /> */}
