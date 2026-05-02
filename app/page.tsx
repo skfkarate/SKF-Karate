@@ -10,13 +10,13 @@ import { Metadata } from 'next'
 import JsonLdScript from '@/components/JsonLdScript'
 
 export const metadata: Metadata = {
-  title: 'SKF Karate Classes in Karnataka | Expert Self-Defense Training',
+  title: 'SKF Karate',
   description: 'Join SKF Karate across Karnataka. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
   alternates: {
     canonical: absoluteSiteUrl('/'),
   },
   openGraph: {
-    title: 'SKF Karate Classes in Karnataka',
+    title: 'SKF Karate',
     description: 'Professional karate and self-defense classes for kids and adults across Karnataka.',
     url: absoluteSiteUrl('/'),
     siteName: 'SKF Karate',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SKF Karate Classes in Karnataka',
+    title: 'SKF Karate',
     description: 'Book a free trial with SKF Karate across Karnataka.',
     images: [absoluteMediaUrl()],
   },

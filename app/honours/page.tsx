@@ -13,7 +13,7 @@ import './honours.css'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Honours Board | SKF Karate',
+  title: 'SKF Karate',
   description: 'Celebrating our black belt holders, top performers, and tournament champions.',
 }
 

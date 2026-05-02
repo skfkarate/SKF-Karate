@@ -6,7 +6,7 @@ import { getExecutiveCommittee } from '@/data/seed/instructors'
 import JsonLdScript from '@/components/JsonLdScript'
 
 export const metadata: Metadata = {
-    title: "About SKF Karate — Karnataka's WKF-Affiliated Academy Since 2011",
+    title: 'SKF Karate',
     description: "SKF Karate has trained over 5,100 students in Karnataka since 2011. Meet our instructors, view our affiliations, and learn about our 15-year legacy.",
 }
 

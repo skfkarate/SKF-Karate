@@ -7,7 +7,7 @@ import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-    title: 'Technique Library — SKF Karate',
+    title: 'SKF Karate',
     description: 'Kata, kumite, and kihon technique videos for all belt levels'
 }
 

@@ -1,7 +1,7 @@
 import JsonLdScript from '@/components/JsonLdScript'
 
 export const metadata = {
-  title: 'Karate Belt Grading System & Syllabus | SKF Karate',
+  title: 'SKF Karate',
   description: 'Understand the traditional karate belt system from white to black belt. Prepare for your next grading examination with SKF Karate.',
 }
 

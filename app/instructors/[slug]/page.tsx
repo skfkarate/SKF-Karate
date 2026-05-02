@@ -25,13 +25,13 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     const imageUrl = absoluteMediaUrl(instructor.image)
     
     return {
-        title: `${instructor.name} — SKF Karate Master Profile`,
+        title: 'SKF Karate',
         description: instructor.desc,
         alternates: {
             canonical: canonicalUrl,
         },
         openGraph: {
-            title: `${instructor.name} — SKF Karate Master Profile`,
+            title: 'SKF Karate',
             description: instructor.desc,
             url: canonicalUrl,
             type: 'profile',
@@ -39,7 +39,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
         },
         twitter: {
             card: 'summary_large_image',
-            title: `${instructor.name} — SKF Karate Master Profile`,
+            title: 'SKF Karate',
             description: instructor.desc,
             images: [imageUrl],
         },

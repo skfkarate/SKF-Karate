@@ -1,7 +1,7 @@
 import '../legal.css'
 
 export const metadata = {
-  title: 'Terms of Service | SKF Karate',
+  title: 'SKF Karate',
   description: 'Terms of Service and conditions for SKF Karate.',
 }
 

@@ -15,18 +15,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const tournament = await getTournamentBySlugLive(slug)
-  if (!tournament) return { title: 'Not Found' }
+  if (!tournament) return { title: 'SKF Karate' }
   const canonicalUrl = absoluteSiteUrl(`/results/${tournament.slug}`)
   const imageUrl = absoluteMediaUrl()
 
   return {
-    title: `${tournament.name} — Results | SKF Karate`,
+    title: 'SKF Karate',
     description: `Full results from ${tournament.name}. ${tournament.medals.gold} Gold, ${tournament.medals.silver} Silver, ${tournament.medals.bronze} Bronze medals for SKF Karate.`,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: tournament.name,
+      title: 'SKF Karate',
       description: tournament.description,
       url: canonicalUrl,
       siteName: 'SKF Karate',
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${tournament.name} — SKF Karate Results`,
+      title: 'SKF Karate',
       description: tournament.description,
       images: [imageUrl],
     },

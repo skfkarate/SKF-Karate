@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
     const imageUrl = absoluteMediaUrl()
 
     return {
-        title: `Karate Classes in ${city.name} | SKF`,
+        title: 'SKF Karate',
         description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}. Group classes and personal training. Book a free trial.`,
         alternates: {
             canonical: canonicalUrl,
         },
         openGraph: {
-            title: `Karate Classes in ${city.name} | SKF Karate`,
+            title: 'SKF Karate',
             description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}.`,
             url: canonicalUrl,
             type: 'website',
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
         },
         twitter: {
             card: 'summary_large_image',
-            title: `Karate Classes in ${city.name} | SKF Karate`,
+            title: 'SKF Karate',
             description: `Book a free trial class with SKF Karate in ${city.name}.`,
             images: [imageUrl],
         },

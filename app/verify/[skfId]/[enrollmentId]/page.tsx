@@ -19,20 +19,20 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
     .eq('certificate_unlocked', true)
     .single()
 
-  if (!data) return { title: 'Certificate Verification Failed | SKF Karate' }
+  if (!data) return { title: 'SKF Karate' }
 
   const program = getProgramRelation(data.programs)
   const canonicalUrl = absoluteSiteUrl(`/verify/${skfId}/${enrollmentId}`)
   const imageUrl = absoluteMediaUrl()
 
   return {
-    title: `Verified SKF Certificate - ${program?.name}`,
+    title: 'SKF Karate',
     description: `Official verification of SKF Karate certification authenticity for ID: ${skfId}`,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Verified SKF Certificate - ${program?.name}`,
+      title: 'SKF Karate',
       description: 'Official SKF Karate Certification Authenticity Check',
       url: canonicalUrl,
       type: 'website',
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Verified SKF Certificate - ${program?.name}`,
+      title: 'SKF Karate',
       description: 'Official SKF Karate Certification Authenticity Check',
       images: [imageUrl],
     },

@@ -15,13 +15,13 @@ function formatDisplayDate(date: string) {
 }
 
 export const metadata = {
-    title: 'Events & Results | SKF Karate',
+    title: 'SKF Karate',
     description: 'Upcoming SKF Karate events, seminars, and past competition results.',
     alternates: {
         canonical: absoluteSiteUrl('/events'),
     },
     openGraph: {
-        title: 'Events & Results | SKF Karate',
+        title: 'SKF Karate',
         description: 'Upcoming SKF Karate events, seminars, and past competition results.',
         url: absoluteSiteUrl('/events'),
         type: 'website',
@@ -29,7 +29,7 @@ export const metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Events & Results | SKF Karate',
+        title: 'SKF Karate',
         description: 'Upcoming SKF Karate events, seminars, and past competition results.',
         images: [absoluteMediaUrl()],
     },

@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   return {
-    title: `${sensei.name} — SKF Sensei Profile`,
+    title: 'SKF Karate',
     description: sensei.description,
   }
 }
