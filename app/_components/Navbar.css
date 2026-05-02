@@ -498,8 +498,7 @@ nextjs-portal {
     }
 
     .nav__brand-logo {
-        width: 34px;
-        height: 34px;
+        display: none;
     }
 
     .nav__icon {
