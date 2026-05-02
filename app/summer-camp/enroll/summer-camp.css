@@ -40,7 +40,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(3rem, 12vw, 12rem);
+  font-size: clamp(2.5rem, 8vw, 10rem);
   line-height: 0.85;
   text-align: center;
   font-weight: 900;
@@ -51,6 +51,12 @@
   letter-spacing: -0.05em;
   font-family: var(--font-inter), sans-serif;
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .bg-watermark {
+    font-size: 10vw;
+  }
 }
 
 .form-wrapper {
