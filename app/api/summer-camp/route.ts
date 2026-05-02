@@ -146,7 +146,7 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 
         await sheets.spreadsheets.values.append({
           spreadsheetId: GOOGLE_SHEET_ID,
-          range: `'nunchaku'!A1`,
+          range: 'Sheet1!A1',
           valueInputOption: 'USER_ENTERED',
           requestBody: {
             values: [row],
