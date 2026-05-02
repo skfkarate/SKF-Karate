@@ -33,7 +33,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.URL),
   manifest: '/manifest.json',
-  title: 'SKF Karate',
+  title: { default: 'SKF Karate', template: '%s | SKF Karate' },
   description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Bangalore, Kunigal, Tumkur, and Udupi. WKF-affiliated. All ages welcome.',
   keywords: ['SKF karate', 'karate Karnataka', 'karate Bangalore', 'WKF karate', 'sportkarate federation'],
   alternates: {
