@@ -443,7 +443,7 @@ export default function SummerCampRegistration() {
     <div className="summer-camp-container">
       <div className="bg-watermark" style={{ flexDirection: 'column' }}>
         <span>SKF</span>
-        <span>KARATE</span>
+        <span style={{ fontSize: '0.5em' }}>KARATE</span>
       </div>
       <div className="form-wrapper">
         <div className="form-header">
