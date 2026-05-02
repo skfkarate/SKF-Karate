@@ -146,7 +146,7 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 
         await sheets.spreadsheets.values.append({
           spreadsheetId: GOOGLE_SHEET_ID,
-          range: 'Sheet1!A1',
+          range: `'Summer Camp Enrollments'!A1`,
           valueInputOption: 'USER_ENTERED',
           requestBody: {
             values: [row],
