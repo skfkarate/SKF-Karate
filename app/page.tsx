@@ -54,8 +54,8 @@ export default function HomePage() {
       {/* 4. TOP ATHLETES — Honours-style podium */}
       <HomeTopAthletes />
 
-      {/* 5. TESTIMONIALS — Carousel */}
-      <HomeTestimonials />
+      {/* 5. TESTIMONIALS — Carousel (Hidden for now) */}
+      {/* <HomeTestimonials /> */}
 
       {/* 6. FINAL CTA — Cinematic background */}
       <HomeBookTrialCTA />
