@@ -441,7 +441,10 @@ export default function SummerCampRegistration() {
 
   return (
     <div className="summer-camp-container">
-      <div className="bg-watermark">SKF<br />KARATE</div>
+      <div className="bg-watermark" style={{ flexDirection: 'column' }}>
+        <span>SKF</span>
+        <span>KARATE</span>
+      </div>
       <div className="form-wrapper">
         <div className="form-header">
           <h1>Summer Camp Registration</h1>
