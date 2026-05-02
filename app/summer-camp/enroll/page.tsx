@@ -53,10 +53,10 @@ function isBooleanField(name: keyof RegistrationFormData): name is BooleanFieldN
 }
 
 function calculateCampAge(dob: string) {
-  if (dob.length !== 10) return '';
+  if (!dob) return '';
 
-  const parts = dob.split('/');
-  if (parts.length !== 3) return '';
+  const parts = dob.split('/'); // User types DD/MM/YYYY
+  if (parts.length !== 3 || parts[2].length !== 4) return '';
 
   const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
   const today = new Date('2026-05-01'); // Fixed date for camp context
@@ -197,23 +197,49 @@ export default function SummerCampRegistration() {
     const { name, value, type } = e.target;
     const fieldName = name as keyof RegistrationFormData;
 
+    // Reset data when switching streams
+    if (fieldName === 'registrationType') {
+      setFormData(prev => ({
+        ...prev,
+        registrationType: value,
+        skfId: '',
+        verificationData: '',
+        studentName: '',
+        dob: '',
+        age: '',
+        gender: 'Male',
+        parentName: '',
+        contactNumber: '',
+        whatsappNumber: '',
+        area: '',
+        schoolName: '',
+        schoolKarate: '',
+        karateExperience: 'Beginner',
+        previouslyTrained: 'No',
+        emergencyContact: '',
+        medicalConditions: '',
+      }));
+      setErrorMsg('');
+      setSyncWhatsapp(false);
+      setSyncEmergency(false);
+      return;
+    }
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       if (isBooleanField(fieldName)) {
         setFormData(prev => ({ ...prev, [fieldName]: checked }));
       }
     } else if (name === 'verificationData' || name === 'dob') {
-      // Auto-format DD/MM/YYYY
-      let val = value.replace(/\D/g, ''); // strip non-digits
-      if (val.length > 8) val = val.substring(0, 8);
-
-      let formatted = val;
-      if (val.length >= 5) {
-        formatted = `${val.substring(0, 2)}/${val.substring(2, 4)}/${val.substring(4)}`;
-      } else if (val.length >= 3) {
-        formatted = `${val.substring(0, 2)}/${val.substring(2)}`;
+      let v = value.replace(/\D/g, '');
+      if (v.length > 8) v = v.substring(0, 8);
+      let formatted = v;
+      if (v.length > 4) {
+        formatted = `${v.substring(0, 2)}/${v.substring(2, 4)}/${v.substring(4)}`;
+      } else if (v.length > 2) {
+        formatted = `${v.substring(0, 2)}/${v.substring(2)}`;
       }
-
+      
       if (fieldName === 'dob') {
         setFormData(prev => ({ ...prev, dob: formatted, age: calculateCampAge(formatted) }));
       } else {
@@ -271,16 +297,16 @@ export default function SummerCampRegistration() {
     setErrorMsg('');
     const student = EXISTING_STUDENTS[formData.skfId.trim().toUpperCase()];
     if (student) {
-      let inputVerification = formData.verificationData.trim();
-
-      // Parse DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD
-      const dateParts = inputVerification.split(/[\/\-]/);
-      if (dateParts.length === 3 && dateParts[0].length === 2 && dateParts[2].length === 4) {
-        inputVerification = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+      const inputVerification = formData.verificationData.trim(); // DD/MM/YYYY
+      const parts = inputVerification.split('/');
+      
+      let isoDate = inputVerification;
+      if (parts.length === 3) {
+        isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
 
-      if (student.dob === inputVerification) {
-        const formattedDob = student.dob.split('-').reverse().join('/');
+      if (student.dob === isoDate) {
+        const formattedDob = student.dob.split('-').reverse().join('/'); // YYYY-MM-DD -> DD/MM/YYYY
         setFormData(prev => ({
           ...prev,
           studentName: student.name,
@@ -294,12 +320,12 @@ export default function SummerCampRegistration() {
           schoolKarate: student.schoolKarate,
           skfId: formData.skfId.trim().toUpperCase()
         }));
-        nextStep();
+        setStep(2);
       } else {
-        setErrorMsg('Verification failed. Date of Birth does not match records.');
+        setErrorMsg('Verification failed. Date of Birth does not match our records for this SKF ID.');
       }
     } else {
-      setErrorMsg('SKF ID not found in records.');
+      setErrorMsg('SKF ID not found in our records.');
     }
   };
 
@@ -312,7 +338,7 @@ export default function SummerCampRegistration() {
         return;
       }
       verifyExistingStudent();
-      return; // verifyExistingStudent calls nextStep
+      return; // verifyExistingStudent advances the step if valid
     }
 
     if (step === 2) {
@@ -415,7 +441,7 @@ export default function SummerCampRegistration() {
 
   return (
     <div className="summer-camp-container">
-      <div className="bg-watermark">SKF KARATE</div>
+      <div className="bg-watermark">SKF<br />KARATE</div>
       <div className="form-wrapper">
         <div className="form-header">
           <h1>Summer Camp Registration</h1>
@@ -468,7 +494,7 @@ export default function SummerCampRegistration() {
                   </div>
                   <div className="form-group">
                     <label>Date of Birth</label>
-                    <input type="text" name="verificationData" placeholder="DD/MM/YYYY" value={formData.verificationData} onChange={handleInputChange} />
+                    <input type="text" name="verificationData" placeholder="DD/MM/YYYY" value={formData.verificationData} onChange={handleInputChange} className="date-input" />
                   </div>
                 </div>
               )}
@@ -485,7 +511,7 @@ export default function SummerCampRegistration() {
               <div className="grid-2-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label>Date of Birth *</label>
-                  <input type="text" name="dob" placeholder="DD/MM/YYYY" required value={formData.dob} onChange={handleInputChange} />
+                  <input type="text" name="dob" placeholder="DD/MM/YYYY" required value={formData.dob} onChange={handleInputChange} className="date-input" />
                 </div>
                 <div className="form-group">
                   <label>Age</label>
