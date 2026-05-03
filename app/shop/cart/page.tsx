@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/shop/cartState'
+import { SHOP_IMAGE_FALLBACK } from '@/lib/shop/productImages'
 import {
     calculatePointsRedemption,
     calculatePromoDiscount,
@@ -175,7 +176,7 @@ export default function CartPage() {
                             {cart.map(item => (
                                 <div key={item.variantId} className="shop-cart-item">
                                     <div className="shop-cart-item-image">
-                                        {item.image && <Image src={item.image} alt={item.name} fill style={{ objectFit: 'cover' }} />}
+                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill style={{ objectFit: 'cover' }} />
                                     </div>
 
                                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

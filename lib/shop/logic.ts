@@ -14,6 +14,7 @@ import type {
   ShopProductVariant,
 } from './types'
 import { BELT_HIERARCHY } from './types'
+import { getShopProductImages, getShopProductPrimaryImage } from './productImages'
 
 const VALID_PRODUCT_CATEGORIES = new Set([
   'uniforms',
@@ -33,7 +34,7 @@ type RawShopProduct = Partial<Omit<ShopProduct, 'category' | 'images' | 'variant
 type RawShopProductVariant = Partial<SeedProductVariant> & Partial<ShopProductVariant>
 
 export function seedProductToShopProduct(seedProduct: SeedProduct): ShopProduct {
-  return {
+  const product = {
     id: String(seedProduct.id),
     name: String(seedProduct.name),
     description: String(seedProduct.description || ''),
@@ -59,6 +60,11 @@ export function seedProductToShopProduct(seedProduct: SeedProduct): ShopProduct 
     created_at: seedProduct.createdAt || new Date().toISOString(),
     updated_at: null,
   }
+
+  return {
+    ...product,
+    images: getShopProductImages(product),
+  }
 }
 
 export const seedShopProducts: ShopProduct[] = seedProducts.map(seedProductToShopProduct)
@@ -66,7 +72,7 @@ export const seedShopProducts: ShopProduct[] = seedProducts.map(seedProductToSho
 export function normalizeShopProduct(record: RawShopProduct): ShopProduct {
   const category = String(record?.category || '') as ShopProductCategory
 
-  return {
+  const product = {
     id: String(record?.id || ''),
     name: String(record?.name || ''),
     description: String(record?.description || ''),
@@ -88,6 +94,11 @@ export function normalizeShopProduct(record: RawShopProduct): ShopProduct {
     is_public: Boolean(record?.is_public),
     created_at: record?.created_at || new Date().toISOString(),
     updated_at: record?.updated_at || null,
+  }
+
+  return {
+    ...product,
+    images: getShopProductImages(product),
   }
 }
 
@@ -299,7 +310,7 @@ export function buildPreparedShopOrder(input: {
       quantity: cartItem.quantity,
       unitPrice: product.price,
       lineTotal,
-      image: product.images[0] || '',
+      image: getShopProductPrimaryImage(product),
       requiresApproval: Boolean(variant.requiresApproval),
     })
 

@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCart } from '@/lib/shop/cartState'
+import { SHOP_IMAGE_FALLBACK } from '@/lib/shop/productImages'
 import {
     calculatePointsRedemption,
     calculatePromoDiscount,
@@ -565,7 +566,7 @@ export default function CheckoutPage() {
                             {cart.map(item => (
                                 <div key={item.variantId} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                                     <div style={{ width: '48px', height: '60px', background: '#111', borderRadius: '8px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-                                        {item.image && <Image src={item.image} alt={item.name} fill style={{ objectFit: 'cover', opacity: 0.8 }} />}
+                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill style={{ objectFit: 'cover', opacity: 0.8 }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem', lineHeight: 1.3 }}>{item.name}</div>

@@ -4,6 +4,10 @@ import {
   buildPreparedShopOrder,
   mergeCatalogProducts,
 } from '@/lib/shop/logic'
+import {
+  getShopProductPrimaryImage,
+  normalizeShopImageUrl,
+} from '@/lib/shop/productImages'
 import type { ShopProduct } from '@/lib/shop/types'
 
 function createProduct(overrides: Partial<ShopProduct> = {}): ShopProduct {
@@ -112,5 +116,26 @@ describe('shop logic', () => {
         actor: { authenticated: true, belt: 'Brown' },
       })
     ).toThrow('Only 1 item(s) left')
+  })
+
+  it('uses normalized public image overrides for stale nunchaku catalog paths', () => {
+    const product = createProduct({
+      id: 'nunchaku-weapon',
+      name: 'Nunchaku Weapon',
+      images: ['/Shop/Weapons/Nunchaku/nunchaku_shop1.png'],
+      variants: [{ id: 'nunchaku-weapon-standard', size: 'Standard', stock: 5 }],
+    })
+
+    const prepared = buildPreparedShopOrder({
+      catalog: [product],
+      items: [{ productId: product.id, variantId: 'nunchaku-weapon-standard', quantity: 1 }],
+      actor: { authenticated: false },
+    })
+
+    expect(getShopProductPrimaryImage(product)).toBe('/Shop/Weapons/Nunchaku/nunchaku1.png')
+    expect(prepared.items[0].image).toBe('/Shop/Weapons/Nunchaku/nunchaku1.png')
+    expect(normalizeShopImageUrl('public/Shop/Weapons/Nunchaku/nunchaku1.png')).toBe(
+      '/Shop/Weapons/Nunchaku/nunchaku1.png'
+    )
   })
 })
