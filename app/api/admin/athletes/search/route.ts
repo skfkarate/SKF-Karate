@@ -5,7 +5,7 @@ import { withRoute } from '@/src/server/lib/route'
 
 type AdminAthleteSearchRow = {
   id: string
-  registrationNumber: string
+  skfId: string
   firstName: string
   lastName: string
   branchName?: string
@@ -29,7 +29,7 @@ export const GET = withRoute(
       athletes = athletes.filter((a) =>
         a.firstName.toLowerCase().includes(q) || 
         a.lastName.toLowerCase().includes(q) ||
-        a.registrationNumber.toLowerCase().includes(q)
+        a.skfId.toLowerCase().includes(q)
       )
     }
 
@@ -42,7 +42,7 @@ export const GET = withRoute(
     // Return limited dataset for assignment search
     const results = athletes.map((a) => ({
       id: a.id,
-      registrationNumber: a.registrationNumber,
+      skfId: a.skfId,
       firstName: a.firstName,
       lastName: a.lastName,
       branchName: a.branchName,

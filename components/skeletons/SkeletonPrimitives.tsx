@@ -28,13 +28,15 @@ export const SkeletonLine = ({
 export const SkeletonCircle = ({
   size = 40,
   className = '',
+  style = {},
 }: {
   size?: number
   className?: string
+  style?: React.CSSProperties
 }) => (
   <div
     className={`skeleton-shimmer ${className}`}
-    style={{ width: size, height: size, borderRadius: '50%' }}
+    style={{ width: size, height: size, borderRadius: '50%', ...style }}
     aria-hidden="true"
   />
 )
@@ -64,13 +66,15 @@ export const SkeletonBlock = ({
 export const SkeletonButton = ({
   width = 120,
   height = 38,
+  style = {},
 }: {
-  width?: number
+  width?: number | string
   height?: number
+  style?: React.CSSProperties
 }) => (
   <div
     className="skeleton-shimmer"
-    style={{ width, height, borderRadius: 8 }}
+    style={{ width, height, borderRadius: 8, ...style }}
     aria-hidden="true"
   />
 )

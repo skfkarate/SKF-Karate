@@ -1,6 +1,6 @@
 import { resolveClassBranchLabel } from '@/lib/classes/catalog'
 
-import { getAthleteByRegistrationNumberLive, upsertAthleteMirror } from './repositories/athletes-live'
+import { getAthleteBySkfIdLive, upsertAthleteMirror } from './repositories/athletes-live'
 import { getAllCitiesLive } from './repositories/classes-live'
 
 type StudentRecord = {
@@ -68,11 +68,11 @@ function splitName(name: string) {
 }
 
 export async function syncStudentToAthleteMirror(student: StudentRecord) {
-  const registrationNumber = String(student.skfId || '').trim().toUpperCase()
-  if (!registrationNumber) return null
+  const skfId = String(student.skfId || '').trim().toUpperCase()
+  if (!skfId) return null
   const classes = await getAllCitiesLive()
 
-  const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+  const existingAthlete = await getAthleteBySkfIdLive(skfId)
   if (!existingAthlete && !String(student.name || '').trim()) {
     return null
   }
@@ -87,7 +87,7 @@ export async function syncStudentToAthleteMirror(student: StudentRecord) {
 
   return upsertAthleteMirror({
     ...existingAthlete,
-    registrationNumber,
+    skfId,
     firstName,
     lastName,
     dateOfBirth: student.dob || existingAthlete?.dateOfBirth || '2000-01-01',

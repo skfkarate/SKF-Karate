@@ -1,38 +1,16 @@
 import HomeHero from '@/app/_components/pages/home/HomeHero'
-import HomeStatsCounter from '@/app/_components/pages/home/HomeStatsCounter'
-import HomeClassesPreview from '@/app/_components/pages/home/HomeClassesPreview'
-import HomeTopAthletes from '@/app/_components/pages/home/HomeTopAthletes'
-import HomeTestimonials from '@/app/_components/pages/home/HomeTestimonials'
-import HomeBookTrialCTA from '@/app/_components/pages/home/HomeBookTrialCTA'
 import './home.css'
-import { absoluteMediaUrl, absoluteSiteUrl, buildOrgJsonLd } from '@/data/constants/siteConfig'
 import { Metadata } from 'next'
 import JsonLdScript from '@/components/JsonLdScript'
+import { buildHomeJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata: Metadata = {
-  title: 'SKF Karate',
-  description: 'Join SKF Karate across Karnataka. We offer professional martial arts, self-defense classes for kids and adults, and WKF black belt grading. Book a free trial today!',
-  alternates: {
-    canonical: absoluteSiteUrl('/'),
-  },
-  openGraph: {
-    title: 'SKF Karate',
-    description: 'Professional karate and self-defense classes for kids and adults across Karnataka.',
-    url: absoluteSiteUrl('/'),
-    siteName: 'SKF Karate',
-    type: 'website',
-    images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate students training' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SKF Karate',
-    description: 'Book a free trial with SKF Karate across Karnataka.',
-    images: [absoluteMediaUrl()],
-  },
-}
+export const metadata: Metadata = buildSeoMetadata(
+  '/',
+  'SKF Karate offers professional karate classes in Karnataka with self-defense, kata, kumite, weapon training, kids programs, and adult coaching for all levels.'
+)
 
 export default function HomePage() {
-  const orgSchema = buildOrgJsonLd()
+  const orgSchema = buildHomeJsonLd()
 
   return (
     <div className="home">
@@ -58,7 +36,7 @@ export default function HomePage() {
       {/* <HomeTestimonials /> */}
 
       {/* 6. FINAL CTA — Cinematic background */}
-      <HomeBookTrialCTA />
+      {/* <HomeBookTrialCTA /> */}
     </div>
   )
 }

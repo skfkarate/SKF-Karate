@@ -2,8 +2,10 @@ import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
 import { getEventLabel } from '@/data/constants/categories'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
+export const revalidate = 300
 
 
 function formatDisplayDate(date: string) {
@@ -14,29 +16,14 @@ function formatDisplayDate(date: string) {
     })
 }
 
-export const metadata = {
-    title: 'SKF Karate',
-    description: 'Upcoming SKF Karate events, seminars, and past competition results.',
-    alternates: {
-        canonical: absoluteSiteUrl('/events'),
-    },
-    openGraph: {
-        title: 'SKF Karate',
-        description: 'Upcoming SKF Karate events, seminars, and past competition results.',
-        url: absoluteSiteUrl('/events'),
-        type: 'website',
-        images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate events and results' }],
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: 'SKF Karate',
-        description: 'Upcoming SKF Karate events, seminars, and past competition results.',
-        images: [absoluteMediaUrl()],
-    },
-}
+export const metadata = buildSeoMetadata(
+    '/events',
+    'View SKF Karate events, seminars, camps, gradings, and tournaments for karate students training in kata, kumite, self-defense, and competition skills.'
+)
 
 export default async function EventsPage() {
     const events = await getAllEventsLive()
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd('Events', '/events')
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -67,10 +54,13 @@ export default async function EventsPage() {
     ]
 
     return (
-        <EventsPageClient 
-            upcomingEvents={upcomingEvents}
-            pastEvents={pastEvents}
-            filterOptions={filterOptions}
-        />
+        <>
+            <JsonLdScript data={breadcrumbJsonLd} />
+            <EventsPageClient
+                upcomingEvents={upcomingEvents}
+                pastEvents={pastEvents}
+                filterOptions={filterOptions}
+            />
+        </>
     )
 }

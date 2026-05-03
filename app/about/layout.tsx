@@ -1,11 +1,9 @@
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Learn about SKF Karate — the premier Sports Karate-Do association with 5100+ athletes, 20 expert instructors, and 15 years of championship legacy in Karnataka.',
-  openGraph: {
-    title: 'SKF Karate',
-    description: 'Learn about SKF Karate — the premier Sports Karate-Do association with 5100+ athletes and 15 years of championship legacy.',
-  },
-}
+import { buildSeoMetadata } from '@/data/constants/seo'
+
+export const metadata = buildSeoMetadata(
+  '/about',
+  'Learn about SKF Karate, a Karnataka karate association training students in traditional karate, self-defense, kata, kumite, and black belt discipline.'
+)
 
 export default function AboutLayout({ children }) {
   return children

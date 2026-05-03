@@ -55,8 +55,8 @@ export function getAthleteEventEntries(athlete, events = []) {
 
     return participants
       .filter((participant) => {
-        if (participant.registrationNumber && athlete.registrationNumber) {
-          return participant.registrationNumber === athlete.registrationNumber
+        if (participant.skfId && athlete.skfId) {
+          return participant.skfId === athlete.skfId
         }
 
         return participant.athleteName === `${athlete.firstName} ${athlete.lastName}`
@@ -87,6 +87,6 @@ export function buildResultCascadeSummary({ athlete, event, result }) {
       "honours-board",
       "certificate-queue",
     ],
-    cacheKeys: [`athlete:${athlete.registrationNumber}`, `event:${event.slug}`, "rankings"],
+    cacheKeys: [`athlete:${athlete.skfId}`, `event:${event.slug}`, "rankings"],
   }
 }

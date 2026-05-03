@@ -44,12 +44,12 @@ export default async function HomeTopAthletes() {
         belt: beltLabel(athlete.currentBelt),
         branch: athlete.branchName,
         totalPoints: s.totalPoints || 0,
-        registrationNumber: athlete.registrationNumber,
+        skfId: athlete.skfId,
       }
     })
     .filter(Boolean) as {
       name: string; belt: string; branch: string;
-      totalPoints: number; registrationNumber: string;
+      totalPoints: number; skfId: string;
     }[]
 
   // Dev fallback
@@ -57,9 +57,9 @@ export default async function HomeTopAthletes() {
   if (top3.length === 0) {
     if (process.env.NODE_ENV === 'development') {
       top3 = [
-        { name: 'John Doe', belt: 'Black Belt', branch: 'Main Dojo', totalPoints: 1200, registrationNumber: 'SKF001' },
-        { name: 'Jane Smith', belt: 'Brown Belt', branch: 'West Side', totalPoints: 950, registrationNumber: 'SKF002' },
-        { name: 'Mike Ross', belt: 'Green Belt', branch: 'North Dojo', totalPoints: 800, registrationNumber: 'SKF003' },
+        { name: 'John Doe', belt: 'Black Belt', branch: 'Main Dojo', totalPoints: 1200, skfId: 'SKF001' },
+        { name: 'Jane Smith', belt: 'Brown Belt', branch: 'West Side', totalPoints: 950, skfId: 'SKF002' },
+        { name: 'Mike Ross', belt: 'Green Belt', branch: 'North Dojo', totalPoints: 800, skfId: 'SKF003' },
       ]
     } else {
       return null
@@ -89,7 +89,7 @@ export default async function HomeTopAthletes() {
         <ScrollReveal delay={0.15}>
           <div className="hon-podium">
             {/* 2nd Place */}
-            <Link href={`/athlete/${top3[1].registrationNumber}`} className="hon-pcard hon-pcard--2">
+            <Link href={`/athlete/${top3[1].skfId}`} className="hon-pcard hon-pcard--2">
               <span className="hon-pcard__medal">🥈</span>
               <div className="hon-pcard__photo hon-pcard__photo--silver"><ProfileSvg size={56} /></div>
               <h3 className="hon-pcard__name">{top3[1].name}</h3>
@@ -99,7 +99,7 @@ export default async function HomeTopAthletes() {
             </Link>
 
             {/* 1st Place */}
-            <Link href={`/athlete/${top3[0].registrationNumber}`} className="hon-pcard hon-pcard--1">
+            <Link href={`/athlete/${top3[0].skfId}`} className="hon-pcard hon-pcard--1">
               <span className="hon-pcard__medal">👑</span>
               <div className="hon-pcard__photo hon-pcard__photo--gold"><ProfileSvg size={70} /></div>
               <h3 className="hon-pcard__name">{top3[0].name}</h3>
@@ -109,7 +109,7 @@ export default async function HomeTopAthletes() {
             </Link>
 
             {/* 3rd Place */}
-            <Link href={`/athlete/${top3[2].registrationNumber}`} className="hon-pcard hon-pcard--3">
+            <Link href={`/athlete/${top3[2].skfId}`} className="hon-pcard hon-pcard--3">
               <span className="hon-pcard__medal">🥉</span>
               <div className="hon-pcard__photo hon-pcard__photo--bronze"><ProfileSvg size={56} /></div>
               <h3 className="hon-pcard__name">{top3[2].name}</h3>

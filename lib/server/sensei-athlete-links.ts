@@ -12,7 +12,7 @@ type SenseiLike = {
 
 type AthleteLike = {
   id?: string | null
-  registrationNumber?: string | null
+  skfId?: string | null
   firstName?: string | null
   lastName?: string | null
 }
@@ -43,9 +43,9 @@ function normalizeSlug(value: unknown) {
 }
 
 function getAthleteProfileHref(athlete: AthleteLike | null | undefined) {
-  const registrationNumber = String(athlete?.registrationNumber || '').trim()
-  if (!registrationNumber) return null
-  return `/athlete/${registrationNumber}`
+  const skfId = String(athlete?.skfId || '').trim()
+  if (!skfId) return null
+  return `/athlete/${skfId}`
 }
 
 function getAthleteName(athlete: AthleteLike | null | undefined) {

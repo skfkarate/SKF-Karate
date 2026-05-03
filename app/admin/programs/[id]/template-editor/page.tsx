@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Save, Eye, UploadCloud } from 'lucide-react'
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 
 // Mock initial field template
 const initialFields = {
@@ -53,7 +54,7 @@ export default function TemplateEditorPage({ params }) {
       if (data.success) {
         alert('Template saved successfully!')
       } else {
-        alert(data.error || 'Failed to save template. (Is DB Connected?)')
+        alert(getApiErrorMessage(data, 'Failed to save template. (Is DB Connected?)'))
       }
     } catch {
       alert('Error saving template')

@@ -4,11 +4,12 @@ import Image from 'next/image'
 import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaShieldAlt, FaCertificate, FaMapMarkerAlt } from 'react-icons/fa'
 import { getExecutiveCommittee } from '@/data/seed/instructors'
 import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata: Metadata = {
-    title: 'SKF Karate',
-    description: "SKF Karate has trained over 5,100 students in Karnataka since 2011. Meet our instructors, view our affiliations, and learn about our 15-year legacy.",
-}
+export const metadata: Metadata = buildSeoMetadata(
+    '/about',
+    'Learn about SKF Karate, a Karnataka karate association training students in traditional karate, self-defense, kata, kumite, and black belt discipline.'
+)
 
 import { buildOrgJsonLd, ORG_STATS, LEGACY_HIGHLIGHTS, AFFILIATIONS, SITE_CONFIG } from '@/data/constants/siteConfig'
 import './about.css'
@@ -18,10 +19,12 @@ export default function AboutPage() {
     const founder = committee[0]
     const activeCommittee = committee.slice(1)
     const jsonLd = buildOrgJsonLd()
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd('About', '/about')
 
     return (
         <div className="abt-page">
             <JsonLdScript data={jsonLd} />
+            <JsonLdScript data={breadcrumbJsonLd} />
             
             {/* ── AMBIENT ORBS ── */}
             <div className="abt-orb abt-orb--1" />

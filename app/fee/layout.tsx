@@ -1,11 +1,9 @@
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Operations console for monthly training fee tracking, updates, and receipt controls.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
+import { buildNoIndexMetadata } from '@/data/constants/seo'
+
+export const metadata = buildNoIndexMetadata(
+  '/fee',
+  'SKF Karate operations console for monthly karate training fee tracking, updates, receipts, and internal administration.'
+)
 
 export default function FeeLayout({ children }: { children: React.ReactNode }) {
   return <div style={{ minHeight: '100dvh', background: '#000' }}>{children}</div>

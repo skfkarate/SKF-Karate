@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import { BELTS } from '@/data/constants/belts'
 import {
   AGE_GROUP_LABELS,
@@ -23,7 +24,7 @@ export type ResultEventParticipant = {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName?: string
 }
 
@@ -32,7 +33,7 @@ export type ManagedResult = {
   participantId?: string
   athleteId?: string
   athleteName?: string
-  registrationNumber?: string
+  skfId?: string
   notes?: string
   category?: string
   ageGroup?: string
@@ -66,7 +67,7 @@ function buildInitialResult(participant: ResultEventParticipant, type: string): 
     participantId: participant.id,
     athleteId: participant.athleteId,
     athleteName: participant.athleteName,
-    registrationNumber: participant.registrationNumber,
+    skfId: participant.skfId,
     notes: '',
   }
 
@@ -214,8 +215,8 @@ export default function ResultsManager({
         alert('Results draft saved.')
         router.refresh()
       } else {
-        const data = await res.json()
-        alert(data.error || 'Failed to save the draft')
+        const data = await res.json().catch(() => null)
+        alert(getApiErrorMessage(data, 'Failed to save the draft'))
       }
     } catch (error) {
       console.error(error)
@@ -238,8 +239,8 @@ export default function ResultsManager({
       })
 
       if (!saveResponse.ok) {
-        const savePayload = await saveResponse.json()
-        alert(savePayload.error || 'Failed to save the latest draft before publishing')
+        const savePayload = await saveResponse.json().catch(() => null)
+        alert(getApiErrorMessage(savePayload, 'Failed to save the latest draft before publishing'))
         return
       }
 
@@ -251,8 +252,8 @@ export default function ResultsManager({
         alert('Published to athlete profiles.')
         router.refresh()
       } else {
-        const data = await res.json()
-        alert(data.error || 'Failed to publish to athlete profiles')
+        const data = await res.json().catch(() => null)
+        alert(getApiErrorMessage(data, 'Failed to publish to athlete profiles'))
       }
     } catch (error) {
       console.error(error)
@@ -325,7 +326,7 @@ export default function ResultsManager({
                 <div>
                   <strong style={{ display: 'block', color: '#fff', fontSize: '0.95rem' }}>{participant.athleteName}</strong>
                   <span style={{ color: '#666', fontSize: '0.78rem' }}>
-                    {participant.registrationNumber} • {participant.branchName}
+                    {participant.skfId} • {participant.branchName}
                   </span>
                 </div>
                 <span style={{ color: '#999', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>

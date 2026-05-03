@@ -16,7 +16,7 @@ export function createAthlete(input: AthleteInput) {
   const now = isoNow()
   return {
     id: input.id || generateId('ath'),
-    registrationNumber: input.registrationNumber || `SKF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`,
+    skfId: input.skfId || `SKF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`,
     firstName: input.firstName,
     lastName: input.lastName,
     dateOfBirth: input.dateOfBirth || randomPastDate(15),

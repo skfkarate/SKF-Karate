@@ -1,12 +1,11 @@
 import AdminSidebar from "@/app/_components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/utils/auth";
+import { buildNoIndexMetadata } from "@/data/constants/seo";
 
-export const metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
+export const metadata = buildNoIndexMetadata(
+  '/admin',
+  'SKF Karate private administration area for karate classes, students, events, certificates, shop, fees, and website operations.'
+)
 
 export default async function AdminLayout({ children }) {
   const session = await getAdminSession()

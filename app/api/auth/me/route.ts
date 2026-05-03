@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getPortalSession } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
 
@@ -13,7 +13,7 @@ export const GET = withRoute(
             return NextResponse.json({ authenticated: false }, { status: 200 })
         }
 
-        const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+        const athlete = await getAthleteBySkfIdLive(session.skfId)
 
         if (!athlete) {
             return NextResponse.json({ authenticated: false }, { status: 200 })

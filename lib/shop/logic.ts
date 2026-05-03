@@ -176,11 +176,10 @@ export function getProductAccessIssue(
 }
 
 export function calculateShippingFee(subtotal: number, actor: ShopCheckoutActor): number {
-  if (actor.authenticated) {
-    return 0
-  }
+  void subtotal
+  void actor
 
-  return subtotal >= 5000 ? 0 : 250
+  return 0
 }
 
 export function calculatePromoDiscount(

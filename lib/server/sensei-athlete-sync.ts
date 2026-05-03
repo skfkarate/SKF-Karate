@@ -105,7 +105,7 @@ export async function syncBelowThirdDanSenseiAthletes(options: { revalidate?: bo
   const eligibleSenseis = senseis.filter(
     (sensei) => sensei.isActive !== false && sensei.isPublic !== false && isBelowThirdDanSensei(sensei)
   )
-  const updatedRegistrationNumbers: string[] = []
+  const updatedSkfIds: string[] = []
 
   for (const sensei of eligibleSenseis) {
     const mirrorId = buildMirrorId(String(sensei.id))
@@ -152,20 +152,20 @@ export async function syncBelowThirdDanSenseiAthletes(options: { revalidate?: bo
       ? await updateAthleteLive(mirrorId, payload)
       : await createAthleteLive(payload)
 
-    if (athlete?.registrationNumber) {
-      updatedRegistrationNumbers.push(athlete.registrationNumber)
+    if (athlete?.skfId) {
+      updatedSkfIds.push(athlete.skfId)
     }
   }
 
   if (shouldRevalidate) {
     const { revalidateAthleteSitePaths } = await import('./revalidation')
-    for (const registrationNumber of updatedRegistrationNumbers) {
-      revalidateAthleteSitePaths(registrationNumber)
+    for (const skfId of updatedSkfIds) {
+      revalidateAthleteSitePaths(skfId)
     }
   }
 
   return {
-    syncedCount: updatedRegistrationNumbers.length,
-    registrationNumbers: updatedRegistrationNumbers,
+    syncedCount: updatedSkfIds.length,
+    skfIds: updatedSkfIds,
   }
 }

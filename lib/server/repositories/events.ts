@@ -46,6 +46,7 @@ type EventRecord = {
   isPublished: boolean
   isFeatured: boolean
   isResultsPublished: boolean
+  showInJourney: boolean
   hostingBranch: string
   participants: EventParticipant[]
   results: EventResult[]
@@ -57,6 +58,7 @@ type EventRecord = {
 
 let events: EventRecord[] = seedEvents.map(e => ({
   ...e,
+  showInJourney: Boolean(e.showInJourney),
   participants: [],
   results: [],
   resultsAppliedAt: "",
@@ -128,6 +130,10 @@ function normaliseEventPayload(
       typeof input.isResultsPublished === "boolean"
         ? input.isResultsPublished
         : existing?.isResultsPublished ?? false,
+    showInJourney:
+      typeof input.showInJourney === "boolean"
+        ? input.showInJourney
+        : existing?.showInJourney ?? false,
     hostingBranch: input.hostingBranch || existing?.hostingBranch || "",
     participants: Array.isArray(input.participants)
       ? input.participants
@@ -149,7 +155,7 @@ function buildTournamentResults(
   return (tournament.winners || []).map((winner) => ({
     id: winner.id,
     athleteId: winner.athleteId || "",
-    registrationNumber: winner.registrationNumber || "",
+    skfId: winner.skfId || "",
     athleteName: winner.athleteName,
     result: winner.medal || "participation",
     medal: winner.medal,

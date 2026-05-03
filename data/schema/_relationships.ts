@@ -186,9 +186,9 @@ export const relationships: Record<string, RelationshipDef> = {
 
   athleteToStudent: {
     type: 'ONE_TO_ONE',
-    from: 'athletes.registrationNumber',
+    from: 'athletes.skfId',
     to: 'students.skfId',
-    description: 'SAME PERSON in two stores. athlete.registrationNumber === student.skfId. Athlete has public profile/achievements; Student has identity/fees/auth.',
+    description: 'SAME PERSON in two stores. athlete.skfId === student.skfId. Athlete has public profile/achievements; Student has identity/fees/auth.',
   },
 
   /* ═══════ PARENT/CHILD (Multi-Child Portal) ═══════ */

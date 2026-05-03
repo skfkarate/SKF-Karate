@@ -7,7 +7,7 @@ import type { EntitySchema } from './types'
  *
  * Auth Flow:
  *   1. User submits SKF ID + Date of Birth to POST /api/auth/portal
- *   2. Server looks up athlete by registrationNumber in local JSON store
+ *   2. Server looks up athlete by skfId in local JSON store
  *   3. Server compares dateOfBirth — if match, creates JWT
  *   4. JWT set as httpOnly cookie via buildPortalCookie()
  *

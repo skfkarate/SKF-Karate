@@ -4,7 +4,8 @@ import {
   getAllTournamentsLive,
   getTournamentBySlugLive
 } from '@/lib/server/repositories/tournaments-live'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export async function generateStaticParams() {
   return (await getAllTournamentsLive())
@@ -15,37 +16,29 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const tournament = await getTournamentBySlugLive(slug)
-  if (!tournament) return { title: 'SKF Karate' }
-  const canonicalUrl = absoluteSiteUrl(`/results/${tournament.slug}`)
-  const imageUrl = absoluteMediaUrl()
-
-  return {
-    title: 'SKF Karate',
-    description: `Full results from ${tournament.name}. ${tournament.medals.gold} Gold, ${tournament.medals.silver} Silver, ${tournament.medals.bronze} Bronze medals for SKF Karate.`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: 'SKF Karate',
-      description: tournament.description,
-      url: canonicalUrl,
-      siteName: 'SKF Karate',
-      type: 'website',
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: `${tournament.name} results` }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'SKF Karate',
-      description: tournament.description,
-      images: [imageUrl],
-    },
+  if (!tournament) {
+    return buildSeoMetadata(
+      '/results',
+      'See SKF Karate tournament results, medals, champions, kata and kumite performance, competition records, and official karate achievements across India.'
+    )
   }
+
+  return buildSeoMetadata(
+    `/results/${tournament.slug}`,
+    `${tournament.name} results from SKF Karate with ${tournament.medals.gold} gold, ${tournament.medals.silver} silver, and ${tournament.medals.bronze} bronze medals in kata and kumite competition.`
+  )
 }
 
 export default async function TournamentDetailPage({ params }) {
   const { slug } = await params
   const tournament = await getTournamentBySlugLive(slug)
   if (!tournament) notFound()
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(tournament.name, `/results/${tournament.slug}`)
 
-  return <ResultsDetailPageClient tournament={tournament} />
+  return (
+    <>
+      <JsonLdScript data={breadcrumbJsonLd} />
+      <ResultsDetailPageClient tournament={tournament} />
+    </>
+  )
 }

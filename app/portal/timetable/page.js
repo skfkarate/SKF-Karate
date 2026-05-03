@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 
 import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getActiveTimetableForBranchName } from '@/lib/server/repositories/portal-content-live'
 
 import TimetableClient from './TimetableClient'
@@ -18,7 +18,7 @@ export default async function TimetablePage() {
     redirect('/portal/login')
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const athlete = await getAthleteBySkfIdLive(session.skfId)
   const branchName = athlete?.branchName || session.branch || 'SKF Karate'
   const timetable = await getActiveTimetableForBranchName(branchName)
 

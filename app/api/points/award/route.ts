@@ -1,5 +1,5 @@
 import { awardPoints } from '@/lib/points/pointsService'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { awardPointsBodySchema } from '@/src/server/api/validators/points.validator'
 import { NotFoundError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
@@ -12,13 +12,13 @@ export const POST = withRoute(
     cacheControl: 'private, no-store',
   },
   async ({ body }) => {
-    const athlete = await getAthleteByRegistrationNumberLive(body.skfId.toUpperCase())
+    const athlete = await getAthleteBySkfIdLive(body.skfId.toUpperCase())
     if (!athlete || String(athlete.status || '').toLowerCase() !== 'active') {
       throw new NotFoundError('Athlete')
     }
 
     const { newBalance, pointsAwarded } = await awardPoints(
-      athlete.registrationNumber,
+      athlete.skfId,
       body.reason,
       { manual: true, note: body.note || null }
     )

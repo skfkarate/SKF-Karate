@@ -23,11 +23,7 @@ function hasAnalyticsConsent() {
   }
 }
 
-type AnalyticsLoaderProps = {
-  nonce?: string
-}
-
-export default function AnalyticsLoader({ nonce }: AnalyticsLoaderProps) {
+export default function AnalyticsLoader() {
   const [consented, setConsented] = useState(false)
 
   useEffect(() => {
@@ -54,7 +50,6 @@ export default function AnalyticsLoader({ nonce }: AnalyticsLoaderProps) {
       <FirstPartyAnalyticsTracker />
       {gaId ? (
         <Script
-          nonce={nonce}
           src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
           strategy="afterInteractive"
           onLoad={() => {

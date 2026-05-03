@@ -1,6 +1,6 @@
 import { certificateReadyTemplate } from '@/lib/email/templates'
 import { resend } from '@/lib/email/resend'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { ExternalServiceError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -30,7 +30,7 @@ function resolveProgramName(programs: EnrollmentNotificationRow['programs']) {
   return program?.name || 'Certificate Program'
 }
 
-function resolveStudentName(athlete: Awaited<ReturnType<typeof getAthleteByRegistrationNumberLive>>) {
+function resolveStudentName(athlete: Awaited<ReturnType<typeof getAthleteBySkfIdLive>>) {
   return [athlete?.firstName, athlete?.lastName].filter(Boolean).join(' ').trim() || 'Athlete'
 }
 
@@ -54,7 +54,7 @@ export class NotificationService {
     let failed = 0
 
     for (const enrollment of (enrollments || []) as EnrollmentNotificationRow[]) {
-      const athlete = await getAthleteByRegistrationNumberLive(enrollment.skf_id)
+      const athlete = await getAthleteBySkfIdLive(enrollment.skf_id)
       const targetEmail = athlete?.email || ''
 
       if (!targetEmail) {

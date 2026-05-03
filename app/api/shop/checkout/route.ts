@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { ApiError, readJsonBody } from '@/lib/server/api'
 import { getPortalSession } from '@/lib/server/auth/portal'
 import { disabledResponse, isPaymentsEnabled } from '@/lib/server/feature-flags'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getProducts } from '@/lib/server/repositories/shop'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { buildPreparedShopOrder } from '@/lib/shop/logic'
@@ -78,7 +78,7 @@ async function getShopActor(request: Request): Promise<ShopCheckoutActor> {
     return { authenticated: false }
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const athlete = await getAthleteBySkfIdLive(session.skfId)
   if (!athlete) {
     return { authenticated: false }
   }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  validateAthletePayload,
   validateEventPayload,
   validateTournamentPayload,
 } from '@/lib/server/validation'
@@ -21,6 +22,18 @@ describe('validateEventPayload', () => {
     expect(result.state).toBe('Karnataka')
   })
 
+  it('accepts event date ranges that cross into the next month', () => {
+    const result = validateEventPayload({
+      name: 'May to June Camp',
+      type: 'camp',
+      date: '2026-05-31',
+      endDate: '2026-06-01',
+    })
+
+    expect(result.date).toBe('2026-05-31')
+    expect(result.endDate).toBe('2026-06-01')
+  })
+
   it('accepts custom event types and preserves attendance-style results metadata', () => {
     const result = validateEventPayload({
       name: 'Elite Training Camp',
@@ -29,12 +42,13 @@ describe('validateEventPayload', () => {
       date: '2026-06-10',
       hostingBranch: 'Rajajinagar',
       isResultsPublished: true,
+      showInJourney: true,
       participants: [
         {
           id: 'p_1',
           athleteId: 'a_1',
           athleteName: 'Asha Kumar',
-          registrationNumber: 'SKF-001',
+          skfId: 'SKF24RJ001',
           branchName: 'Rajajinagar',
           belt: 'Brown',
         },
@@ -45,7 +59,7 @@ describe('validateEventPayload', () => {
           participantId: 'p_1',
           athleteId: 'a_1',
           athleteName: 'Asha Kumar',
-          registrationNumber: 'SKF-001',
+          skfId: 'SKF24RJ001',
           result: 'completed',
           daysAttended: '3',
           notes: 'Top performer',
@@ -57,6 +71,7 @@ describe('validateEventPayload', () => {
     expect(result.slug).toBe('elite-training-camp')
     expect(result.hostingBranch).toBe('Rajajinagar')
     expect(result.isResultsPublished).toBe(true)
+    expect(result.showInJourney).toBe(true)
     expect(result.results[0]).toEqual(
       expect.objectContaining({
         participantId: 'p_1',
@@ -88,7 +103,7 @@ describe('validateEventPayload', () => {
         results: [
           {
             athleteName: 'Rohan',
-            registrationNumber: 'SKF-002',
+            skfId: 'SKF24RJ002',
             result: 'winner',
             category: 'kata-individual',
             ageGroup: 'sub-junior',
@@ -100,6 +115,24 @@ describe('validateEventPayload', () => {
 })
 
 describe('validateTournamentPayload', () => {
+  it('accepts tournament date ranges that cross into the next month', () => {
+    const result = validateTournamentPayload({
+      name: 'May Open 2026',
+      shortName: 'May Open',
+      date: '2026-05-31',
+      endDate: '2026-06-01',
+      venue: 'SKF Arena',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      description: 'Two-day tournament',
+      totalParticipants: 10,
+      skfParticipants: 5,
+    })
+
+    expect(result.date).toBe('2026-05-31')
+    expect(result.endDate).toBe('2026-06-01')
+  })
+
   it('auto-generates slug for tournaments while enforcing participant totals', () => {
     const result = validateTournamentPayload({
       name: 'National Championship 2026',
@@ -114,7 +147,7 @@ describe('validateTournamentPayload', () => {
       winners: [
         {
           athleteName: 'Asha Kumar',
-          registrationNumber: 'SKF-001',
+          skfId: 'SKF24RJ001',
           branchName: 'Rajajinagar',
           belt: 'Brown Belt',
           medal: 'gold',
@@ -133,6 +166,53 @@ describe('validateTournamentPayload', () => {
       expect.objectContaining({
         difficultyLevel: 4,
         wins: 3,
+      })
+    )
+  })
+})
+
+describe('validateAthletePayload', () => {
+  it('preserves profile-linked tournament metadata in athlete achievements', () => {
+    const result = validateAthletePayload({
+      firstName: 'Asha',
+      lastName: 'Kumar',
+      dateOfBirth: '2012-05-09',
+      gender: 'female',
+      branchName: 'M P Sports Club',
+      currentBelt: 'brown',
+      joinDate: '2026-01-10',
+      status: 'active',
+      monthlyFee: 0,
+      achievements: [
+        {
+          id: 'ach_tour_1',
+          type: 'tournament-gold',
+          date: '2026-04-02',
+          title: 'Gold Medal - State Open',
+          pointsAwarded: 120,
+          tournamentName: 'State Open',
+          tournamentLevel: 'state',
+          eventCategory: 'kumite-individual',
+          ageGroup: 'junior',
+          weightCategory: '-45kg',
+          competitionResult: 'gold',
+          difficultyLevel: 5,
+          wins: 4,
+          position: 1,
+          sourceEventId: 'tour_1',
+          sourceEventType: 'tournament',
+          sourceEventLevel: 'state',
+        },
+      ],
+    })
+
+    expect(result.achievements[0]).toEqual(
+      expect.objectContaining({
+        type: 'tournament-gold',
+        difficultyLevel: 5,
+        wins: 4,
+        position: '1',
+        sourceEventId: 'tour_1',
       })
     )
   })

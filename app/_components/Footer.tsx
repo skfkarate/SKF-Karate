@@ -1,5 +1,4 @@
 import { FaInstagram, FaYoutube, FaWhatsapp, FaFacebookF } from 'react-icons/fa'
-import Image from 'next/image'
 import { CONTACT, SOCIAL_LINKS } from '@/data/constants/contact'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
@@ -19,9 +18,6 @@ export default async function Footer() {
 
                 {/* ── MONUMENT: Big typographic brand statement ── */}
                 <div className="ft__monument">
-                    <PrefetchLink href="/" className="ft__monument-logo" showPendingIndicator={false}>
-                        <Image src="/logo/SKF logo.png" alt="SKF" width={44} height={44} className="ft__monument-img" />
-                    </PrefetchLink>
                     <h2 className="ft__monument-type">
                         <span className="ft__monument-skf">SKF</span>
                         <span className="ft__monument-karate">KARATE</span>
@@ -35,12 +31,12 @@ export default async function Footer() {
                     <PrefetchLink href="/about" className="ft__river-link" pendingClassName="ft__pending-indicator">About</PrefetchLink>
                     <PrefetchLink href="/rankings" className="ft__river-link" pendingClassName="ft__pending-indicator">Rankings</PrefetchLink>
                     <PrefetchLink href="/events" className="ft__river-link" pendingClassName="ft__pending-indicator">Events</PrefetchLink>
-                    <PrefetchLink href="/results" className="ft__river-link" pendingClassName="ft__pending-indicator">Results</PrefetchLink>
+                    <button type="button" disabled className="ft__river-link ft__river-link--disabled" aria-disabled="true">Results</button>
                     <PrefetchLink href="/gallery" className="ft__river-link" pendingClassName="ft__pending-indicator">Gallery</PrefetchLink>
                     <PrefetchLink href="/grading" className="ft__river-link" pendingClassName="ft__pending-indicator">Belt Grading</PrefetchLink>
                     <PrefetchLink href="/shop" className="ft__river-link" pendingClassName="ft__pending-indicator">Shop</PrefetchLink>
                     <PrefetchLink href="/contact" className="ft__river-link" pendingClassName="ft__pending-indicator">Contact</PrefetchLink>
-                    <PrefetchLink href="/portal" className="ft__river-link ft__river-link--portal" pendingClassName="ft__pending-indicator">Athlete Portal</PrefetchLink>
+                    <button type="button" disabled className="ft__river-link ft__river-link--portal ft__river-link--disabled" aria-disabled="true">Athlete Portal</button>
                 </nav>
 
                 {/* ── DOJOS: Location chips ── */}
@@ -77,7 +73,13 @@ export default async function Footer() {
 
                 {/* ── LEGAL BAR ── */}
                 <div className="ft__legal-bar">
-                    <span className="ft__legal-copy">&copy; {new Date().getFullYear()} SKF Karate</span>
+                    <div className="ft__legal-left">
+                        <span className="ft__legal-copy">&copy; {new Date().getFullYear()} SKF Karate</span>
+                        <span className="ft__legal-dot hide-on-mobile" />
+                        <span className="ft__credit">
+                            Designed & Engineered by <span className="ft__credit-name">Krishna C</span>
+                        </span>
+                    </div>
                     <div className="ft__legal-links">
                         <PrefetchLink href="/privacy-policy" pendingClassName="ft__pending-indicator">Privacy</PrefetchLink>
                         <PrefetchLink href="/cookie-policy" pendingClassName="ft__pending-indicator">Cookies</PrefetchLink>

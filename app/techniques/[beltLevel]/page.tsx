@@ -3,6 +3,8 @@ import TechniquesClient from '../TechniquesClient'
 import Link from 'next/link'
 import { FaArrowLeft, FaAward } from 'react-icons/fa'
 import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const revalidate = 3600
 
@@ -19,10 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { beltLevel } = await params
     const capitalizedBelt = beltLevel.charAt(0).toUpperCase() + beltLevel.slice(1)
     
-    return {
-        title: 'SKF Karate',
-        description: `All kata and kumite reference videos for ${capitalizedBelt} belt students`
-    }
+    return buildSeoMetadata(
+        `/techniques/${beltLevel}`,
+        `Watch SKF Karate ${capitalizedBelt} belt technique videos for kata, kumite, kihon, bunkai, self-defense drills, grading practice, and traditional karate.`
+    )
 }
 
 export default async function BeltTechniquesPage({ params }: Props) {
@@ -30,9 +32,15 @@ export default async function BeltTechniquesPage({ params }: Props) {
     const capitalizedBelt = beltLevel.charAt(0).toUpperCase() + beltLevel.slice(1)
     
     const videos = await getTechniqueLibraryVideos({ beltLevel })
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+        `${capitalizedBelt} Belt Techniques`,
+        `/techniques/${beltLevel}`
+    )
 
     return (
         <div style={{ minHeight: '100dvh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+            <JsonLdScript data={breadcrumbJsonLd} />
+
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 
                 <Link href="/techniques" style={{ 

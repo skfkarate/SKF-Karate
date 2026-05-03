@@ -10,7 +10,7 @@ export const GET = withRoute(
   {
     querySchema: athleteSearchQuerySchema,
     rateLimit: { tier: 'lookup' },
-    cacheControl: 'public, max-age=60',
+    cacheControl: 'no-store',
   },
   async ({ query }) => {
   const featured = query.featured === '1'

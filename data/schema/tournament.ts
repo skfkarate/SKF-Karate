@@ -30,6 +30,7 @@ export const tournamentSchema: EntitySchema = {
     status:            { type: 'enum',    required: true,  enumValues: ['draft', 'upcoming', 'ongoing', 'completed', 'archived'] },
     isPublished:       { type: 'boolean', required: true },
     isFeatured:        { type: 'boolean', required: true },
+    showInJourney:     { type: 'boolean', required: false, default: false },
     resultsAppliedAt:  { type: 'date',    required: false },
     participants:      { type: 'array',   required: true,  description: 'TournamentParticipant[]' },
     winners:           { type: 'array',   required: true,  description: 'TournamentWinner[]' },

@@ -3,10 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogOut } from "lucide-react"
-import { ADMIN_NAV_GROUPS } from '@/data/constants/navigation'
+import { ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS } from '@/data/constants/navigation'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const activeHref =
+    ADMIN_NAV_ITEMS
+      .filter((item) => pathname === item.href || pathname.startsWith(item.href + '/'))
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href || ''
 
   const handleLogout = async () => {
     const { signOut } = await import('next-auth/react')
@@ -63,7 +67,7 @@ export default function AdminSidebar() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {group.items.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                const isActive = activeHref === item.href
 
                 return (
                   <Link

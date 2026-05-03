@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo } from 'react'
-import type { ComponentProps, FocusEventHandler, MouseEventHandler, TouchEventHandler } from 'react'
+import type { ComponentProps, FocusEventHandler, MouseEventHandler } from 'react'
 import LinkPendingIndicator from './LinkPendingIndicator'
 import { startRouteTransition } from './routeTransitionTelemetry'
 
 type NextLinkProps = ComponentProps<typeof Link>
+
+const PREFETCH_DEDUPE_MS = 30_000
+const prefetchedAtByRoute = new Map<string, number>()
 
 type PrefetchLinkProps = NextLinkProps & {
   prefetchRoutes?: string[]
@@ -43,8 +46,15 @@ export default function PrefetchLink({
   }, [href, prefetchRoutes])
 
   const prefetchIntentRoutes = useCallback(() => {
+    const now = Date.now()
+
     for (const route of routesToPrefetch) {
       if (!route.startsWith('/')) continue
+
+      const lastPrefetchedAt = prefetchedAtByRoute.get(route) || 0
+      if (now - lastPrefetchedAt < PREFETCH_DEDUPE_MS) continue
+
+      prefetchedAtByRoute.set(route, now)
       router.prefetch(route)
     }
   }, [routesToPrefetch, router])
@@ -62,11 +72,6 @@ export default function PrefetchLink({
   const handleFocus: FocusEventHandler<HTMLAnchorElement> = (event) => {
     prefetchIntentRoutes()
     onFocus?.(event)
-  }
-
-  const handleTouchStart: TouchEventHandler<HTMLAnchorElement> = (event) => {
-    prefetchIntentRoutes()
-    onTouchStart?.(event)
   }
 
   const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
@@ -92,7 +97,7 @@ export default function PrefetchLink({
       href={href}
       onMouseEnter={handleMouseEnter}
       onFocus={handleFocus}
-      onTouchStart={handleTouchStart}
+      onTouchStart={onTouchStart}
       onClick={handleClick}
       {...rest}
     >

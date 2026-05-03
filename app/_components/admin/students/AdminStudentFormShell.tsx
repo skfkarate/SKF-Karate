@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { getApiErrorMessage } from "@/app/admin/_utils/apiErrors"
 import AdminStudentForm from "@/app/_components/admin/students/AdminStudentForm"
 
 export default function AdminStudentFormShell({
@@ -28,16 +29,16 @@ export default function AdminStudentFormShell({
         }
       )
 
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to save the student record.")
+        throw new Error(getApiErrorMessage(payload, "Unable to save the student record."))
       }
 
       router.push("/admin/students")
       router.refresh()
     } catch (saveError) {
-      setError(saveError.message)
+      setError(saveError instanceof Error ? saveError.message : "Unable to save the student record.")
     } finally {
       setIsSaving(false)
     }

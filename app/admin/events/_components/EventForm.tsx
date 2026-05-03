@@ -9,6 +9,7 @@ import { getEventLabel } from '@/data/constants/categories'
 import type { City } from '@/lib/classesData'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import { EVENT_STATUSES } from '@/lib/types/event'
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 
 type SubmitMode = 'stay' | 'continue' | 'draft' | 'publish'
 type RedirectTab = 'details' | 'athletes' | 'results'
@@ -27,9 +28,12 @@ type EventFormData = {
   city: string
   state: string
   description: string
+  coverImageUrl: string
+  affiliatedBody: string
   isPublished: boolean
   isFeatured: boolean
   isResultsPublished: boolean
+  showInJourney: boolean
 }
 
 type EventFieldChange = ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -76,9 +80,12 @@ export default function EventForm({
     city: initialData?.city || '',
     state: initialData?.state || 'Karnataka',
     description: initialData?.description || '',
+    coverImageUrl: initialData?.coverImageUrl || '',
+    affiliatedBody: initialData?.affiliatedBody || '',
     isPublished: initialData?.isPublished ?? false,
     isFeatured: initialData?.isFeatured ?? false,
     isResultsPublished: initialData?.isResultsPublished ?? false,
+    showInJourney: initialData?.showInJourney ?? false,
   })
 
   const classBranches = flattenClassBranches(availableCities)
@@ -269,8 +276,8 @@ export default function EventForm({
       })
 
       if (!response.ok) {
-        const payload = await response.json()
-        throw new Error(payload.error || 'Unable to create category')
+        const payload = await response.json().catch(() => null)
+        throw new Error(getApiErrorMessage(payload, 'Unable to create category'))
       }
 
       const payload = await response.json()
@@ -323,13 +330,16 @@ export default function EventForm({
         body: JSON.stringify(payload),
       })
 
-      const responsePayload = await response.json()
+      const responsePayload = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(responsePayload.error || 'Something went wrong')
+        throw new Error(getApiErrorMessage(responsePayload, 'Something went wrong'))
       }
 
-      const savedEvent = responsePayload.event
+      const savedEvent = responsePayload?.event
+      if (!savedEvent?.id) {
+        throw new Error('Event saved, but the server response did not include the event id.')
+      }
       const successMessage =
         mode === 'draft'
           ? 'Draft saved.'
@@ -587,6 +597,28 @@ export default function EventForm({
             placeholder="Describe the event, what athletes should expect, and any operational notes."
           />
         </Field>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <Field label="Cover Image URL">
+            <input
+              name="coverImageUrl"
+              value={formData.coverImageUrl}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="/gallery/Training.jpeg or https://..."
+            />
+          </Field>
+
+          <Field label="Affiliated Body">
+            <input
+              name="affiliatedBody"
+              value={formData.affiliatedBody}
+              onChange={handleChange}
+              style={inputStyle}
+              placeholder="e.g. SKF, KIO, WKF"
+            />
+          </Field>
+        </div>
       </section>
 
       <section style={sectionStyle}>
@@ -608,6 +640,14 @@ export default function EventForm({
           onChange={handleChange}
           title="Mark as Featured"
           description="This highlights the event on featured event surfaces. It does not publish the event by itself."
+        />
+
+        <ToggleField
+          checked={formData.showInJourney}
+          name="showInJourney"
+          onChange={handleChange}
+          title="Show in Athlete Journey"
+          description="This lets assigned athletes see this event as a milestone in their portal journey timeline."
         />
 
         <ToggleField

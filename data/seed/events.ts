@@ -21,6 +21,7 @@ export interface SeedEvent {
   isPublished: boolean
   isFeatured: boolean
   isResultsPublished: boolean
+  showInJourney?: boolean
   hostingBranch: string
   createdAt: string
   updatedAt: string

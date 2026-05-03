@@ -8,7 +8,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 type DanHolder = {
   id: string
   profileHref?: string
-  registrationNumber?: string
+  skfId?: string
   displayName?: string
   name?: string
   firstName?: string
@@ -31,7 +31,7 @@ function beltLabel(v: string) {
 
 function getCardHref(holder: DanHolder) {
   if (holder?.profileHref) return holder.profileHref
-  if (holder?.registrationNumber) return `/athlete/${holder.registrationNumber}`
+  if (holder?.skfId) return `/athlete/${holder.skfId}`
   return '/athlete/search'
 }
 

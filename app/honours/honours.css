@@ -97,6 +97,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  font-family: "Noto Sans JP", var(--font-heading), system-ui;
   font-size: 28vw;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.015);
@@ -1178,7 +1179,7 @@
     transform: translateY(-50%) rotate(-12deg);
     transform-origin: left center;
     font-size: 75vw;
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.05);
   }
 }
 

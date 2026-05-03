@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 
 export default function NewCertificateProgram() {
   const router = useRouter()
@@ -28,7 +29,7 @@ export default function NewCertificateProgram() {
       })
       const data = await res.json()
       
-      if (!res.ok) throw new Error(data.error || 'Failed to create program')
+      if (!res.ok) throw new Error(getApiErrorMessage(data, 'Failed to create program'))
       
       router.push(`/admin/certificates/programs/${data.programId}/template-editor`)
     } catch (err) {

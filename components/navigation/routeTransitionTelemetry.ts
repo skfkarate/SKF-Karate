@@ -100,15 +100,37 @@ function parsePath(pathLike: string) {
   }
 }
 
+function sameRoute(firstPathLike: string | null | undefined, secondPathLike: string | null | undefined) {
+  const first = firstPathLike ? parsePath(firstPathLike) : null
+  const second = secondPathLike ? parsePath(secondPathLike) : null
+  if (!first || !second) return false
+  return first.pathname === second.pathname && first.search === second.search
+}
+
 export function startRouteTransition(toPathLike: string | null | undefined) {
   if (typeof window === 'undefined') return
 
   const toPath = normalizePath(toPathLike)
   if (!toPath) return
 
+  const currentPath = `${window.location.pathname}${window.location.search}`
+  if (sameRoute(toPath, currentPath)) {
+    return
+  }
+
+  const existing = window.__skfRouteTransition
+  if (
+    existing &&
+    sameRoute(existing.toPath, toPath) &&
+    sameRoute(existing.fromPath, currentPath) &&
+    Date.now() - existing.clickEpochMs < 1_000
+  ) {
+    return
+  }
+
   const transition: ActiveRouteTransition = {
     id: `rt_${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36)}`,
-    fromPath: `${window.location.pathname}${window.location.search}`,
+    fromPath: currentPath,
     toPath,
     clickPerfMs: nowPerfMs(),
     clickEpochMs: Date.now(),

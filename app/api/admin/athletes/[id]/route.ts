@@ -25,7 +25,7 @@ export const PATCH = withRoute(
       validateAthletePayload({ ...existingAthlete, ...body })
     )
 
-    revalidateAthleteSitePaths(athlete.registrationNumber)
+    revalidateAthleteSitePaths(athlete.skfId)
 
     return NextResponse.json({ athlete })
   }

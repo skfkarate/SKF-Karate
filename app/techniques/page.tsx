@@ -3,20 +3,25 @@ import TechniquesClient from './TechniquesClient'
 import { FaStar } from 'react-icons/fa'
 import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-content-live'
 import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-    title: 'SKF Karate',
-    description: 'Kata, kumite, and kihon technique videos for all belt levels'
-}
+export const metadata: Metadata = buildSeoMetadata(
+    '/techniques',
+    'Watch SKF Karate technique videos for kata, kumite, kihon, bunkai, belt practice, self-defense drills, and traditional karate training by belt level now.'
+)
 
 export default async function TechniqueLibraryPage() {
     const videos = await getTechniqueLibraryVideos()
     const featuredVideos = videos.filter(v => v.isFeatured)
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd('Techniques', '/techniques')
 
     return (
         <div style={{ minHeight: '100dvh', padding: '120px 2rem 4rem', background: '#050a15', color: '#fff', fontFamily: 'system-ui, sans-serif' }}>
+            <JsonLdScript data={breadcrumbJsonLd} />
+
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                     <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, margin: 0, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>

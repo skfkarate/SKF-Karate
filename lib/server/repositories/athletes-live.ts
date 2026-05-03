@@ -2,14 +2,15 @@ import { randomUUID } from 'node:crypto'
 
 import { calculateAllRanks } from '../../utils/rank'
 import { buildCompetitionResultsFromAthletes, getAthleteRankEntry } from '../../utils/rankings'
-import { generateRegistrationNumber, normaliseRegistrationNumber } from '../../utils/registration'
+import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../utils/registration'
+import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements'
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import {
   createAthlete,
   getAllAthletes,
   getAthleteById,
-  getAthleteByRegistrationNumber,
+  getAthleteBySkfId,
   getAthleteRank,
   updateAthlete,
 } from './athletes'
@@ -21,7 +22,7 @@ type AthletePointsHistoryEntry = Record<string, unknown>
 
 type AthleteRecord = {
   id: string
-  registrationNumber: string
+  skfId: string
   firstName: string
   lastName: string
   dateOfBirth: string
@@ -53,6 +54,7 @@ type AthleteInput = Partial<AthleteRecord>
 
 type AthleteDatabaseRow = {
   id?: string
+  skf_id?: string | null
   registration_number?: string | null
   first_name?: string | null
   last_name?: string | null
@@ -93,8 +95,39 @@ type DatabaseWriteError = {
   message?: string
 }
 
+function isMissingSkfIdColumnError(error: unknown) {
+  const maybeError = error as { code?: string; message?: string }
+  const message = String(maybeError?.message || '').toLowerCase()
+
+  return (
+    maybeError?.code === '42703' ||
+    maybeError?.code === 'PGRST204' ||
+    (message.includes('skf_id') && message.includes('column'))
+  )
+}
+
 function cloneAthleteData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
+}
+
+function normalizedText(value: unknown, fallback = '') {
+  const normalized = String(value ?? '').trim()
+  return normalized || fallback
+}
+
+function normalizedLowerText(value: unknown, fallback = '') {
+  return normalizedText(value, fallback).toLowerCase()
+}
+
+function readBoolean(value: unknown, fallback = false) {
+  if (typeof value === 'boolean') return value
+  if (value === null || value === undefined || value === '') return fallback
+
+  const normalized = String(value).trim().toLowerCase()
+  if (['true', '1', 'yes', 'y'].includes(normalized)) return true
+  if (['false', '0', 'no', 'n'].includes(normalized)) return false
+
+  return fallback
 }
 
 function buildRankSnapshotsForAthletes(athletes: AthleteRecord[]) {
@@ -104,7 +137,7 @@ function buildRankSnapshotsForAthletes(athletes: AthleteRecord[]) {
 
 function buildSearchResult(athlete: AthleteRecord, rankSnapshot?: RankSnapshot) {
   return {
-    registrationNumber: athlete.registrationNumber,
+    skfId: athlete.skfId,
     firstName: athlete.firstName,
     lastName: athlete.lastName,
     branchName: athlete.branchName,
@@ -117,28 +150,39 @@ function buildSearchResult(athlete: AthleteRecord, rankSnapshot?: RankSnapshot) 
 }
 
 function mapAthleteRowToRecord(row: AthleteDatabaseRow): AthleteRecord {
+  const skfId = row.skf_id || row.registration_number || row.id || ''
+  const branchName = normalizedText(row.branch_name)
+  const joinDate = normalizedText(row.join_date)
+  const achievements = ensureInitialWhiteBeltAchievement(
+    Array.isArray(row.achievements) ? row.achievements : [],
+    {
+      joinDate,
+      branchName,
+    }
+  )
+
   return {
-    id: row.id,
-    registrationNumber: row.registration_number,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    dateOfBirth: row.date_of_birth || '',
-    gender: row.gender || 'male',
-    photoUrl: row.photo_url || '',
-    branchName: row.branch_name || '',
-    currentBelt: row.current_belt || 'white',
-    joinDate: row.join_date || '',
-    status: row.status || 'active',
-    parentName: row.parent_name || '',
-    phone: row.phone || '',
-    email: row.email || '',
-    batch: row.batch || '',
+    id: normalizedText(row.id),
+    skfId: normaliseSkfId(String(skfId)),
+    firstName: normalizedText(row.first_name),
+    lastName: normalizedText(row.last_name),
+    dateOfBirth: normalizedText(row.date_of_birth),
+    gender: normalizedLowerText(row.gender, 'male'),
+    photoUrl: normalizedText(row.photo_url),
+    branchName,
+    currentBelt: normalizedLowerText(row.current_belt, 'white'),
+    joinDate,
+    status: normalizedLowerText(row.status, 'active'),
+    parentName: normalizedText(row.parent_name),
+    phone: normalizedText(row.phone),
+    email: normalizedText(row.email),
+    batch: normalizedText(row.batch),
     monthlyFee: Number(row.monthly_fee || 0),
-    photoConsent: Boolean(row.photo_consent),
+    photoConsent: readBoolean(row.photo_consent, false),
     consentGivenAt: row.consent_given_at || null,
-    isPublic: Boolean(row.is_public),
-    isFeatured: Boolean(row.is_featured),
-    achievements: Array.isArray(row.achievements) ? row.achievements : [],
+    isPublic: readBoolean(row.is_public, true),
+    isFeatured: readBoolean(row.is_featured, false),
+    achievements,
     pointsHistory: Array.isArray(row.points_history) ? row.points_history : [],
     pointsBalance: Number(row.points_balance || 0),
     pointsLifetime: Number(row.points_lifetime || 0),
@@ -151,10 +195,14 @@ function mapAthleteRowToRecord(row: AthleteDatabaseRow): AthleteRecord {
   }
 }
 
-function mapAthleteRecordToRow(record: AthleteRecord): Record<string, unknown> {
-  return {
+type AthleteIdentifierColumn = 'skf_id' | 'registration_number'
+
+function mapAthleteRecordToRow(
+  record: AthleteRecord,
+  identifierColumn: AthleteIdentifierColumn = 'skf_id'
+): Record<string, unknown> {
+  const row: Record<string, unknown> = {
     id: record.id,
-    registration_number: record.registrationNumber,
     first_name: record.firstName,
     last_name: record.lastName,
     date_of_birth: record.dateOfBirth || null,
@@ -184,6 +232,10 @@ function mapAthleteRecordToRow(record: AthleteRecord): Record<string, unknown> {
     created_at: record.createdAt || new Date().toISOString(),
     updated_at: record.updatedAt || new Date().toISOString(),
   }
+
+  row[identifierColumn] = record.skfId
+
+  return row
 }
 
 function normaliseAthletePayload(
@@ -191,19 +243,25 @@ function normaliseAthletePayload(
   existing: AthleteRecord | null = null
 ): AthleteRecord {
   const now = new Date().toISOString()
+  const joinDate =
+    input.joinDate || existing?.joinDate || new Date().toISOString().split('T')[0]
+  const branchName = input.branchName || existing?.branchName || ''
+  const achievements = Array.isArray(input.achievements)
+    ? input.achievements
+    : existing?.achievements || []
 
   return {
     id: existing?.id || input.id || `athlete_${randomUUID()}`,
-    registrationNumber:
-      input.registrationNumber || existing?.registrationNumber || '',
+    skfId:
+      input.skfId || existing?.skfId || '',
     firstName: input.firstName?.trim() || existing?.firstName || '',
     lastName: input.lastName?.trim() || existing?.lastName || '',
     dateOfBirth: input.dateOfBirth || existing?.dateOfBirth || '',
     gender: input.gender || existing?.gender || 'male',
     photoUrl: input.photoUrl || existing?.photoUrl || '',
-    branchName: input.branchName || existing?.branchName || '',
+    branchName,
     currentBelt: input.currentBelt || existing?.currentBelt || 'white',
-    joinDate: input.joinDate || existing?.joinDate || '',
+    joinDate,
     status: input.status || existing?.status || 'active',
     parentName: input.parentName || existing?.parentName || '',
     phone: input.phone || existing?.phone || '',
@@ -226,9 +284,10 @@ function normaliseAthletePayload(
       typeof input.isFeatured === 'boolean'
         ? input.isFeatured
         : existing?.isFeatured ?? false,
-    achievements: Array.isArray(input.achievements)
-      ? input.achievements
-      : existing?.achievements || [],
+    achievements: ensureInitialWhiteBeltAchievement(achievements, {
+      joinDate,
+      branchName,
+    }),
     pointsHistory: Array.isArray(input.pointsHistory)
       ? input.pointsHistory
       : existing?.pointsHistory || [],
@@ -273,31 +332,31 @@ async function getAthleteDataset(): Promise<AthleteRecord[]> {
   }
 }
 
-async function getNextSequenceNumberLive(year: number): Promise<number> {
+async function getNextSequenceNumberLive(year: number, branchName = 'MP'): Promise<number> {
   const athletes = await getAthleteDataset()
-  const athletesThisYear = athletes.filter((athlete) =>
-    String(athlete.registrationNumber || '').startsWith(`SKF-${year}-`)
-  )
-
-  if (athletesThisYear.length === 0) return 1
-
-  const sequences = athletesThisYear
-    .map((athlete) => Number.parseInt(String(athlete.registrationNumber).split('-')[2] || '0', 10))
+  const branchCode = getBranchCode(branchName)
+  const sequences = athletes
+    .map((athlete) => parseSkfId(String(athlete.skfId || '')))
+    .filter((parts) => {
+      if (!parts || parts.year !== year) return false
+      return parts.branchCode === branchCode || (parts.legacy && branchCode === 'MP')
+    })
+    .map((parts) => parts?.sequence || 0)
     .filter((value) => Number.isFinite(value))
 
   return sequences.length > 0 ? Math.max(...sequences) + 1 : 1
 }
 
-async function hasAthleteRegistrationNumberLive(
-  registrationNumber: string,
+async function hasAthleteSkfIdLive(
+  skfId: string,
   excludeId: string | null = null
 ): Promise<boolean> {
-  const normalized = normaliseRegistrationNumber(registrationNumber)
+  const normalized = normaliseSkfId(skfId)
   const athletes = await getAthleteDataset()
 
   return athletes.some((athlete) => {
     return (
-      String(athlete.registrationNumber || '').toUpperCase() === normalized.toUpperCase() &&
+      String(athlete.skfId || '').toUpperCase() === normalized.toUpperCase() &&
       athlete.id !== excludeId
     )
   })
@@ -311,8 +370,15 @@ function handleAthleteWriteError(error: DatabaseWriteError): never {
     )
   }
 
+  if (isMissingSkfIdColumnError(error)) {
+    throw new ApiError(
+      500,
+      'Supabase athletes schema is incomplete: missing "athletes.skf_id". Run database/migrations/011_rename_registration_number_to_skf_id.sql.'
+    )
+  }
+
   if (error?.code === '23505') {
-    throw new ApiError(409, 'An athlete with this registration number already exists.')
+    throw new ApiError(409, 'An athlete with this SKF ID already exists.')
   }
 
   throw new ApiError(500, error?.message || 'Unable to persist the athlete record.')
@@ -322,28 +388,55 @@ export async function getAllAthletesLive() {
   return cloneAthleteData(await getAthleteDataset())
 }
 
-export async function getAthleteByRegistrationNumberLive(regNum: string) {
-  if (!isSupabaseReady()) {
-    return cloneAthleteData(getAthleteByRegistrationNumber(regNum))
-  }
-
-  try {
-    const normalized = normaliseRegistrationNumber(regNum)
+async function findAthleteByColumn(column: string, lookupCandidates: string[]) {
+  for (const lookup of lookupCandidates) {
     const { data, error } = await supabaseAdmin
       .from('athletes')
       .select('*')
-      .eq('registration_number', normalized)
+      .eq(column, lookup)
       .single()
 
     if (error) {
-      if (error.code === 'PGRST116') return null
-      throw error
+      if (error.code !== 'PGRST116') throw error
+    } else {
+      return mapAthleteRowToRecord(data)
+    }
+  }
+
+  return null
+}
+
+export async function getAthleteBySkfIdLive(skfId: string) {
+  if (!isSupabaseReady()) {
+    return cloneAthleteData(getAthleteBySkfId(skfId))
+  }
+
+  try {
+    const normalized = normaliseSkfId(skfId)
+    const lookupCandidates = Array.from(
+      new Set([normalized, String(skfId || '').trim()].filter(Boolean))
+    )
+
+    try {
+      const athleteBySkfId = await findAthleteByColumn('skf_id', lookupCandidates)
+      if (athleteBySkfId) return athleteBySkfId
+    } catch (error) {
+      if (!isMissingSkfIdColumnError(error)) throw error
+
+      const athleteByMigratingColumn = await findAthleteByColumn(
+        'registration_number',
+        lookupCandidates
+      )
+      if (athleteByMigratingColumn) return athleteByMigratingColumn
     }
 
-    return mapAthleteRowToRecord(data)
+    const athleteById = await findAthleteByColumn('id', lookupCandidates)
+    if (athleteById) return athleteById
+
+    return null
   } catch (error) {
-    console.warn('[athletes-live] Falling back to local athlete lookup:', error)
-    return cloneAthleteData(getAthleteByRegistrationNumber(regNum))
+    console.warn('[athletes-live] Falling back to local athlete lookup by SKF ID:', error)
+    return cloneAthleteData(getAthleteBySkfId(skfId))
   }
 }
 
@@ -384,38 +477,85 @@ export async function getFeaturedAthletesLive() {
 export async function searchAthletesByNameLive(query: string) {
   if (!query) return []
 
-  const lowerQuery = query.toLowerCase()
+  const lowerQuery = query.toLowerCase().trim()
+  const normalizedSkfQuery = normaliseSkfId(query).toLowerCase()
+  const compactSkfQuery = normalizedSkfQuery.replace(/-/g, '')
   const athletes = await getAthleteDataset()
   const rankSnapshots = buildRankSnapshotsForAthletes(athletes)
   const rankMap = new Map(rankSnapshots.map((entry) => [String(entry.athleteId), entry]))
 
+  const getSearchFields = (athlete: AthleteRecord) => {
+    const firstName = String(athlete.firstName || '').toLowerCase()
+    const lastName = String(athlete.lastName || '').toLowerCase()
+    const fullName = `${firstName} ${lastName}`.trim()
+    const athleteId = normaliseSkfId(String(athlete.id || '')).toLowerCase()
+    const skfId = normaliseSkfId(
+      String(athlete.skfId || '')
+    ).toLowerCase()
+    const compactAthleteId = athleteId.replace(/-/g, '')
+    const compactSkfId = skfId.replace(/-/g, '')
+
+    return {
+      firstName,
+      lastName,
+      fullName,
+      athleteId,
+      skfId,
+      compactAthleteId,
+      compactSkfId,
+    }
+  }
+
   return athletes
-    .filter(
-      (athlete) =>
-        athlete.isPublic &&
-        athlete.status === 'active' &&
-        (String(athlete.firstName || '').toLowerCase().includes(lowerQuery) ||
-          String(athlete.lastName || '').toLowerCase().includes(lowerQuery))
-    )
+    .filter((athlete) => {
+      if (!athlete.isPublic || athlete.status !== 'active') return false
+
+      const fields = getSearchFields(athlete)
+      return (
+        fields.firstName.includes(lowerQuery) ||
+        fields.lastName.includes(lowerQuery) ||
+        fields.fullName.includes(lowerQuery) ||
+        fields.athleteId.includes(normalizedSkfQuery) ||
+        fields.skfId.includes(normalizedSkfQuery) ||
+        fields.compactAthleteId.includes(compactSkfQuery) ||
+        fields.compactSkfId.includes(compactSkfQuery)
+      )
+    })
     .sort((a, b) => {
-      const aName = `${a.firstName} ${a.lastName}`.trim().toLowerCase()
-      const bName = `${b.firstName} ${b.lastName}`.trim().toLowerCase()
+      const aFields = getSearchFields(a)
+      const bFields = getSearchFields(b)
       const aRank = rankMap.get(String(a.id))
       const bRank = rankMap.get(String(b.id))
 
-      const getPriority = (name: string) => {
-        if (name === lowerQuery) return 0
-        if (name.startsWith(lowerQuery)) return 1
-        return 2
+      const getPriority = (fields: ReturnType<typeof getSearchFields>) => {
+        if (
+          fields.athleteId === normalizedSkfQuery ||
+          fields.skfId === normalizedSkfQuery ||
+          fields.compactAthleteId === compactSkfQuery ||
+          fields.compactSkfId === compactSkfQuery
+        ) {
+          return 0
+        }
+        if (
+          fields.athleteId.startsWith(normalizedSkfQuery) ||
+          fields.skfId.startsWith(normalizedSkfQuery) ||
+          fields.compactAthleteId.startsWith(compactSkfQuery) ||
+          fields.compactSkfId.startsWith(compactSkfQuery)
+        ) {
+          return 1
+        }
+        if (fields.fullName === lowerQuery) return 2
+        if (fields.fullName.startsWith(lowerQuery)) return 3
+        return 4
       }
 
-      const priorityDiff = getPriority(aName) - getPriority(bName)
+      const priorityDiff = getPriority(aFields) - getPriority(bFields)
       if (priorityDiff !== 0) return priorityDiff
 
       const pointDiff = Number(bRank?.totalPoints || 0) - Number(aRank?.totalPoints || 0)
       if (pointDiff !== 0) return pointDiff
 
-      return aName.localeCompare(bName)
+      return aFields.fullName.localeCompare(bFields.fullName)
     })
     .map((athlete) => buildSearchResult(athlete, rankMap.get(String(athlete.id))))
 }
@@ -470,28 +610,37 @@ export async function createAthleteLive(input: AthleteInput) {
 
   const joinDate = input.joinDate || new Date().toISOString().split('T')[0]
   const joinYear = Number.parseInt(String(joinDate).slice(0, 4), 10) || new Date().getFullYear()
-  const requestedRegistrationNumber = input.registrationNumber
-    ? normaliseRegistrationNumber(input.registrationNumber)
+  const requestedSkfId = input.skfId
+    ? normaliseSkfId(input.skfId)
     : ''
-  const registrationNumber =
-    requestedRegistrationNumber ||
-    generateRegistrationNumber(joinYear, await getNextSequenceNumberLive(joinYear))
+  const branchName = input.branchName || 'MP'
+  const skfId =
+    requestedSkfId ||
+    generateSkfId(joinYear, branchName, await getNextSequenceNumberLive(joinYear, branchName))
 
-  if (await hasAthleteRegistrationNumberLive(registrationNumber)) {
-    throw new ApiError(409, 'An athlete with this registration number already exists.')
+  if (await hasAthleteSkfIdLive(skfId)) {
+    throw new ApiError(409, 'An athlete with this SKF ID already exists.')
   }
 
   const athlete = normaliseAthletePayload({
     ...input,
     joinDate,
-    registrationNumber,
+    skfId,
   })
 
-  const { data, error } = await supabaseAdmin
+  let { data, error } = await supabaseAdmin
     .from('athletes')
     .insert(mapAthleteRecordToRow(athlete))
     .select('*')
     .single()
+
+  if (error && isMissingSkfIdColumnError(error)) {
+    ;({ data, error } = await supabaseAdmin
+      .from('athletes')
+      .insert(mapAthleteRecordToRow(athlete, 'registration_number'))
+      .select('*')
+      .single())
+  }
 
   if (error) {
     handleAthleteWriteError(error)
@@ -508,25 +657,34 @@ export async function updateAthleteLive(id: string, input: AthleteInput) {
   const existingAthlete = await getAthleteByIdLive(id)
   if (!existingAthlete) return null
 
-  const registrationNumber = input.registrationNumber
-    ? normaliseRegistrationNumber(input.registrationNumber)
-    : existingAthlete.registrationNumber
+  const skfId = input.skfId
+    ? normaliseSkfId(input.skfId)
+    : existingAthlete.skfId
 
-  if (await hasAthleteRegistrationNumberLive(registrationNumber, id)) {
-    throw new ApiError(409, 'An athlete with this registration number already exists.')
+  if (await hasAthleteSkfIdLive(skfId, id)) {
+    throw new ApiError(409, 'An athlete with this SKF ID already exists.')
   }
 
   const athlete = normaliseAthletePayload(
-    { ...input, registrationNumber },
+    { ...input, skfId },
     existingAthlete
   )
 
-  const { data, error } = await supabaseAdmin
+  let { data, error } = await supabaseAdmin
     .from('athletes')
     .update(mapAthleteRecordToRow(athlete))
     .eq('id', id)
     .select('*')
     .single()
+
+  if (error && isMissingSkfIdColumnError(error)) {
+    ;({ data, error } = await supabaseAdmin
+      .from('athletes')
+      .update(mapAthleteRecordToRow(athlete, 'registration_number'))
+      .eq('id', id)
+      .select('*')
+      .single())
+  }
 
   if (error) {
     handleAthleteWriteError(error)
@@ -536,24 +694,24 @@ export async function updateAthleteLive(id: string, input: AthleteInput) {
 }
 
 export async function upsertAthleteMirror(input: AthleteInput) {
-  const normalizedRegistration = normaliseRegistrationNumber(input.registrationNumber || '')
-  if (!normalizedRegistration) {
-    throw new ApiError(400, 'Registration number is required to sync an athlete mirror.')
+  const normalizedSkfId = normaliseSkfId(input.skfId || '')
+  if (!normalizedSkfId) {
+    throw new ApiError(400, 'SKF ID is required to sync an athlete mirror.')
   }
 
-  const existing = await getAthleteByRegistrationNumberLive(normalizedRegistration)
+  const existing = await getAthleteBySkfIdLive(normalizedSkfId)
 
   if (existing) {
     return updateAthleteLive(existing.id, {
       ...existing,
       ...input,
-      registrationNumber: normalizedRegistration,
+      skfId: normalizedSkfId,
     })
   }
 
   return createAthleteLive({
     ...input,
-    registrationNumber: normalizedRegistration,
+    skfId: normalizedSkfId,
   })
 }
 

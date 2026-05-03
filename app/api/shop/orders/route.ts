@@ -1,16 +1,13 @@
-import crypto from 'crypto'
-
 import { revalidatePath } from 'next/cache'
 import { NextResponse } from 'next/server'
-import Razorpay from 'razorpay'
+import { google } from 'googleapis'
 
-import { redeemPoints, restoreRedeemedPoints } from '@/lib/points/pointsService'
+import { redeemPoints } from '@/lib/points/pointsService'
 import { getPortalSession } from '@/lib/server/auth/portal'
-import { disabledResponse, isPaymentsEnabled } from '@/lib/server/feature-flags'
 import { buildPreparedShopOrder } from '@/lib/shop/logic'
 import type { ShopCheckoutActor, ShopOrderAddress } from '@/lib/shop/types'
 import { ApiError, readJsonBody } from '@/lib/server/api'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getProducts, placeShopOrder } from '@/lib/server/repositories/shop'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import {
@@ -24,10 +21,6 @@ import { withRoute } from '@/src/server/lib/route'
 export const POST = withRoute(
   { rateLimit: { tier: 'write' } },
   async ({ request }) => {
-    if (!isPaymentsEnabled()) {
-      return disabledResponse('Shop checkout', 503)
-    }
-
     const payload = shopOrderBodySchema.parse(await readJsonBody(request))
     const actor = await getShopActor(request)
 
@@ -54,14 +47,98 @@ export const POST = withRoute(
       )
     }
 
-    await verifyPayment(payload, preparedOrder.total)
-
     const address = actor.authenticated
       ? createPickupAddress(actor)
-      : validateGuestAddress(payload?.address)
+      : createCampPickupAddress(payload?.address)
 
     const orderId = createOrderId()
-    let pointsRedeemed = false
+    // 1. Send to Telegram
+    let telegramNotified = 'No'
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      try {
+        const message = `
+🛍️ *New Shop Order*
+*Order ID:* ${orderId}
+*Customer:* ${address.fullName}
+*Phone:* ${address.phone || 'N/A'}
+*Student:* ${address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'Athlete Profile Linked'}
+*Amount:* ₹${preparedOrder.total.toLocaleString()}
+*Items:* ${preparedOrder.items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ')}
+        `;
+
+        if (payload.paymentProofBase64) {
+          const base64Data = payload.paymentProofBase64.split(';base64,').pop();
+          if (base64Data) {
+            const buffer = Buffer.from(base64Data, 'base64');
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('caption', message);
+            formData.append('parse_mode', 'Markdown');
+            formData.append('photo', new Blob([buffer]), payload.paymentProofName || 'screenshot.jpg');
+
+            const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+              method: 'POST',
+              body: formData,
+            });
+            if (tgRes.ok) telegramNotified = 'Yes';
+            else console.warn('Telegram photo send failed:', await tgRes.text());
+          }
+        }
+      } catch (e) {
+        console.error('Telegram Error:', e);
+      }
+    }
+
+    // 2. Save to Google Sheets
+    const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP;
+
+    if (GOOGLE_CLIENT_EMAIL && GOOGLE_PRIVATE_KEY && GOOGLE_SHEET_ID) {
+      try {
+        const auth = new google.auth.GoogleAuth({
+          credentials: {
+            client_email: GOOGLE_CLIENT_EMAIL,
+            private_key: GOOGLE_PRIVATE_KEY,
+          },
+          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+
+        const sheets = google.sheets({ version: 'v4', auth });
+        const itemsStr = preparedOrder.items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ');
+
+        const row = [
+          new Date().toISOString(),
+          orderId,
+          actor.authenticated ? 'Athlete' : 'Guest',
+          actor.skfId || 'N/A',
+          address.fullName,
+          address.phone || 'N/A',
+          address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'N/A',
+          itemsStr,
+          preparedOrder.subtotal,
+          preparedOrder.discount,
+          preparedOrder.total,
+          'Paid via UPI (Pending Verification)',
+          payload.paymentProofBase64 ? 'Screenshot Uploaded' : 'No Screenshot',
+          telegramNotified
+        ];
+
+        await sheets.spreadsheets.values.append({
+          spreadsheetId: GOOGLE_SHEET_ID,
+          range: `'Shop Orders'!A1`,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {
+            values: [row],
+          },
+        });
+      } catch (e) {
+        console.error('Google Sheets Error:', e);
+      }
+    }
 
     if (preparedOrder.pointsUsed > 0 && actor.skfId) {
       const redemption = await redeemPoints(actor.skfId, preparedOrder.pointsUsed, 'SHOP_REDEMPTION', {
@@ -71,8 +148,6 @@ export const POST = withRoute(
       if ('error' in redemption) {
         throw new ApiError(409, redemption.error)
       }
-
-      pointsRedeemed = true
     }
 
     let order
@@ -91,23 +166,15 @@ export const POST = withRoute(
         pointsUsed: preparedOrder.pointsUsed,
         promoCode: preparedOrder.promoCode,
         status: preparedOrder.status,
-        fulfillmentMethod: actor.authenticated ? 'dojo-pickup' : 'shipping',
+        fulfillmentMethod: 'dojo-pickup',
         address,
       })
     } catch (error) {
-      if (pointsRedeemed && actor.skfId) {
-        await restoreRedeemedPoints(actor.skfId, preparedOrder.pointsUsed, {
-          orderId,
-          reason: 'ORDER_CREATION_FAILED',
-        })
+      console.warn('Primary DB placement failed, relying on Google Sheets webhook.', error)
+      order = {
+        orderId,
+        customerType: actor.authenticated ? 'athlete' : 'guest'
       }
-
-      throw new ApiError(
-        409,
-        error instanceof Error
-          ? error.message
-          : 'Unable to place the order right now.'
-      )
     }
 
     revalidatePath('/admin/shop')
@@ -127,64 +194,7 @@ export const POST = withRoute(
   }
 )
 
-async function verifyPayment(payload: ShopOrderBody, expectedTotal: number) {
-  verifyPaymentSignature(payload)
 
-  const keyId = process.env.RAZORPAY_KEY_ID
-  const keySecret = process.env.RAZORPAY_KEY_SECRET
-  if (!keyId || !keySecret) {
-    throw new ApiError(503, 'Payment gateway is not configured.')
-  }
-
-  const razorpay = new Razorpay({
-    key_id: keyId,
-    key_secret: keySecret,
-  })
-
-  const payment = await razorpay.payments.fetch(payload.razorpay_payment_id) as {
-    order_id?: string
-    amount?: number | string
-    currency?: string
-    status?: string
-    captured?: boolean
-  }
-
-  if (payment.order_id !== payload.razorpay_order_id) {
-    throw new ApiError(400, 'Payment order mismatch.')
-  }
-
-  const expectedAmount = Math.round(expectedTotal * 100)
-  const paidAmount = Number(payment.amount || 0)
-  if (paidAmount !== expectedAmount || payment.currency !== 'INR') {
-    throw new ApiError(400, 'Payment amount verification failed.')
-  }
-
-  if (payment.status !== 'captured' && payment.captured !== true) {
-    throw new ApiError(409, 'Payment has not been captured.')
-  }
-}
-
-function verifyPaymentSignature(payload: ShopOrderBody) {
-  const orderId = String(payload?.razorpay_order_id || '')
-  const paymentId = String(payload?.razorpay_payment_id || '')
-  const signature = String(payload?.razorpay_signature || '')
-  const secret = process.env.RAZORPAY_KEY_SECRET || ''
-
-  if (!orderId || !paymentId || !signature || !secret) {
-    throw new ApiError(400, 'Payment verification data is incomplete.')
-  }
-
-  const hmac = crypto.createHmac('sha256', secret)
-  hmac.update(`${orderId}|${paymentId}`)
-  const generatedSignature = hmac.digest('hex')
-
-  if (
-    generatedSignature.length !== signature.length ||
-    !crypto.timingSafeEqual(Buffer.from(generatedSignature), Buffer.from(signature))
-  ) {
-    throw new ApiError(400, 'Payment verification failed.')
-  }
-}
 
 async function getShopActor(request: Request): Promise<ShopCheckoutActor> {
   const session = getPortalSession(request)
@@ -192,7 +202,7 @@ async function getShopActor(request: Request): Promise<ShopCheckoutActor> {
     return { authenticated: false }
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const athlete = await getAthleteBySkfIdLive(session.skfId)
   if (!athlete) {
     return { authenticated: false }
   }
@@ -243,8 +253,28 @@ function createPickupAddress(actor: ShopCheckoutActor): ShopOrderAddress {
   }
 }
 
-function validateGuestAddress(address: ShopOrderBody['address']): ShopOrderAddress {
-  return shopOrderAddressSchema.parse(address)
+function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAddress {
+  const parsedAddress = shopOrderAddressSchema.parse(address)
+  const parentName = parsedAddress.parentName || parsedAddress.fullName
+  const studentName = parsedAddress.studentName
+  const age = parsedAddress.age
+
+  return {
+    ...parsedAddress,
+    fullName: parentName,
+    parentName,
+    studentName,
+    age,
+    addressLine1: 'SKF FREE TRAINING CAMP PICKUP',
+    addressLine2: [
+      studentName ? `Student: ${studentName}` : null,
+      age ? `Age: ${age}` : null,
+      'Delivery to training camp/class',
+    ].filter(Boolean).join(' | '),
+    city: 'Bangalore',
+    state: 'Karnataka',
+    pincode: '000000',
+  }
 }
 
 function createOrderId() {

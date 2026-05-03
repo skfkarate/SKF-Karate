@@ -59,8 +59,62 @@ const requiredTables = [
   ['certificate_events', 'id'],
   ['certificates', 'enrollment_id'],
   ['fee_records', 'id'],
+  ['blog_posts', 'slug'],
+  ['class_cities', 'slug'],
+  ['class_branches', 'slug'],
+  ['class_schools', 'id'],
+  ['events', 'id'],
+  ['event_categories', 'slug'],
   ['student_points', 'skf_id'],
   ['point_transactions', 'id'],
+]
+
+const requiredColumns = [
+  [
+    'athletes',
+    'skf_id',
+    'Run database/migrations/011_rename_registration_number_to_skf_id.sql.',
+  ],
+  [
+    'athletes',
+    'achievements',
+    'Run database/schema.sql or the athlete profile migration set.',
+  ],
+  [
+    'ranking_snapshots',
+    'skf_id',
+    'Run database/migrations/010_ranking_snapshots.sql and database/migrations/011_rename_registration_number_to_skf_id.sql.',
+  ],
+  [
+    'blog_posts',
+    'content',
+    'Run database/migrations/013_blog_posts.sql.',
+  ],
+  [
+    'events',
+    'is_results_published',
+    'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
+  [
+    'events',
+    'show_in_journey',
+    'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
+  [
+    'events',
+    'hosting_branch',
+    'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
+  [
+    'class_branches',
+    'class_days',
+    'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
+  [
+    'class_branches',
+    'lead_sensei_id',
+    'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
 ]
 
 const sensitiveAnonTables = [
@@ -76,30 +130,54 @@ const sensitiveAnonTables = [
 
 let failures = 0
 let warnings = 0
+const missingTables = new Set()
 
 function mark(status, message) {
   console.log(`${status} ${message}`)
 }
 
 async function checkTableExists(table, column) {
-  const { error, count } = await admin
+  const { error, data } = await admin
     .from(table)
-    .select(column, { count: 'exact', head: true })
+    .select(column)
     .limit(1)
 
   if (error) {
     failures += 1
+    if (error.code === 'PGRST205' || error.code === '42P01') {
+      missingTables.add(table)
+    }
     mark('FAIL', `${table}: not queryable by service role (${error.code || error.message})`)
     return
   }
 
-  mark('PASS', `${table}: exists and service role can query (${count ?? 0} rows)`)
+  mark('PASS', `${table}: exists and service role can query (${data?.length ?? 0} sampled rows)`)
+}
+
+async function checkRequiredColumn(table, column, hint) {
+  const { error } = await admin
+    .from(table)
+    .select(column)
+    .limit(1)
+
+  if (error) {
+    failures += 1
+    mark('FAIL', `${table}.${column}: missing or not queryable. ${hint}`)
+    return
+  }
+
+  mark('PASS', `${table}.${column}: exists`)
 }
 
 async function checkAnonExposure(table, column) {
   const { data, error } = await anon.from(table).select(column).limit(1)
 
   if (error) {
+    if (missingTables.has(table)) {
+      mark('SKIP', `${table}: anon exposure not checked because required table is missing`)
+      return
+    }
+
     mark('PASS', `${table}: anon direct read blocked (${error.code || error.message})`)
     return
   }
@@ -143,6 +221,10 @@ console.log(`Project: ${new URL(supabaseUrl).hostname}`)
 
 for (const [table, column] of requiredTables) {
   await checkTableExists(table, column)
+}
+
+for (const [table, column, hint] of requiredColumns) {
+  await checkRequiredColumn(table, column, hint)
 }
 
 for (const [table, column] of sensitiveAnonTables) {

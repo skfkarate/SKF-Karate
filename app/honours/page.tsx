@@ -8,14 +8,16 @@ import {
 } from '@/lib/server/repositories/athletes-live'
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './honours.css'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Celebrating our black belt holders, top performers, and tournament champions.',
-}
+export const metadata = buildSeoMetadata(
+  '/honours',
+  'Celebrate SKF Karate black belts, champions, top performers, medal winners, instructors, and athletes recognized for karate excellence in Karnataka today.'
+)
 
 function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
@@ -59,7 +61,7 @@ type AthleteAchievement = {
 
 type PublicAthlete = {
   id: string
-  registrationNumber: string
+  skfId: string
   firstName: string
   lastName: string
   branchName: string
@@ -71,7 +73,7 @@ type PublicAthlete = {
 
 type RankingSnapshot = {
   athleteId: string
-  registrationNumber: string
+  skfId: string
   athleteName: string
   branchName: string
   currentBelt: string
@@ -82,7 +84,7 @@ type TournamentAchievement = {
   id: string
   athleteId: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName: string
   belt: string
   photoUrl?: string
@@ -112,7 +114,7 @@ function buildTournamentAchievements(publicAthletes: PublicAthlete[]): Tournamen
           id: achievement.id || `${athlete.id}-${index}`,
           athleteId: athlete.id,
           athleteName: `${athlete.firstName} ${athlete.lastName}`,
-          registrationNumber: athlete.registrationNumber,
+          skfId: athlete.skfId,
           branchName: athlete.branchName,
           belt: beltLabel(athlete.currentBelt),
           photoUrl: athlete.photoUrl,
@@ -171,18 +173,24 @@ export default async function HonoursPage() {
   const senseiDanHolders = senseis
     .filter((sensei) => sensei.isActive && sensei.isPublic)
     .sort((a, b) => danSort(b.dan) - danSort(a.dan) || a.sortOrder - b.sortOrder)
-    .map((sensei) => ({
-      id: sensei.id,
-      slug: sensei.slug,
-      displayName: sensei.name,
-      danLabel: sensei.dan,
-      subtitle: sensei.assignments?.[0]?.branchName
-        ? `SKF ${sensei.assignments[0].branchName}`
-        : sensei.title,
-      imageUrl: sensei.imageUrl,
-      profileHref: `/senseis/${sensei.slug}`,
-      assignments: sensei.assignments,
-    }))
+    .map((sensei) => {
+      const primaryAssignment = sensei.assignments?.[0]
+
+      return {
+        id: sensei.id,
+        slug: sensei.slug,
+        displayName: sensei.name,
+        danLabel: sensei.dan,
+        subtitle: primaryAssignment?.branchName
+          ? `SKF ${primaryAssignment.branchName}`
+          : sensei.title,
+        imageUrl: sensei.imageUrl,
+        profileHref: primaryAssignment
+          ? `/classes/${primaryAssignment.citySlug}/${primaryAssignment.branchSlug}`
+          : '/classes',
+        assignments: sensei.assignments,
+      }
+    })
 
   const athleteDanHolders = publicAthletes
     .filter((athlete) => athlete.currentBelt?.startsWith('black'))
@@ -206,9 +214,12 @@ export default async function HonoursPage() {
     (achievement) => achievement.level === 'state' && achievement.medal === 'gold'
   )
   const latestSpotlight = getLatestSpotlight(tournamentAchievements)
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Honours', '/honours')
 
   return (
     <div className="hon-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       <div className="hon-orb hon-orb--1" />
       <div className="hon-orb hon-orb--2" />
       <div className="hon-orb hon-orb--3" />
@@ -252,7 +263,7 @@ export default async function HonoursPage() {
           </div>
 
           <div className="hon-podium">
-            <Link href={`/athlete/${top3[1].registrationNumber}`} className="hon-pcard hon-pcard--2">
+            <Link href={`/athlete/${top3[1].skfId}`} className="hon-pcard hon-pcard--2">
               <span className="hon-pcard__medal">🥈</span>
               <div className="hon-pcard__photo hon-pcard__photo--silver"><ProfileSvg size={56} /></div>
               <h3 className="hon-pcard__name">{top3[1].athleteName}</h3>
@@ -261,7 +272,7 @@ export default async function HonoursPage() {
               <div className="hon-pcard__pts">{Number(top3[1].totalPoints || 0).toFixed(0)}<small> pts</small></div>
             </Link>
 
-            <Link href={`/athlete/${top3[0].registrationNumber}`} className="hon-pcard hon-pcard--1">
+            <Link href={`/athlete/${top3[0].skfId}`} className="hon-pcard hon-pcard--1">
               <span className="hon-pcard__medal">👑</span>
               <div className="hon-pcard__photo hon-pcard__photo--gold"><ProfileSvg size={64} /></div>
               <h3 className="hon-pcard__name">{top3[0].athleteName}</h3>
@@ -270,7 +281,7 @@ export default async function HonoursPage() {
               <div className="hon-pcard__pts">{Number(top3[0].totalPoints || 0).toFixed(0)}<small> pts</small></div>
             </Link>
 
-            <Link href={`/athlete/${top3[2].registrationNumber}`} className="hon-pcard hon-pcard--3">
+            <Link href={`/athlete/${top3[2].skfId}`} className="hon-pcard hon-pcard--3">
               <span className="hon-pcard__medal">🥉</span>
               <div className="hon-pcard__photo hon-pcard__photo--bronze"><ProfileSvg size={56} /></div>
               <h3 className="hon-pcard__name">{top3[2].athleteName}</h3>
@@ -292,7 +303,7 @@ export default async function HonoursPage() {
             {nationalGolds.map((achievement) => (
               <Link
                 key={`nat-${achievement.id}`}
-                href={`/athlete/${achievement.registrationNumber}`}
+                href={`/athlete/${achievement.skfId}`}
                 className="hon-medal-card"
               >
                 <div className="hon-medal-card__photo"><ProfileSvg size={36} /></div>
@@ -317,7 +328,7 @@ export default async function HonoursPage() {
             {stateGolds.map((achievement) => (
               <Link
                 key={`state-${achievement.id}`}
-                href={`/athlete/${achievement.registrationNumber}`}
+                href={`/athlete/${achievement.skfId}`}
                 className="hon-medal-card"
               >
                 <div className="hon-medal-card__photo"><ProfileSvg size={36} /></div>
@@ -358,7 +369,7 @@ export default async function HonoursPage() {
                 category={achievement.category?.replace(/-/g, ' ')}
                 medal="gold"
                 photoUrl={achievement.photoUrl}
-                href={`/athlete/${achievement.registrationNumber}`}
+                href={`/athlete/${achievement.skfId}`}
               />
             ))}
           </div>

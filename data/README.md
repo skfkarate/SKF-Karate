@@ -88,7 +88,7 @@ data/
 ║                   SKF KARATE — FULL ENTITY MAP                          ║
 ╚═════════════════════════════════════════════════════════════════════════╝
 
- ┌──────────────┐    registrationNumber = skfId    ┌───────────────┐
+ ┌──────────────┐           skfId                  ┌───────────────┐
  │   ATHLETE    │◄────────── SAME PERSON ─────────►│   STUDENT     │
  │ (.data/json) │                                  │ (Sheets)      │
  └──────┬───────┘                                  └───────┬───────┘
@@ -152,14 +152,14 @@ data/
 | `auth_sessions.skf_id` | AuthSession | `students.skfId` | supabase → sheets |
 | `student_points.skf_id` | Points | `students.skfId` | supabase → sheets |
 | `point_transactions.skf_id` | PointTx | `students.skfId` | supabase → sheets |
-| `athletes.registrationNumber` | Athlete | `students.skfId` | local → sheets |
+| `athletes.skfId` | Athlete | `students.skfId` | local → sheets |
 
 ## Portal Auth Flow
 
 ```
 Login:  POST /api/auth/portal  →  { skfId, dob (DD/MM/YYYY) }
                                       │
-                               athlete = getAthleteByRegistrationNumber(skfId)
+                               athlete = getAthleteBySkfId(skfId)
                                if athlete.dateOfBirth === normalizedDob → JWT cookie
                                       │
                                Session: { skfId, role, branch, belt, name }

@@ -10,6 +10,7 @@ import {
   Calendar, MapPin, Trophy, Shield, Star, Download
 } from 'lucide-react'
 import '@/app/athlete-profile.css'
+import '@/app/athlete-hero.css'
 import '@/app/rankings/rankings.css'
 import { CertificateModal } from '@/components/CertificateModal'
 import { CertificateCard } from '@/components/CertificateCard'
@@ -103,7 +104,7 @@ function SectionHeader({ icon, label }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   HERO — clean 2-column: photo+name left | stats+rank right
+   HERO — Championship Card — One unified premium card
    ═══════════════════════════════════════════════════════════════════════ */
 function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDashboardContext = false }) {
   const primary = categories.find((c) => c.isPrimary) || categories[0]
@@ -114,11 +115,34 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
 
   return (
     <section className="ap-hero ap-animate-in">
-      <div className="ap-hero-bento">
-        {/* Bento Grid layout */}
-        <div className="ap-hero-bento__grid">
-          {/* Portrait Card */}
-          <div className="ap-bento-card ap-bento-portrait">
+      <div className="aph-card">
+        {/* Ambient glow */}
+        <div className="aph-card__ambient" />
+        <div className="aph-card__ambient aph-card__ambient--bl" />
+
+        {/* ── Header Band ── */}
+        <div className="aph-header">
+          <div className="aph-header__left">
+            <span className="aph-header__pre">Official SKF Athlete</span>
+            <h1 className="aph-header__name">{athleteInfo.name}</h1>
+            <div className="aph-header__tags">
+              {athleteInfo.branchName && (
+                <Link href={athleteInfo.branchHref || '/classes'} className="aph-tag aph-tag--accent">
+                  Trains at SKF {athleteInfo.branchName}
+                </Link>
+              )}
+              {isDashboardContext && athleteInfo.publicProfileHref ? (
+                <Link href={athleteInfo.publicProfileHref} target="_blank" className="aph-tag aph-tag--outline">
+                  Open Public Profile
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Content: Photo + Detail ── */}
+        <div className="aph-content">
+          <div className="aph-photo">
             <Image
               src={athleteInfo.photo}
               alt={athleteInfo.name}
@@ -126,117 +150,98 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
               crossOrigin="anonymous"
               style={{ objectFit: 'cover' }}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 300"><rect fill="%23192038" width="260" height="300"/></svg>'
+                (e.target as HTMLImageElement).src = athleteInfo.fallbackPhoto || '/no-profile/no profile male.png'
               }}
             />
-            {/* Ambient Background Glow inside portrait */}
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at bottom right, rgba(255,183,3,0.15) 0%, transparent 60%)', left: 0, bottom: 0, pointerEvents: 'none' }} />
-            
-            <div className="ap-hero__id-watermark">
-              <span style={{ fontSize: '0.45rem', opacity: 0.6, display: 'block', marginBottom: '2px' }}>SKF ID</span>
+            <div className="aph-photo__fade" />
+            <div className="aph-photo__id">
+              <span className="aph-photo__id-sup">SKF ID</span>
               {athleteInfo.id}
             </div>
           </div>
 
-          {/* Right side data grid */}
-          <div className="ap-bento-data">
-            {/* Integrated Premium Header */}
-            <div className="ap-bento-header">
-              <span className="ap-bento-header-pretitle">Official SKF Athlete</span>
-              <h1 className="ap-hero__name">{athleteInfo.name}</h1>
-              <div className="ap-hero-meta-row">
-                <span className="ap-hero__id">{athleteInfo.id}</span>
-                {athleteInfo.branchName && (
-                  <Link href={athleteInfo.branchHref || '/classes'} className="ap-hero__branch-link">
-                    Trains at SKF {athleteInfo.branchName}
-                  </Link>
-                )}
-                {isDashboardContext && athleteInfo.publicProfileHref ? (
-                  <Link
-                    href={athleteInfo.publicProfileHref}
-                    target="_blank"
-                    className="ap-hero__branch-link"
-                    style={{ borderColor: 'rgba(255,183,3,0.25)', color: 'var(--gold)' }}
-                  >
-                    Open Public Profile
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-            {/* Rank Box */}
-            <div className="ap-bento-card ap-bento-rank">
-              <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, background: 'rgba(255,183,3,0.12)', filter: 'blur(40px)', borderRadius: '50%' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
-                <div>
-                  <span className="ap-bento-label">World Ranking</span>
-                  <div className="ap-bento-cat">{primary.name}</div>
-                  <div className="ap-bento-pts">{primary.points?.toLocaleString()} pts</div>
+          <div className="aph-detail">
+            {/* Ranking */}
+            <div className="aph-rank">
+              <div className="aph-rank__glow" />
+              <div className="aph-rank__body">
+                <div className="aph-rank__info">
+                  <span className="aph-rank__label">World Ranking</span>
+                  <span className="aph-rank__cat">{primary.name}</span>
+                  <span className="aph-rank__pts">{primary.points?.toLocaleString()} pts</span>
                 </div>
-                <div className="ap-bento-rank-num">
+                <div className="aph-rank__num">
                   {primary.rank ? `#${primary.rank}` : '—'}
                 </div>
               </div>
             </div>
 
-            {/* Stats Box */}
-            <div className="ap-bento-card ap-bento-stats">
-              <div className="ap-bento-stat">
-                <span className="val">{athleteInfo.age}</span>
-                <span className="lbl">Age</span>
+            {/* Stats */}
+            <div className="aph-stats">
+              <div className="aph-stat">
+                <span className="aph-stat__val">{athleteInfo.age}</span>
+                <span className="aph-stat__lbl">Age</span>
               </div>
-              <div className="ap-bento-stat">
-                <span className="val" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {athleteInfo.countryFlag && <Image src={athleteInfo.countryFlag} alt={athleteInfo.country} width={22} height={16} crossOrigin="anonymous" style={{ borderRadius: '2px' }} />}
-                  {athleteInfo.country}
-                </span>
-                <span className="lbl">Country</span>
+              <div className="aph-stat">
+                <span className="aph-stat__val">
+                {athleteInfo.countryFlag && (
+                  <Image
+                    src={athleteInfo.countryFlag}
+                    alt={athleteInfo.country}
+                    width={24}
+                    height={17}
+                    unoptimized
+                    crossOrigin="anonymous"
+                    style={{
+                      borderRadius: '3px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      display: 'inline-block',
+                    }}
+                  />
+                )}
+                {athleteInfo.country}
+              </span>
+                <span className="aph-stat__lbl">Country</span>
               </div>
-              <div className="ap-bento-stat">
-                <span className="val">{athleteInfo.totalBouts}</span>
-                <span className="lbl">Bouts</span>
+              <div className="aph-stat">
+                <span className="aph-stat__val">{athleteInfo.totalBouts}</span>
+                <span className="aph-stat__lbl">Bouts</span>
               </div>
-              <div className="ap-bento-stat">
-                <span className="val">{athleteInfo.winRate}</span>
-                <span className="lbl">Win Rate</span>
+              <div className="aph-stat">
+                <span className="aph-stat__val">{athleteInfo.winRate}</span>
+                <span className="aph-stat__lbl">Win Rate</span>
               </div>
-            </div>
-
-            {/* Medals Box */}
-            <div className="ap-bento-card ap-bento-medals">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-                <div className="ap-hero__medal ap-hero__medal--gold">
-                  <div className="ap-hero__medal-circle">{totalG}</div>
-                  <span>Gold</span>
-                </div>
-                <div className="ap-hero__medal ap-hero__medal--silver">
-                  <div className="ap-hero__medal-circle">{totalS}</div>
-                  <span>Silver</span>
-                </div>
-                <div className="ap-hero__medal ap-hero__medal--bronze">
-                  <div className="ap-hero__medal-circle">{totalB}</div>
-                  <span>Bronze</span>
-                </div>
-                <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }} />
-                <div className="ap-hero__medal-total">
-                  <span className="ap-hero__medal-total-num">{totalMedals}</span>
-                  <span>Total</span>
-                </div>
-              </div>
-
-              {onShareCard && (
-                <button
-                  onClick={onShareCard}
-                  disabled={isExporting}
-                  className="ap-hero__share-btn"
-                  title="Share Ranking Card"
-                  style={{ marginLeft: 'auto' }}
-                >
-                  <Share2 size={16} />
-                  <span>{isExporting ? 'Generating…' : 'Share Ranking Card'}</span>
-                </button>
-              )}
             </div>
           </div>
+        </div>
+
+        {/* ── Footer: Medals + Share ── */}
+        <div className="aph-footer">
+          <div className="aph-tally">
+            <div className="aph-coin aph-coin--gold">
+              <div className="aph-coin__face">{totalG}</div>
+              <span>Gold</span>
+            </div>
+            <div className="aph-coin aph-coin--silver">
+              <div className="aph-coin__face">{totalS}</div>
+              <span>Silver</span>
+            </div>
+            <div className="aph-coin aph-coin--bronze">
+              <div className="aph-coin__face">{totalB}</div>
+              <span>Bronze</span>
+            </div>
+            <div className="aph-tally__sep" />
+            <div className="aph-tally__total">
+              <span className="aph-tally__num">{totalMedals}</span>
+              <span>Total</span>
+            </div>
+          </div>
+          {onShareCard && (
+            <button onClick={onShareCard} disabled={isExporting} className="aph-share" title="Share Ranking Card">
+              <Share2 size={16} />
+              <span>{isExporting ? 'Generating…' : 'Share Ranking Card'}</span>
+            </button>
+          )}
         </div>
       </div>
     </section>
@@ -431,9 +436,12 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate, isDashbo
                   <tr key={`${ex.date}-${ex.grade}`}>
                     <td className="ap-tbl__date">{ex.date}</td>
                     <td>
-                      <div className="ap-tbl__ev">
-                        <span className="ap-belt-sw" style={{ backgroundColor: col, borderColor: ex.belt === 'White' ? 'rgba(255,255,255,0.25)' : 'transparent' }} />
-                        <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{ex.belt}</strong>
+                      <div
+                          className="ap-belt-chip"
+                          style={{ '--chip-color': col } as React.CSSProperties}
+                      >
+                          <span className="ap-belt-chip__swatch" style={{ background: col }} />
+                          <span className="ap-belt-chip__label">{ex.belt}</span>
                       </div>
                     </td>
                     <td style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
@@ -583,11 +591,7 @@ export default function AthleteProfileClient({
   
   return (
     <div className={`ap-page ${isDashboardContext ? 'kuroobi-dashboard' : ''}`} style={isDashboardContext ? { background: 'transparent', minHeight: 'auto' } : {}}>
-      {!isDashboardContext && (
-        <div className="ap-page-watermark">
-          空手道
-        </div>
-      )}
+
 
       <div className="ap-container">
         <AthleteHero

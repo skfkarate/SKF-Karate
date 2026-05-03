@@ -7,13 +7,14 @@ import {
   getBranchBySlugsLive,
   getCityBySlugLive,
 } from '@/lib/server/repositories/classes-live'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import BranchDetailClient from './BranchDetailClient'
 // FIX: was importing ../../classes.css but BranchDetailClient uses obs-* classes
 // that are defined in obsidian.css — corrected import below.
 import '../../obsidian.css'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string; branch: string }> }) {
     const { city: citySlug, branch: branchSlug } = await params
@@ -22,29 +23,12 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
       getBranchBySlugsLive(citySlug, branchSlug),
     ])
     if (!city || !branch) return {}
-    const canonicalUrl = absoluteSiteUrl(`/classes/${city.slug}/${branch.slug}`)
-    const imageUrl = absoluteMediaUrl(branch.photos[0] || undefined)
 
-    return {
-        title: 'SKF Karate',
-        description: `SKF Karate ${branch.name} branch in ${city.name}. ${branch.sensei} leads classes on ${branch.classDays.length} days/week. Book a free trial class.`,
-        alternates: {
-            canonical: canonicalUrl,
-        },
-        openGraph: {
-            title: 'SKF Karate',
-            description: `SKF Karate ${branch.name} branch in ${city.name}. Book a free trial class.`,
-            url: canonicalUrl,
-            type: 'website',
-            images: [{ url: imageUrl, width: 1200, height: 630, alt: `SKF Karate ${branch.name} branch` }],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: 'SKF Karate',
-            description: `Book a free trial class at SKF Karate ${branch.name}.`,
-            images: [imageUrl],
-        },
-    }
+    return buildSeoMetadata(
+      `/classes/${city.slug}/${branch.slug}`,
+      `Train at SKF Karate ${branch.name} in ${city.name} for kids karate, adult classes, self-defense, kata, kumite, fitness, and black belt preparation.`,
+      { image: branch.photos[0] || undefined }
+    )
 }
 
 export default async function BranchPage({ params }: { params: Promise<{ city: string; branch: string }> }) {
@@ -97,14 +81,21 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
     }).filter(Boolean)
 
     const isDirectSkipBranch = city.branches.length === 1 && city.schools.length === 0;
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+      `${branch.name} Branch`,
+      `/classes/${city.slug}/${branch.slug}`
+    )
 
     return (
-        <BranchDetailClient
-            branch={branch}
-            cityName={city.name}
-            citySlug={city.slug}
-            topPerformers={topPerformers}
-            isDirectSkipBranch={isDirectSkipBranch}
-        />
+        <>
+            <JsonLdScript data={breadcrumbJsonLd} />
+            <BranchDetailClient
+                branch={branch}
+                cityName={city.name}
+                citySlug={city.slug}
+                topPerformers={topPerformers}
+                isDirectSkipBranch={isDirectSkipBranch}
+            />
+        </>
     )
 }

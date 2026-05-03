@@ -1,20 +1,22 @@
 import React from 'react'
 import { SkeletonLine, SkeletonBlock } from './SkeletonPrimitives'
+import './skeleton.css'
 
 /**
  * GalleryPageSkeleton — mirrors gallery-page layout:
  * Hero (badge + title + stats row) → Filter bar → Section header → Masonry grid
+ * Masonry collapses: 3→2→1 columns on mobile.
  */
 export default function GalleryPageSkeleton() {
   return (
-    <div className="gallery-page" aria-label="Loading gallery" aria-busy="true" aria-hidden="true" style={{ paddingTop: '5rem' }}>
+    <div className="skel-page" aria-label="Loading gallery" aria-busy="true" aria-hidden="true">
       {/* ── Hero ── */}
-      <section style={{ textAlign: 'center', padding: '4rem 2rem 3rem', maxWidth: 700, margin: '0 auto' }}>
-        <SkeletonLine width="160px" height={28} style={{ borderRadius: 50, margin: '0 auto 20px' }} />
-        <SkeletonLine width="280px" height={48} style={{ margin: '0 auto 12px' }} />
-        <SkeletonLine width="80%" height={16} style={{ margin: '0 auto 32px' }} />
+      <section className="skel-hero">
+        <SkeletonLine width="160px" height={28} style={{ borderRadius: 50, marginBottom: 20 }} />
+        <SkeletonLine width="min(70%, 280px)" height={48} style={{ marginBottom: 12 }} />
+        <SkeletonLine width="min(80%, 400px)" height={16} style={{ marginBottom: 32 }} />
         {/* Stats row */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 32, alignItems: 'center' }}>
+        <div className="skel-row skel-row--center skel-row--wrap" style={{ gap: 32 }}>
           <div style={{ textAlign: 'center' }}>
             <SkeletonLine width="40px" height={28} style={{ margin: '0 auto 4px' }} />
             <SkeletonLine width="50px" height={12} style={{ margin: '0 auto' }} />
@@ -33,23 +35,23 @@ export default function GalleryPageSkeleton() {
       </section>
 
       {/* ── Filter Bar ── */}
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 2rem 1rem' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+      <div className="skel-section skel-section--wide skel-section--flush">
+        <div className="skel-filters">
           {[...Array(6)].map((_, i) => (
             <SkeletonLine key={i} width={`${70 + i * 10}px`} height={34} style={{ borderRadius: 50 }} />
           ))}
         </div>
 
         {/* Section header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div className="skel-row skel-row--between skel-mb-lg">
           <SkeletonLine width="180px" height={28} />
           <SkeletonLine width="80px" height={14} />
         </div>
 
-        {/* ── Masonry Grid ── */}
-        <div style={{ columns: '3 300px', columnGap: 16 }}>
+        {/* ── Masonry Grid — responsive 3→2→1 columns ── */}
+        <div className="skel-masonry">
           {[220, 300, 180, 280, 200, 320, 240, 260, 190, 310, 230, 270].map((h, i) => (
-            <SkeletonBlock key={i} height={h} radius={12} style={{ marginBottom: 16, breakInside: 'avoid' }} />
+            <SkeletonBlock key={i} height={h} radius={12} />
           ))}
         </div>
       </div>

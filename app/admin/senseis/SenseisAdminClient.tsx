@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import {
   SENSEI_ACCENTS,
   type SenseiAccent,
@@ -173,12 +174,12 @@ export default function SenseisAdminClient({
         body: JSON.stringify(body),
       })
 
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
       if (!response.ok) {
-        throw new Error(payload.error || 'Unable to update the sensei directory.')
+        throw new Error(getApiErrorMessage(payload, 'Unable to update the sensei directory.'))
       }
 
-      syncSenseis(Array.isArray(payload.senseis) ? payload.senseis : [])
+      syncSenseis(Array.isArray(payload?.senseis) ? payload.senseis : [])
       setStatus(successMessage)
       return true
     } catch (submissionError) {
@@ -578,7 +579,7 @@ export default function SenseisAdminClient({
                     <div>
                       <div style={{ fontSize: '1rem' }}>{sensei.name}</div>
                       <div style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.3rem' }}>
-                        /senseis/{sensei.slug}
+                        Slug: {sensei.slug}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>

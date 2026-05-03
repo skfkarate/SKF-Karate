@@ -85,6 +85,9 @@
     "next": {
       "postcss": "8.5.12"
     },
+    "next-auth": {
+      "uuid": "14.0.0"
+    },
     "resend": {
       "svix": "1.92.2"
     }

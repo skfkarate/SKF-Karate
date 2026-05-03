@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { getPortalSession } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { skfIdQuerySchema } from '@/src/server/api/validators/admin-general.validator'
 import { AuthorizationError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
@@ -26,7 +26,7 @@ export const GET = withRoute(
     throw new AuthorizationError()
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(skfId)
+  const athlete = await getAthleteBySkfIdLive(skfId)
   return NextResponse.json({ success: true, exists: Boolean(athlete) })
   }
 )

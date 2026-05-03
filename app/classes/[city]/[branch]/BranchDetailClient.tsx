@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { 
-    FaArrowLeft, FaMapMarkerAlt, FaClock, FaPhoneAlt, 
-    FaWhatsapp, FaTrophy, FaCheckCircle, FaUserTie 
+import {
+    FaArrowLeft, FaMapMarkerAlt, FaClock, FaPhoneAlt,
+    FaWhatsapp, FaTrophy, FaCheckCircle, FaUserTie
 } from 'react-icons/fa'
 import { GiBlackBelt } from 'react-icons/gi'
 import { type Branch, formatClassDaysFull, generateCalendar } from '@/lib/classesData'
@@ -33,12 +33,12 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
     const calendarWeeks = generateCalendar(calYear, calMonth, branch.classDays)
 
     return (
-        <div className="obs-page" style={{ paddingBottom: 0 }}>
+        <div className="obs-page" style={{ paddingBottom: '6rem' }}>
             {/* Cinematic Full-Bleed Hero */}
             <header className="obs-bdetail-hero">
                 <div className="obs-bdetail-hero__bg">
-                    <Image 
-                        src={branch.photos[0] || '/gallery/In Dojo.jpeg'}
+                    <Image
+                        src={branch.photos?.[0] || '/gallery/In Dojo.jpeg'}
                         alt={branch.name}
                         fill
                         sizes="100vw"
@@ -46,16 +46,16 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                     />
                 </div>
                 <div className="obs-bdetail-hero__overlay" />
-                
+
                 <div className="obs-bdetail-hero__content">
                     {/* Left: Branding & Core Nav */}
                     <div style={{ flex: 1 }}>
-                        <Link 
-                            href={isDirectSkipBranch ? "/classes" : `/classes/${citySlug}`} 
-                            style={{ 
-                                display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                                color: 'var(--gold, #ffb703)', fontSize: '0.8rem', 
-                                fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', 
+                        <Link
+                            href={isDirectSkipBranch ? "/classes" : `/classes/${citySlug}`}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                                color: 'var(--gold, #ffb703)', fontSize: '0.8rem',
+                                fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px',
                                 textDecoration: 'none', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.4)',
                                 padding: '0.4rem 1rem', borderRadius: '50px', border: '1px solid rgba(255,183,3,0.3)'
                             }}
@@ -68,7 +68,7 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                             </div>
                         )}
                         <h1 className="obs-bdetail-hero__title">{branch.name}</h1>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '600px' }}>
+                        <p className="obs-bdetail-hero__desc">
                             {branch.description || `Premier WKF Karate training program in ${cityName}.`}
                         </p>
                     </div>
@@ -90,9 +90,9 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                             </div>
                         </div>
                         <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.1)', margin: '1.5rem 0' }} />
-                        <Link 
+                        <Link
                             href={`/book-trial?branch=${branch.slug}`}
-                            className="obs-cta-btn obs-cta-btn--prime" 
+                            className="obs-cta-btn obs-cta-btn--prime"
                             style={{ width: '100%', justifyContent: 'center', padding: '1rem', textDecoration: 'none', textAlign: 'center' }}
                         >
                             BOOK A TRIAL CLASS
@@ -103,25 +103,25 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
 
             {/* Asymmetric Floating Bento Matrix */}
             <div className="obs-bdetail-grid">
-                
+
                 {/* ── LEFT COLUMN (Main Content) ── */}
                 <div className="obs-bdetail-main">
-                    
+
                     {/* Visual Gallery Carousels/Modules */}
-                    <div className="obs-glass-pane" style={{ padding: 0 }}>
+                    <div className="obs-glass-pane obs-pane-gallery" style={{ padding: 0 }}>
                         <div style={{ position: 'relative', width: '100%', height: '350px' }}>
-                             <Image 
-                                src={branch.photos[1] || branch.photos[0] || '/gallery/In Dojo.jpeg'}
+                             <Image
+                                src={branch.photos?.[1] || branch.photos?.[0] || '/gallery/In Dojo.jpeg'}
                                 alt="Dojo Interior"
                                 fill
                                 style={{ objectFit: 'cover' }}
                             />
-                            <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 100px rgba(0,0,0,0.8)' }} />
-                            <h3 style={{ position: 'absolute', bottom: '2rem', left: '2rem', margin: 0, fontFamily: 'var(--font-heading)', fontSize: '2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(3,5,8,0.9) 100%)' }} />
+                            <h3 style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem', margin: 0, fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                                 Community Learning
                             </h3>
                         </div>
-                        <div style={{ padding: '2.5rem' }}>
+                        <div className="obs-glass-inner">
                             <p style={{ fontSize: '1.05rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: '2rem' }}>
                                 Experience the raw energy of collective progression. Our group classes follow the structured WKF syllabus led meticulously by {branch.sensei}. Test your skills in kumite sparring cycles and ascend the belt ranks alongside dedicated martial artists pursuing the same mastery.
                             </p>
@@ -140,10 +140,10 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                     </div>
 
                     {/* Map & Location Glass Card */}
-                    <div className="obs-glass-pane" style={{ padding: 0, display: 'flex', flexWrap: 'wrap' }}>
-                        <div style={{ flex: '1 1 300px', padding: '2.5rem' }}>
+                    <div className="obs-glass-pane obs-bdetail-map-wrap obs-pane-navigate" style={{ padding: 0 }}>
+                        <div className="obs-glass-inner" style={{ flex: '1 1 300px' }}>
                             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.5rem' }}>Navigate</h3>
-                            
+
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <FaMapMarkerAlt style={{ color: 'var(--gold)', fontSize: '1.2rem', flexShrink: 0, marginTop: '0.2rem' }} />
                                 <div>
@@ -162,15 +162,17 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                                 </div>
                             </div>
                         </div>
-                        <div style={{ flex: '1 1 300px', minHeight: '300px', position: 'relative' }}>
-                            <iframe 
-                                width="100%" 
-                                height="100%" 
-                                style={{ border: 0, position: 'absolute', inset: 0 }} 
-                                loading="lazy" 
-                                allowFullScreen 
+                        <div className="obs-bdetail-map-frame">
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                style={{ border: 0, position: 'absolute', inset: 0 }}
+                                loading="lazy"
+                                allowFullScreen
                                 referrerPolicy="no-referrer-when-downgrade"
-                                src={`https://www.google.com/maps?q=${encodeURIComponent(branch.address)}&output=embed`}
+                                src={branch.mapUrl && branch.mapUrl.includes('embed')
+                                    ? branch.mapUrl
+                                    : `https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${encodeURIComponent(branch.name + ', ' + cityName)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
                             ></iframe>
                         </div>
                     </div>
@@ -179,30 +181,24 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
 
                 {/* ── RIGHT COLUMN (Sidebar Modules) ── */}
                 <div className="obs-bdetail-aside">
-                    
+
                     {/* Sensei Spotlight Card */}
-                    <div className="obs-glass-pane obs-glass-pane--prime" style={{ position: 'relative', overflow: 'hidden' }}>
+                    <div className="obs-glass-pane obs-glass-pane--prime obs-pane-instructor" style={{ position: 'relative', overflow: 'hidden' }}>
                         <GiBlackBelt style={{ fontSize: '8rem', color: 'var(--gold)', opacity: 0.1, position: 'absolute', top: '-1rem', right: '-1rem' }} />
                         <FaUserTie style={{ fontSize: '2rem', color: 'var(--gold)', marginBottom: '1.5rem' }} />
-                        
+
                         <h4 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: '0 0 0.2rem' }}>
-                            {branch.senseiSlug ? (
-                                <Link href={`/senseis/${branch.senseiSlug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                                    {branch.sensei}
-                                </Link>
-                            ) : (
-                                branch.sensei
-                            )}
+                            {branch.sensei}
                         </h4>
                         <div style={{ color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '1.5rem' }}>
                             {branch.senseiDan} · Lead Instructor
                         </div>
-                        
+
                         <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: '2rem' }}>
                             &quot;{branch.senseiProfile?.description || 'True martial arts mastery requires precise mechanical correction. We eliminate bad habits instantly and unlock your true physical potential.'}&quot;
                         </p>
-                        
-                        <a 
+
+                        <a
                             href={`https://wa.me/${branch.whatsapp}?text=Hi! I am interested in inquiring about exclusive Personal Training availability directly with Sensei ${branch.sensei}.`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -214,13 +210,13 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                     </div>
 
                     {/* Obsidian Schedule Calendar Widget */}
-                    <div className="obs-glass-pane">
+                    <div className="obs-glass-pane obs-pane-calendar">
                         <h4 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: '0 0 1rem' }}>
                             Dojo Calendar
                         </h4>
-                        
+
                         <p style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)', marginBottom: '1.5rem' }}>
-                            <FaClock style={{ color: 'var(--gold)' }}/> 
+                            <FaClock style={{ color: 'var(--gold)' }}/>
                             {formatClassDaysFull(branch.classDays)}
                         </p>
 
@@ -230,10 +226,10 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                             ))}
                             {calendarWeeks.flat().map((cell, i) => {
                                 if (!cell.isCurrentMonth) return <div key={i} />
-                                
+
                                 const isClass = cell.isClassDay
                                 const isToday = cell.isToday
-                                
+
                                 return (
                                     <div key={i} style={{
                                         aspectRatio: '1/1',
@@ -253,14 +249,14 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
 
                     {/* Top Performers / Elite Roster Widget */}
                     {topPerformers && topPerformers.length > 0 && (
-                        <div className="obs-glass-pane" style={{ padding: '2rem' }}>
+                        <div className="obs-glass-pane obs-pane-performers" style={{ padding: '2rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
                                 <FaTrophy style={{ color: 'var(--gold)' }} />
                                 <h4 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', margin: 0 }}>
                                     Elite Roster
                                 </h4>
                             </div>
-                            
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 {topPerformers.slice(0, 3).map((p, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
@@ -283,7 +279,7 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
 
                 </div>
             </div>
-            
+
         </div>
     )
 }

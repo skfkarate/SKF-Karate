@@ -20,9 +20,12 @@ type EditableEventData = {
   date: string
   city?: string
   venue?: string
+  coverImageUrl?: string
+  affiliatedBody?: string
   hostingBranch?: string
   isPublished?: boolean
   isResultsPublished?: boolean
+  showInJourney?: boolean
   participants: EventParticipant[] & ResultEventParticipant[]
   results: ManagedResult[]
   resultsAppliedAt?: string | null

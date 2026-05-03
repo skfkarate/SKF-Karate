@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
+
 export type EventParticipant = {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName?: string
   belt?: string
   photoUrl?: string
@@ -17,7 +19,7 @@ type AthleteSearchResult = {
   id?: string
   firstName?: string
   lastName?: string
-  registrationNumber?: string
+  skfId?: string
   branchName?: string
   currentBelt?: string
   photoUrl?: string
@@ -36,8 +38,13 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
     setLoading(true)
     try {
       const res = await fetch(`/api/admin/athletes/search?q=${encodeURIComponent(query)}`)
-      const data = await res.json()
-      setResults(data.athletes || [])
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        alert(getApiErrorMessage(data, 'Failed to search athletes'))
+        setResults([])
+        return
+      }
+      setResults(data?.athletes || [])
     } catch(e) {
       console.error(e)
     } finally {
@@ -46,7 +53,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
   }
 
   const handleAssign = async (athlete: AthleteSearchResult) => {
-    if (participants.some(p => p.athleteId === athlete.id || p.registrationNumber === athlete.registrationNumber)) {
+    if (participants.some(p => p.athleteId === athlete.id || p.skfId === athlete.skfId)) {
       alert('Athlete is already assigned to this event')
       return
     }
@@ -54,10 +61,10 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
     setSaving(true)
     try {
       const newParticipant = {
-        id: `p_${eventId}_${athlete.id || athlete.registrationNumber}`,
+        id: `p_${eventId}_${athlete.id || athlete.skfId}`,
         athleteId: athlete.id,
-        athleteName: `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() || athlete.registrationNumber || 'Athlete',
-        registrationNumber: athlete.registrationNumber || '',
+        athleteName: `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() || athlete.skfId || 'Athlete',
+        skfId: athlete.skfId || '',
         branchName: athlete.branchName,
         belt: athlete.currentBelt,
         photoUrl: athlete.photoUrl
@@ -74,7 +81,8 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
       if (res.ok) {
         router.refresh()
       } else {
-        alert('Failed to assign athlete')
+        const data = await res.json().catch(() => null)
+        alert(getApiErrorMessage(data, 'Failed to assign athlete'))
       }
     } catch(e) {
       console.error(e)
@@ -96,7 +104,8 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
       if (res.ok) {
         router.refresh()
       } else {
-        alert('Failed to remove athlete')
+        const data = await res.json().catch(() => null)
+        alert(getApiErrorMessage(data, 'Failed to remove athlete'))
       }
     } catch(e) {
       console.error(e)
@@ -129,7 +138,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
             <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0a0a0a', padding: '1rem', border: '1px solid #222', borderRadius: '4px' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '0.95rem' }}>{a.firstName} {a.lastName}</strong>
-                <span style={{ fontSize: '0.75rem', color: '#888' }}>{a.registrationNumber} • {a.branchName}</span>
+                <span style={{ fontSize: '0.75rem', color: '#888' }}>{a.skfId} • {a.branchName}</span>
               </div>
               <button 
                 onClick={() => handleAssign(a)} 
@@ -152,7 +161,7 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111', padding: '1rem', border: '1px solid #333', borderRadius: '4px' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '0.95rem' }}>{p.athleteName}</strong>
-                <span style={{ fontSize: '0.75rem', color: '#888' }}>{p.registrationNumber} • {p.branchName}</span>
+                <span style={{ fontSize: '0.75rem', color: '#888' }}>{p.skfId} • {p.branchName}</span>
               </div>
               <button 
                 onClick={() => handleRemove(p.id)} 

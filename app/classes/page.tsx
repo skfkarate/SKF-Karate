@@ -11,14 +11,16 @@ import {
     FaSchool,
 } from 'react-icons/fa'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './obsidian.css' // Import the unified Obsidian styling instead of classes.css
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-export const metadata = {
-    title: 'SKF Karate',
-    description: 'Find SKF Karate classes in Bangalore, Kunigal, Tumkur, and Udupi.',
-}
+export const metadata = buildSeoMetadata(
+    '/classes',
+    'Find SKF Karate classes near you in Bangalore, Kunigal, Tumkur, and Udupi for kids, adults, self-defense, kata, kumite, fitness, and black belt training.'
+)
 
 export default async function ClassesPage() {
     const cities = await getAllCitiesLive()
@@ -27,9 +29,12 @@ export default async function ClassesPage() {
     const totalBranches = cities.reduce((sum, c) => sum + c.branches.length, 0)
     const totalSchools = cities.reduce((sum, c) => sum + c.schools.length, 0)
     const totalCities = cities.length
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd('Classes', '/classes')
 
     return (
         <div className="obs-page">
+            <JsonLdScript data={breadcrumbJsonLd} />
+
             {/* Ambient Watermark & Orbs */}
             <div className="obs-orb obs-orb--1" />
             <div className="obs-orb obs-orb--2" />
@@ -83,18 +88,20 @@ export default async function ClassesPage() {
                             ? `/classes/${city.slug}/${city.branches[0].slug}`
                             : `/classes/${city.slug}`
 
-                        return (
-                            <Link key={city.slug} href={href} className="obs-card">
+                        const isDisabled = branchCount === 0
+                        const cardClassName = `obs-card ${isDisabled ? 'obs-card--disabled' : ''}`
+                        const cardContent = (
+                            <>
                                 <div className="obs-card__img-wrap">
-                                    <Image 
-                                        src={city.photo} 
-                                        alt={city.name} 
-                                        fill 
+                                    <Image
+                                        src={city.photo || '/default-city.jpg'}
+                                        alt={city.name}
+                                        fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
-                                        className="obs-card__img" 
+                                        className="obs-card__img"
                                     />
                                     <div className="obs-card__img-overlay" />
-                                    
+
                                     <div className="obs-card__badges">
                                         {hasHQ && <span className="obs-badge obs-badge--hq"><FaStar size={10}/> HQ</span>}
                                         <span className="obs-badge"><FaMapMarkerAlt size={10}/> {branchCount} {branchCount === 1 ? 'Branch' : 'Branches'}</span>
@@ -105,14 +112,24 @@ export default async function ClassesPage() {
                                     <span className="obs-card__state">{city.state}</span>
                                     <h3 className="obs-card__name">{city.name}</h3>
                                     <div className="obs-card__meta">
-                                        <FaClock size={12}/> {city.branches[0]?.classTime || "View Schedule"}
+                                        <FaClock size={12}/> {branchCount > 1 ? "Multiple Timings" : (city.branches[0]?.classTime || "Schedule Updating")}
                                     </div>
-                                    
+
                                     <div className="obs-card__explore">
-                                        EXPLORE DOJO <FaArrowRight size={12}/>
+                                        {isDisabled ? 'SYSTEM OFFLINE' : <>EXPLORE DOJO <FaArrowRight size={12}/></>}
                                     </div>
                                 </div>
-                            </Link>
+                            </>
+                        )
+
+                        return (
+                            isDisabled ? (
+                                <div key={city.slug} className={cardClassName}>{cardContent}</div>
+                            ) : (
+                                <Link key={city.slug} href={href} className={cardClassName}>
+                                    {cardContent}
+                                </Link>
+                            )
                         )
                     })}
                 </div>

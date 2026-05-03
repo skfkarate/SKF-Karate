@@ -60,8 +60,8 @@ export const POST = withRoute(
     revalidateSenseiSitePaths(revalidateSlug || undefined)
     revalidateClassesSitePaths()
     const athleteSync = await syncBelowThirdDanSenseiAthletes({ revalidate: false })
-    for (const registrationNumber of athleteSync.registrationNumbers) {
-      revalidateAthleteSitePaths(registrationNumber)
+    for (const skfId of athleteSync.skfIds) {
+      revalidateAthleteSitePaths(skfId)
     }
 
     const senseis = await getAllSenseisLive()

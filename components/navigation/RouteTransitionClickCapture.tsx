@@ -41,14 +41,6 @@ export default function RouteTransitionClickCapture() {
     const hasModifierKey = (event: MouseEvent | PointerEvent) =>
       event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
 
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.defaultPrevented || event.button !== 0 || hasModifierKey(event)) {
-        return
-      }
-
-      maybeStartTransition(event.target)
-    }
-
     const handleClick = (event: MouseEvent) => {
       if (
         event.defaultPrevented ||
@@ -66,11 +58,9 @@ export default function RouteTransitionClickCapture() {
       maybeStartTransition(event.target)
     }
 
-    document.addEventListener('pointerdown', handlePointerDown, true)
     document.addEventListener('click', handleClick, true)
     document.addEventListener('keydown', handleKeyDown, true)
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown, true)
       document.removeEventListener('click', handleClick, true)
       document.removeEventListener('keydown', handleKeyDown, true)
     }

@@ -4,7 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaArrowLeft, FaAward, FaBuilding, FaCheckCircle, FaStar } from 'react-icons/fa'
 import { getExecutiveCommittee } from '@/data/seed/instructors'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 // Generate static params for all defined instructors
 export function generateStaticParams() {
@@ -18,32 +19,17 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     const instructor = getExecutiveCommittee().find(i => i.slug === params.slug)
     
     if (!instructor) {
-        return { title: 'SKF Karate' }
+        return buildSeoMetadata(
+            '/about',
+            'Learn about SKF Karate, a Karnataka karate association training students in traditional karate, self-defense, kata, kumite, and black belt discipline.'
+        )
     }
 
-    const canonicalUrl = absoluteSiteUrl(`/instructors/${instructor.slug}`)
-    const imageUrl = absoluteMediaUrl(instructor.image)
-    
-    return {
-        title: 'SKF Karate',
-        description: instructor.desc,
-        alternates: {
-            canonical: canonicalUrl,
-        },
-        openGraph: {
-            title: 'SKF Karate',
-            description: instructor.desc,
-            url: canonicalUrl,
-            type: 'profile',
-            images: [{ url: imageUrl, width: 1200, height: 630, alt: instructor.name }],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: 'SKF Karate',
-            description: instructor.desc,
-            images: [imageUrl],
-        },
-    }
+    return buildSeoMetadata(
+        `/instructors/${instructor.slug}`,
+        `${instructor.name}, ${instructor.title} at SKF Karate. ${instructor.desc}`,
+        { image: instructor.image, imageAlt: instructor.name }
+    )
 }
 
 export default function InstructorProfilePage({ params }: { params: { slug: string } }) {
@@ -53,8 +39,14 @@ export default function InstructorProfilePage({ params }: { params: { slug: stri
         notFound()
     }
 
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+        instructor.name,
+        `/instructors/${instructor.slug}`
+    )
+
     return (
         <div style={{ background: '#05080f', minHeight: '100dvh', paddingBottom: '6rem' }}>
+            <JsonLdScript data={breadcrumbJsonLd} />
             
             {/* ═══════ HERO: Master Header ═══════ */}
             <section style={{ paddingTop: '8rem', paddingBottom: '4rem', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden' }}>

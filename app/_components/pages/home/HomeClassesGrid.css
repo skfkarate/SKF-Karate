@@ -48,6 +48,25 @@
   transform: translateY(-2px);
 }
 
+.obs-city-card.obs-city-card--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.obs-city-card.obs-city-card--disabled:hover {
+  background: rgba(8, 11, 20, 0.6);
+  border-color: rgba(255, 255, 255, 0.04);
+  transform: none;
+}
+
+.obs-city-card.obs-city-card--disabled .obs-city-card__icon {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.obs-city-card.obs-city-card--disabled:hover .obs-city-card__icon {
+  color: rgba(255, 255, 255, 0.15);
+}
+
 .obs-city-card__left {
   display: flex;
   align-items: center;

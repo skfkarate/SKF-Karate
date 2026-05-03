@@ -13,7 +13,7 @@ export const authSessionSchema: EntitySchema = {
   rls: true,
   fields: {
     id:              { type: 'uuid',    supabaseType: 'UUID',         required: true,  default: 'gen_random_uuid()' },
-    skf_id:          { type: 'string',  supabaseType: 'TEXT',         required: true,  unique: true, description: 'SKF membership ID (format: SKF-YYYY-XXXX)' },
+    skf_id:          { type: 'string',  supabaseType: 'TEXT',         required: true,  unique: true, description: 'SKF membership ID (format: SKF25MP001)' },
     pin_hash:        { type: 'string',  supabaseType: 'TEXT',         required: true,  description: 'bcrypt hash of 4-digit PIN. NEVER log or expose.' },
     failed_attempts: { type: 'number',  supabaseType: 'INTEGER',      required: false, default: 0 },
     locked_until:    { type: 'date',    supabaseType: 'TIMESTAMPTZ',  required: false },

@@ -671,6 +671,7 @@
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
     font-size: 70vw;
+    color: rgba(255, 255, 255, 0.05);
   }
 
   .grd-hero { padding: 7rem 1.5rem 3rem; }

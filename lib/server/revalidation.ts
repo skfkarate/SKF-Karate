@@ -2,7 +2,7 @@ import { revalidatePath } from 'next/cache'
 
 import { getAllCities } from '@/lib/classesData'
 
-export function revalidateAthleteSitePaths(registrationNumber?: string) {
+export function revalidateAthleteSitePaths(skfId?: string) {
   revalidatePath('/admin/students')
   revalidatePath('/athlete/search')
   revalidatePath('/rankings')
@@ -18,8 +18,8 @@ export function revalidateAthleteSitePaths(registrationNumber?: string) {
     }
   }
 
-  if (registrationNumber) {
-    revalidatePath(`/athlete/${registrationNumber}`)
+  if (skfId) {
+    revalidatePath(`/athlete/${skfId}`)
   }
 }
 
@@ -52,7 +52,6 @@ export function revalidateClassesSitePaths(options: {
   revalidatePath('/classes')
   revalidatePath('/book-trial')
   revalidatePath('/contact')
-  revalidatePath('/senseis')
   revalidatePath('/')
 
   if (options.citySlug) {
@@ -65,14 +64,12 @@ export function revalidateClassesSitePaths(options: {
 }
 
 export function revalidateSenseiSitePaths(slug?: string) {
-  revalidatePath('/admin/senseis')
-  revalidatePath('/senseis')
-  revalidatePath('/classes')
-  revalidatePath('/')
+  void slug
 
-  if (slug) {
-    revalidatePath(`/senseis/${slug}`)
-  }
+  revalidatePath('/admin/senseis')
+  revalidatePath('/classes')
+  revalidatePath('/honours')
+  revalidatePath('/')
 }
 
 export function revalidateTournamentSitePaths(tournament?: { id?: string; slug?: string }) {
@@ -101,5 +98,14 @@ export function revalidatePortalSitePaths() {
 
   for (const belt of ['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']) {
     revalidatePath(`/techniques/${belt}`)
+  }
+}
+
+export function revalidateBlogSitePaths(slug?: string) {
+  revalidatePath('/admin/blogs')
+  revalidatePath('/blog')
+
+  if (slug) {
+    revalidatePath(`/blog/${slug}`)
   }
 }

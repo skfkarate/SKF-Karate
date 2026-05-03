@@ -1,4 +1,4 @@
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getProtectedPortalVideosForAthlete } from '@/lib/server/repositories/portal-content-live'
 import { NotFoundError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
@@ -10,7 +10,7 @@ export const GET = withRoute(
     cacheControl: 'private, no-store',
   },
   async ({ portalSession }) => {
-    const athlete = await getAthleteByRegistrationNumberLive(portalSession!.skfId!)
+    const athlete = await getAthleteBySkfIdLive(portalSession!.skfId!)
     if (!athlete) {
       throw new NotFoundError('Athlete')
     }

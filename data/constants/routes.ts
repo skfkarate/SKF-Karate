@@ -17,7 +17,6 @@ export const ROUTES = Object.freeze({
   SHOP_CART: '/shop/cart',
   SHOP_CHECKOUT: '/shop/checkout',
   SHOP_ORDERS: '/shop/orders',
-  SENSEIS: '/senseis',
   TECHNIQUES: '/techniques',
   VERIFY: '/verify',
   ATHLETE_SEARCH: '/athlete/search',

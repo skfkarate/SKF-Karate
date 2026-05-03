@@ -9,7 +9,7 @@ type SheetRow = SheetCell[]
 type CachedAsyncFn<Args extends unknown[], Result> = (...args: Args) => Promise<Result>
 
 type LiveAthlete = {
-  registrationNumber?: string
+  skfId?: string
   firstName?: string
   lastName?: string
   branchName?: string
@@ -47,8 +47,55 @@ async function getSheets() {
   return google.sheets({ version: 'v4', auth })
 }
 
-function cellText(value: SheetCell): string {
+function cellText(value: unknown): string {
   return value === null || value === undefined ? '' : String(value)
+}
+
+function normalizeSheetDob(value: unknown): string | undefined {
+  const text = cellText(value).trim()
+  if (!text) return undefined
+
+  const dmy = text.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/)
+  if (dmy) return normalizeDateParts(dmy[3], dmy[2], dmy[1]) || text
+
+  const ymd = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/)
+  if (ymd) return normalizeDateParts(ymd[1], ymd[2], ymd[3]) || text
+
+  return text
+}
+
+function normalizeDateParts(year: string, month: string, day: string): string | undefined {
+  const paddedMonth = month.padStart(2, '0')
+  const paddedDay = day.padStart(2, '0')
+  const parsed = new Date(`${year}-${paddedMonth}-${paddedDay}T00:00:00.000Z`)
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== Number(year) ||
+    parsed.getUTCMonth() + 1 !== Number(paddedMonth) ||
+    parsed.getUTCDate() !== Number(paddedDay)
+  ) {
+    return undefined
+  }
+
+  return `${year}-${paddedMonth}-${paddedDay}`
+}
+
+function sheetDataStartIndex<T extends unknown[]>(rows: T[]): number {
+  const firstCell = cellText(rows[0]?.[0]).trim().toLowerCase()
+  return firstCell.startsWith('skf karate') ? 2 : 1
+}
+
+function sheetDataRows<T extends unknown[]>(rows: T[]): T[] {
+  return rows.slice(sheetDataStartIndex(rows))
+}
+
+function sheetDataRowsWithSheetIndex<T extends unknown[]>(rows: T[]): Array<{ row: T; sheetRow: number }> {
+  const startIndex = sheetDataStartIndex(rows)
+  return rows.slice(startIndex).map((row, index) => ({
+    row,
+    sheetRow: startIndex + index + 1,
+  }))
 }
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID!
@@ -74,7 +121,7 @@ export async function getAllSkfIds(): Promise<string[]> {
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:A' })
     const rows = res.data.values || []
-    return rows.slice(1).map(r => r[0]).filter(Boolean)
+    return sheetDataRows(rows).map(r => r[0]).filter(Boolean)
   } catch (error) {
     console.error('getAllSkfIds error:', error)
     return []
@@ -99,7 +146,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
-    const row = rows.find(r => r[0] === skfId)
+    const row = sheetDataRows(rows).find(r => r[0] === skfId)
     if (row) {
       return {
         skfId: row[0],
@@ -113,7 +160,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
         enrolledDate: row[8],
         monthlyFee: Number(row[9] || 0),
         photoConsent: row[10] === 'Yes',
-        dob: row[11] || undefined
+        dob: normalizeSheetDob(row[11])
       } as Student
     }
   } catch (error) {
@@ -121,12 +168,12 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
   }
 
   // Fallback to local mock athletes for development if Sheet fails or is empty
-  const { getAthleteByRegistrationNumberLive } = await import('@/lib/server/repositories/athletes-live')
-  const localAthlete = await getAthleteByRegistrationNumberLive(skfId)
+  const { getAthleteBySkfIdLive } = await import('@/lib/server/repositories/athletes-live')
+  const localAthlete = await getAthleteBySkfIdLive(skfId)
   
   if (localAthlete) {
     return {
-      skfId: localAthlete.registrationNumber,
+      skfId: localAthlete.skfId,
       name: `${localAthlete.firstName} ${localAthlete.lastName}`.trim(),
       branch: localAthlete.branchName || 'Sunkadakatte',
       batch: 'Evening', // Mock default
@@ -151,7 +198,7 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
-    return rows.slice(1).map(row => ({
+    return sheetDataRows(rows).map(row => ({
       skfId: row[0],
       name: row[1],
       branch: row[2],
@@ -163,14 +210,14 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
       photoConsent: row[10] === 'Yes',
-      dob: row[11] || undefined
+      dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
     console.error('getAllStudents error:', error)
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
     const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes.map((athlete) => ({
-      skfId: athlete.registrationNumber,
+      skfId: athlete.skfId,
       name: `${athlete.firstName} ${athlete.lastName}`.trim(),
       branch: athlete.branchName || 'M P Sports Club',
       batch: athlete.batch || 'Evening',
@@ -192,7 +239,7 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
     // Skip header row
-    return rows.slice(1).filter(r => r[2] === branch).map(row => ({
+    return sheetDataRows(rows).filter(r => r[2] === branch).map(row => ({
       skfId: row[0],
       name: row[1],
       branch: row[2],
@@ -204,7 +251,7 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
       photoConsent: row[10] === 'Yes',
-      dob: row[11] || undefined
+      dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
     console.error('getStudentsByBranch error:', error)
@@ -213,7 +260,7 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
     return athletes
       .filter((athlete) => athlete.branchName === branch)
       .map((athlete) => ({
-        skfId: athlete.registrationNumber,
+        skfId: athlete.skfId,
         name: `${athlete.firstName} ${athlete.lastName}`.trim(),
         branch: athlete.branchName || '',
         batch: athlete.batch || 'Evening',
@@ -237,7 +284,7 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
     const rows = res.data.values || []
-    return rows.slice(1).filter(r => r[6] === phone).map(row => ({
+    return sheetDataRows(rows).filter(r => r[6] === phone).map(row => ({
       skfId: row[0],
       name: row[1],
       branch: row[2],
@@ -249,7 +296,7 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
       enrolledDate: row[8],
       monthlyFee: Number(row[9] || 0),
       photoConsent: row[10] === 'Yes',
-      dob: row[11] || undefined
+      dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
     console.error('getStudentsByPhone error:', error)
@@ -258,7 +305,7 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
     return athletes
       .filter((athlete) => athlete.phone === phone)
       .map((athlete) => ({
-        skfId: athlete.registrationNumber,
+        skfId: athlete.skfId,
         name: `${athlete.firstName} ${athlete.lastName}`.trim(),
         branch: athlete.branchName || '',
         batch: athlete.batch || 'Evening',
@@ -283,7 +330,7 @@ export const getFeesBySkfId = cacheRead(async (skfId: string): Promise<FeeRow[]>
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Fees!A:I' })
     const rows = res.data.values || []
-    return rows.slice(1).filter(r => r[0] === skfId).map(row => ({
+    return sheetDataRows(rows).filter(r => r[0] === skfId).map(row => ({
       skfId: row[0],
       month: row[1],
       year: Number(row[2]),
@@ -316,9 +363,9 @@ async function getFeeRowsWithSheetIndex(): Promise<Array<{ row: SheetRow; sheetR
   const sheets = await getSheets()
   const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Fees!A:I' })
   const rows = res.data.values || []
-  return rows.slice(1).map((row, index) => ({
+  return sheetDataRowsWithSheetIndex(rows).map(({ row, sheetRow }) => ({
     row,
-    sheetRow: index + 2,
+    sheetRow,
     fee: mapFeeRow(row)
   }))
 }
@@ -503,7 +550,7 @@ export const getVideosByBranchAndBatch = cacheRead(async (branch: string, batch:
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Videos!A:K' })
     const rows = res.data.values || []
-    return rows.slice(1)
+    return sheetDataRows(rows)
       .filter(r => r[3] === branch && r[4] === batch)
       .map(row => ({
         videoId: row[0],
@@ -574,7 +621,7 @@ export const getTournamentsBySkfId = cacheRead(async (skfId: string): Promise<To
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Tournaments!A:F' })
     const rows = res.data.values || []
-    return rows.slice(1).filter(r => r[0] === skfId).map(row => ({
+    return sheetDataRows(rows).filter(r => r[0] === skfId).map(row => ({
       skfId: row[0],
       tournamentName: row[1],
       date: row[2],
@@ -595,7 +642,7 @@ export const getEnrollmentsBySkfId = cacheRead(async (skfId: string): Promise<En
     // Simulated read from a hypothetical Enrollments sheet
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Summer Camp Enrollments!A:K' }).catch(() => ({ data: { values: [] } }))
     const rows = res.data.values || []
-    const mapped: EnrollmentSummary[] = rows.slice(1).filter(r => r[0] === skfId).map(row => ({
+    const mapped: EnrollmentSummary[] = sheetDataRows(rows).filter(r => r[0] === skfId).map(row => ({
       id: String(row[0]),
       type: 'enrollment',
       title: 'Summer Camp 2026',
@@ -619,7 +666,7 @@ export const getAttendanceBySkfId = cacheRead(async (skfId: string, month: strin
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Attendance!A:D' })
     const rows = res.data.values || []
-    return rows.slice(1).filter(r => r[0] === skfId && r[1].includes(month)).map(row => ({
+    return sheetDataRows(rows).filter(r => r[0] === skfId && r[1].includes(month)).map(row => ({
       skfId: row[0],
       date: row[1],
       status: row[2] as AttendanceRow['status'],
@@ -716,7 +763,7 @@ export async function getVideosByBranch(branch: string): Promise<AdminVideoRow[]
     const sheets = await getSheets()
     const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Videos!A:K' })
     const rows = res.data.values || []
-    return rows.slice(1).filter(r => r[3] === branch).map(row => ({
+    return sheetDataRows(rows).filter(r => r[3] === branch).map(row => ({
         videoId: row[0],
         title: row[1],
         // admin panel needs url, so we do include it here safely (since admin role verified in api)
@@ -782,7 +829,7 @@ export const getAnnouncements = cacheRead(async (branch?: string): Promise<Annou
     const rows = res.data.values || []
     const today = new Date()
 
-    return rows.slice(1).map(row => ({
+    return sheetDataRows(rows).map(row => ({
       slug: row[0],
       title: row[1],
       body: row[2],
@@ -826,7 +873,7 @@ export const getTechniqueVideos = cacheRead(async (beltLevel?: string, category?
     const rows = res.data.values || []
     
     // Video_ID | Title | YouTube_URL | Category | Belt_Level | Duration_Min | Description | Featured
-    const mapped = rows.slice(1).map(row => {
+    const mapped = sheetDataRows(rows).map(row => {
       // Convert standard URL to embed
       let embedUrl = row[2] || ''
       if (embedUrl.includes('youtube.com/watch?v=')) {
@@ -951,7 +998,7 @@ export const getSummerCampByBranch = cacheRead(async (branch: string) => {
     const rows = res.data.values || []
     
     // Assumption: [Branch, Registration_Open, Month1_Price, Month2_Price, FullCamp_Price, Available_Slots]
-    const row = rows.slice(1).find((r: SheetRow) => r[0] === branch)
+    const row = sheetDataRows(rows).find((r: SheetRow) => r[0] === branch)
     if (!row) {
       // Mock Fallback
       return {
@@ -1063,7 +1110,7 @@ export const getShopOrdersBySkfId = cacheRead(async (skfId: string): Promise<Sho
         const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Orders!A:I' })
         const rows = res.data.values || []
         
-        return rows.slice(1)
+        return sheetDataRows(rows)
             .filter(r => r[1]?.toUpperCase() === skfId.toUpperCase())
             .map(row => ({
                 orderId: row[0],
@@ -1088,7 +1135,7 @@ export const getAllShopOrders = cacheRead(async (): Promise<ShopOrder[]> => {
         const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Orders!A:I' })
         const rows = res.data.values || []
         
-        return rows.slice(1).map(row => ({
+        return sheetDataRows(rows).map(row => ({
             orderId: row[0],
             skfId: row[1],
             itemsJson: row[2],

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin, isSupabaseReady } from '@/lib/server/supabase'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { enrollmentCreateSchema } from '@/src/server/api/validators/admin-certificates.validator'
 import { NotFoundError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -35,7 +35,7 @@ export const GET = withRoute(
         let branch = 'Unknown Branch'
         
         try {
-          const athlete = await getAthleteByRegistrationNumberLive(rec.skf_id)
+          const athlete = await getAthleteBySkfIdLive(rec.skf_id)
           if (athlete) {
             studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || studentName
             belt = athlete.currentBelt || 'white'
@@ -76,7 +76,7 @@ export const POST = withRoute(
   },
   async ({ body }) => {
     const { skfId, programId, beltLevel, completionDate, issuerName } = body
-    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    const athlete = await getAthleteBySkfIdLive(skfId)
     if (!athlete) throw new NotFoundError('Athlete')
 
     const { data: program, error: programError } = await supabaseAdmin

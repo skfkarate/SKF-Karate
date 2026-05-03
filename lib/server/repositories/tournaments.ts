@@ -14,7 +14,7 @@ export type TournamentWinner = {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber?: string
+  skfId?: string
   belt: string
   branchName: string
   category: string
@@ -31,7 +31,7 @@ export type TournamentParticipant = {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName: string
   belt: string
   photoUrl?: string
@@ -41,7 +41,7 @@ export type TournamentResultRecord = {
   id?: string
   participantId?: string
   athleteId?: string
-  registrationNumber: string
+  skfId: string
   athleteName: string
   result: string
   medal?: string
@@ -80,6 +80,7 @@ export type TournamentRecord = {
   status: string
   isPublished: boolean
   isFeatured: boolean
+  showInJourney?: boolean
   createdAt: string
   updatedAt: string
   participants: TournamentParticipant[]
@@ -112,10 +113,10 @@ let tournaments: TournamentRecord[] = [
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-02-25T00:00:00Z',
     participants: [
-      { id: 'p-kio1', registrationNumber: 'SKF-24-010', athleteName: 'Kiran Raj', branchName: 'Rajajinagar', belt: 'Black Belt 2nd Dan' },
-      { id: 'p-kio2', registrationNumber: 'SKF-24-011', athleteName: 'Ravi Kumar', branchName: 'Rajajinagar', belt: 'Black Belt 2nd Dan' },
-      { id: 'p-kio3', registrationNumber: 'SKF-24-012', athleteName: 'Anjali Sharma', branchName: 'Malleshwaram', belt: 'Black Belt 1st Dan' },
-      { id: 'p-kio4', registrationNumber: 'SKF-24-013', athleteName: 'Pooja Hegde', branchName: 'Sunkadakatte', belt: 'Black Belt 1st Dan' },
+      { id: 'p-kio1', skfId: 'SKF-24-010', athleteName: 'Kiran Raj', branchName: 'Rajajinagar', belt: 'Black Belt 2nd Dan' },
+      { id: 'p-kio2', skfId: 'SKF-24-011', athleteName: 'Ravi Kumar', branchName: 'Rajajinagar', belt: 'Black Belt 2nd Dan' },
+      { id: 'p-kio3', skfId: 'SKF-24-012', athleteName: 'Anjali Sharma', branchName: 'Malleshwaram', belt: 'Black Belt 1st Dan' },
+      { id: 'p-kio4', skfId: 'SKF-24-013', athleteName: 'Pooja Hegde', branchName: 'Sunkadakatte', belt: 'Black Belt 1st Dan' },
     ],
     winners: [
       { id: 'w-kio1', athleteName: 'Ravi Kumar', belt: 'Black Belt 2nd Dan', branchName: 'Rajajinagar', category: 'kumite-individual', ageGroup: 'senior', weightCategory: 'Under 75kg', medal: 'gold', position: 1 },
@@ -507,6 +508,10 @@ function normaliseTournamentPayload(
     affiliatedBody: input.affiliatedBody || existing?.affiliatedBody || '',
     isPublished: typeof input.isPublished === 'boolean' ? input.isPublished : existing?.isPublished ?? false,
     isFeatured: typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
+    showInJourney:
+      typeof input.showInJourney === 'boolean'
+        ? input.showInJourney
+        : existing?.showInJourney ?? false,
     resultsAppliedAt: input.resultsAppliedAt || existing?.resultsAppliedAt || '',
     createdAt: existing?.createdAt || input.createdAt || now,
     updatedAt: now,

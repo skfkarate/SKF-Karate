@@ -8,7 +8,7 @@ import type { EntitySchema } from './types'
  * - Athlete lives in .data/athletes.json (public profile, achievements, rankings)
  * - Student lives in Google Sheets Students tab (identity, fees, portal auth)
  *
- * The link is: athlete.registrationNumber === student.skfId
+ * The link is: athlete.skfId === student.skfId
  *
  * Portal Auth: Login uses skfId + dateOfBirth.
  * dateOfBirth is the auth credential — treat with password-level sensitivity.
@@ -21,7 +21,7 @@ export const athleteSchema: EntitySchema = {
   storage: 'local',
   fields: {
     id:                 { type: 'string',  required: true,  description: 'Prefixed ID (athlete_xxx)' },
-    registrationNumber: { type: 'string',  required: true,  unique: true, description: 'SKF ID (format: SKF-YYYY-XXXX). Links to Student.skfId in Sheets.' },
+    skfId: { type: 'string',  required: true,  unique: true, description: 'SKF ID (format: SKF{YY}{BRANCH}{NNN}, e.g. SKF25MP001). Links to Student.skfId in Sheets.' },
     firstName:          { type: 'string',  required: true },
     lastName:           { type: 'string',  required: true },
     dateOfBirth:        { type: 'date',    required: true,  description: 'YYYY-MM-DD. PORTAL AUTH CREDENTIAL — never expose in public API responses.' },

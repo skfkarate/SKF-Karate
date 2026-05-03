@@ -50,6 +50,20 @@ const nextConfig = {
   async rewrites() {
     return legacyAssetAliases
   },
+  async redirects() {
+    return [
+      {
+        source: '/senseis',
+        destination: '/about',
+        permanent: true,
+      },
+      {
+        source: '/senseis/:slug',
+        destination: '/instructors/:slug',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

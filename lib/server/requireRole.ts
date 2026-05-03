@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import type { UserRole, JWTPayload } from '@/types'
 import { COOKIE_NAME, verifyJWT } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from './repositories/athletes-live'
+import { getAthleteBySkfIdLive } from './repositories/athletes-live'
 
 export async function requireRole(
   allowedRoles: UserRole[]
@@ -14,7 +14,7 @@ export async function requireRole(
   if (!allowedRoles.includes(payload.role)) throw new Error('FORBIDDEN')
   
   if (payload.role === 'student' && payload.skfId) {
-    const athlete = await getAthleteByRegistrationNumberLive(payload.skfId)
+    const athlete = await getAthleteBySkfIdLive(payload.skfId)
     if (!athlete || String(athlete.status || '').toLowerCase() === 'inactive') {
       throw new Error('UNAUTHORIZED')
     }

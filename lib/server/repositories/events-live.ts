@@ -48,6 +48,7 @@ type EventDatabaseRow = {
   is_published?: boolean | null
   is_featured?: boolean | null
   is_results_published?: boolean | null
+  show_in_journey?: boolean | null
   hosting_branch?: string | null
   participants?: unknown
   results?: unknown
@@ -84,6 +85,7 @@ export type EventRecord = {
   isPublished: boolean
   isFeatured: boolean
   isResultsPublished: boolean
+  showInJourney: boolean
   hostingBranch: string
   participants: EventParticipant[]
   results: EventResult[]
@@ -137,6 +139,10 @@ function normaliseEventPayload(
       typeof input.isResultsPublished === 'boolean'
         ? input.isResultsPublished
         : existing?.isResultsPublished ?? false,
+    showInJourney:
+      typeof input.showInJourney === 'boolean'
+        ? input.showInJourney
+        : existing?.showInJourney ?? false,
     hostingBranch: input.hostingBranch || existing?.hostingBranch || '',
     participants: Array.isArray(input.participants)
       ? input.participants
@@ -176,6 +182,7 @@ function mapEventRowToRecord(row: EventDatabaseRow): EventRecord {
     isPublished: Boolean(row.is_published),
     isFeatured: Boolean(row.is_featured),
     isResultsPublished: Boolean(row.is_results_published),
+    showInJourney: Boolean(row.show_in_journey),
     hostingBranch: row.hosting_branch || '',
     participants: Array.isArray(row.participants) ? row.participants : [],
     results: Array.isArray(row.results) ? row.results : [],
@@ -206,6 +213,7 @@ function mapEventRecordToRow(record: EventRecord): Record<string, unknown> {
     is_published: Boolean(record.isPublished),
     is_featured: Boolean(record.isFeatured),
     is_results_published: Boolean(record.isResultsPublished),
+    show_in_journey: Boolean(record.showInJourney),
     hosting_branch: record.hostingBranch || null,
     participants: Array.isArray(record.participants) ? record.participants : [],
     results: Array.isArray(record.results) ? record.results : [],

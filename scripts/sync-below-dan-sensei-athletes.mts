@@ -83,21 +83,56 @@ function inferJoinDate(experience: string) {
   return date.toISOString().split('T')[0]
 }
 
-function generateRegistrationNumber(year: number, sequence: number) {
-  return `SKF-${year}-${String(sequence).padStart(4, '0')}`
+const BRANCH_CODES: Record<string, string> = {
+  sunkadakatte: 'SK',
+  rajajinagar: 'RJ',
+  malleshwaram: 'ML',
+  'm p sports club': 'MP',
+  'mp sports club': 'MP',
+  herohalli: 'HE',
+  kunigal: 'KG',
+  tumkur: 'TK',
+  udupi: 'UD',
 }
 
-async function getNextSequence(year: number) {
-  const prefix = `SKF-${year}-`
+function getBranchCode(branchName: string) {
+  const normalized = String(branchName || '').toLowerCase().trim()
+  return BRANCH_CODES[normalized] || normalized.replace(/[^a-z]/g, '').slice(0, 2).toUpperCase() || 'MP'
+}
+
+function normalizeSkfId(input: string, branchName = 'MP') {
+  const raw = String(input || '').trim()
+  const cleaned = raw.toUpperCase().replace(/\s+/g, '').replace(/-/g, '')
+
+  const current = cleaned.match(/^SKF(\d{2})([A-Z]{2})(\d{1,})$/)
+  if (current) return `SKF${current[1]}${current[2]}${current[3].padStart(3, '0')}`
+
+  const branchFirst = cleaned.match(/^([A-Z]{2})(\d{2})(\d{1,})$/)
+  if (branchFirst) return `SKF${branchFirst[2]}${branchFirst[1]}${branchFirst[3].padStart(3, '0')}`
+
+  const legacy = cleaned.match(/^SKF(\d{4})(\d{1,})$/)
+  if (legacy) {
+    return `SKF${legacy[1].slice(-2)}${getBranchCode(branchName)}${String(Number(legacy[2])).padStart(3, '0')}`
+  }
+
+  return raw.toUpperCase()
+}
+
+function generateSkfId(year: number, branchName: string, sequence: number) {
+  return `SKF${String(year).slice(-2)}${getBranchCode(branchName)}${String(sequence).padStart(3, '0')}`
+}
+
+async function getNextSequence(year: number, branchName: string) {
+  const prefix = `SKF${String(year).slice(-2)}${getBranchCode(branchName)}`
   const { data, error } = await supabase
     .from('athletes')
-    .select('registration_number')
-    .like('registration_number', `${prefix}%`)
+    .select('skf_id')
+    .like('skf_id', `${prefix}%`)
 
   if (error) throw error
 
-  const sequences = ((data || []) as Array<{ registration_number?: string | null }>)
-    .map((entry) => Number.parseInt(String(entry.registration_number || '').split('-')[2] || '0', 10))
+  const sequences = ((data || []) as Array<{ skf_id?: string | null }>)
+    .map((entry) => Number.parseInt(normalizeSkfId(String(entry.skf_id || ''), branchName).slice(prefix.length), 10))
     .filter((value) => Number.isFinite(value))
 
   return sequences.length > 0 ? Math.max(...sequences) + 1 : 1
@@ -126,7 +161,7 @@ async function main() {
   }
 
   const currentYear = new Date().getFullYear()
-  let nextSequence = await getNextSequence(currentYear)
+  const nextSequenceByBranch = new Map<string, number>()
   const synced: string[] = []
 
   for (const sensei of senseis || []) {
@@ -149,18 +184,27 @@ async function main() {
 
     const { firstName, lastName } = splitName(String(sensei.name || ''))
     const joinDate = existing?.join_date || inferJoinDate(String(sensei.experience || ''))
-    const registrationNumber =
-      existing?.registration_number || generateRegistrationNumber(currentYear, nextSequence++)
+    const branchName = branchBySenseiId.get(String(sensei.id)) || existing?.branch_name || 'SKF Karate'
+    const sequenceKey = `${currentYear}:${getBranchCode(branchName)}`
+    if (!nextSequenceByBranch.has(sequenceKey)) {
+      nextSequenceByBranch.set(sequenceKey, await getNextSequence(currentYear, branchName))
+    }
+    const nextSequence = nextSequenceByBranch.get(sequenceKey) || 1
+    const skfId =
+      existing?.skf_id
+        ? normalizeSkfId(existing.skf_id, branchName)
+        : generateSkfId(currentYear, branchName, nextSequence)
+    nextSequenceByBranch.set(sequenceKey, nextSequence + 1)
 
     const payload = {
       id,
-      registration_number: registrationNumber,
+      skf_id: skfId,
       first_name: firstName,
       last_name: lastName,
       date_of_birth: existing?.date_of_birth || '1990-01-01',
       gender: existing?.gender || 'other',
       photo_url: sensei.image_url || existing?.photo_url || null,
-      branch_name: branchBySenseiId.get(String(sensei.id)) || existing?.branch_name || 'SKF Karate',
+      branch_name: branchName,
       current_belt: belt,
       join_date: joinDate,
       status: 'active',
@@ -197,14 +241,14 @@ async function main() {
     })
 
     if (upsertError) throw upsertError
-    synced.push(registrationNumber)
+    synced.push(skfId)
   }
 
   console.log(
     JSON.stringify(
       {
         syncedCount: synced.length,
-        registrationNumbers: synced,
+        skfIds: synced,
       },
       null,
       2
