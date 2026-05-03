@@ -288,10 +288,14 @@ a.ft__connect-item:hover {
     justify-content: center;
     width: 44px;
     height: 44px;
+    padding: 0;
+    border: 0;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.03);
     color: rgba(255, 255, 255, 0.6);
     font-size: 1.1rem;
+    font-family: inherit;
+    text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -318,6 +322,16 @@ a.ft__connect-item:hover {
 .ft__soc--wa:hover {
     background: #25D366;
     box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+/* Disabled social icons keep the layout stable without behaving like links. */
+.ft__soc--disabled,
+.ft__soc--disabled:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.28);
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* ═══════════════════════════════════════

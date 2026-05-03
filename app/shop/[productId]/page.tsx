@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Package, Lock, Ruler, X, User, ShoppingCart, Check } from 'lucide-react'
 import { useCart } from '@/lib/shop/cartState'
+import { getShopProductImages } from '@/lib/shop/productImages'
 import type { ShopProduct } from '@/lib/shop/types'
 import { BELT_HIERARCHY } from '@/lib/shop/types'
 import ShopProductSkeleton from '@/components/skeletons/ShopProductSkeleton'
@@ -64,6 +65,7 @@ export default function ProductDetailPage() {
     if (!product) return <div className="obsidian-store" style={{ minHeight: '100dvh', padding: '6rem', color: '#fff', textAlign: 'center', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '2px' }}>Product not found.</div>
 
     const activeVariantObj = product.variants.find(v => v.id === selectedVariant)
+    const productImages = getShopProductImages(product)
     const isOutOfStock = activeVariantObj?.stock === 0
     const requiresApproval = activeVariantObj?.requiresApproval === true
 
@@ -121,7 +123,7 @@ export default function ProductDetailPage() {
             name: product.name,
             price: product.price,
             size: activeVariantObj.size,
-            image: product.images[0],
+            image: productImages[0],
             quantity: quantityToAdd,
             requiresApproval
         })
@@ -251,11 +253,11 @@ export default function ProductDetailPage() {
                     {/* LEFT: MINIMAL GALLERY */}
                     <div className="shop-detail-gallery">
                         <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', background: '#111' }}>
-                            <Image src={product.images[selectedImage] || product.images[0] || '/og-default.jpg'} alt={product.name} fill style={{ objectFit: 'cover' }} priority />
+                            <Image src={productImages[selectedImage] || productImages[0] || '/og-default.jpg'} alt={product.name} fill style={{ objectFit: 'cover' }} priority />
                         </div>
-                        {product.images.length > 1 && (
+                        {productImages.length > 1 && (
                             <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-                                {product.images.map((img: string, i: number) => (
+                                {productImages.map((img: string, i: number) => (
                                     <div key={i} onClick={() => setSelectedImage(i)} style={{ width: '100px', height: '100px', position: 'relative', background: '#111', cursor: 'pointer', border: selectedImage === i ? '1px solid #fff' : '1px solid transparent', opacity: selectedImage === i ? 1 : 0.5, transition: 'all 0.2s' }}>
                                         <Image src={img} alt={`Gallery ${i}`} fill style={{ objectFit: 'cover' }} />
                                     </div>
