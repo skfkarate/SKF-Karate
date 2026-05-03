@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useState } from 'react'
 import type { ShopProduct } from './types'
 
 export interface CartItem {
@@ -18,6 +17,7 @@ export interface CartItem {
 const CART_KEY = 'skf_cart'
 const CHECKOUT_POINTS_KEY = 'skf_checkout_points'
 const CHECKOUT_PROMO_KEY = 'skf_checkout_promo'
+const CART_UPDATED_EVENT = 'skf_cart_updated'
 
 const getCartFromStorage = (): CartItem[] => {
     if (typeof window === 'undefined') return []
@@ -42,6 +42,11 @@ const saveCartToStorage = (newCart: CartItem[]) => {
     localStorage.setItem(CART_KEY, JSON.stringify(newCart))
 }
 
+const emitCartUpdated = () => {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new Event(CART_UPDATED_EVENT))
+}
+
 const getAvailableCatalogVariantKeys = (products: ShopProduct[]) => {
     const keys = new Set<string>()
 
@@ -57,23 +62,25 @@ const getAvailableCatalogVariantKeys = (products: ShopProduct[]) => {
 }
 
 export function useCart() {
-    const queryClient = useQueryClient()
+    const [cart, setCart] = useState<CartItem[]>([])
 
-    const { data: cart = [] } = useQuery<CartItem[]>({
-        queryKey: ['cart'],
-        queryFn: getCartFromStorage,
-        initialData: () => getCartFromStorage() // Ensure immediate client render
-    })
+    useEffect(() => {
+        const syncCart = () => setCart(getCartFromStorage())
+        syncCart()
 
-    const saveCartMutation = useMutation({
-        mutationFn: async (newCart: CartItem[]) => {
-            saveCartToStorage(newCart)
-            return newCart
-        },
-        onSuccess: (newCart) => {
-            queryClient.setQueryData(['cart'], newCart)
+        window.addEventListener('storage', syncCart)
+        window.addEventListener(CART_UPDATED_EVENT, syncCart)
+        return () => {
+            window.removeEventListener('storage', syncCart)
+            window.removeEventListener(CART_UPDATED_EVENT, syncCart)
         }
-    })
+    }, [])
+
+    const saveCart = useCallback((newCart: CartItem[]) => {
+        saveCartToStorage(newCart)
+        setCart(newCart)
+        emitCartUpdated()
+    }, [])
 
     useEffect(() => {
         if (typeof window === 'undefined' || cart.length === 0) return
@@ -91,7 +98,7 @@ export function useCart() {
                 )
 
                 if (syncedCart.length !== cart.length) {
-                    saveCartMutation.mutate(syncedCart)
+                    saveCart(syncedCart)
                 }
             })
             .catch(() => {})
@@ -99,16 +106,16 @@ export function useCart() {
         return () => {
             cancelled = true
         }
-    }, [cart, saveCartMutation])
+    }, [cart, saveCart])
 
     const addToCart = (item: CartItem) => {
         const existing = cart.find(c => c.variantId === item.variantId)
         if (existing) {
-            saveCartMutation.mutate(cart.map(c => 
+            saveCart(cart.map(c =>
                 c.variantId === item.variantId ? { ...c, quantity: c.quantity + item.quantity } : c
             ))
         } else {
-            saveCartMutation.mutate([...cart, item])
+            saveCart([...cart, item])
         }
     }
 
@@ -117,17 +124,17 @@ export function useCart() {
             removeFromCart(variantId)
             return
         }
-        saveCartMutation.mutate(cart.map(c => 
+        saveCart(cart.map(c =>
             c.variantId === variantId ? { ...c, quantity } : c
         ))
     }
 
     const removeFromCart = (variantId: string) => {
-        saveCartMutation.mutate(cart.filter(c => c.variantId !== variantId))
+        saveCart(cart.filter(c => c.variantId !== variantId))
     }
 
     const clearCart = () => {
-        saveCartMutation.mutate([])
+        saveCart([])
     }
 
     const cartTotalCount = cart.reduce((acc, item) => acc + item.quantity, 0)

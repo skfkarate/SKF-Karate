@@ -40,7 +40,6 @@ export const metadata: Metadata = {
 }
 
 
-import { Providers } from '@/app/providers'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import CookieConsent from '@/components/CookieConsent'
 
@@ -53,17 +52,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div className="amb-orb amb-orb--2" />
         <div className="amb-orb amb-orb--3" />
 
-        <Providers>
-          <ClientLayoutWrapper
-            navbar={<Navbar />}
-            footer={<Footer />}
-            whatsappButton={<WhatsAppButton />}
-          >
-            {children}
-          </ClientLayoutWrapper>
+        <ClientLayoutWrapper
+          navbar={<Navbar />}
+          footer={<Footer />}
+          whatsappButton={<WhatsAppButton />}
+        >
+          {children}
+        </ClientLayoutWrapper>
 
-          <CookieConsent />
-        </Providers>
+        <CookieConsent />
         <AnalyticsLoader />
       </body>
     </html>

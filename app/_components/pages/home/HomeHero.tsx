@@ -1,32 +1,8 @@
-'use client'
-
+import type { CSSProperties } from 'react'
 import Link from 'next/link'
-import { motion, type Variants } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import HeroVideo from './HeroVideo'
 import { HERO_COPY } from '@/data/constants/homeContent'
-
-const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94]
-
-const container = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
-    },
-  },
-}
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.9, ease },
-  },
-}
 
 export default function HomeHero() {
   return (
@@ -35,20 +11,18 @@ export default function HomeHero() {
       <div className="hero__bg">
         <HeroVideo />
         <div className="hero__overlay" />
-        <motion.div
+        <div
           className="hero__watermark"
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 2.5, ease }}
+          aria-hidden="true"
         >
           {HERO_COPY.WATERMARK}
-        </motion.div>
+        </div>
       </div>
 
       {/* Floating ambient particles */}
       <div className="hero__particles" aria-hidden="true">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
             key={i}
             className="hero__particle"
             style={{
@@ -56,65 +30,47 @@ export default function HomeHero() {
               top: `${20 + (i % 3) * 25}%`,
               width: `${3 + i * 1.5}px`,
               height: `${3 + i * 1.5}px`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.6, 0.2],
-            }}
-            transition={{
-              duration: 4 + i * 0.8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: i * 0.6,
-            }}
+              '--particle-duration': `${4 + i * 0.8}s`,
+              '--particle-delay': `${i * 0.6}s`,
+            } as CSSProperties}
           />
         ))}
       </div>
 
-      <motion.div
-        className="container hero__content"
-        variants={container}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div className="hero__badge" variants={fadeUp}>
+      <div className="container hero__content">
+        <div className="hero__badge hero__reveal hero__reveal--1">
           {HERO_COPY.BADGE}
-        </motion.div>
+        </div>
 
-        <motion.h1 className="hero__title" variants={fadeUp}>
+        <h1 className="hero__title hero__reveal hero__reveal--2">
           {HERO_COPY.TITLE_LINE1}
           <br />
           <span className="text-gradient">{HERO_COPY.TITLE_ACCENT}</span>
-        </motion.h1>
+        </h1>
 
-        <motion.p className="hero__subtitle" variants={fadeUp}>
+        <p className="hero__subtitle hero__reveal hero__reveal--3">
           {HERO_COPY.SUBTITLE}
-        </motion.p>
+        </p>
 
-        <motion.p className="hero__desc" variants={fadeUp}>
+        <p className="hero__desc hero__reveal hero__reveal--4">
           {HERO_COPY.DESCRIPTION}
-        </motion.p>
+        </p>
 
-        <motion.div className="hero__actions" variants={fadeUp}>
+        <div className="hero__actions hero__reveal hero__reveal--5">
           <Link href="/classes" className="btn btn-primary hero__btn">
             Find Classes <ArrowRight size={16} />
           </Link>
           <Link href="/book-trial" className="btn btn-secondary hero__btn">
             Book Free Trial
           </Link>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Scroll hint */}
-      <motion.div
-        className="hero__scroll-hint"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-      >
+      <div className="hero__scroll-hint hero__scroll-hint--reveal">
         <span className="hero__scroll-text">Scroll</span>
         <span className="hero__scroll-line" />
-      </motion.div>
+      </div>
     </section>
   )
 }
