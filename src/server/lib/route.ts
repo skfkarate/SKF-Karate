@@ -24,6 +24,7 @@ type RouteOptions<TBody, TQuery> = {
     keySuffix?: string
   }
   cacheControl?: string
+  maxBodyBytes?: number
 }
 
 type RouteContext<TBody, TQuery> = {
@@ -53,15 +54,49 @@ function parseQuery<TQuery>(request: RequestLike, schema?: ZodType<TQuery>): TQu
   return schema.parse(raw)
 }
 
-async function parseBody<TBody>(request: RequestLike, schema?: ZodType<TBody>): Promise<TBody> {
+function assertBodySize(request: RequestLike, maxBodyBytes?: number) {
+  if (!maxBodyBytes) return
+
+  const contentLength = request.headers.get('content-length')
+  if (!contentLength) return
+
+  const parsedLength = Number(contentLength)
+  if (Number.isFinite(parsedLength) && parsedLength > maxBodyBytes) {
+    throw new ValidationError({
+      body: [`Request body exceeds ${maxBodyBytes} bytes.`],
+    })
+  }
+}
+
+async function parseBody<TBody>(
+  request: RequestLike,
+  schema?: ZodType<TBody>,
+  maxBodyBytes?: number
+): Promise<TBody> {
   if (!schema) {
     return {} as TBody
   }
 
+  assertBodySize(request, maxBodyBytes)
+
   let raw: unknown
+  let text: string
 
   try {
-    raw = await request.json()
+    text = await request.text()
+  } catch {
+    throw new ValidationError({ body: ['Invalid request body.'] })
+  }
+
+  const byteLength = new TextEncoder().encode(text).byteLength
+  if (maxBodyBytes && byteLength > maxBodyBytes) {
+    throw new ValidationError({
+      body: [`Request body exceeds ${maxBodyBytes} bytes.`],
+    })
+  }
+
+  try {
+    raw = JSON.parse(text)
   } catch {
     throw new ValidationError({ body: ['Invalid JSON body.'] })
   }
@@ -163,7 +198,7 @@ export function withRoute<TBody = Record<string, never>, TQuery = Record<string,
       const params = context?.params ? await Promise.resolve(context.params) : {}
       const authResult = await resolveAuth(request, options.auth)
       const query = parseQuery(request, options.querySchema)
-      const body = await parseBody(request, options.bodySchema)
+      const body = await parseBody(request, options.bodySchema, options.maxBodyBytes)
 
       const response = await handler({
         request,

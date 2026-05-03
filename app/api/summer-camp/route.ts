@@ -1,19 +1,23 @@
-import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { z } from 'zod';
+
+import { ValidationError, ExternalServiceError } from '@/src/server/lib/errors';
+import { logger } from '@/src/server/lib/logger';
+import { withRoute } from '@/src/server/lib/route';
 
 type SummerCampRegistrationPayload = {
-  registrationType?: string;
+  registrationType: 'existing' | 'new';
   skfId?: string;
-  studentName?: string;
-  dob?: string;
+  studentName: string;
+  dob: string;
   age?: string;
   gender?: string;
-  parentName?: string;
-  contactNumber?: string;
+  parentName: string;
+  contactNumber: string;
   whatsappNumber?: string;
-  area?: string;
-  schoolName?: string;
-  schoolKarate?: string;
+  area: string;
+  schoolName: string;
+  schoolKarate: string;
   karateExperience?: string;
   previouslyTrained?: string;
   emergencyContact?: string;
@@ -25,15 +29,94 @@ type SummerCampRegistrationPayload = {
   campRules?: boolean;
 };
 
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : 'Internal Server Error';
+const MAX_REQUEST_BODY_BYTES = 1_200_000;
+const MAX_PAYMENT_PROOF_BYTES = 750 * 1024;
+const MAX_PAYMENT_PROOF_CHARS = Math.ceil((MAX_PAYMENT_PROOF_BYTES * 4) / 3) + 128;
+
+const optionalText = (max = 160) => z.string().trim().max(max).optional().or(z.literal(''));
+const paymentProofSchema = z.string()
+  .trim()
+  .max(MAX_PAYMENT_PROOF_CHARS)
+  .regex(/^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/)
+  .optional()
+  .or(z.literal(''));
+
+const summerCampRegistrationSchema = z.object({
+  registrationType: z.enum(['existing', 'new']).default('new'),
+  skfId: optionalText(80),
+  studentName: z.string().trim().min(2).max(120),
+  dob: z.string().trim().min(8).max(20),
+  age: optionalText(10),
+  gender: optionalText(30),
+  parentName: z.string().trim().min(2).max(120),
+  contactNumber: z.string().trim().min(6).max(30),
+  whatsappNumber: optionalText(30),
+  area: z.string().trim().min(2).max(160),
+  schoolName: z.string().trim().min(2).max(160),
+  schoolKarate: z.string().trim().min(1).max(80),
+  karateExperience: optionalText(80),
+  previouslyTrained: optionalText(80),
+  emergencyContact: optionalText(30),
+  medicalConditions: optionalText(500),
+  paymentProofBase64: paymentProofSchema,
+  paymentProofName: optionalText(255),
+  parentConsent: z.boolean().optional(),
+  photoPermission: z.boolean().optional(),
+  campRules: z.boolean().optional(),
+}).superRefine((data, context) => {
+  if (data.registrationType === 'existing' && !data.skfId?.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['skfId'],
+      message: 'SKF ID is required for existing members.',
+    });
+  }
+
+  if (!data.parentConsent || !data.campRules) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['parentConsent'],
+      message: 'Parent consent and camp rules acceptance are required.',
+    });
+  }
+});
+
+function escapeTelegramMarkdown(value: unknown) {
+  return String(value ?? '').replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
 }
 
-export async function POST(req: Request) {
-  try {
-    const data = (await req.json()) as SummerCampRegistrationPayload;
+function safeSheetCell(value: unknown) {
+  const text = String(value ?? '').trim();
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}
 
+function getPaymentProof(data: SummerCampRegistrationPayload) {
+  if (!data.paymentProofBase64 || data.registrationType === 'existing') return null;
+
+  const match = data.paymentProofBase64.match(/^data:image\/(png|jpe?g|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) {
+    throw new ValidationError({ paymentProofBase64: ['Invalid payment proof image.'] });
+  }
+
+  const buffer = Buffer.from(match[2], 'base64');
+  if (buffer.length > MAX_PAYMENT_PROOF_BYTES) {
+    throw new ValidationError({ paymentProofBase64: ['Payment proof must be 750 KB or smaller.'] });
+  }
+
+  const extension = match[1] === 'jpeg' ? 'jpg' : match[1];
+  return {
+    buffer,
+    filename: data.paymentProofName?.trim() || `payment-proof.${extension}`,
+  };
+}
+
+export const POST = withRoute(
+  {
+    bodySchema: summerCampRegistrationSchema,
+    rateLimit: { tier: 'contact' },
+    maxBodyBytes: MAX_REQUEST_BODY_BYTES,
+  },
+  async ({ body: data, requestId }) => {
     // Environment variables
     const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
@@ -45,6 +128,8 @@ export async function POST(req: Request) {
     const isExisting = data.registrationType === 'existing';
 
     let telegramNotified = 'No';
+    const proof = getPaymentProof(data);
+
     // 1. Send to Telegram
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
       try {
@@ -52,26 +137,19 @@ export async function POST(req: Request) {
         const message = `
 🥋 *New Summer Camp Registration*
 *Type:* ${isExisting ? 'Existing Member' : 'New Participant'}
-*Name:* ${data.studentName}
-${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
-*Contact:* ${data.contactNumber}
-*School:* ${data.schoolName} (Karate in School: ${data.schoolKarate})${depositLine}
+*Name:* ${escapeTelegramMarkdown(data.studentName)}
+${data.skfId ? `*SKF ID:* ${escapeTelegramMarkdown(data.skfId)}` : ''}
+*Contact:* ${escapeTelegramMarkdown(data.contactNumber)}
+*School:* ${escapeTelegramMarkdown(data.schoolName)} (Karate in School: ${escapeTelegramMarkdown(data.schoolKarate)})${depositLine}
         `;
 
         // If there's a payment proof image, send as photo with caption, else send text message
-        if (data.paymentProofBase64 && !isExisting) {
-          // Convert base64 to Buffer
-          const base64Data = data.paymentProofBase64.split(';base64,').pop();
-          if (!base64Data) {
-            throw new Error('Invalid payment proof upload');
-          }
-          const buffer = Buffer.from(base64Data, 'base64');
-          
+        if (proof) {
           const formData = new FormData();
           formData.append('chat_id', TELEGRAM_CHAT_ID);
           formData.append('caption', message);
           formData.append('parse_mode', 'Markdown');
-          formData.append('photo', new Blob([buffer]), data.paymentProofName || 'screenshot.jpg');
+          formData.append('photo', new Blob([proof.buffer]), proof.filename);
 
           const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
             method: 'POST',
@@ -79,7 +157,7 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           });
           
           if (tgRes.ok) telegramNotified = 'Yes';
-          else console.warn('Telegram photo send failed:', await tgRes.text());
+          else logger.warn('summer_camp.telegram_photo_failed', { requestId, status: tgRes.status });
         } else {
           const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
@@ -92,10 +170,10 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           });
           
           if (tgRes.ok) telegramNotified = 'Yes';
-          else console.warn('Telegram message send failed:', await tgRes.text());
+          else logger.warn('summer_camp.telegram_message_failed', { requestId, status: tgRes.status });
         }
       } catch (e: unknown) {
-        console.error('Telegram Error:', e);
+        logger.error('summer_camp.telegram_failed', { requestId, error: e });
       }
     }
 
@@ -114,25 +192,25 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
 
         const row = [
           new Date().toISOString(),
-          data.registrationType,
-          data.skfId || '',
-          data.studentName,
-          data.dob,
-          data.age || '',
-          data.gender || '',
-          data.parentName,
-          data.contactNumber,
-          data.whatsappNumber || '',
-          data.area,
-          data.schoolName,
-          data.schoolKarate,
-          data.karateExperience || '',
-          data.previouslyTrained || '',
-          data.emergencyContact,
-          data.medicalConditions || '',
+          safeSheetCell(data.registrationType),
+          safeSheetCell(data.skfId || ''),
+          safeSheetCell(data.studentName),
+          safeSheetCell(data.dob),
+          safeSheetCell(data.age || ''),
+          safeSheetCell(data.gender || ''),
+          safeSheetCell(data.parentName),
+          safeSheetCell(data.contactNumber),
+          safeSheetCell(data.whatsappNumber || ''),
+          safeSheetCell(data.area),
+          safeSheetCell(data.schoolName),
+          safeSheetCell(data.schoolKarate),
+          safeSheetCell(data.karateExperience || ''),
+          safeSheetCell(data.previouslyTrained || ''),
+          safeSheetCell(data.emergencyContact),
+          safeSheetCell(data.medicalConditions || ''),
           isExisting ? '0' : '300', // Deposit Amount
           isExisting ? 'N/A' : 'Paid',
-          (data.paymentProofBase64 && !isExisting) ? 'Sent via Telegram' : '',
+          proof ? 'Sent via Telegram' : '',
           data.parentConsent ? 'Yes' : 'No',
           data.photoPermission ? 'Yes' : 'No',
           data.campRules ? 'Yes' : 'No',
@@ -153,19 +231,16 @@ ${data.skfId ? `*SKF ID:* ${data.skfId}` : ''}
           },
         });
       } catch (e: unknown) {
-        console.error('Google Sheets Error:', e);
-        // If sheet fails but telegram succeeded, we still return success with warning maybe?
-        // Or fail the whole thing. Better to throw so user knows.
-        throw new Error('Failed to save to database (Google Sheets): ' + getErrorMessage(e));
+        logger.error('summer_camp.sheets_failed', { requestId, error: e });
+        throw new ExternalServiceError('Failed to save registration. Please try again shortly.');
       }
     } else {
-      console.warn('Google Sheets credentials not fully configured.');
+      logger.warn('summer_camp.sheets_missing_credentials', { requestId });
+      if (telegramNotified !== 'Yes') {
+        throw new ExternalServiceError('Registration service is not configured.');
+      }
     }
 
-    return NextResponse.json({ success: true, telegramNotified });
-
-  } catch (error: unknown) {
-    console.error('Registration API Error:', error);
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+    return Response.json({ success: true, telegramNotified });
   }
-}
+);
