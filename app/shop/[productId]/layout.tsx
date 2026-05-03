@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import { getShopProductPrimaryImage } from '@/lib/shop/productImages'
 import { getProducts } from '@/lib/server/repositories/products'
 
 type ProductLayoutProps = {
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: ProductLayoutProps) {
   return buildSeoMetadata(
     `/shop/${product.id}`,
     `${product.name} from SKF Karate. ${product.description}`,
-    { image: product.images?.[0] || undefined, imageAlt: product.name }
+    { image: getShopProductPrimaryImage(product), imageAlt: product.name }
   )
 }
 

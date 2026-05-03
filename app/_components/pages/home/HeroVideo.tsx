@@ -1,59 +1,57 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 /**
  * Cinematic hero background video.
- * Loads lazily, plays muted & looping, pauses when off-screen for perf.
+ * Uses optimized muted variants and pauses when off-screen for perf.
  */
 export default function HeroVideo() {
     const videoRef = useRef<HTMLVideoElement>(null)
-    const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
-
-    useEffect(() => {
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        if (reduceMotion) return
-
-        let timeoutId: ReturnType<typeof setTimeout> | null = null
-        let idleId: number | null = null
-
-        const loadVideo = () => setShouldLoadVideo(true)
-
-        if (typeof window.requestIdleCallback === 'function') {
-            idleId = window.requestIdleCallback(loadVideo, { timeout: 1800 })
-        } else {
-            timeoutId = setTimeout(loadVideo, 900)
-        }
-
-        return () => {
-            if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
-                window.cancelIdleCallback(idleId)
-            }
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId)
-            }
-        }
-    }, [])
 
     useEffect(() => {
         const video = videoRef.current
-        if (!video || !shouldLoadVideo) return
+        if (!video) return
+
+        video.defaultMuted = true
+        video.muted = true
+        video.playsInline = true
+
+        const playVideo = () => {
+            if (document.visibilityState === 'visible') {
+                video.play().catch(() => {})
+            }
+        }
 
         // Pause video when hero scrolls out of view to save GPU/battery
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    video.play().catch(() => {})
+                    playVideo()
                 } else {
                     video.pause()
                 }
             },
-            { threshold: 0.1 }
+            { rootMargin: '200px 0px', threshold: 0.01 }
         )
 
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                playVideo()
+            } else {
+                video.pause()
+            }
+        }
+
+        playVideo()
         observer.observe(video)
-        return () => observer.disconnect()
-    }, [shouldLoadVideo])
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        return () => {
+            observer.disconnect()
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
+    }, [])
 
     return (
         <video
@@ -63,15 +61,19 @@ export default function HeroVideo() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
+            poster="/videos/home-hero-poster.jpg"
             aria-hidden="true"
         >
-            {shouldLoadVideo ? (
-                <source
-                    src="/August 4th.mp4"
-                    type="video/mp4"
-                />
-            ) : null}
+            <source
+                src="/videos/home-hero-mobile.mp4"
+                type="video/mp4"
+                media="(max-width: 767px)"
+            />
+            <source
+                src="/videos/home-hero-desktop.mp4"
+                type="video/mp4"
+            />
         </video>
     )
 }

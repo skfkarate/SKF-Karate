@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Package, Lock, Ruler, X, User, ShoppingCart, Check } from 'lucide-react'
 import { useCart } from '@/lib/shop/cartState'
-import { getShopProductImages } from '@/lib/shop/productImages'
+import { getShopProductImages, getShopProductPrimaryImage } from '@/lib/shop/productImages'
 import type { ShopProduct } from '@/lib/shop/types'
 import { BELT_HIERARCHY } from '@/lib/shop/types'
 import ShopProductSkeleton from '@/components/skeletons/ShopProductSkeleton'
@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
             name: product.name,
             price: product.price,
             size: activeVariantObj.size,
-            image: productImages[0],
+            image: getShopProductPrimaryImage(product),
             quantity: quantityToAdd,
             requiresApproval
         })
