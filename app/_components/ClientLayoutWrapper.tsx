@@ -21,6 +21,8 @@ export default function ClientLayoutWrapper({
   // Hide the public shell on admin routes and auth portal routes
   const isPublicRoute = !pathname?.startsWith('/admin') && !pathname?.startsWith('/portal')
   const showHeaderFooter = isPublicRoute
+  // Shop screens have fixed cart/product controls, so the floating WhatsApp button stays hidden there only.
+  const showWhatsAppButton = showHeaderFooter && !pathname?.startsWith('/shop')
 
   return (
     <>
@@ -39,7 +41,7 @@ export default function ClientLayoutWrapper({
       {showHeaderFooter && (
         <>
           {footer}
-          {whatsappButton}
+          {showWhatsAppButton && whatsappButton}
         </>
       )}
     </>

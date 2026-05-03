@@ -657,10 +657,14 @@
   display: flex;
   justify-content: center;
   gap: 2rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-bottom: 5rem;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 1rem;
+}
+
+.shop-filter-row .obsidian-filter-tab {
+  flex: 0 0 auto;
 }
 
 /* --- Product Grid --- */
@@ -930,9 +934,18 @@
   }
 
   .shop-filter-row {
-    gap: 0.8rem;
+    justify-content: center;
+    /* Balanced mobile spacing: roomy enough to read, compact enough to keep all five tabs on one row. */
+    gap: clamp(0.9rem, 4vw, 1.25rem) !important;
+    overflow-x: visible !important;
     padding-bottom: 0.75rem;
     margin-bottom: 2rem;
+  }
+
+  .shop-filter-row .obsidian-filter-tab {
+    font-size: clamp(0.52rem, 2.25vw, 0.68rem) !important;
+    letter-spacing: 0.45px !important;
+    padding: 0.45rem 0 !important;
   }
 
   .shop-cart-item {

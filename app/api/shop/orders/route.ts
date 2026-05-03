@@ -1,11 +1,12 @@
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 import { google } from 'googleapis'
 
 import { redeemPoints } from '@/lib/points/pointsService'
 import { getPortalSession } from '@/lib/server/auth/portal'
 import { buildPreparedShopOrder } from '@/lib/shop/logic'
-import type { ShopCheckoutActor, ShopOrderAddress } from '@/lib/shop/types'
+import { SHOP_PRODUCTS_CACHE_TAG } from '@/lib/shop/cache'
+import type { ShopCheckoutActor, ShopOrderAddress, ShopOrderItem } from '@/lib/shop/types'
 import { ApiError, readJsonBody } from '@/lib/server/api'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getProducts, placeShopOrder } from '@/lib/server/repositories/shop'
@@ -92,52 +93,26 @@ export const POST = withRoute(
       }
     }
 
-    // 2. Save to Google Sheets
-    const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-    const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP;
+    // Save to the configured shop sheet first, then fall back to the legacy Orders sheet shape.
+    const sheetResult = await appendShopOrderToSheet({
+      orderId,
+      actor,
+      address,
+      items: preparedOrder.items,
+      subtotal: preparedOrder.subtotal,
+      discount: preparedOrder.discount,
+      total: preparedOrder.total,
+      pointsUsed: preparedOrder.pointsUsed,
+      status: preparedOrder.status,
+      paymentProofUploaded: Boolean(payload.paymentProofBase64),
+      telegramNotified,
+    })
 
-    if (GOOGLE_CLIENT_EMAIL && GOOGLE_PRIVATE_KEY && GOOGLE_SHEET_ID) {
-      try {
-        const auth = new google.auth.GoogleAuth({
-          credentials: {
-            client_email: GOOGLE_CLIENT_EMAIL,
-            private_key: GOOGLE_PRIVATE_KEY,
-          },
-          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        });
-
-        const sheets = google.sheets({ version: 'v4', auth });
-        const itemsStr = preparedOrder.items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ');
-
-        const row = [
-          new Date().toISOString(),
-          orderId,
-          actor.authenticated ? 'Athlete' : 'Guest',
-          actor.skfId || 'N/A',
-          address.fullName,
-          address.phone || 'N/A',
-          address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'N/A',
-          itemsStr,
-          preparedOrder.subtotal,
-          preparedOrder.discount,
-          preparedOrder.total,
-          'Paid via UPI (Pending Verification)',
-          payload.paymentProofBase64 ? 'Screenshot Uploaded' : 'No Screenshot',
-          telegramNotified
-        ];
-
-        await sheets.spreadsheets.values.append({
-          spreadsheetId: GOOGLE_SHEET_ID,
-          range: `'Shop Orders'!A1`,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: {
-            values: [row],
-          },
-        });
-      } catch (e) {
-        console.error('Google Sheets Error:', e);
-      }
+    if (!sheetResult.saved) {
+      logger.warn('shop.order.sheet_save_failed', {
+        orderId,
+        reason: sheetResult.reason,
+      })
     }
 
     if (preparedOrder.pointsUsed > 0 && actor.skfId) {
@@ -181,6 +156,8 @@ export const POST = withRoute(
     revalidatePath('/admin/shop/products')
     revalidatePath('/shop')
     revalidatePath('/shop/orders')
+    // Inventory changes should invalidate the cached shop listing after every order.
+    revalidateTag(SHOP_PRODUCTS_CACHE_TAG, 'max')
     for (const productId of new Set(preparedOrder.items.map((item) => item.productId))) {
       revalidatePath(`/shop/${productId}`)
     }
@@ -190,6 +167,7 @@ export const POST = withRoute(
       orderId: order.orderId,
       order,
       customerType: order.customerType,
+      sheetSaved: sheetResult.saved,
     })
   }
 )
@@ -281,4 +259,109 @@ function createOrderId() {
   const timePart = Date.now().toString(36).toUpperCase()
   const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `SHOP-${timePart}-${randomPart}`
+}
+
+type AppendShopOrderToSheetInput = {
+  orderId: string
+  actor: ShopCheckoutActor
+  address: ShopOrderAddress
+  items: ShopOrderItem[]
+  subtotal: number
+  discount: number
+  total: number
+  pointsUsed: number
+  status: string
+  paymentProofUploaded: boolean
+  telegramNotified: string
+}
+
+async function appendShopOrderToSheet(input: AppendShopOrderToSheetInput): Promise<{
+  saved: boolean
+  reason?: string
+}> {
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  // Prefer a dedicated shop sheet, but keep existing deployments working with the main or summer-camp sheet IDs.
+  const sheetIds = [
+    process.env.GOOGLE_SHEET_ID_SHOP,
+    process.env.GOOGLE_SHEET_ID,
+    process.env.GOOGLE_SHEET_ID_SUMMER_CAMP,
+  ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index)
+
+  if (!clientEmail || !privateKey || sheetIds.length === 0) {
+    return { saved: false, reason: 'Google Sheets credentials or sheet ID missing.' }
+  }
+
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: clientEmail,
+      private_key: privateKey,
+    },
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
+  const sheets = google.sheets({ version: 'v4', auth })
+  const itemsText = input.items.map((item) => `${item.quantity}x ${item.name} (${item.size})`).join(', ')
+  const now = new Date().toISOString()
+  const studentText = input.address.studentName
+    ? `${input.address.studentName} (Age: ${input.address.age || 'N/A'})`
+    : 'N/A'
+
+  const shopOrdersRow = [
+    now,
+    input.orderId,
+    input.actor.authenticated ? 'Athlete' : 'Guest',
+    input.actor.skfId || 'N/A',
+    input.address.fullName,
+    input.address.phone || 'N/A',
+    studentText,
+    itemsText,
+    input.subtotal,
+    input.discount,
+    input.total,
+    'Paid via UPI (Pending Verification)',
+    input.paymentProofUploaded ? 'Screenshot Uploaded' : 'No Screenshot',
+    input.telegramNotified,
+  ]
+
+  const legacyOrdersRow = [
+    input.orderId,
+    input.actor.authenticated ? input.actor.skfId || 'ATHLETE' : 'GUEST',
+    JSON.stringify(input.items),
+    input.total,
+    input.discount,
+    input.pointsUsed,
+    now,
+    input.status,
+    JSON.stringify(input.address),
+  ]
+
+  const attempts = [
+    { range: "'Shop Orders'!A:N", values: shopOrdersRow },
+    // Fallback for older spreadsheets that only have the original Orders tab.
+    { range: 'Orders!A:I', values: legacyOrdersRow },
+  ]
+
+  let lastError = ''
+  for (const spreadsheetId of sheetIds) {
+    for (const attempt of attempts) {
+      try {
+        await sheets.spreadsheets.values.append({
+          spreadsheetId,
+          range: attempt.range,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {
+            values: [attempt.values],
+          },
+        })
+        return { saved: true }
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error)
+      }
+    }
+  }
+
+  return {
+    saved: false,
+    reason: lastError || 'All configured sheet append attempts failed.',
+  }
 }
