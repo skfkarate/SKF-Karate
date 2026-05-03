@@ -130,7 +130,7 @@ describe('/api/admin/events/[id]', () => {
           id: 'p_1',
           athleteId: 'ath_1',
           athleteName: 'Asha Kumar',
-          registrationNumber: 'SKF-001',
+          skfId: 'SKF24RJ001',
           branchName: 'Rajajinagar',
           belt: 'Brown',
         },
@@ -196,7 +196,7 @@ describe('/api/admin/events/[id]', () => {
         {
           id: 'p_1',
           athleteName: 'Rohan Das',
-          registrationNumber: 'SKF-002',
+          skfId: 'SKF24RJ002',
           branchName: 'Rajajinagar',
           belt: 'Brown Belt',
         },

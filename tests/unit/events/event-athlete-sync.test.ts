@@ -35,7 +35,7 @@ describe('event-athlete-sync', () => {
     athleteRepositoryMocks.getAllAthletesLive.mockResolvedValue([
       {
         id: 'ath_1',
-        registrationNumber: 'SKF-001',
+        skfId: 'SKF24RJ001',
         currentBelt: 'white',
         achievements: [
           {
@@ -64,7 +64,7 @@ describe('event-athlete-sync', () => {
           id: 'res_1',
           athleteId: 'ath_1',
           athleteName: 'Asha Kumar',
-          registrationNumber: 'SKF-001',
+          skfId: 'SKF24RJ001',
           result: 'pass',
           beltAwarded: 'brown',
           examiner: 'Sensei Rao',
@@ -96,14 +96,14 @@ describe('event-athlete-sync', () => {
         ]),
       })
     )
-    expect(revalidationMocks.revalidateAthleteSitePaths).toHaveBeenCalledWith('SKF-001')
+    expect(revalidationMocks.revalidateAthleteSitePaths).toHaveBeenCalledWith('SKF24RJ001')
   })
 
   it('replaces stale tournament achievements for the same source event instead of duplicating them', async () => {
     athleteRepositoryMocks.getAllAthletesLive.mockResolvedValue([
       {
         id: 'ath_2',
-        registrationNumber: 'SKF-002',
+        skfId: 'SKF24RJ002',
         currentBelt: 'brown',
         achievements: [
           {
@@ -138,7 +138,7 @@ describe('event-athlete-sync', () => {
           id: 'winner_1',
           athleteId: 'ath_2',
           athleteName: 'Rohan Das',
-          registrationNumber: 'SKF-002',
+          skfId: 'SKF24RJ002',
           category: 'kata-individual',
           ageGroup: 'sub-junior',
           medal: 'gold',
@@ -173,7 +173,7 @@ describe('event-athlete-sync', () => {
     athleteRepositoryMocks.getAllAthletesLive.mockResolvedValue([
       {
         id: 'ath_3',
-        registrationNumber: 'SKF-003',
+        skfId: 'SKF24RJ003',
         currentBelt: 'green',
         achievements: [
           {
@@ -208,20 +208,20 @@ describe('event-athlete-sync', () => {
         ],
       })
     )
-    expect(revalidationMocks.revalidateAthleteSitePaths).toHaveBeenCalledWith('SKF-003')
+    expect(revalidationMocks.revalidateAthleteSitePaths).toHaveBeenCalledWith('SKF24RJ003')
   })
 
   it('publishes tournament participant results into athlete profiles with participation, difficulty, and win metadata', async () => {
     athleteRepositoryMocks.getAllAthletesLive.mockResolvedValue([
       {
         id: 'ath_4',
-        registrationNumber: 'SKF-004',
+        skfId: 'SKF24RJ004',
         currentBelt: 'green',
         achievements: [],
       },
       {
         id: 'ath_5',
-        registrationNumber: 'SKF-005',
+        skfId: 'SKF24RJ005',
         currentBelt: 'blue',
         achievements: [],
       },
@@ -242,7 +242,7 @@ describe('event-athlete-sync', () => {
           participantId: 'p_1',
           athleteId: 'ath_4',
           athleteName: 'Diya N',
-          registrationNumber: 'SKF-004',
+          skfId: 'SKF24RJ004',
           result: 'gold',
           medal: 'gold',
           category: 'kumite-individual',
@@ -255,7 +255,7 @@ describe('event-athlete-sync', () => {
           participantId: 'p_2',
           athleteId: 'ath_5',
           athleteName: 'Rohit P',
-          registrationNumber: 'SKF-005',
+          skfId: 'SKF24RJ005',
           result: 'participation',
           category: 'kata-individual',
           ageGroup: 'junior',

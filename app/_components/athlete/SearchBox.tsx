@@ -54,23 +54,23 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     debounceRef.current = setTimeout(() => doSearch(val), 250);
   };
 
-  const navigateToAthlete = (regNum) => {
+  const navigateToAthlete = (skfId) => {
     setIsOpen(false);
-    setInputVal(regNum);
-    router.push(`/athlete/${regNum}`);
+    setInputVal(skfId);
+    router.push(`/athlete/${skfId}`);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedIdx >= 0 && results[selectedIdx]) {
-      navigateToAthlete(results[selectedIdx].registrationNumber);
+      navigateToAthlete(results[selectedIdx].skfId);
       return;
     }
     if (!inputVal.trim()) return;
 
     // If there are results, go to the first one
     if (results.length > 0) {
-      navigateToAthlete(results[0].registrationNumber);
+      navigateToAthlete(results[0].skfId);
     }
   };
 
@@ -90,8 +90,8 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
   return (
     <div className="profile-search-container" ref={wrapperRef}>
       <form onSubmit={handleSubmit} className="relative group">
-        <label htmlFor="registration-search" className="sr-only">
-          Search by athlete name
+        <label htmlFor="athlete-search" className="sr-only">
+          Search by SKF ID or athlete name
         </label>
 
         <div className="profile-search-input-wrapper">
@@ -101,16 +101,16 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
           </svg>
 
           <input
-            id="registration-search"
+            id="athlete-search"
             type="text"
             value={inputVal}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onFocus={() => results.length > 0 && setIsOpen(true)}
-            placeholder="Search by athlete name..."
+            placeholder="Search by SKF ID or athlete name..."
             autoFocus={autoFocus}
             autoComplete="off"
-            aria-label="Search by athlete name"
+            aria-label="Search by SKF ID or athlete name"
             className="profile-search-input"
           />
 
@@ -133,9 +133,9 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
           <div className="search-dropdown__list">
             {results.map((s, idx) => (
               <button
-                key={s.registrationNumber}
+                key={s.skfId}
                 type="button"
-                onClick={() => navigateToAthlete(s.registrationNumber)}
+                onClick={() => navigateToAthlete(s.skfId)}
                 onMouseEnter={() => setSelectedIdx(idx)}
                 className={`search-dropdown__item ${selectedIdx === idx ? 'search-dropdown__item--active' : ''}`}
               >
@@ -150,7 +150,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
                   {s.firstName} {s.lastName}
                 </span>
 
-                <span className="search-dropdown__reg">{s.branchName}</span>
+                <span className="search-dropdown__reg">{s.skfId}</span>
               </button>
             ))}
           </div>

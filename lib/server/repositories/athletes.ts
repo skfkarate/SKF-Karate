@@ -1,16 +1,48 @@
 import { randomUUID } from 'node:crypto';
 import { calculateAllRanks } from '../../utils/rank';
 import { buildCompetitionResultsFromAthletes, getAthleteRankEntry } from '../../utils/rankings';
-import { generateRegistrationNumber, normaliseRegistrationNumber } from '../../utils/registration';
+import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../utils/registration';
+import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements';
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from '../data-store';
 import { ApiError } from '../api';
 
 const ATHLETES_DATA_FILE = resolveDataFile('athletes.json');
 
-let mockAthletes = [
+type AthleteRecord = Record<string, unknown> & {
+  id: string;
+  skfId: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  photoUrl: string;
+  branchName: string;
+  currentBelt: string;
+  joinDate: string;
+  status: string;
+  pointsBalance: number;
+  pointsLifetime: number;
+  isPublic: boolean;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  achievements: unknown[];
+  pointsHistory: unknown[];
+  parentName?: string;
+  phone?: string;
+  email?: string;
+  batch?: string;
+  monthlyFee?: number;
+  photoConsent?: boolean;
+  consentGivenAt?: string | null;
+}
+
+type AthletePayload = Partial<AthleteRecord>;
+
+let mockAthletes: AthleteRecord[] = [
   {
     id: 'athlete_1',
-    registrationNumber: 'SKF-2018-0001',
+    skfId: 'SKF18MP001',
     firstName: 'Arvind',
     lastName: 'Kumar',
     dateOfBirth: '1995-04-12',
@@ -44,7 +76,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_2',
-    registrationNumber: 'SKF-2022-0145',
+    skfId: 'SKF22RJ145',
     firstName: 'Priya',
     lastName: 'Sharma',
     dateOfBirth: '2010-09-25',
@@ -70,7 +102,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_3',
-    registrationNumber: 'SKF-2024-0042',
+    skfId: 'SKF24RJ042',
     firstName: 'Rohan',
     lastName: 'Singh',
     dateOfBirth: '2014-06-18',
@@ -95,7 +127,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_4',
-    registrationNumber: 'SKF-2020-0089',
+    skfId: 'SKF20SK089',
     firstName: 'Deepa',
     lastName: 'Natarajan',
     dateOfBirth: '2005-11-30',
@@ -121,7 +153,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_5',
-    registrationNumber: 'SKF-2023-0211',
+    skfId: 'SKF23SK211',
     firstName: 'Karthik',
     lastName: 'Rao',
     dateOfBirth: '2012-02-14',
@@ -146,7 +178,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_6',
-    registrationNumber: 'SKF-2021-0033',
+    skfId: 'SKF21ML033',
     firstName: 'Ananya',
     lastName: 'Gowda',
     dateOfBirth: '2008-07-22',
@@ -172,7 +204,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_7',
-    registrationNumber: 'SKF-2024-0105',
+    skfId: 'SKF24ML105',
     firstName: 'Vikram',
     lastName: 'Reddy',
     dateOfBirth: '2015-12-05',
@@ -195,7 +227,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_8',
-    registrationNumber: 'SKF-2019-0056',
+    skfId: 'SKF19SK056',
     firstName: 'Nandini',
     lastName: 'Murthy',
     dateOfBirth: '1998-05-14',
@@ -219,7 +251,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_9',
-    registrationNumber: 'SKF-2022-0092',
+    skfId: 'SKF22SK092',
     firstName: 'Rahul',
     lastName: 'Chaudhary',
     dateOfBirth: '2009-08-30',
@@ -244,7 +276,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_10',
-    registrationNumber: 'SKF-2021-0188',
+    skfId: 'SKF21MP188',
     firstName: 'Shruti',
     lastName: 'Hassan',
     dateOfBirth: '2011-01-20',
@@ -269,7 +301,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_11',
-    registrationNumber: 'SKF-2023-0050',
+    skfId: 'SKF23SK050',
     firstName: 'Aditya',
     lastName: 'Nambiar',
     dateOfBirth: '2013-10-11',
@@ -294,7 +326,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_12',
-    registrationNumber: 'SKF-2020-0112',
+    skfId: 'SKF20ML112',
     firstName: 'Meera',
     lastName: 'Iyer',
     dateOfBirth: '2007-03-08',
@@ -320,7 +352,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_13',
-    registrationNumber: 'SKF-2024-0199',
+    skfId: 'SKF24MP199',
     firstName: 'Aryan',
     lastName: 'Patil',
     dateOfBirth: '2016-01-25',
@@ -344,7 +376,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_14',
-    registrationNumber: 'SKF-2016-0005',
+    skfId: 'SKF16SK005',
     firstName: 'Sanjay',
     lastName: 'Bhat',
     dateOfBirth: '1990-11-12',
@@ -369,7 +401,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_15',
-    registrationNumber: 'SKF-2022-0234',
+    skfId: 'SKF22RJ234',
     firstName: 'Neha',
     lastName: 'Desai',
     dateOfBirth: '2006-04-05',
@@ -395,7 +427,7 @@ let mockAthletes = [
   },
   {
     id: 'athlete_16',
-    registrationNumber: 'SKF23HE001',
+    skfId: 'SKF23HE001',
     firstName: 'Krishna',
     lastName: 'C',
     dateOfBirth: '2005-10-22',
@@ -433,20 +465,6 @@ let mockAthletes = [
   }
 ];
 
-type AthleteRecord = (typeof mockAthletes)[number] & {
-  parentName?: string;
-  phone?: string;
-  email?: string;
-  batch?: string;
-  monthlyFee?: number;
-  photoConsent?: boolean;
-  consentGivenAt?: string | null;
-  achievements?: unknown[];
-  pointsHistory?: unknown[];
-};
-
-type AthletePayload = Partial<AthleteRecord>;
-
 let athletesLoadedFromDisk = false;
 
 function cloneAthleteData(value) {
@@ -472,52 +490,70 @@ function persistAthletes() {
   writeJsonAtomically(ATHLETES_DATA_FILE, mockAthletes);
 }
 
-export function getAllAthletes() {
-  ensureAthletesLoaded();
-  return cloneAthleteData(mockAthletes);
+function withInitialWhiteBeltAchievement(athlete: AthleteRecord): AthleteRecord {
+  return {
+    ...athlete,
+    achievements: ensureInitialWhiteBeltAchievement(athlete.achievements, {
+      joinDate: athlete.joinDate,
+      branchName: athlete.branchName,
+    }),
+  };
 }
 
-export function getAthleteByRegistrationNumber(regNum) {
+export function getAllAthletes() {
   ensureAthletesLoaded();
-  const athlete = mockAthletes.find(s => s.registrationNumber.toUpperCase() === regNum.toUpperCase()) || null;
-  return athlete ? cloneAthleteData(athlete) : null;
+  return cloneAthleteData(mockAthletes.map(withInitialWhiteBeltAchievement));
+}
+
+export function getAthleteBySkfId(skfId) {
+  ensureAthletesLoaded();
+  const normalized = normaliseSkfId(skfId);
+  const athlete = mockAthletes.find(s => s.skfId.toUpperCase() === normalized.toUpperCase()) || null;
+  return athlete ? cloneAthleteData(withInitialWhiteBeltAchievement(athlete)) : null;
 }
 
 export function getAthleteById(id) {
   ensureAthletesLoaded();
   const athlete = mockAthletes.find(s => s.id === id) || null;
-  return athlete ? cloneAthleteData(athlete) : null;
+  return athlete ? cloneAthleteData(withInitialWhiteBeltAchievement(athlete)) : null;
 }
 
 export function getAthletesByBranch(branch) {
   ensureAthletesLoaded();
   return cloneAthleteData(
-    mockAthletes.filter(s => s.branchName.toLowerCase() === branch.toLowerCase())
+    mockAthletes
+      .filter(s => s.branchName.toLowerCase() === branch.toLowerCase())
+      .map(withInitialWhiteBeltAchievement)
   );
 }
 
 export function getFeaturedAthletes() {
   ensureAthletesLoaded();
   return cloneAthleteData(
-    mockAthletes.filter(s => s.isFeatured && s.isPublic && s.status === 'active')
+    mockAthletes
+      .filter(s => s.isFeatured && s.isPublic && s.status === 'active')
+      .map(withInitialWhiteBeltAchievement)
   );
 }
 
-export function getNextSequenceNumber(year) {
+export function getNextSequenceNumber(year, branchName = 'MP') {
   ensureAthletesLoaded();
-  const athletesThisYear = mockAthletes.filter(s => s.registrationNumber.startsWith(`SKF-${year}`));
-  if (athletesThisYear.length === 0) return 1;
-  const seqs = athletesThisYear.map(s => parseInt(s.registrationNumber.split('-')[2], 10));
-  return Math.max(...seqs) + 1;
+  const branchCode = getBranchCode(branchName);
+  const seqs = mockAthletes
+    .map(s => parseSkfId(String(s.skfId || '')))
+    .filter(parts => parts && parts.year === year && (parts.branchCode === branchCode || (parts.legacy && branchCode === 'MP')))
+    .map(parts => parts?.sequence || 0)
+    .filter(value => Number.isFinite(value));
+  return seqs.length > 0 ? Math.max(...seqs) + 1 : 1;
 }
 
-export function hasAthleteRegistrationNumber(registrationNumber, excludeId = null) {
+export function hasAthleteSkfId(skfId, excludeId = null) {
   ensureAthletesLoaded();
-  const normalized = normaliseRegistrationNumber(registrationNumber);
+  const normalized = normaliseSkfId(skfId);
 
   return mockAthletes.some((athlete) => {
     return (
-      athlete.registrationNumber.toUpperCase() === normalized.toUpperCase() &&
+      athlete.skfId.toUpperCase() === normalized.toUpperCase() &&
       athlete.id !== excludeId
     );
   });
@@ -532,10 +568,10 @@ export function searchAthletesByName(query) {
       s.isPublic &&
       (s.firstName.toLowerCase().includes(lowerQuery) ||
         s.lastName.toLowerCase().includes(lowerQuery) ||
-        s.registrationNumber.toLowerCase().includes(lowerQuery))
+        s.skfId.toLowerCase().includes(lowerQuery))
     )
     .map(s => ({
-      registrationNumber: s.registrationNumber,
+      skfId: s.skfId,
       firstName: s.firstName,
       lastName: s.lastName,
       branchName: s.branchName,
@@ -570,17 +606,19 @@ function normaliseAthletePayload(
   const now = new Date().toISOString();
   const joinDate = input.joinDate || existing?.joinDate || new Date().toISOString().split('T')[0];
   const joinYear = Number.parseInt(String(joinDate).slice(0, 4), 10) || new Date().getFullYear();
-  const requestedRegistrationNumber = input.registrationNumber
-    ? normaliseRegistrationNumber(input.registrationNumber)
+  const requestedSkfId = input.skfId
+    ? normaliseSkfId(input.skfId)
     : '';
-  const registrationNumber =
-    existing?.registrationNumber ||
-    requestedRegistrationNumber ||
-    generateRegistrationNumber(joinYear, getNextSequenceNumber(joinYear));
+  const branchName = input.branchName || existing?.branchName || 'Sunkadakatte';
+  const achievements = Array.isArray(input.achievements) ? input.achievements : existing?.achievements || [];
+  const skfId =
+    existing?.skfId ||
+    requestedSkfId ||
+    generateSkfId(joinYear, branchName, getNextSequenceNumber(joinYear, branchName));
 
   return {
     id: existing?.id || input.id || `athlete_${randomUUID()}`,
-    registrationNumber,
+    skfId,
     firstName: input.firstName?.trim() || existing?.firstName || '',
     lastName: input.lastName?.trim() || existing?.lastName || '',
     dateOfBirth: input.dateOfBirth || existing?.dateOfBirth || '',
@@ -605,7 +643,10 @@ function normaliseAthletePayload(
         : input.consentGivenAt || existing?.consentGivenAt || null,
     isPublic: typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured: typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
-    achievements: Array.isArray(input.achievements) ? input.achievements : existing?.achievements || [],
+    achievements: ensureInitialWhiteBeltAchievement(achievements, {
+      joinDate,
+      branchName,
+    }),
     pointsHistory: Array.isArray(input.pointsHistory) ? input.pointsHistory : existing?.pointsHistory || [],
     pointsBalance: Number.isFinite(input.pointsBalance) ? input.pointsBalance : existing?.pointsBalance || 0,
     pointsLifetime: Number.isFinite(input.pointsLifetime) ? input.pointsLifetime : existing?.pointsLifetime || 0,
@@ -618,8 +659,8 @@ export function createAthlete(input) {
   ensureAthletesLoaded();
   const athlete = normaliseAthletePayload(input);
 
-  if (hasAthleteRegistrationNumber(athlete.registrationNumber)) {
-    throw new ApiError(409, 'A athlete with this registration number already exists.');
+  if (hasAthleteSkfId(athlete.skfId)) {
+    throw new ApiError(409, 'An athlete with this SKF ID already exists.');
   }
 
   mockAthletes = [athlete, ...mockAthletes];
@@ -634,8 +675,8 @@ export function updateAthlete(id, input) {
 
   const updatedAthlete = normaliseAthletePayload(input, mockAthletes[index]);
 
-  if (hasAthleteRegistrationNumber(updatedAthlete.registrationNumber, id)) {
-    throw new ApiError(409, 'A athlete with this registration number already exists.');
+  if (hasAthleteSkfId(updatedAthlete.skfId, id)) {
+    throw new ApiError(409, 'An athlete with this SKF ID already exists.');
   }
 
   mockAthletes[index] = updatedAthlete;

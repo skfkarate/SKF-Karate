@@ -31,6 +31,7 @@ type TournamentDatabaseRow = {
   status?: TournamentRecord['status']
   is_published?: boolean | null
   is_featured?: boolean | null
+  show_in_journey?: boolean | null
   created_at?: string | null
   updated_at?: string | null
   participants?: TournamentRecord['participants']
@@ -97,6 +98,10 @@ function normaliseTournamentPayload(
       typeof input.isPublished === 'boolean' ? input.isPublished : existing?.isPublished ?? false,
     isFeatured:
       typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
+    showInJourney:
+      typeof input.showInJourney === 'boolean'
+        ? input.showInJourney
+        : existing?.showInJourney ?? false,
     resultsAppliedAt: input.resultsAppliedAt || existing?.resultsAppliedAt || '',
     createdAt: existing?.createdAt || input.createdAt || now,
     updatedAt: now,
@@ -130,6 +135,7 @@ function mapTournamentRowToRecord(row: TournamentDatabaseRow): TournamentRecord 
     status: row.status || 'draft',
     isPublished: Boolean(row.is_published),
     isFeatured: Boolean(row.is_featured),
+    showInJourney: Boolean(row.show_in_journey),
     createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
     participants: Array.isArray(row.participants) ? row.participants : [],
@@ -160,6 +166,7 @@ function mapTournamentRecordToRow(record: TournamentRecord): Record<string, unkn
     status: record.status || 'draft',
     is_published: Boolean(record.isPublished),
     is_featured: Boolean(record.isFeatured),
+    show_in_journey: Boolean(record.showInJourney),
     results_applied_at: record.resultsAppliedAt || null,
     participants: Array.isArray(record.participants) ? record.participants : [],
     winners: Array.isArray(record.winners) ? record.winners : [],

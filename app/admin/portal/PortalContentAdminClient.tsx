@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import type { City } from '@/lib/classesData'
 import type {
@@ -208,13 +209,13 @@ export default function PortalContentAdminClient({
         body: JSON.stringify(body),
       })
 
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
       if (!response.ok) {
-        throw new Error(payload.error || 'Unable to update portal content.')
+        throw new Error(getApiErrorMessage(payload, 'Unable to update portal content.'))
       }
 
-      setVideos(Array.isArray(payload.videos) ? payload.videos : [])
-      setTimetables(Array.isArray(payload.timetables) ? payload.timetables : [])
+      setVideos(Array.isArray(payload?.videos) ? payload.videos : [])
+      setTimetables(Array.isArray(payload?.timetables) ? payload.timetables : [])
       setStatus(successMessage)
       return true
     } catch (submissionError) {

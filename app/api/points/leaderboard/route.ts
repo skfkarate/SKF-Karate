@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import { withRoute } from '@/src/server/lib/route'
 
 type LeaderboardAthlete = {
@@ -45,7 +45,7 @@ export const GET = withRoute(
 
     const sums: Record<string, number> = {}
     for (const transaction of transactions) {
-      const key = normaliseRegistrationNumber(String(transaction.skf_id || ''))
+      const key = normaliseSkfId(String(transaction.skf_id || ''))
       if (!key) continue
       sums[key] = (sums[key] || 0) + Number(transaction.points || 0)
     }
@@ -56,11 +56,11 @@ export const GET = withRoute(
 
     const athletes = await getAllAthletesLive()
     const athleteMap = new Map(
-      athletes.map((athlete) => [normaliseRegistrationNumber(athlete.registrationNumber), athlete])
+      athletes.map((athlete) => [normaliseSkfId(athlete.skfId), athlete])
     )
 
-    const leaderboard = sorted.map(([registrationNumber, points], index) => {
-      const athlete = athleteMap.get(registrationNumber)
+    const leaderboard = sorted.map(([skfId, points], index) => {
+      const athlete = athleteMap.get(skfId)
 
       return {
         rank: index + 1,

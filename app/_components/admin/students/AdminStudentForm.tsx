@@ -143,8 +143,8 @@ export default function AdminStudentForm({ initialData = null, isEditing = false
               <h3 className="text-lg font-bold text-white border-b border-[rgba(255,255,255,0.1)] pb-3 flex items-center gap-2"><span className="text-gold">■</span> Association Details</h3>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Registration Number</label>
-                <input readOnly={isEditing} name="registrationNumber" value={formData.registrationNumber || 'Auto-generated on save'} onChange={handleInfoChange} type="text" className={`w-full border rounded p-3 font-mono tracking-widest ${isEditing ? 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] text-gray-500 cursor-not-allowed' : 'bg-[rgba(20,33,61,0.5)] text-brand-red border-[rgba(255,255,255,0.1)] focus:border-brand-red outline-none'}`} />
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">SKF ID</label>
+                <input readOnly={isEditing} name="skfId" value={formData.skfId || 'Auto-generated on save'} onChange={handleInfoChange} type="text" className={`w-full border rounded p-3 font-mono tracking-widest ${isEditing ? 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)] text-gray-500 cursor-not-allowed' : 'bg-[rgba(20,33,61,0.5)] text-brand-red border-[rgba(255,255,255,0.1)] focus:border-brand-red outline-none'}`} />
               </div>
 
               <div className="grid grid-cols-2 gap-5">

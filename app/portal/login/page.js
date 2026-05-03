@@ -122,7 +122,7 @@ function DojoLoginInner() {
               onChange={(e) => setSkfId(e.target.value)}
               required
             />
-            <label htmlFor="skfId">Registration ID</label>
+            <label htmlFor="skfId">SKF ID</label>
           </motion.div>
 
           <motion.div
@@ -186,7 +186,7 @@ function DojoLoginInner() {
               type="button"
               className="dojo-login__test-btn"
               onClick={() => {
-                setSkfId('SKF-2018-0001')
+                setSkfId('SKF18MP001')
                 setDob('12-04-1995')
               }}
             >

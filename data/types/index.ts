@@ -160,7 +160,7 @@ export interface PointTransaction {
 
 export interface Athlete {
   id: string
-  registrationNumber: string
+  skfId: string
   firstName: string
   lastName: string
   dateOfBirth: string
@@ -207,7 +207,7 @@ export interface TournamentWinner {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber?: string
+  skfId?: string
   belt: string
   branchName: string
   category: string
@@ -222,7 +222,7 @@ export interface TournamentParticipant {
   id: string
   athleteId?: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName: string
   belt: string
   photoUrl?: string
@@ -231,7 +231,7 @@ export interface TournamentParticipant {
 export interface TournamentResultRecord {
   id?: string
   athleteId?: string
-  registrationNumber: string
+  skfId: string
   athleteName: string
   result: string
   medal?: string
@@ -262,6 +262,7 @@ export interface TournamentRecord {
   status: string
   isPublished: boolean
   isFeatured: boolean
+  showInJourney?: boolean
   resultsAppliedAt?: string
   createdAt: string
   updatedAt: string

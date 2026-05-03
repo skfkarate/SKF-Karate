@@ -1,13 +1,19 @@
 import '../legal.css'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Cookie Policy for Sports Karate-do Fitness & Self Defence Association®',
-}
+export const metadata = buildSeoMetadata(
+  '/cookie-policy',
+  'Read the SKF Karate cookie policy covering website cookies, analytics preferences, consent controls, and privacy choices for visitors and families online.'
+)
 
 export default function CookiePolicy() {
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Cookie Policy', '/cookie-policy')
+
   return (
     <div className="privacy-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       <div className="privacy-orb privacy-orb--1" />
       <div className="privacy-orb privacy-orb--2" />
 

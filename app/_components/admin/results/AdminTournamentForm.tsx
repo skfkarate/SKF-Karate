@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { FaPlus, FaEdit, FaTrash, FaTimes } from 'react-icons/fa'
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import TournamentCard from '../../results/TournamentCard'
 import MedalTally from '../../results/MedalTally'
 import { flattenClassBranches } from '@/lib/classes/catalog'
@@ -26,7 +27,7 @@ const AUTOSAVE_INTERVAL = 30000
 type WinnerFormValue = {
   id?: string
   athleteName: string
-  registrationNumber: string
+  skfId: string
   branchName: string
   belt: string
   medal: 'gold' | 'silver' | 'bronze'
@@ -57,6 +58,7 @@ type TournamentFormState = {
   skfParticipants: number
   isPublished: boolean
   isFeatured: boolean
+  showInJourney: boolean
   winners: WinnerFormValue[]
   medals: {
     gold: number
@@ -83,7 +85,7 @@ function slugify(str: string) {
 
 const emptyWinner: WinnerFormValue = {
   athleteName: '',
-  registrationNumber: '',
+  skfId: '',
   branchName: 'SKF Karate',
   belt: 'White Belt',
   medal: 'gold',
@@ -113,6 +115,7 @@ const defaultTournamentForm: TournamentFormState = {
   skfParticipants: 0,
   isPublished: false,
   isFeatured: false,
+  showInJourney: false,
   winners: [],
   medals: { gold: 0, silver: 0, bronze: 0 },
 }
@@ -129,7 +132,7 @@ function normaliseWinner(winner: Partial<WinnerFormValue> = {}): WinnerFormValue
   return {
     ...emptyWinner,
     ...winner,
-    registrationNumber: winner.registrationNumber ?? '',
+    skfId: winner.skfId ?? '',
     difficultyLevel:
       winner.difficultyLevel === undefined || winner.difficultyLevel === null || winner.difficultyLevel === ''
         ? ''
@@ -354,7 +357,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
 
     // TODO: Call this after saving a winner when the points system is ready
     // await awardPointsForAchievement({
-    //   athleteRegistrationNumber: winner.registrationNumber,
+    //   athleteSkfId: winner.skfId,
     //   achievementType: 'tournament_medal',
     //   medalType: winner.medal,
     //   tournamentLevel: tournament.level,
@@ -378,10 +381,10 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
         }
       )
 
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(payload.error || 'Could not save the tournament.')
+        throw new Error(getApiErrorMessage(payload, 'Could not save the tournament.'))
       }
 
       if (!isEdit) {
@@ -674,6 +677,16 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
               </button>
               <span className="admin-form__toggle-label">Featured</span>
             </div>
+            <div className="admin-form__toggle-group">
+              <button
+                className={`admin-form__toggle ${form.showInJourney ? 'admin-form__toggle--on' : 'admin-form__toggle--off'}`}
+                onClick={() => updateField('showInJourney', !form.showInJourney)}
+                aria-label="Toggle athlete journey visibility"
+              >
+                <span className="admin-form__toggle-knob"></span>
+              </button>
+              <span className="admin-form__toggle-label">Show in Athlete Journey</span>
+            </div>
           </div>
         )}
 
@@ -742,11 +755,11 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
             </div>
 
             <div className="admin-form__group">
-              <label className="admin-form__label">Registration Number</label>
+              <label className="admin-form__label">SKF ID</label>
               <input
                 className="admin-form__input"
-                value={currentWinner.registrationNumber || ''}
-                onChange={e => setCurrentWinner(prev => ({ ...prev, registrationNumber: e.target.value }))}
+                value={currentWinner.skfId || ''}
+                onChange={e => setCurrentWinner(prev => ({ ...prev, skfId: e.target.value }))}
               />
             </div>
 

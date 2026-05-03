@@ -121,6 +121,17 @@ nextjs-portal {
     color: var(--text-white);
 }
 
+.nav__link--disabled,
+.nav__link--disabled:hover {
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+}
+
+.nav__link--disabled::after,
+.nav__link--disabled:hover::after {
+    width: 0;
+}
+
 .nav__link:hover::after {
     width: 70%;
 }
@@ -192,6 +203,14 @@ nextjs-portal {
 .nav__icon:hover {
     color: var(--text-white);
     background: rgba(255, 255, 255, 0.06);
+}
+
+.nav__icon--disabled,
+.nav__icon--disabled:hover {
+    color: rgba(255, 255, 255, 0.3);
+    background: transparent;
+    border: 0;
+    cursor: not-allowed;
 }
 
 .nav__icon-badge {
@@ -343,6 +362,13 @@ nextjs-portal {
     background: rgba(255, 255, 255, 0.03);
 }
 
+.wkf-menu-link--disabled,
+.wkf-menu-link--disabled:hover {
+    color: rgba(255, 255, 255, 0.32);
+    background: none;
+    cursor: not-allowed;
+}
+
 .wkf-menu-link--active {
     color: var(--gold);
 }
@@ -396,6 +422,16 @@ nextjs-portal {
 .wkf-submenu-link:hover {
     color: var(--text-white);
     background: rgba(255, 255, 255, 0.03);
+}
+
+.wkf-submenu-link--disabled,
+.wkf-submenu-link--disabled:hover {
+    width: 100%;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.32);
+    cursor: not-allowed;
+    font-family: inherit;
 }
 
 .wkf-submenu-link--active {

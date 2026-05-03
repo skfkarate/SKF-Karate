@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import type { Branch, City, School } from '@/lib/classesData'
 import type { SenseiSummary } from '@/lib/types/sensei'
 
@@ -230,12 +231,12 @@ export default function ClassesAdminClient({
         body: JSON.stringify(body),
       })
 
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
       if (!response.ok) {
-        throw new Error(payload.error || 'Unable to update classes.')
+        throw new Error(getApiErrorMessage(payload, 'Unable to update classes.'))
       }
 
-      syncCities(Array.isArray(payload.cities) ? payload.cities : [])
+      syncCities(Array.isArray(payload?.cities) ? payload.cities : [])
       setStatus('Classes updated successfully.')
       return true
     } catch (submissionError) {
@@ -258,7 +259,7 @@ export default function ClassesAdminClient({
     const setter = source === 'existing' ? setBranchDrafts : setNewBranches
 
     setter((previous) => {
-      const current = previous[key]
+      const current = previous[key] || (source === 'new' ? createEmptyBranchDraft(key) : null)
       if (!current) return previous
 
       const nextDays = current.classDays.includes(day)

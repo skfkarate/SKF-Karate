@@ -763,6 +763,13 @@
 /* ── Trend indicator ── */
 .lb-trend {
   display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 26px;
+  min-height: 12px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .lb-trend--up {
@@ -775,6 +782,23 @@
 
 .lb-trend--same {
   color: rgba(255, 255, 255, 0.1);
+}
+
+.lb-trend--new {
+  color: #ffb703;
+}
+
+.lb-trend__value {
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.lb-trend__new {
+  border: 1px solid rgba(255, 183, 3, 0.25);
+  border-radius: 4px;
+  padding: 2px 3px;
+  background: rgba(255, 183, 3, 0.08);
+  letter-spacing: 0;
 }
 
 /* ── Name ── */

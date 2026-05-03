@@ -2,17 +2,17 @@
 
 import { requireAdminSession } from '@/lib/server/auth/session'
 import {
-  getAthleteByRegistrationNumberLive,
+  getAthleteBySkfIdLive,
   updateAthleteLive,
 } from '@/lib/server/repositories/athletes-live'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
-export async function reactivateStudent(skfId: string) {
+export async function reactivateStudent(inputSkfId: string) {
   await requireAdminSession(['admin', 'instructor'])
 
-  const registrationNumber = normaliseRegistrationNumber(skfId)
-  const athlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+  const skfId = normaliseSkfId(inputSkfId)
+  const athlete = await getAthleteBySkfIdLive(skfId)
 
   if (!athlete) {
     return { success: false, error: 'Athlete not found.' }
@@ -27,6 +27,6 @@ export async function reactivateStudent(skfId: string) {
     return { success: false, error: 'Failed to reactivate athlete.' }
   }
 
-  revalidateAthleteSitePaths(updated.registrationNumber)
+  revalidateAthleteSitePaths(updated.skfId)
   return { success: true }
 }

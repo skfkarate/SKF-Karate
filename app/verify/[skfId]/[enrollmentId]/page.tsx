@@ -1,8 +1,8 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import Link from 'next/link'
 import { CheckCircle2, XCircle } from 'lucide-react'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import { buildNoIndexMetadata } from '@/data/constants/seo'
 
 function getProgramRelation<T extends { name?: string }>(programs: T | T[] | null | undefined) {
   return Array.isArray(programs) ? programs[0] : programs
@@ -19,32 +19,20 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
     .eq('certificate_unlocked', true)
     .single()
 
-  if (!data) return { title: 'SKF Karate' }
+  if (!data) {
+    return buildNoIndexMetadata(
+      `/verify/${skfId}/${enrollmentId}`,
+      `SKF Karate certificate verification for SKF ID ${skfId}, karate grading records, program authenticity, and official association documents.`
+    )
+  }
 
   const program = getProgramRelation(data.programs)
-  const canonicalUrl = absoluteSiteUrl(`/verify/${skfId}/${enrollmentId}`)
-  const imageUrl = absoluteMediaUrl()
+  const programName = program?.name || 'SKF Karate certification'
 
-  return {
-    title: 'SKF Karate',
-    description: `Official verification of SKF Karate certification authenticity for ID: ${skfId}`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: 'SKF Karate',
-      description: 'Official SKF Karate Certification Authenticity Check',
-      url: canonicalUrl,
-      type: 'website',
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: 'Verified SKF Karate certificate' }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'SKF Karate',
-      description: 'Official SKF Karate Certification Authenticity Check',
-      images: [imageUrl],
-    },
-  }
+  return buildNoIndexMetadata(
+    `/verify/${skfId}/${enrollmentId}`,
+    `Official SKF Karate verification for ${programName}, certificate authenticity, karate grading records, SKF ID ${skfId}, and association documents.`
+  )
 }
 
 export default async function VerifyCertificatePage({ params }: { params: { skfId: string, enrollmentId: string } }) {
@@ -78,7 +66,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
 
   let studentName = 'Unknown Athlete'
   try {
-    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    const athlete = await getAthleteBySkfIdLive(skfId)
     if (athlete) {
       studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || studentName
     }

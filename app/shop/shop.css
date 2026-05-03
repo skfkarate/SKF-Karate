@@ -1,6 +1,6 @@
 /* ===========================================================
    AWWWARDS IMMERSIVE CINEMATIC DARK COMMERCE
-   Deep obsidian textures, glowing crimson/gold accents, 
+   Deep obsidian textures, glowing crimson/gold accents,
    complex frost-glass paneling, and massive fluid typography.
    =========================================================== */
 
@@ -521,6 +521,7 @@
     font-size: 2.2rem;
   }
 }
+
 /* ── EMPTY STATE ── */
 .obsidian-empty-state {
   display: flex;
@@ -562,4 +563,413 @@
   color: rgba(255, 255, 255, 0.5);
   max-width: 500px;
   line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ===========================================================
+   UNIFIED SHOP PAGE SYSTEM
+   Shared structural classes used by ALL shop sub-pages
+   to guarantee identical widths, spacing, and breakpoints.
+   =========================================================== */
+
+/* --- Page Wrapper (every page) --- */
+.shop-page-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* --- Back Navigation Link --- */
+.shop-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 3rem;
+  transition: color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.8rem;
+}
+.shop-back-link:hover {
+  color: #fff;
+}
+
+/* --- Huge Page Title --- */
+.shop-page-title {
+  font-size: 3.5rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 3rem;
+  color: #fff;
+  line-height: 1;
+}
+
+/* --- Two Column Layout (Cart, Product Detail, Checkout) --- */
+.shop-two-col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+.shop-col-main {
+  flex: 1 1 55%;
+  min-width: 0;
+}
+
+.shop-col-side {
+  flex: 1 1 35%;
+  min-width: 0;
+  position: sticky;
+  top: 100px;
+}
+
+/* --- Listing Page Header --- */
+.shop-listing-header {
+  margin-bottom: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.shop-listing-title {
+  font-size: 4rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin: 0 0 1rem;
+  line-height: 1;
+  color: #fff;
+}
+
+/* --- Filter Tabs Row --- */
+.shop-filter-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 1rem;
+}
+
+/* --- Product Grid --- */
+.shop-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 4rem 2rem;
+}
+
+/* --- Cart Item Row --- */
+.shop-cart-item {
+  display: flex;
+  gap: 2rem;
+}
+
+.shop-cart-item-image {
+  width: 120px;
+  aspect-ratio: 3/4;
+  position: relative;
+  background: #111;
+  flex-shrink: 0;
+}
+
+/* --- Product Detail Gallery + Info --- */
+.shop-detail-gallery {
+  flex: 1 1 55%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.shop-detail-info {
+  flex: 1 1 35%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 100px;
+}
+
+.shop-detail-product-title {
+  font-size: 3.5rem;
+  margin: 0 0 1rem;
+  color: #fff;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* --- Checkout Specific --- */
+.checkout-huge-title {
+  font-size: 3rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 3rem;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.checkout-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 1.5rem;
+  padding: 0.5rem 0 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  font-family: var(--font-heading);
+}
+.checkout-input:focus {
+  border-bottom-color: #fff;
+}
+
+.checkout-qr-wrapper {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-bottom: 4rem;
+}
+
+.checkout-step-tracker {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+/* --- CTA Pill Button (used everywhere) --- */
+.shop-cta-pill {
+  width: 100%;
+  background: #fff;
+  color: #000;
+  padding: 1.2rem;
+  border-radius: 50px;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.shop-cta-pill:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.shop-cta-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* ===========================================================
+   BREAKPOINTS — Proper restructuring, not just squeezing.
+   =========================================================== */
+
+/* ── TABLET (≤ 992px) ── */
+@media (max-width: 992px) {
+  .shop-page-wrap {
+    padding: 0 1.5rem;
+  }
+
+  .shop-two-col {
+    gap: 3rem;
+  }
+
+  .shop-col-main,
+  .shop-detail-gallery {
+    flex: 1 1 100%;
+  }
+
+  .shop-col-side,
+  .shop-detail-info {
+    flex: 1 1 100%;
+    position: static;
+  }
+
+  .shop-page-title {
+    font-size: 2.8rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .shop-listing-title {
+    font-size: 3rem;
+  }
+
+  .shop-detail-product-title {
+    font-size: 2.8rem;
+  }
+
+  .shop-product-grid {
+    gap: 3rem 1.5rem;
+  }
+
+  .shop-filter-row {
+    gap: 1.2rem;
+    margin-bottom: 3rem;
+  }
+
+  .checkout-huge-title {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* ── MOBILE (≤ 768px) ── */
+@media (max-width: 768px) {
+  .shop-page-wrap {
+    padding: 0 1rem;
+  }
+
+  .shop-page-title {
+    font-size: clamp(2rem, 10vw, 3rem);
+    margin-bottom: 2rem;
+  }
+
+  .shop-listing-title {
+    font-size: clamp(2.5rem, 15vw, 4rem);
+    letter-spacing: 2px;
+  }
+
+  .shop-listing-header {
+    margin-bottom: 3rem;
+    padding: 0 0.5rem;
+  }
+
+  .shop-detail-product-title {
+    font-size: 2.2rem;
+  }
+
+  .shop-two-col {
+    gap: 2.5rem;
+  }
+
+  .shop-back-link {
+    margin-bottom: 2rem;
+    font-size: 0.75rem;
+  }
+
+  .shop-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem 1rem;
+  }
+
+  .shop-cart-item {
+    gap: 1.2rem;
+  }
+
+  .shop-cart-item-image {
+    width: 90px;
+  }
+
+  .checkout-huge-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .checkout-input {
+    font-size: 1.2rem;
+  }
+
+  .checkout-qr-wrapper {
+    gap: 2rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .checkout-step-tracker {
+    gap: 0.8rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* ── SMALL MOBILE (≤ 480px) ── */
+@media (max-width: 480px) {
+  .shop-page-wrap {
+    padding: 0 0.75rem;
+  }
+
+  .shop-page-title {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+
+  .shop-listing-title {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  .shop-detail-product-title {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+
+  .shop-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 0.75rem;
+  }
+
+  .shop-filter-row {
+    gap: 0.8rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .shop-cart-item {
+    gap: 1rem;
+  }
+
+  .shop-cart-item-image {
+    width: 75px;
+  }
+
+  .shop-cta-pill {
+    padding: 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+
+  .checkout-huge-title {
+    font-size: 1.6rem;
+  }
+
+  .checkout-input {
+    font-size: 1rem;
+  }
+
+  .shop-back-link {
+    font-size: 0.7rem;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.shop-link-hover-white:hover {
+  color: #fff !important;
+}
+
+@media (max-width: 480px) {
+  .obsidian-summary-card {
+    padding: 3rem 1.5rem !important;
+  }
 }

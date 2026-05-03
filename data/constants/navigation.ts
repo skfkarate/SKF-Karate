@@ -26,7 +26,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
     label: 'Events',
     children: [
       { label: 'Upcoming Events', href: '/events' },
-      { label: 'Results', href: '/results' },
+      { label: 'Results', href: '/results', disabled: true },
     ],
   },
   {
@@ -34,7 +34,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
     children: [
       { label: 'Find Profile', href: '/athlete/search' },
       { label: 'Official Rankings', href: '/rankings' },
-      { label: 'Honours Board', href: '/honours' },
+      { label: 'Honours Board', href: '/honours', disabled: true },
     ],
   },
   { label: 'Find a Class', href: '/classes' },
@@ -51,7 +51,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
   {
     label: 'For Athletes',
     children: [
-      { label: 'Athlete Portal', href: '/portal' },
+      { label: 'Athlete Portal', href: '/portal', disabled: true },
       { label: 'Belt Grading', href: '/grading' },
       { label: 'Verify Certificate', href: '/verify' },
     ],
@@ -87,6 +87,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
+    label: 'Content',
+    items: [
+      { label: 'Blogs', href: '/admin/blogs', description: 'Public karate guides and articles' },
+    ],
+  },
+  {
     label: 'Training Network',
     items: [
       { label: 'Athletes', href: '/admin/students', description: 'Identity and public profiles' },
@@ -115,6 +121,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { label: 'Shop Orders', href: '/admin/shop', description: 'Fulfilment and approvals' },
       { label: 'Shop Products', href: '/admin/shop/products', description: 'Merchandise catalog' },
+      { label: 'Training Fees', href: '/admin/training-fee', description: 'Monthly fee ledger and receipts' },
     ],
   },
   {

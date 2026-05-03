@@ -260,7 +260,7 @@ export default async function AdminStudentsPage({
               const beltInfo = getBelt(athlete.belt)
               const isInactive = athlete.status === 'Inactive'
               const automation = buildAthleteAutomationSummary(
-                allAthletes.find((entry) => entry.registrationNumber === athlete.registrationNumber)
+                allAthletes.find((entry) => entry.skfId === athlete.skfId)
               )
 
               return (

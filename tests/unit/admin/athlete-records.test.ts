@@ -10,7 +10,7 @@ describe('athlete admin record helpers', () => {
   it('builds editable defaults from sheet and live athlete data together', () => {
     const profile = buildAthleteAdminFormDefaults(
       {
-        skfId: 'SKF20260001',
+        skfId: 'SKF26HE001',
         name: 'Asha Kumar',
         branch: 'herohalli',
         batch: 'Evening',
@@ -24,7 +24,7 @@ describe('athlete admin record helpers', () => {
         dob: '2012-05-09',
       },
       {
-        registrationNumber: 'SKF-2026-0001',
+        skfId: 'SKF26HE001',
         gender: 'female',
         email: 'asha@example.com',
         photoUrl: 'https://example.com/asha.jpg',
@@ -35,8 +35,7 @@ describe('athlete admin record helpers', () => {
 
     expect(profile).toEqual(
       expect.objectContaining({
-        skfId: 'SKF-2026-0001',
-        registrationNumber: 'SKF-2026-0001',
+        skfId: 'SKF26HE001',
         name: 'Asha Kumar',
         dob: '2012-05-09',
         gender: 'female',
@@ -73,14 +72,14 @@ describe('athlete admin record helpers', () => {
   it('merges student and athlete records with public profile metadata', () => {
     const merged = mergeStudentAndAthleteRecord(
       {
-        skfId: 'SKF20260001',
+        skfId: 'SKF26HE001',
         name: 'Asha Kumar',
         branch: 'herohalli',
         belt: 'brown',
         status: 'Active',
       },
       {
-        registrationNumber: 'SKF-2026-0001',
+        skfId: 'SKF26HE001',
         photoUrl: 'https://example.com/asha.jpg',
         isPublic: true,
         isFeatured: false,
@@ -90,9 +89,9 @@ describe('athlete admin record helpers', () => {
 
     expect(merged).toEqual(
       expect.objectContaining({
-        skfId: 'SKF-2026-0001',
+        skfId: 'SKF26HE001',
         displayName: 'Asha Kumar',
-        publicProfileHref: '/athlete/SKF-2026-0001',
+        publicProfileHref: '/athlete/SKF26HE001',
         isPublic: true,
       })
     )

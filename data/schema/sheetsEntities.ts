@@ -16,7 +16,7 @@ export const studentSchema: EntitySchema = {
   primaryKey: 'skfId',
   storage: 'sheets',
   fields: {
-    skfId:        { type: 'string',  required: true,  unique: true, description: 'Col A. Format: SKF-YYYY-XXXX. Used as login credential.' },
+    skfId:        { type: 'string',  required: true,  unique: true, description: 'Col A. Format: SKF25MP001. Used as login credential.' },
     name:         { type: 'string',  required: true,  description: 'Col B. Full name.' },
     branch:       { type: 'string',  required: true,  description: 'Col C. Branch name (e.g. Sunkadakatte, Rajajinagar).' },
     batch:        { type: 'string',  required: true,  description: 'Col D. Class batch (e.g. Morning, Evening).' },

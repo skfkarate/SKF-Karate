@@ -9,16 +9,15 @@ type PortalJwtPayload = {
   exp?: number
 }
 
-function generateNonce() {
-  const bytes = new Uint8Array(16)
-  crypto.getRandomValues(bytes)
-  return btoa(String.fromCharCode(...bytes))
-}
+function buildContentSecurityPolicy() {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://s.ytimg.com"
+    : "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://s.ytimg.com"
 
-function buildContentSecurityPolicy(nonce: string) {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://checkout.razorpay.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://s.ytimg.com`,
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     [
       "img-src 'self' data: blob:",
@@ -136,10 +135,8 @@ async function verifyPortalJwt(token: string | undefined): Promise<PortalJwtPayl
 }
 
 export async function proxy(request: NextRequest) {
-  const nonce = generateNonce()
-  const csp = buildContentSecurityPolicy(nonce)
+  const csp = buildContentSecurityPolicy()
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('Content-Security-Policy', csp)
 
   const pathname = request.nextUrl.pathname

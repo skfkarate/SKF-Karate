@@ -287,7 +287,7 @@ export function buildAthleteProfileData(athlete, rankInfo, currentDate = new Dat
     .filter((event) => new Date(event.date) > new Date(currentDate))
     .filter((event) =>
       (event.participants || []).some(
-        (participant) => participant.registrationNumber === athlete.registrationNumber
+        (participant) => participant.skfId === athlete.skfId
       )
     )
     .slice(0, 3)

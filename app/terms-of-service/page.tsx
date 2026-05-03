@@ -1,13 +1,19 @@
 import '../legal.css'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Terms of Service and conditions for SKF Karate.',
-}
+export const metadata = buildSeoMetadata(
+  '/terms-of-service',
+  'Review SKF Karate terms of service for website use, class bookings, student services, certificates, shop orders, and training-related policies online.'
+)
 
 export default function TermsConditions() {
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Terms of Service', '/terms-of-service')
+
   return (
     <div className="privacy-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       <div className="privacy-orb privacy-orb--1" />
       <div className="privacy-orb privacy-orb--2" />
 

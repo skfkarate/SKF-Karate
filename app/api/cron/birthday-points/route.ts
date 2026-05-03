@@ -44,12 +44,12 @@ export const GET = withRoute(
         const { count } = await supabaseAdmin
           .from('point_transactions')
           .select('*', { count: 'exact', head: true })
-          .eq('skf_id', athlete.registrationNumber)
+          .eq('skf_id', athlete.skfId)
           .eq('reason', 'BIRTHDAY')
           .gte('created_at', startOfYear)
 
         if (count === 0) {
-          await awardPoints(athlete.registrationNumber, 'BIRTHDAY')
+          await awardPoints(athlete.skfId, 'BIRTHDAY')
           awardedCount++
         }
       }

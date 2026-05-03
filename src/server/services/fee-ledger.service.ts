@@ -10,7 +10,7 @@ import {
 } from '@/lib/server/repositories/fee-records'
 import {
   getAllAthletesLive,
-  getAthleteByRegistrationNumberLive,
+  getAthleteBySkfIdLive,
 } from '@/lib/server/repositories/athletes-live'
 
 const MONTHS = [
@@ -31,7 +31,7 @@ const MONTHS = [
 type LedgerStatus = 'paid' | 'due' | 'overdue'
 
 type AthleteLike = {
-  registrationNumber?: string | null
+  skfId?: string | null
   firstName?: string | null
   lastName?: string | null
   branchName?: string | null
@@ -118,7 +118,7 @@ export class FeeLedgerService {
       : currentYear
 
     const [athlete, initialFeeRows] = await Promise.all([
-      getAthleteByRegistrationNumberLive(normalizedSkfId),
+      getAthleteBySkfIdLive(normalizedSkfId),
       getFeesBySkfIdLive(normalizedSkfId, targetYear),
     ])
     let student: Awaited<ReturnType<typeof getStudentBySkfId>> | null = null
@@ -223,7 +223,7 @@ export class FeeLedgerService {
     const allFees = await getAllFeesLive(targetYear)
     const athletes = (await getAllAthletesLive()) as AthleteLike[]
     const athleteBySkfId = new Map(
-      athletes.map((athlete) => [String(athlete.registrationNumber || '').toUpperCase(), athlete] as const)
+      athletes.map((athlete) => [String(athlete.skfId || '').toUpperCase(), athlete] as const)
     )
 
     const search = String(filters?.search || '').trim().toLowerCase()
@@ -339,7 +339,7 @@ export class FeeLedgerService {
       throw new Error('Invalid fee payment request.')
     }
 
-    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    const athlete = await getAthleteBySkfIdLive(skfId)
     await ensureFeeRowsForStudent(skfId, {
       monthlyFee: normalizeRupees(athlete?.monthlyFee || 0),
       enrolledDate: String(athlete?.joinDate || '').trim() || undefined,
@@ -398,7 +398,7 @@ export class FeeLedgerService {
       throw new Error('Missing SKF ID.')
     }
 
-    const athlete = await getAthleteByRegistrationNumberLive(skfId)
+    const athlete = await getAthleteBySkfIdLive(skfId)
     const result = await ensureFeeRowsForStudent(skfId, {
       monthlyFee: normalizeRupees(input.monthlyFee ?? athlete?.monthlyFee ?? 0),
       enrolledDate: String(input.enrolledDate || athlete?.joinDate || '').trim() || undefined,
@@ -423,7 +423,7 @@ export class FeeLedgerService {
     let created = 0
     let updated = 0
     for (const athlete of activeAthletes) {
-      const result = await ensureFeeRowsForStudent(String(athlete.registrationNumber || ''), {
+      const result = await ensureFeeRowsForStudent(String(athlete.skfId || ''), {
         monthlyFee: normalizeRupees(athlete.monthlyFee || 0),
         enrolledDate: String(athlete.joinDate || '').trim() || undefined,
         year: targetYear,
@@ -454,7 +454,7 @@ export class FeeLedgerService {
     if (String(receiptRow.skfId || '').trim().toUpperCase() !== normalizedSkfId) return null
 
     const [athlete, student] = await Promise.all([
-      getAthleteByRegistrationNumberLive(normalizedSkfId),
+      getAthleteBySkfIdLive(normalizedSkfId),
       getStudentBySkfId(normalizedSkfId),
     ])
 

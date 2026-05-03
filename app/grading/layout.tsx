@@ -1,9 +1,10 @@
 import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Understand the traditional karate belt system from white to black belt. Prepare for your next grading examination with SKF Karate.',
-}
+export const metadata = buildSeoMetadata(
+  '/grading',
+  'Explore the SKF Karate belt grading path from white belt to black belt with kyu, dan, kata, kumite, kihon, and traditional karate standards online today.'
+)
 
 function JsonLd() {
   const faqSchema = {
@@ -33,8 +34,11 @@ function JsonLd() {
 }
 
 export default function GradingLayout({ children }) {
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Grading', '/grading')
+
   return (
     <>
+      <JsonLdScript data={breadcrumbJsonLd} />
       <JsonLd />
       {children}
     </>

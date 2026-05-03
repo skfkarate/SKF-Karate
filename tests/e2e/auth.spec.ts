@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
 test('portal login page loads', async ({ page }) => {
   await page.goto('/portal/login')
   await expect(page.getByText('SKF Karate')).toBeVisible()
-  await expect(page.getByLabel('Registration ID')).toBeVisible()
+  await expect(page.getByLabel('SKF ID')).toBeVisible()
   await expect(page.getByLabel('Date of Birth')).toBeVisible()
 })
 
@@ -39,7 +39,7 @@ test('invalid DOB login shows error', async ({ page }) => {
   })
 
   await page.goto('/portal/login')
-  await page.getByLabel('Registration ID').fill('SKF-0000-0000')
+  await page.getByLabel('SKF ID').fill('SKF00MP000')
   await page.getByLabel('Date of Birth').fill('01-01-2000')
   await page.getByRole('button', { name: /access portal/i }).click()
   await expect(page.locator('.dojo-login__error')).toBeVisible()

@@ -52,6 +52,9 @@ export interface ShopOrderItem {
 
 export interface ShopOrderAddress {
   fullName: string
+  parentName?: string
+  studentName?: string
+  age?: string
   phone: string
   addressLine1: string
   addressLine2?: string

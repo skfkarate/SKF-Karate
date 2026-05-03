@@ -5,13 +5,13 @@ import {
   buildAthletePayloadFromAdminForm,
 } from '@/lib/admin/athlete-records'
 import {
-  getAthleteByRegistrationNumberLive,
+  getAthleteBySkfIdLive,
   updateAthleteLive,
 } from '@/lib/server/repositories/athletes-live'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
 import { validateAthletePayload } from '@/lib/server/validation'
 import { editStudentSchema } from '@/lib/validators'
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import { adminDeleteConfirmBodySchema } from '@/src/server/api/validators/admin-general.validator'
 import { NotFoundError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
@@ -23,9 +23,9 @@ export const PUT = withRoute(
     rateLimit: { tier: 'write' },
   },
   async ({ body: partialFormValues, params }) => {
-    const { skfId } = params
-    const registrationNumber = normaliseRegistrationNumber(skfId)
-    const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+    const { skfId: rawSkfId } = params
+    const skfId = normaliseSkfId(rawSkfId)
+    const existingAthlete = await getAthleteBySkfIdLive(skfId)
 
     if (!existingAthlete) {
       throw new NotFoundError('Athlete')
@@ -34,8 +34,7 @@ export const PUT = withRoute(
     const mergedFormValues = {
       ...buildAthleteAdminFormDefaults(existingAthlete),
       ...partialFormValues,
-      skfId: existingAthlete.registrationNumber,
-      registrationNumber: existingAthlete.registrationNumber,
+      skfId: existingAthlete.skfId,
     }
 
     const athlete = await updateAthleteLive(
@@ -54,8 +53,8 @@ export const PUT = withRoute(
       throw new NotFoundError('Athlete')
     }
 
-    revalidateAthleteSitePaths(existingAthlete.registrationNumber)
-    revalidateAthleteSitePaths(athlete.registrationNumber)
+    revalidateAthleteSitePaths(existingAthlete.skfId)
+    revalidateAthleteSitePaths(athlete.skfId)
 
     return NextResponse.json({ success: true, athlete })
   }
@@ -68,9 +67,9 @@ export const DELETE = withRoute(
     rateLimit: { tier: 'write' },
   },
   async ({ params }) => {
-    const { skfId } = params
-    const registrationNumber = normaliseRegistrationNumber(skfId)
-    const existingAthlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+    const { skfId: rawSkfId } = params
+    const skfId = normaliseSkfId(rawSkfId)
+    const existingAthlete = await getAthleteBySkfIdLive(skfId)
 
     if (!existingAthlete) {
       throw new NotFoundError('Athlete')
@@ -85,7 +84,7 @@ export const DELETE = withRoute(
       throw new NotFoundError('Athlete')
     }
 
-    revalidateAthleteSitePaths(athlete.registrationNumber)
+    revalidateAthleteSitePaths(athlete.skfId)
     return NextResponse.json({ success: true, athlete })
   }
 )

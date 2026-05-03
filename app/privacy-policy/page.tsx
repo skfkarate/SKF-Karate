@@ -1,13 +1,19 @@
 import '../legal.css'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Privacy Policy for Sports Karate-do Fitness & Self Defence Association®',
-}
+export const metadata = buildSeoMetadata(
+  '/privacy-policy',
+  'Read the SKF Karate privacy policy for how student, parent, training, certificate, contact, analytics, and website data is handled securely online today.'
+)
 
 export default function PrivacyPolicy() {
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Privacy Policy', '/privacy-policy')
+
   return (
     <div className="privacy-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       {/* Ambient effects */}
       <div className="privacy-orb privacy-orb--1" />
       <div className="privacy-orb privacy-orb--2" />

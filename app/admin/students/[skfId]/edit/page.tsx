@@ -5,8 +5,8 @@ import {
   buildAthleteAutomationSummary,
 } from '@/lib/admin/athlete-records'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
 import EditStudentClient from './EditStudentClient'
 
@@ -15,11 +15,11 @@ export default async function EditStudentPage({
 }: {
   params: Promise<{ skfId: string }>
 }) {
-  const { skfId } = await params
-  const registrationNumber = normaliseRegistrationNumber(skfId)
+  const { skfId: rawSkfId } = await params
+  const skfId = normaliseSkfId(rawSkfId)
 
   const [athlete, classCities] = await Promise.all([
-    getAthleteByRegistrationNumberLive(registrationNumber),
+    getAthleteBySkfIdLive(skfId),
     getAllCitiesLive(),
   ])
 
@@ -30,7 +30,7 @@ export default async function EditStudentPage({
       initialCities={classCities}
       profile={buildAthleteAdminFormDefaults(athlete)}
       automationSummary={buildAthleteAutomationSummary(athlete)}
-      publicProfileHref={athlete.isPublic ? `/athlete/${athlete.registrationNumber}` : null}
+      publicProfileHref={athlete.isPublic ? `/athlete/${athlete.skfId}` : null}
     />
   )
 }

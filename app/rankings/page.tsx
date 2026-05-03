@@ -1,21 +1,41 @@
 import Link from 'next/link'
-import { getRankSnapshotsLive } from '@/lib/server/repositories/athletes-live'
+import {
+  getAllAthletesLive,
+  getRankSnapshotsLive,
+} from '@/lib/server/repositories/athletes-live'
+import { hydrateRankingMovementsLive } from '@/lib/server/repositories/ranking-snapshots'
 import { buildRankingBoards } from '@/app/_components/athlete/rankingBoardUtils'
 import RankingDashboard from '@/app/_components/athlete/RankingDashboard'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './rankings.css'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-export const metadata = {
-  title: 'SKF Karate',
-  description: 'Official SKF Karate athlete rankings across all belt divisions and academies.',
-}
+export const metadata = buildSeoMetadata(
+  '/rankings',
+  'View official SKF Karate athlete rankings across belts, branches, kata, kumite, tournament results, and karate performance divisions in Karnataka now.'
+)
 
 export default async function RankingsPage() {
-  const snapshots = (await getRankSnapshotsLive()).filter((entry) => entry.totalPoints > 0)
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd('Rankings', '/rankings')
+  const [athletes, allSnapshots] = await Promise.all([
+    getAllAthletesLive(),
+    getRankSnapshotsLive(),
+  ])
+  const publicActiveAthleteIds = new Set(
+    athletes
+      .filter((athlete) => athlete.isPublic && athlete.status === 'active')
+      .map((athlete) => String(athlete.id))
+  )
+  const visibleSnapshots = allSnapshots.filter((entry) =>
+    publicActiveAthleteIds.has(String(entry.athleteId))
+  )
+  const snapshots = await hydrateRankingMovementsLive(visibleSnapshots)
+  const competitiveSnapshots = snapshots.filter((entry) => Number(entry.totalPoints || 0) > 0)
   const boards = buildRankingBoards(snapshots)
   const dojos = [...new Set(snapshots.map((s) => s.branchName).filter(Boolean))].sort()
-  const allSorted = [...snapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+  const allSorted = [...competitiveSnapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
   const podium = allSorted.slice(0, 3)
 
   /* Top points for proportional bar widths in the graph */
@@ -23,6 +43,8 @@ export default async function RankingsPage() {
 
   return (
     <div className="rk-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       {/* Ambient effects — identical to /athlete/search */}
       <div className="rk-orb rk-orb--1" />
       <div className="rk-orb rk-orb--2" />
@@ -49,7 +71,7 @@ export default async function RankingsPage() {
       {podium.length >= 3 && (
         <section className="rk-podium">
           {/* 2nd */}
-          <Link href={`/athlete/${podium[1].registrationNumber}`} className="rk-pod rk-pod--2">
+          <Link href={`/athlete/${podium[1].skfId}`} className="rk-pod rk-pod--2">
             <div className="rk-pod__photo rk-pod__photo--silver">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
@@ -58,7 +80,7 @@ export default async function RankingsPage() {
             <div className="rk-pod__pillar rk-pod__pillar--silver"><span>2</span></div>
           </Link>
           {/* 1st */}
-          <Link href={`/athlete/${podium[0].registrationNumber}`} className="rk-pod rk-pod--1">
+          <Link href={`/athlete/${podium[0].skfId}`} className="rk-pod rk-pod--1">
             <div className="rk-pod__crown">👑</div>
             <div className="rk-pod__photo rk-pod__photo--gold">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -68,7 +90,7 @@ export default async function RankingsPage() {
             <div className="rk-pod__pillar rk-pod__pillar--gold"><span>1</span></div>
           </Link>
           {/* 3rd */}
-          <Link href={`/athlete/${podium[2].registrationNumber}`} className="rk-pod rk-pod--3">
+          <Link href={`/athlete/${podium[2].skfId}`} className="rk-pod rk-pod--3">
             <div className="rk-pod__photo rk-pod__photo--bronze">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
@@ -95,8 +117,8 @@ export default async function RankingsPage() {
 
               return (
                 <Link
-                  key={athlete.registrationNumber}
-                  href={`/athlete/${athlete.registrationNumber}`}
+                  key={athlete.skfId}
+                  href={`/athlete/${athlete.skfId}`}
                   className="rk-graph__row"
                 >
                   <div className="rk-graph__rank-badge" data-rank={rank}>
@@ -127,4 +149,3 @@ export default async function RankingsPage() {
     </div>
   )
 }
-

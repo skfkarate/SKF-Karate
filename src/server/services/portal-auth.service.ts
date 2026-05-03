@@ -1,5 +1,5 @@
 import { createJWT, buildPortalCookie } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import type { PortalAuthInput } from '@/src/server/api/validators/portal.validator'
 import { AuthenticationError, ValidationError } from '@/src/server/lib/errors'
@@ -27,7 +27,7 @@ export class PortalAuthService {
     const normalizedId = input.skfId.trim().toUpperCase()
     const normalizedDob = normaliseDob(input.dob)
 
-    const athlete = await getAthleteByRegistrationNumberLive(normalizedId)
+    const athlete = await getAthleteBySkfIdLive(normalizedId)
 
     if (!athlete) {
       await recordSiteAnalyticsEvent({

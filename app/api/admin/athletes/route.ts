@@ -14,7 +14,7 @@ export const POST = withRoute(
   async ({ body }) => {
     const athlete = await createAthleteLive(validateAthletePayload(body))
 
-    revalidateAthleteSitePaths(athlete.registrationNumber)
+    revalidateAthleteSitePaths(athlete.skfId)
 
     return NextResponse.json({ athlete }, { status: 201 })
   }

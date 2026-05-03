@@ -28,6 +28,7 @@ export function createEvent(input: EventInput): SeedEvent {
     isPublished: input.isPublished ?? false,
     isFeatured: input.isFeatured ?? false,
     isResultsPublished: input.isResultsPublished ?? false,
+    showInJourney: input.showInJourney ?? false,
     hostingBranch: input.hostingBranch || '',
     createdAt: input.createdAt || now,
     updatedAt: now,

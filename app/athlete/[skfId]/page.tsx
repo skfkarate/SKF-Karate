@@ -1,20 +1,20 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 import AthleteProfileClient from '@/app/_components/athlete/profile/AthleteProfileClient'
 import { buildRestoredAthleteProfileData } from '@/app/_components/athlete/profile/athleteProfileData'
 import {
-  getAthleteByRegistrationNumberLive,
+  getAthleteBySkfIdLive,
   getAthleteRankLive,
 } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export async function generateMetadata({ params }) {
-  const { registrationNumber } = await params
-  const athlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+  const { skfId } = await params
+  const athlete = await getAthleteBySkfIdLive(skfId)
 
   if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
     return {
@@ -23,7 +23,8 @@ export async function generateMetadata({ params }) {
   }
 
   const name = `${athlete.firstName} ${athlete.lastName}`
-  const canonicalUrl = absoluteSiteUrl(`/athlete/${registrationNumber}`)
+  const canonicalSkfId = athlete.skfId || skfId
+  const canonicalUrl = absoluteSiteUrl(`/athlete/${canonicalSkfId}`)
   const imageUrl = athlete.photoUrl ? absoluteMediaUrl(athlete.photoUrl) : absoluteMediaUrl()
 
   return {
@@ -48,11 +49,15 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function AthleteProfilePage({ params }) {
-  const { registrationNumber } = await params
-  const athlete = await getAthleteByRegistrationNumberLive(registrationNumber)
+  const { skfId } = await params
+  const athlete = await getAthleteBySkfIdLive(skfId)
 
   if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
     notFound()
+  }
+
+  if (athlete.skfId && athlete.skfId !== skfId) {
+    redirect(`/athlete/${encodeURIComponent(athlete.skfId)}`)
   }
 
   const [rankInfo, allEvents, branchCoachMap] = await Promise.all([

@@ -7,6 +7,7 @@ import {
   FaPlus,
   FaTrash,
 } from "react-icons/fa"
+import { getApiErrorMessage } from "@/app/admin/_utils/apiErrors"
 import { TOURNAMENT_LEVEL_LABELS } from "@/lib/types/tournament"
 
 export default function AdminResultsPageClient({ initialTournaments, canManage = false }) {
@@ -50,9 +51,12 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
       body: JSON.stringify(patch),
     })
 
-    const payload = await response.json()
+    const payload = await response.json().catch(() => null)
     if (!response.ok) {
-      throw new Error(payload.error || "Update failed")
+      throw new Error(getApiErrorMessage(payload, "Update failed"))
+    }
+    if (!payload?.tournament) {
+      throw new Error("Tournament updated, but the server response was incomplete.")
     }
 
     setTournaments((previous) =>
@@ -74,8 +78,8 @@ export default function AdminResultsPageClient({ initialTournaments, canManage =
   async function handleDelete(id) {
     try {
       const response = await fetch(`/api/admin/results/${id}`, { method: "DELETE" })
-      const payload = await response.json()
-      if (!response.ok) throw new Error(payload.error || "Delete failed")
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(getApiErrorMessage(payload, "Delete failed"))
 
       setTournaments((previous) => previous.filter((tournament) => tournament.id !== id))
       setDeleteTarget(null)

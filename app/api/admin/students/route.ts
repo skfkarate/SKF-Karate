@@ -28,11 +28,11 @@ export const POST = withRoute(
       validateAthletePayload(buildAthletePayloadFromAdminForm(formValues))
     )
 
-    revalidateAthleteSitePaths(athlete.registrationNumber)
+    revalidateAthleteSitePaths(athlete.skfId)
 
     const { error: authError } = await supabaseAdmin.from('auth_sessions').upsert(
       {
-        skf_id: athlete.registrationNumber,
+        skf_id: athlete.skfId,
         pin_hash: '',
         failed_attempts: 0,
         locked_until: null,
@@ -44,7 +44,7 @@ export const POST = withRoute(
     if (authError) {
       logger.error('admin.students.auth_session_upsert_failed', {
         requestId,
-        skfId: athlete.registrationNumber,
+        skfId: athlete.skfId,
         error: authError,
       })
     }
@@ -52,8 +52,7 @@ export const POST = withRoute(
     return NextResponse.json(
       {
         success: true,
-        skfId: athlete.registrationNumber,
-        registrationNumber: athlete.registrationNumber,
+        skfId: athlete.skfId,
         athlete,
       },
       { status: 201 }

@@ -1,4 +1,4 @@
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
 const BELT_EXAM_TYPES = new Set([
   'belt-grading',
@@ -17,7 +17,7 @@ type AthleteAchievement = {
 }
 
 type AthleteLike = {
-  registrationNumber?: string
+  skfId?: string
   firstName?: string
   lastName?: string
   dateOfBirth?: string
@@ -60,7 +60,6 @@ type LegacyStudentLike = {
 type AdminRecordInput = AthleteLike & LegacyStudentLike
 
 type AdminFormValues = {
-  registrationNumber?: string
   skfId?: string
   name?: string
   dob?: string
@@ -104,7 +103,7 @@ function toNumber(value: unknown, fallback = 0) {
 }
 
 function hasAthleteShape(record?: AdminRecordInput | null) {
-  return Boolean(record?.registrationNumber || record?.firstName || record?.lastName)
+  return Boolean(record?.skfId || record?.firstName || record?.lastName)
 }
 
 function formatAthleteName(record?: AthleteLike | null) {
@@ -185,15 +184,14 @@ export function buildAthleteAdminFormDefaults(
   const athlete = athleteRecord || (hasAthleteShape(legacyStudentOrAthlete) ? legacyStudentOrAthlete : null)
   const legacyStudent = athleteRecord ? legacyStudentOrAthlete : hasAthleteShape(legacyStudentOrAthlete) ? null : legacyStudentOrAthlete
   const today = new Date().toISOString().split('T')[0]
-  const registrationNumber = athlete?.registrationNumber
-    ? normaliseRegistrationNumber(String(athlete.registrationNumber))
+  const skfId = athlete?.skfId
+    ? normaliseSkfId(String(athlete.skfId))
     : legacyStudent?.skfId
-      ? normaliseRegistrationNumber(String(legacyStudent.skfId))
+      ? normaliseSkfId(String(legacyStudent.skfId))
       : null
 
   return {
-    skfId: registrationNumber || '',
-    registrationNumber,
+    skfId: skfId || '',
     name: formatName(legacyStudent, athlete),
     dob: String(legacyStudent?.dob || athlete?.dateOfBirth || '').trim(),
     enrolledDate: String(legacyStudent?.enrolledDate || athlete?.joinDate || today).trim(),
@@ -216,13 +214,12 @@ export function buildAthleteAdminFormDefaults(
 }
 
 export function buildAdminAthleteRecord(athlete: AthleteLike) {
-  const registrationNumber = athlete?.registrationNumber
-    ? normaliseRegistrationNumber(String(athlete.registrationNumber))
+  const skfId = athlete?.skfId
+    ? normaliseSkfId(String(athlete.skfId))
     : null
 
   return {
-    skfId: registrationNumber || '',
-    registrationNumber,
+    skfId: skfId || '',
     displayName: formatAthleteName(athlete) || 'SKF Athlete',
     name: formatAthleteName(athlete) || 'SKF Athlete',
     branch: athlete?.branchName || '',
@@ -244,7 +241,7 @@ export function buildAdminAthleteRecord(athlete: AthleteLike) {
     isFeatured: athlete?.isFeatured ?? false,
     automation: buildAthleteAutomationSummary(athlete),
     publicProfileHref:
-      athlete?.isPublic && registrationNumber ? `/athlete/${registrationNumber}` : null,
+      athlete?.isPublic && skfId ? `/athlete/${skfId}` : null,
   }
 }
 
@@ -259,8 +256,8 @@ export function mergeStudentAndAthleteRecord(
     displayName: athleteDefaults.name,
     automation: buildAthleteAutomationSummary(athlete),
     publicProfileHref:
-      athlete?.isPublic && athleteDefaults.registrationNumber
-        ? `/athlete/${athleteDefaults.registrationNumber}`
+      athlete?.isPublic && athleteDefaults.skfId
+        ? `/athlete/${athleteDefaults.skfId}`
         : null,
   }
 }
@@ -269,7 +266,7 @@ export function buildAthletePayloadFromAdminForm(values: AdminFormValues) {
   const { firstName, lastName } = splitAthleteName(String(values?.name || ''))
 
   return {
-    registrationNumber: values?.registrationNumber || values?.skfId || '',
+    skfId: values?.skfId || '',
     firstName,
     lastName,
     dateOfBirth: String(values?.dob || '').trim(),

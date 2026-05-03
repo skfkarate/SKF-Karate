@@ -1,5 +1,5 @@
 import { BELT_HEX_COLORS, getBelt } from '@/data/constants/belts'
-import { DEFAULT_COUNTRY_FLAG, DEFAULT_PROFILE_PHOTO } from '@/data/seed/beltExaminations'
+import { DEFAULT_COUNTRY_FLAG } from '@/data/seed/beltExaminations'
 import { EVENT_TYPE_LABELS, canonicalizeEventType } from '@/lib/types/event'
 import { findClassBranchByName } from '@/lib/classes/catalog'
 import { getAllCities } from '@/lib/classesData'
@@ -8,6 +8,7 @@ import {
   TOURNAMENT_LEVEL_LABELS,
 } from '@/lib/types/tournament'
 import { calculateResultPoints } from '@/lib/utils/points'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
 type AthleteAchievement = {
   id?: string
@@ -36,7 +37,7 @@ type AthleteAchievement = {
 }
 
 type AthleteProfileSource = {
-  registrationNumber?: string
+  skfId?: string
   achievements?: AthleteAchievement[]
   pointsBalance?: number | string
   firstName?: string
@@ -51,7 +52,7 @@ type AthleteProfileSource = {
 }
 
 type EventParticipant = {
-  registrationNumber?: string
+  skfId?: string
 }
 
 type AthleteEventSource = {
@@ -383,11 +384,15 @@ function buildCompetitionCategories(
 
 function buildUpcomingEvents(athlete: AthleteProfileSource, allEvents: AthleteEventSource[]) {
   const now = Date.now()
+  const athleteSkfId = normaliseSkfId(String(athlete.skfId || '')).toUpperCase()
   return (allEvents || [])
     .filter((event) => new Date(event.date || '').getTime() >= now)
     .filter((event) =>
       Array.isArray(event.participants) &&
-      event.participants.some((participant) => participant.registrationNumber === athlete.registrationNumber)
+      event.participants.some(
+        (participant) =>
+          normaliseSkfId(String(participant.skfId || '')).toUpperCase() === athleteSkfId
+      )
     )
     .sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime())
     .slice(0, 4)
@@ -412,6 +417,8 @@ function buildBeltExaminations(athlete: AthleteProfileSource) {
           ? achievement.beltEarned
             ? formatBeltLabel(achievement.beltEarned)
             : 'Belt Exam'
+          : achievement.type === 'enrollment'
+            ? formatBeltLabel(achievement.beltEarned || 'white')
           : formatBeltLabel(achievement.beltEarned || athlete.currentBelt || 'white'),
       grade:
         achievement.grade ||
@@ -531,10 +538,11 @@ export function buildAthleteProfileData(
     athlete: {
       name: `${athlete.firstName} ${athlete.lastName}`.trim().toUpperCase(),
       shortName: `${athlete.firstName} ${athlete.lastName}`.trim(),
-      photo: athlete.photoUrl || DEFAULT_PROFILE_PHOTO || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'),
+      fallbackPhoto: athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png',
+      photo: athlete.photoUrl || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'),
       country: 'INDIA',
       countryFlag: DEFAULT_COUNTRY_FLAG,
-      id: athlete.registrationNumber,
+      id: athlete.skfId,
       age: calculateAge(athlete.dateOfBirth),
       totalBouts,
       winRate,
@@ -576,6 +584,7 @@ export function buildRestoredAthleteProfileData(
     athleteInfo: {
       name: profile.athlete.name,
       photo: profile.athlete.photo,
+      fallbackPhoto: profile.athlete.fallbackPhoto,
       country: profile.athlete.country,
       countryFlag: profile.athlete.countryFlag,
       id: profile.athlete.id,
@@ -585,7 +594,7 @@ export function buildRestoredAthleteProfileData(
       branchName: profile.athlete.branchName,
       branchSlug: slugify(profile.athlete.branchName) || 'mp-sports-club',
       branchHref: profile.athlete.branchHref,
-      publicProfileHref: athlete?.registrationNumber ? `/athlete/${athlete.registrationNumber}` : '',
+      publicProfileHref: athlete?.skfId ? `/athlete/${athlete.skfId}` : '',
     },
     categories: profile.categories,
     nextEvents: profile.nextEvents,

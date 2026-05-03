@@ -53,8 +53,8 @@ export default function HomeWhyParentsChoose() {
               </p>
             </SectionReveal.Item>
             <SectionReveal.Item>
-              <Link href="/senseis" className="btn btn-secondary">
-                Meet Our Instructors <ArrowRight size={16} />
+              <Link href="/classes" className="btn btn-secondary">
+                Find a Class <ArrowRight size={16} />
               </Link>
             </SectionReveal.Item>
           </SectionReveal>

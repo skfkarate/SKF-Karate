@@ -1,13 +1,11 @@
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import {
-  mergeCatalogProducts,
   normalizeCurrencyAmount,
   normalizeDecimal,
   normalizeOptionalText,
   normalizeShopProduct,
   normalizeShopProductVariant,
   normalizeWholeNumber,
-  seedShopProducts,
 } from '@/lib/shop/logic'
 import type {
   ShopCheckoutActor,
@@ -98,10 +96,8 @@ export interface PersistShopOrderInput {
 }
 
 export async function getProducts(): Promise<ShopProduct[]> {
-  const fallbackProducts = seedShopProducts
-
   if (!isSupabaseReady()) {
-    return fallbackProducts
+    return []
   }
 
   try {
@@ -112,16 +108,13 @@ export async function getProducts(): Promise<ShopProduct[]> {
 
     if (error) {
       console.error('[Shop/Product] Failed to fetch products from Supabase:', error)
-      return fallbackProducts
+      return []
     }
 
-    return mergeCatalogProducts(
-      fallbackProducts,
-      Array.isArray(data) ? data.map((record) => normalizeShopProduct(record)) : []
-    )
+    return Array.isArray(data) ? data.map((record) => normalizeShopProduct(record)) : []
   } catch (error) {
     console.error('[Shop/Product] Unexpected product fetch error:', error)
-    return fallbackProducts
+    return []
   }
 }
 
@@ -422,6 +415,8 @@ function normalizeOrderAddress(value: unknown): ShopOrderAddress {
 
   return {
     fullName: String(address.fullName || ''),
+    parentName: normalizeOptionalText(address.parentName) || undefined,
+    studentName: normalizeOptionalText(address.studentName) || undefined,
     phone: String(address.phone || ''),
     addressLine1: String(address.addressLine1 || ''),
     addressLine2: normalizeOptionalText(address.addressLine2) || undefined,

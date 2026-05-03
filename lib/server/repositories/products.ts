@@ -1,5 +1,4 @@
 import { supabaseAdmin, isSupabaseReady } from '../supabase'
-import { products as seedProducts } from '@/data/seed/products'
 
 export interface ProductVariant {
   id: string
@@ -23,26 +22,13 @@ export interface AdminProduct {
   created_at?: string
 }
 
-type LegacyProduct = {
-    id: string
-    name: string
-    description: string
-    category: AdminProduct['category']
-    price: number
-    images?: string[]
-    variants?: ProductVariant[]
-    rating?: number
-    reviewCount?: number
-    requiresTier?: string
-}
-
 /**
  * Fetches products from Supabase 'skf_products'.
- * If the table does not exist yet (or Supabase fails), falls back to seed data.
+ * The live shop should only show products that exist in the database.
  */
 export async function getProducts(): Promise<AdminProduct[]> {
     if (!isSupabaseReady()) {
-        return fallbackMapping(seedProducts);
+        return [];
     }
 
     try {
@@ -51,15 +37,15 @@ export async function getProducts(): Promise<AdminProduct[]> {
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-            // Probably table doesn't exist or is empty
-            return fallbackMapping(seedProducts);
+        if (error || !data) {
+            console.error('[Products/DB] Failed to fetch products:', error);
+            return [];
         }
 
         return data as AdminProduct[];
     } catch {
-        console.warn('[Products/DB] Failed to fetch from Supabase, returning Seed data fallback.');
-        return fallbackMapping(seedProducts);
+        console.warn('[Products/DB] Failed to fetch from Supabase.');
+        return [];
     }
 }
 
@@ -93,23 +79,4 @@ export async function upsertProduct(product: AdminProduct): Promise<boolean> {
         console.error('[Products/DB] Exception in upsert:', e);
         return false;
     }
-}
-
-// Map the old ts seed schema to the new robust DB schema
-function fallbackMapping(oldItems: LegacyProduct[]): AdminProduct[] {
-    return oldItems.map(p => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        category: p.category,
-        price: p.price,
-        images: p.images,
-        variants: p.variants,
-        rating: p.rating,
-        review_count: p.reviewCount, // Note: camelCase to snake_case
-        // Convert old 'requiresTier' to 'requires_belt' for fallback Demo purposes
-        requires_belt: p.requiresTier === 'silver' ? 'Brown' : undefined,
-        // Assume all legacy are public for now until Admin explicitly restricts
-        is_public: p.requiresTier ? false : true 
-    }))
 }

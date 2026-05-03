@@ -7,6 +7,7 @@ import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import type { City } from '@/lib/classesData'
 import { createStudentSchema } from '@/lib/validators'
@@ -24,8 +25,7 @@ export type AutomationSummary = {
 }
 
 type CreateResult = {
-  skfId: string
-  registrationNumber: string | null
+  skfId: string | null
   dob?: string
 }
 
@@ -33,8 +33,7 @@ export type AthleteEditorValues = Omit<FormInput, 'belt' | 'gender' | 'status'> 
   belt: string
   gender: string
   status: string
-  skfId?: string
-  registrationNumber?: string | null
+  skfId?: string | null
 }
 
 function SectionCard({
@@ -210,8 +209,8 @@ export default function AthleteRecordEditor({
     ) || null
 
   const currentPublicProfileHref = useMemo(() => {
-    if (createResult?.registrationNumber) {
-      return `/athlete/${createResult.registrationNumber}`
+    if (createResult?.skfId) {
+      return `/athlete/${createResult.skfId}`
     }
     return publicProfileHref || null
   }, [createResult, publicProfileHref])
@@ -232,22 +231,20 @@ export default function AthleteRecordEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      const payload = await response.json()
+      const payload = await response.json().catch(() => null)
 
       if (!response.ok) {
         throw new Error(
-          typeof payload?.error === 'string'
-            ? payload.error
-            : Array.isArray(payload?.error)
-              ? payload.error.map((entry: { message?: string }) => entry.message || 'Invalid field').join(', ')
-              : `Unable to ${mode === 'create' ? 'create' : 'update'} the athlete profile.`
+          getApiErrorMessage(
+            payload,
+            `Unable to ${mode === 'create' ? 'create' : 'update'} the athlete profile.`
+          )
         )
       }
 
       if (mode === 'create') {
         setCreateResult({
-          skfId: payload.skfId,
-          registrationNumber: payload.registrationNumber || null,
+          skfId: payload.skfId || null,
           dob: data.dob,
         })
       } else {
@@ -308,7 +305,7 @@ export default function AthleteRecordEditor({
                   Public Profile ID
                 </div>
                 <div style={{ marginTop: '0.4rem', fontSize: '1.25rem', fontWeight: 700 }}>
-                  {createResult.registrationNumber || 'Will sync on first athlete save'}
+                  {createResult.skfId || 'Will sync on first athlete save'}
                 </div>
               </div>
             </div>
@@ -378,9 +375,9 @@ export default function AthleteRecordEditor({
               >
                 Continue Setup
               </Link>
-              {createResult.registrationNumber ? (
+              {createResult.skfId ? (
                 <Link
-                  href={`/athlete/${createResult.registrationNumber}`}
+                  href={`/athlete/${createResult.skfId}`}
                   target="_blank"
                   style={{
                     background: 'transparent',
@@ -551,7 +548,7 @@ export default function AthleteRecordEditor({
                 </FieldShell>
                 <FieldShell label="Public URL ID">
                   <input
-                    value={String(initialValues.registrationNumber || 'Auto-generated after sync')}
+                    value={String(initialValues.skfId || 'Auto-generated after sync')}
                     disabled
                     style={{ ...inputStyle, color: '#cfcfcf', background: '#050505' }}
                   />

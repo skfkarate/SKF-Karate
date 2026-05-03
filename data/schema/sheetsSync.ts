@@ -10,7 +10,7 @@
  * ═══════════════════════════════════════════
  */
 
-/** Students tab — A:K */
+/** Students tab — A:L */
 export const STUDENTS_COLUMN_MAP = {
   A: 'skfId',
   B: 'name',
@@ -23,6 +23,7 @@ export const STUDENTS_COLUMN_MAP = {
   I: 'enrolledDate',
   J: 'monthlyFee',     // number
   K: 'photoConsent',   // 'Yes' | 'No' → boolean
+  L: 'dob',            // Team sheet displays DD-MM-YYYY; app reader normalizes internally.
 } as const
 
 /** Fees tab — A:I (note: col I in sheets = index 8) */
@@ -176,6 +177,10 @@ export const SUMMER_CAMP_CONFIG_COLUMN_MAP = {
  * Write-only (app writes, never reads back):
  *   - Leads (submitLead)
  *   - Contact form (submitContactForm — writes to default sheet)
+ *
+ * Template pack: templates/google-sheets/athlete-profile/
+ * The sheet reader tolerates an optional branded title row:
+ * row 1 = "SKF Karate - [Sheet Name]", row 2 = field headers.
  *
  * IMPORTANT: Sheets is the authoritative source for Student identity.
  * If Sheets is unavailable, sheets.ts falls back to local athletes.json.

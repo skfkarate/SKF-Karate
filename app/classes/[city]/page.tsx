@@ -15,38 +15,21 @@ import {
 } from 'react-icons/fa'
 import { formatClassDays } from '@/lib/classesData'
 import { getCityBySlugLive } from '@/lib/server/repositories/classes-live'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import '../obsidian.css' // Import Obsidian styles instead of legacy classes.css
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }) {
     const { city: citySlug } = await params
     const city = await getCityBySlugLive(citySlug)
     if (!city) return {}
-    const canonicalUrl = absoluteSiteUrl(`/classes/${city.slug}`)
-    const imageUrl = absoluteMediaUrl()
 
-    return {
-        title: 'SKF Karate',
-        description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}. Group classes and personal training. Book a free trial.`,
-        alternates: {
-            canonical: canonicalUrl,
-        },
-        openGraph: {
-            title: 'SKF Karate',
-            description: `Find SKF Karate branches and class schedules in ${city.name}, ${city.state}.`,
-            url: canonicalUrl,
-            type: 'website',
-            images: [{ url: imageUrl, width: 1200, height: 630, alt: `SKF Karate classes in ${city.name}` }],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: 'SKF Karate',
-            description: `Book a free trial class with SKF Karate in ${city.name}.`,
-            images: [imageUrl],
-        },
-    }
+    return buildSeoMetadata(
+        `/classes/${city.slug}`,
+        `Find SKF Karate classes in ${city.name}, ${city.state} for kids, adults, self-defense, kata, kumite, fitness, and traditional black belt training.`
+    )
 }
 
 export default async function CityPage({ params }: { params: Promise<{ city: string }> }) {
@@ -60,9 +43,12 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
 
     const totalClassDays = new Set(city.branches.flatMap((b) => b.classDays)).size
     const hasHQ = city.branches.some((b) => b.isHQ)
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd(`${city.name} Classes`, `/classes/${city.slug}`)
 
     return (
         <div className="obs-page">
+            <JsonLdScript data={breadcrumbJsonLd} />
+
             <div className="obs-orb obs-orb--1" />
             <div className="obs-orb obs-orb--2" />
             <div className="obs-orb obs-orb--3" />
@@ -146,13 +132,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
                                 <div className="obs-card-branch-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
                                         <FaUserTie style={{ color: 'var(--gold, #ffb703)' }} />
-                                        {branch.senseiSlug ? (
-                                            <Link href={`/senseis/${branch.senseiSlug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                                                <strong>{branch.sensei}</strong>
-                                            </Link>
-                                        ) : (
-                                            <strong>{branch.sensei}</strong>
-                                        )}
+                                        <strong>{branch.sensei}</strong>
                                         · {branch.senseiDan}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>

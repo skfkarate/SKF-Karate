@@ -6,15 +6,29 @@ import { Search, Trophy, Building2, ChevronDown, X, ArrowUp, ArrowDown, Minus, C
 
 type TabKey = 'overall' | 'dojo'
 type TopN = 10 | 30 | 'all'
+type RankMovement = 'up' | 'down' | 'same' | 'new'
 
 type RankingBoardItem = {
   athleteId: string
-  registrationNumber: string
+  skfId: string
   athleteName: string
   currentBelt: string
   branchName: string
   totalPoints?: number
   categoryRank?: number
+  overallRank?: number
+  branchRank?: number
+  previousOverallRank?: number | null
+  previousCategoryRank?: number | null
+  previousBranchRank?: number | null
+  overallRankDelta?: number | null
+  categoryRankDelta?: number | null
+  branchRankDelta?: number | null
+  overallMovement?: RankMovement
+  categoryMovement?: RankMovement
+  branchMovement?: RankMovement
+  rankingMovement?: RankMovement
+  rankDelta?: number | null
 }
 
 type RankingItem = RankingBoardItem & {
@@ -45,11 +59,65 @@ function beltLabel(v: string) {
   return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
 }
 
-function getTrend(id: string, rank: number) {
-  if (rank === 1) return 'same'
-  const h = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-  const m = h % 7
-  return m <= 2 ? 'up' : m >= 5 ? 'down' : 'same'
+function getTrendState(
+  entry: RankingItem,
+  activeTab: TabKey,
+  selectedCategory: string,
+  selectedDojo: string
+) {
+  if (activeTab === 'dojo' && selectedDojo) {
+    return {
+      label: 'Branch movement',
+      movement: entry.branchMovement || 'new',
+      delta: entry.branchRankDelta ?? null,
+    }
+  }
+
+  if (selectedCategory) {
+    return {
+      label: 'Category movement',
+      movement: entry.categoryMovement || entry.rankingMovement || 'new',
+      delta: entry.categoryRankDelta ?? entry.rankDelta ?? null,
+    }
+  }
+
+  return {
+    label: 'Overall movement',
+    movement: entry.overallMovement || 'new',
+    delta: entry.overallRankDelta ?? null,
+  }
+}
+
+function trendTitle(label: string, movement: RankMovement, delta: number | null) {
+  if (movement === 'new') return `${label}: new entry`
+  if (movement === 'same') return `${label}: unchanged`
+
+  const places = Math.abs(delta || 0)
+  return `${label}: moved ${movement} ${places} place${places === 1 ? '' : 's'}`
+}
+
+function TrendIndicator({
+  movement,
+  delta,
+  label,
+}: {
+  movement: RankMovement
+  delta: number | null
+  label: string
+}) {
+  const places = Math.abs(delta || 0)
+
+  return (
+    <span className={`lb-trend lb-trend--${movement}`} title={trendTitle(label, movement, delta)}>
+      {movement === 'up' && <ArrowUp size={10} strokeWidth={3} />}
+      {movement === 'down' && <ArrowDown size={10} strokeWidth={3} />}
+      {movement === 'same' && <Minus size={10} />}
+      {movement === 'new' && <span className="lb-trend__new">NEW</span>}
+      {(movement === 'up' || movement === 'down') && places > 0 ? (
+        <span className="lb-trend__value">{places}</span>
+      ) : null}
+    </span>
+  )
 }
 
 export default function RankingDashboard({ boards = [], dojos = [], totalRanked = 0 }: RankingDashboardProps) {
@@ -90,7 +158,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
     }
     if (filterText.trim()) {
       const q = filterText.toLowerCase()
-      list = list.filter(i => (i.athleteName||'').toLowerCase().includes(q) || (i.branchName||'').toLowerCase().includes(q) || (i.registrationNumber||'').toLowerCase().includes(q))
+      list = list.filter(i => (i.athleteName||'').toLowerCase().includes(q) || (i.branchName||'').toLowerCase().includes(q) || (i.skfId||'').toLowerCase().includes(q))
     }
     if (topN !== 'all') list = list.slice(0, topN)
     return list
@@ -189,20 +257,16 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
             <div className="lb-empty">No athletes match your filters.</div>
           )}
           {items.map((e) => {
-            const trend = getTrend(e.athleteId, e.categoryRank)
+            const trend = getTrendState(e, activeTab, selectedCategory, selectedDojo)
             const pct = Math.max(6, ((e.totalPoints || 0) / maxPts) * 100)
             return (
-              <Link key={`${e.athleteId}-${e.categoryRank}`} href={`/athlete/${e.registrationNumber}`} className="lb-row">
+              <Link key={`${e.athleteId}-${e.categoryRank}`} href={`/athlete/${e.skfId}`} className="lb-row">
                 {/* Rank */}
                 <div className="lb-cell lb-cell--rank">
                   <span className={`lb-rank ${e.categoryRank <= 3 ? `lb-rank--${e.categoryRank}` : ''}`}>
                     {e.categoryRank}
                   </span>
-                  <span className={`lb-trend lb-trend--${trend}`}>
-                    {trend === 'up' && <ArrowUp size={10} strokeWidth={3} />}
-                    {trend === 'down' && <ArrowDown size={10} strokeWidth={3} />}
-                    {trend === 'same' && <Minus size={10} />}
-                  </span>
+                  <TrendIndicator {...trend} />
                 </div>
 
                 {/* Name */}

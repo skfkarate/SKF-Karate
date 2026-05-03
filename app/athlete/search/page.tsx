@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Award, ChevronRight, Sparkles, ArrowRight } from 'lucide-react'
+import { Search, MapPin, ChevronRight, Sparkles, ArrowRight, X, User } from 'lucide-react'
 import './search.css'
 
 // Belt color mapping for visual indicators
@@ -21,7 +21,7 @@ const BELT_COLORS: Record<string, string> = {
 }
 
 type AthleteSearchResult = {
-  registrationNumber: string
+  skfId: string
   firstName?: string
   lastName?: string
   branchName?: string
@@ -41,6 +41,19 @@ function getBeltDisplay(belt: string) {
   return { label, color }
 }
 
+function normalizeSkfLookup(value: string) {
+  return value.trim().toUpperCase().replace(/\s+/g, '-').replace(/-+/g, '-')
+}
+
+function looksLikeSkfLookup(value: string) {
+  const normalized = normalizeSkfLookup(value)
+  return /^(?=.*\d)[A-Z]{2,}[A-Z0-9-]*$/.test(normalized)
+}
+
+function athleteProfileHref(skfId: string) {
+  return `/athlete/${encodeURIComponent(normalizeSkfLookup(skfId))}`
+}
+
 export default function FindProfilePage() {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -49,44 +62,43 @@ export default function FindProfilePage() {
   const [error, setError] = useState('')
   const [results, setResults] = useState<AthleteSearchResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
-    const saved = window.localStorage.getItem('recentSearches')
-    if (!saved) return []
-
-    try {
-      return JSON.parse(saved) as string[]
-    } catch {
-      return []
-    }
-  })
-  const [suggestions, setSuggestions] = useState<AthleteSearchResult[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [isMounted, setIsMounted] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
 
-  // Debounced suggestions fetch
   useEffect(() => {
-    const q = query.trim()
-    if (!q || q.length < 2) {
-      const timer = setTimeout(() => setSuggestions([]), 0)
-      return () => clearTimeout(timer)
-    }
-    const timer = setTimeout(() => {
-      fetch(`/api/athletes/search?q=${encodeURIComponent(q)}`)
-        .then(res => res.json())
-        .then(data => {
-          setSuggestions(data.results || data.athletes || [])
-        })
-        .catch(() => {})
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [query])
+    const timer = window.setTimeout(() => {
+      setIsMounted(true)
+      const saved = window.localStorage.getItem('recentSearches')
+      if (saved) {
+        try {
+          setRecentSearches(JSON.parse(saved) as string[])
+        } catch {
+          // Ignore malformed local storage from older sessions.
+        }
+      }
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [])
 
   function addToRecentSearches(q: string) {
     if (!q) return;
     const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 5)
     setRecentSearches(updated)
     localStorage.setItem('recentSearches', JSON.stringify(updated))
+  }
+
+  function removeRecentSearch(e: React.MouseEvent, q: string) {
+    e.stopPropagation();
+    const updated = recentSearches.filter(s => s !== q);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  }
+
+  function clearAllRecentSearches() {
+    setRecentSearches([]);
+    localStorage.removeItem('recentSearches');
   }
 
   async function handleSearch(e?: React.FormEvent, explicitQuery?: string) {
@@ -97,20 +109,19 @@ export default function FindProfilePage() {
     setIsLoading(true)
     setError('')
     setHasSearched(true)
-    setShowSuggestions(false)
     addToRecentSearches(q.trim())
-    
-    const isSkfId = /^SKF[-\s]?\d{2,4}[-\s]?\d{2,4}$/i.test(q.trim()) || /^SKF\d+/i.test(q.trim().replace(/[-\s]/g, ''))
+
+    const isSkfLookup = looksLikeSkfLookup(q)
 
     try {
-      if (isSkfId) {
-        router.push(`/athlete/${q.trim().toUpperCase()}`)
+      if (isSkfLookup) {
+        router.push(athleteProfileHref(q))
         return
       }
 
       const res = await fetch(`/api/athletes/search?q=${encodeURIComponent(q.trim())}`)
       if (!res.ok) throw new Error('Search failed')
-      
+
       const data = await res.json() as AthleteSearchResponse
       setResults(data.results || data.athletes || [])
     } catch (err) {
@@ -122,7 +133,7 @@ export default function FindProfilePage() {
   }
 
   return (
-    <div className="as-page">
+    <div className={`as-page ${hasSearched ? 'as-page--searched' : ''}`}>
       {/* Ambient Effects */}
       <div className="as-ambient-orb as-ambient-orb--1" />
       <div className="as-ambient-orb as-ambient-orb--2" />
@@ -136,14 +147,14 @@ export default function FindProfilePage() {
         <div className="as-hero__badge">
           <Sparkles size={14} /> Athlete Database
         </div>
-        
+
         <h1 className="as-hero__title">
           <span className="as-hero__title-line">Find Your</span>
           <span className="as-hero__title-accent">Profile</span>
         </h1>
-        
+
         <p className="as-hero__subtitle">
-          Search by SKF Registration ID or athlete name to access profiles, tournament history, achievements, and official certifications.
+          Search by SKF ID or athlete name to access profiles, tournament history, achievements, and official certifications.
         </p>
 
         {/* ═══ SEARCH BAR ═══ */}
@@ -152,26 +163,25 @@ export default function FindProfilePage() {
             <div className="as-searchbar__icon">
               <Search size={20} />
             </div>
-            <input 
+            <input
               ref={inputRef}
-              type="text" 
-              placeholder="Enter SKF ID (e.g. SKF-2024-0042) or athlete name..."
+              type="text"
+              placeholder="Enter SKF ID (e.g. SKF25MP001) or athlete name..."
               value={query}
               onChange={e => {
                 setQuery(e.target.value)
-                setShowSuggestions(true)
-                setHasSearched(false) // reset search state to show suggestions/recent
+                if (!e.target.value.trim()) {
+                  setHasSearched(false)
+                  setResults([])
+                }
               }}
-              onFocus={() => {
-                setInputFocused(true)
-                setShowSuggestions(true)
-              }}
+              onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
               className="as-searchbar__input"
               autoComplete="off"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading || !query.trim()}
               className="as-searchbar__btn"
             >
@@ -183,30 +193,43 @@ export default function FindProfilePage() {
             </button>
           </form>
 
-          {/* Suggestions Dropdown */}
-          {inputFocused && showSuggestions && suggestions.length > 0 && (
-            <div className="as-suggestions-dropdown">
-              {suggestions.slice(0, 5).map((s) => (
-                <div 
-                  key={s.registrationNumber} 
-                  className="as-suggestion-item" 
-                  onMouseDown={(e) => {
-                    e.preventDefault(); // prevent blur
-                    const name = `${s.firstName} ${s.lastName}`;
-                    setQuery(name);
-                    setShowSuggestions(false);
-                    handleSearch(undefined, name);
-                  }}
-                >
-                  <div className="as-suggestion-avatar">
-                    {s.firstName?.[0]}{s.lastName?.[0]}
-                  </div>
-                  <div className="as-suggestion-info">
-                    <span className="as-suggestion-name">{s.firstName} {s.lastName}</span>
-                    <span className="as-suggestion-id">{s.registrationNumber}</span>
-                  </div>
+          {/* ═══ RECENT SEARCHES (shown when no search yet) ═══ */}
+          {isMounted && !hasSearched && query.trim() === '' && recentSearches.length > 0 && (
+            <div className="as-recent-searches">
+              <div className="as-recent-searches__header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Search size={14} className="as-recent-searches__icon" />
+                  <h3 className="as-recent-searches__heading">Recent Searches</h3>
                 </div>
-              ))}
+                <button
+                  type="button"
+                  className="as-recent-searches__clear-all"
+                  onClick={clearAllRecentSearches}
+                >
+                  Clear All
+                </button>
+              </div>
+
+              <div className="as-quick-tags">
+                {recentSearches.map((s, i) => (
+                  <button
+                    key={i}
+                    className="as-quick-tag as-quick-tag--removable"
+                    onClick={() => {
+                      setQuery(s)
+                      handleSearch(undefined, s)
+                    }}
+                  >
+                    <span>{s}</span>
+                    <div
+                      className="as-quick-tag__remove"
+                      onClick={(e) => removeRecentSearch(e, s)}
+                    >
+                      <X size={12} />
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -233,59 +256,62 @@ export default function FindProfilePage() {
               </div>
               <h3 className="as-empty-state__title">No Athletes Found</h3>
               <p className="as-empty-state__desc">
-                Try searching by athlete name and check the spelling. Names are case-insensitive.
+                Try searching by SKF ID or athlete name and check the spelling.
               </p>
             </div>
           )}
 
           {/* Search Results */}
-          {results.length > 0 && (
+          {hasSearched && results.length > 0 && (
             <div className="as-results">
               <div className="as-results__header">
                 <h3 className="as-results__count">
                   {results.length} Athlete{results.length !== 1 ? 's' : ''} Found
                 </h3>
               </div>
-              
+
               <div className="as-results__grid">
                 {results.map((athlete) => {
                   const belt = getBeltDisplay(athlete.currentBelt)
                   return (
                     <div
-                      key={athlete.registrationNumber}
+                      key={athlete.skfId}
                       className="as-athlete-card"
-                      onClick={() => router.push(`/athlete/${athlete.registrationNumber}`)}
+                      style={{ '--belt-color': belt.color } as React.CSSProperties}
+                      onClick={() => router.push(athleteProfileHref(athlete.skfId))}
                     >
-                      {/* Belt accent line */}
-                      <div className="as-athlete-card__belt-line" style={{ background: belt.color }} />
-                      
-                      <div className="as-athlete-card__body">
-                        {/* Avatar */}
-                        <div className="as-athlete-card__avatar" style={{ borderColor: belt.color }}>
-                          <span>{athlete.firstName?.[0]}{athlete.lastName?.[0]}</span>
-                        </div>
+                      {/* Avatar */}
+                      <div className="as-athlete-card__avatar">
+                        <User size={28} />
+                      </div>
 
-                        {/* Info */}
-                        <div className="as-athlete-card__info">
-                          <h4 className="as-athlete-card__name">
-                            {athlete.firstName} {athlete.lastName}
-                          </h4>
-                          <div className="as-athlete-card__meta">
-                            <span className="as-athlete-card__meta-item">
-                              <MapPin size={12} /> {athlete.branchName}
-                            </span>
-                            <span className="as-athlete-card__meta-item">
-                              <Award size={12} />
-                              <span className="as-belt-dot" style={{ background: belt.color, boxShadow: `0 0 8px ${belt.color}` }} />
-                              {belt.label}
-                            </span>
+                      {/* Info */}
+                      <div className="as-athlete-card__info">
+                        <h4 className="as-athlete-card__name">
+                          {athlete.firstName} {athlete.lastName}
+                        </h4>
+                        <div className="as-athlete-card__meta">
+                          <span className="as-athlete-card__meta-item">
+                            <MapPin size={14} /> {athlete.branchName}
+                          </span>
+                          <div
+                              className="as-belt-chip"
+                              style={{ '--chip-color': belt.color } as React.CSSProperties}
+                          >
+                              <span className="as-belt-chip__swatch" style={{ background: belt.color }} />
+                              <span className="as-belt-chip__label">{belt.label}</span>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Arrow */}
-                        <div className="as-athlete-card__arrow">
-                          <ChevronRight size={20} />
-                        </div>
+                      {/* SKF ID */}
+                      <div className="as-athlete-card__id">
+                        {athlete.skfId}
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="as-athlete-card__arrow">
+                        <ChevronRight size={24} />
                       </div>
                     </div>
                   )
@@ -294,30 +320,6 @@ export default function FindProfilePage() {
             </div>
           )}
 
-          {/* ═══ RECENT SEARCHES (shown when no search yet) ═══ */}
-          {!hasSearched && query.trim() === '' && recentSearches.length > 0 && (
-            <div className="as-featured" style={{ marginTop: '3rem' }}>
-              <div className="as-featured__header">
-                <Search size={18} className="as-featured__icon" />
-                <h3 className="as-featured__heading">Recent Searches</h3>
-              </div>
-              
-              <div className="as-quick-tags" style={{ justifyContent: 'flex-start', marginTop: '1rem' }}>
-                {recentSearches.map((s, i) => (
-                  <button 
-                    key={i} 
-                    className="as-quick-tag" 
-                    onClick={() => {
-                      setQuery(s)
-                      handleSearch(undefined, s)
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
         </div>
       </section>

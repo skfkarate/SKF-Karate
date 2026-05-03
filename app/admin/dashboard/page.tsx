@@ -1,21 +1,13 @@
-'use client'
-
-import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarRange, Globe2, ShieldCheck, Users } from 'lucide-react'
 
-type DashboardState = {
-  athletes: number
-  classes: number
-  eventRecords: number
-  upcomingEvents: number
-  draftEvents: number
-  attentionEvents: number
-  totalVisits: number
-  visitsToday: number
-  leadFailures: number
-  portalLoginFailures: number
-}
+import { requireAdminSession } from '@/lib/utils/auth'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
+import { getAllEventsAdminLive } from '@/lib/server/repositories/events-live'
+import { getAllBlogPostsAdminLive } from '@/lib/server/repositories/blogs-live'
+import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { getWebsiteAnalyticsSummary } from '@/lib/server/site-analytics'
 
 type DashboardEvent = {
   status?: string
@@ -24,28 +16,30 @@ type DashboardEvent = {
   isResultsPublished?: boolean
 }
 
-type ClassesResponse = {
-  cities?: Array<{ branches?: unknown[] }>
+type DashboardStats = {
+  athletes: number
+  classes: number
+  eventRecords: number
+  upcomingEvents: number
+  draftEvents: number
+  attentionEvents: number
+  blogPosts: number
+  publishedBlogPosts: number
 }
 
-type StudentsResponse = {
-  students?: unknown[]
+type DashboardEventRow = {
+  status?: string | null
+  is_results_published?: boolean | null
+  participants?: unknown
+  results?: unknown
 }
 
-type EventsResponse = {
-  events?: DashboardEvent[]
-}
-
-type AnalyticsResponse = {
-  analytics?: {
-    website?: {
-      overview?: {
-        totalVisits?: number
-        visitsToday?: number
-        leadFailures?: number
-        portalLoginFailures?: number
-      }
-    }
+async function withFallback<T>(promise: Promise<T>, fallback: T, label: string) {
+  try {
+    return await promise
+  } catch (error) {
+    console.error(`[admin-dashboard] Failed to load ${label}:`, error)
+    return fallback
   }
 }
 
@@ -59,111 +53,168 @@ function needsAttention(event: DashboardEvent) {
   return false
 }
 
-export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<DashboardState>({
-    athletes: 0,
-    classes: 0,
-    eventRecords: 0,
-    upcomingEvents: 0,
-    draftEvents: 0,
-    attentionEvents: 0,
-    totalVisits: 0,
-    visitsToday: 0,
-    leadFailures: 0,
-    portalLoginFailures: 0,
-  })
-  const [loading, setLoading] = useState(true)
+function mapDashboardEventRow(row: DashboardEventRow): DashboardEvent {
+  return {
+    status: row.status || 'draft',
+    isResultsPublished: Boolean(row.is_results_published),
+    participants: Array.isArray(row.participants) ? row.participants : [],
+    results: Array.isArray(row.results) ? row.results : [],
+  }
+}
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const [athletesRes, classesRes, eventsRes, analyticsRes] = await Promise.all([
-          fetch('/api/admin/students'),
-          fetch('/api/admin/classes'),
-          fetch('/api/admin/events'),
-          fetch('/api/admin/analytics'),
-        ])
+async function countRows(table: string, filter?: { column: string; value: string }) {
+  let query = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
 
-        const [athletesData, classesData, eventsData, analyticsData] = await Promise.all([
-          athletesRes.json() as Promise<StudentsResponse>,
-          classesRes.json() as Promise<ClassesResponse>,
-          eventsRes.json() as Promise<EventsResponse>,
-          analyticsRes.json() as Promise<AnalyticsResponse>,
-        ])
+  if (filter) {
+    query = query.eq(filter.column, filter.value)
+  }
 
-        const events = Array.isArray(eventsData.events) ? eventsData.events : []
-        const website = analyticsData?.analytics?.website
+  const { count, error } = await query
+  if (error) throw error
+  return count || 0
+}
 
-        setStats({
-          athletes: athletesData.students?.length || 0,
-          classes: Array.isArray(classesData.cities)
-            ? classesData.cities.reduce(
-                (total, city) => total + (Array.isArray(city.branches) ? city.branches.length : 0),
-                0
-              )
-            : 0,
-          eventRecords: events.length,
-          upcomingEvents: events.filter((event) => event.status === 'upcoming' || event.status === 'ongoing').length,
-          draftEvents: events.filter((event) => event.status === 'draft').length,
-          attentionEvents: events.filter((event) => needsAttention(event)).length,
-          totalVisits: website?.overview?.totalVisits || 0,
-          visitsToday: website?.overview?.visitsToday || 0,
-          leadFailures: website?.overview?.leadFailures || 0,
-          portalLoginFailures: website?.overview?.portalLoginFailures || 0,
-        })
-      } catch (error) {
-        console.error('Dashboard load error:', error)
-      } finally {
-        setLoading(false)
-      }
+async function getEventSummaryRows(table: 'events' | 'tournaments') {
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select(table === 'events' ? 'status,is_results_published,participants,results' : 'status,participants,results')
+
+  if (error) throw error
+  return (data || []).map((row) => mapDashboardEventRow(row as DashboardEventRow))
+}
+
+async function getRepositoryDashboardStats(): Promise<DashboardStats> {
+  const [athletes, cities, events, blogPosts] = await Promise.all([
+    withFallback(getAllAthletesLive(), [], 'athletes'),
+    withFallback(getAllCitiesLive(), [], 'classes'),
+    withFallback(getAllEventsAdminLive(), [], 'events'),
+    withFallback(getAllBlogPostsAdminLive(), [], 'blogs'),
+  ])
+
+  const classes = cities.reduce((total, city) => total + city.branches.length, 0)
+  return {
+    athletes: athletes.length,
+    classes,
+    eventRecords: events.length,
+    upcomingEvents: events.filter((event) => event.status === 'upcoming' || event.status === 'ongoing').length,
+    draftEvents: events.filter((event) => event.status === 'draft').length,
+    attentionEvents: events.filter((event) => needsAttention(event)).length,
+    blogPosts: blogPosts.length,
+    publishedBlogPosts: blogPosts.filter((post) => post.status === 'published').length,
+  }
+}
+
+async function getFastDashboardStats(): Promise<DashboardStats> {
+  if (!isSupabaseReady()) {
+    return getRepositoryDashboardStats()
+  }
+
+  try {
+    const [
+      athletes,
+      classes,
+      standaloneEvents,
+      tournaments,
+      blogPosts,
+      publishedBlogPosts,
+    ] = await Promise.all([
+      countRows('athletes'),
+      countRows('class_branches'),
+      getEventSummaryRows('events'),
+      getEventSummaryRows('tournaments'),
+      countRows('blog_posts'),
+      countRows('blog_posts', { column: 'status', value: 'published' }),
+    ])
+
+    const events = [...standaloneEvents, ...tournaments]
+    return {
+      athletes,
+      classes,
+      eventRecords: events.length,
+      upcomingEvents: events.filter((event) => event.status === 'upcoming' || event.status === 'ongoing').length,
+      draftEvents: events.filter((event) => event.status === 'draft').length,
+      attentionEvents: events.filter((event) => needsAttention(event)).length,
+      blogPosts,
+      publishedBlogPosts,
     }
+  } catch (error) {
+    console.warn('[admin-dashboard] Falling back to repository summary:', error)
+    return getRepositoryDashboardStats()
+  }
+}
 
-    loadDashboard()
-  }, [])
+export default async function AdminDashboardPage() {
+  await requireAdminSession(['admin', 'instructor'])
 
-  const overviewCards = useMemo(
-    () => [
-      {
-        label: 'Athlete Profiles',
-        value: stats.athletes,
-        helper: 'Live athlete records mirrored into public profiles.',
-        icon: <Users size={16} />,
-      },
-      {
-        label: 'Training Branches',
-        value: stats.classes,
-        helper: 'Classes, branches, and training centres active in admin.',
-        icon: <ShieldCheck size={16} />,
-      },
-      {
-        label: 'Event Records',
-        value: stats.eventRecords,
-        helper: `${stats.upcomingEvents} upcoming or live · ${stats.draftEvents} drafts`,
-        icon: <CalendarRange size={16} />,
-      },
-      {
-        label: 'Website Visits',
-        value: stats.totalVisits,
-        helper: `${stats.visitsToday} visits today`,
-        icon: <Globe2 size={16} />,
-      },
-    ],
-    [stats]
-  )
+  const [dashboardStats, analyticsSummary] = await Promise.all([
+    withFallback(getFastDashboardStats(), {
+      athletes: 0,
+      classes: 0,
+      eventRecords: 0,
+      upcomingEvents: 0,
+      draftEvents: 0,
+      attentionEvents: 0,
+      blogPosts: 0,
+      publishedBlogPosts: 0,
+    }, 'dashboard stats'),
+    withFallback(getWebsiteAnalyticsSummary(), { data: null }, 'analytics'),
+  ])
+
+  const website = analyticsSummary.data
+  const stats = {
+    ...dashboardStats,
+    totalVisits: website?.overview.totalVisits || 0,
+    visitsToday: website?.overview.visitsToday || 0,
+    leadFailures: website?.overview.leadFailures || 0,
+    portalLoginFailures: website?.overview.portalLoginFailures || 0,
+  }
+
+  const overviewCards = [
+    {
+      label: 'Athlete Profiles',
+      value: stats.athletes,
+      helper: 'Live athlete records mirrored into public profiles.',
+      icon: <Users size={16} />,
+    },
+    {
+      label: 'Training Branches',
+      value: stats.classes,
+      helper: 'Classes, branches, and training centres active in admin.',
+      icon: <ShieldCheck size={16} />,
+    },
+    {
+      label: 'Event Records',
+      value: stats.eventRecords,
+      helper: `${stats.upcomingEvents} upcoming or live · ${stats.draftEvents} drafts`,
+      icon: <CalendarRange size={16} />,
+    },
+    {
+      label: 'Blog Guides',
+      value: stats.blogPosts,
+      helper: `${stats.publishedBlogPosts} published on the public blog`,
+      icon: <Globe2 size={16} />,
+    },
+    {
+      label: 'Website Visits',
+      value: stats.totalVisits,
+      helper: `${stats.visitsToday} visits today`,
+      icon: <Globe2 size={16} />,
+    },
+  ]
 
   const workflowGroups = [
     {
       title: 'Event Operations',
-      description: 'The highest-priority operational chain: create, assign, publish, record outcomes, then sync athlete profiles.',
+      description: 'Create, assign, publish, record outcomes, then sync athlete profiles.',
       items: [
         { label: 'Open Events Hub', href: '/admin/events', meta: `${stats.eventRecords} total records` },
-        { label: 'Tournament Studio', href: '/admin/results', meta: 'Separate precise workflow for tournament outcomes' },
+        { label: 'Tournament Studio', href: '/admin/results', meta: 'Tournament outcomes workflow' },
         { label: 'Needs Attention', href: '/admin/events?lane=attention', meta: `${stats.attentionEvents} records need follow-up` },
       ],
     },
     {
       title: 'Training Network',
-      description: 'Athletes, classes, and senseis stay linked here so dropdown-driven workflows remain consistent.',
+      description: 'Athletes, classes, and senseis stay linked here so dropdown-driven workflows stay consistent.',
       items: [
         { label: 'Athlete Profiles', href: '/admin/students', meta: `${stats.athletes} active records` },
         { label: 'Classes & Branches', href: '/admin/classes', meta: `${stats.classes} branches in live catalog` },
@@ -172,11 +223,45 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Intelligence',
-      description: 'Website visits, lead failures, and portal failures are now surfaced with certificate analytics in one place.',
+      description: 'Website visits, lead failures, and portal failures are surfaced with certificate analytics.',
       items: [
         { label: 'Analytics Center', href: '/admin/analytics', meta: `${stats.totalVisits} tracked visits` },
         { label: 'Lead Issues', href: '/admin/analytics', meta: `${stats.leadFailures} failed lead submissions` },
         { label: 'Portal Issues', href: '/admin/analytics', meta: `${stats.portalLoginFailures} failed login attempts` },
+      ],
+    },
+    {
+      title: 'Content & Portal',
+      description: 'Public guides and athlete portal content stay connected to the live site.',
+      items: [
+        { label: 'Blog Studio', href: '/admin/blogs', meta: `${stats.blogPosts} guide blocks` },
+        { label: 'Portal Content', href: '/admin/portal', meta: 'Home practice and timetable control' },
+        { label: 'Public Blog', href: '/blog', meta: `${stats.publishedBlogPosts} published guides` },
+      ],
+    },
+    {
+      title: 'Programs & Certificates',
+      description: 'Manage program templates, certificate programs, and the issuance pipeline.',
+      items: [
+        { label: 'Program Catalog', href: '/admin/programs', meta: 'Program templates and editor flow' },
+        { label: 'Certificate Programs', href: '/admin/certificates', meta: 'Templates and active certificate programs' },
+        { label: 'Issuance Queue', href: '/admin/enrollments', meta: 'Certificate processing pipeline' },
+      ],
+    },
+    {
+      title: 'Commerce & Fees',
+      description: 'Shop fulfilment, product catalog, and monthly training fee operations are linked here.',
+      items: [
+        { label: 'Shop Orders', href: '/admin/shop', meta: 'Fulfilment and approval queue' },
+        { label: 'Shop Products', href: '/admin/shop/products', meta: 'Merchandise catalog' },
+        { label: 'Training Fees', href: '/admin/training-fee', meta: 'Monthly ledger and receipts' },
+      ],
+    },
+    {
+      title: 'System',
+      description: 'Environment and service health checks for backend integrations.',
+      items: [
+        { label: 'Settings', href: '/admin/settings', meta: 'Environment and service health' },
       ],
     },
   ]
@@ -199,7 +284,7 @@ export default function AdminDashboardPage() {
           Operations Dashboard
         </h1>
         <p style={{ margin: '0.85rem 0 0', color: '#7f7f7f', lineHeight: 1.65, maxWidth: '920px' }}>
-          The admin is now structured around real workflows instead of isolated screens. Start from the operational hub that matches the work you are doing, then drill into the precise editor flow from there.
+          Start from the operational hub that matches the work you are doing, then drill into the precise editor flow from there.
         </p>
       </div>
 
@@ -210,7 +295,7 @@ export default function AdminDashboardPage() {
               {card.icon}
               <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#707070' }}>{card.label}</span>
             </div>
-            <div style={{ fontSize: '2.1rem', fontWeight: 600, letterSpacing: '-0.05em' }}>{loading ? '—' : card.value}</div>
+            <div style={{ fontSize: '2.1rem', fontWeight: 600, letterSpacing: '-0.05em' }}>{card.value}</div>
             <div style={{ marginTop: '0.35rem', color: '#7a7a7a', fontSize: '0.82rem', lineHeight: 1.5 }}>{card.helper}</div>
           </div>
         ))}

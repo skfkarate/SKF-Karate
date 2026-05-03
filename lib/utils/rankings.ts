@@ -1,4 +1,5 @@
 import { calculatePoints, calculateResultPoints, normaliseEventTier, normaliseResult } from "./points"
+import { normaliseSkfId } from "./registration"
 
 type RankingOptions = {
   currentDate?: Date
@@ -73,7 +74,7 @@ export function buildCompetitionResultsFromAthletes(athletes = []) {
         return {
           id: achievement.id,
           athleteId: athlete.id,
-          registrationNumber: athlete.registrationNumber,
+          skfId: normaliseSkfId(athlete.skfId || ""),
           athleteName: `${athlete.firstName} ${athlete.lastName}`,
           date: achievement.date,
           tier: normaliseEventTier(achievement.tournamentLevel),
@@ -168,7 +169,7 @@ export function getRankedAthletes(
 
     return {
       athleteId: athlete.id,
-      registrationNumber: athlete.registrationNumber,
+      skfId: normaliseSkfId(athlete.skfId || ""),
       athleteName: `${athlete.firstName} ${athlete.lastName}`,
       branchName: athlete.branchName,
       currentBelt: athlete.currentBelt,

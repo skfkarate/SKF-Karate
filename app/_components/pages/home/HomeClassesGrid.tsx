@@ -8,6 +8,27 @@ import type { City } from '@/lib/classesData'
 import './HomeClassesGrid.css'
 
 function CityCard({ city, index }: { city: City; index: number }) {
+  const isDisabled = city.branches.length === 0
+  const cardClassName = `obs-city-card ${isDisabled ? 'obs-city-card--disabled' : ''}`
+  const cardContent = (
+    <>
+      <div className="obs-city-card__left">
+        <div className="obs-city-card__icon">
+          <MapPin size={18} />
+        </div>
+        <h3 className="obs-city-card__name">{city.name}</h3>
+      </div>
+      <div className="obs-city-card__right">
+        <span className="obs-city-card__count">
+          {city.branches.length > 0
+            ? `${city.branches.length} ${city.branches.length === 1 ? 'BRANCH' : 'BRANCHES'}`
+            : 'UPDATING'}
+        </span>
+        {!isDisabled && <ArrowUpRight size={16} className="obs-city-card__arrow" />}
+      </div>
+    </>
+  )
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -15,20 +36,13 @@ function CityCard({ city, index }: { city: City; index: number }) {
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <Link href={`/classes/${city.slug}`} className="obs-city-card">
-        <div className="obs-city-card__left">
-          <div className="obs-city-card__icon">
-            <MapPin size={18} />
-          </div>
-          <h3 className="obs-city-card__name">{city.name}</h3>
-        </div>
-        <div className="obs-city-card__right">
-          <span className="obs-city-card__count">
-            {city.branches.length} {city.branches.length === 1 ? 'BRANCH' : 'BRANCHES'}
-          </span>
-          <ArrowUpRight size={16} className="obs-city-card__arrow" />
-        </div>
-      </Link>
+      {isDisabled ? (
+        <div className={cardClassName}>{cardContent}</div>
+      ) : (
+        <Link href={`/classes/${city.slug}`} className={cardClassName}>
+          {cardContent}
+        </Link>
+      )}
     </motion.div>
   )
 }

@@ -15,12 +15,13 @@ import { getEventBySlugLive } from "@/lib/server/repositories/events-live"
 import { getEventLabel } from "@/data/constants/categories"
 import { absoluteMediaUrl, absoluteSiteUrl } from "@/data/constants/siteConfig"
 import JsonLdScript from "@/components/JsonLdScript"
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from "@/data/constants/seo"
 import "./event-detail.css"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 type EventParticipant = {
-  registrationNumber: string
+  skfId: string
   athleteName?: string
   branchName?: string
 }
@@ -124,39 +125,16 @@ export async function generateMetadata({ params }: EventPageProps) {
   const event = await getEventBySlugLive(slug) as EventDetail | null
 
   if (!event) {
-    return { title: 'SKF Karate' }
+    return buildSeoMetadata(
+      '/events',
+      'View SKF Karate events, seminars, camps, gradings, and tournaments for karate students training in kata, kumite, self-defense, and competition skills.'
+    )
   }
 
-  const imageUrl = absoluteMediaUrl()
-  const canonicalUrl = absoluteSiteUrl(`/events/${event.slug}`)
-
-  return {
-    title: 'SKF Karate',
-    description: event.description || 'SKF Karate Event Details',
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: 'SKF Karate',
-      description: event.description || 'SKF Karate Event Details',
-      url: canonicalUrl,
-      type: 'website',
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: event.name,
-        }
-      ]
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'SKF Karate',
-      description: event.description || 'SKF Karate Event Details',
-      images: [imageUrl],
-    }
-  }
+  return buildSeoMetadata(
+    `/events/${event.slug}`,
+    `${event.name} at SKF Karate. ${event.description || 'Karate event details for students training in kata, kumite, self-defense, and competition skills.'}`
+  )
 }
 
 export default async function EventDetailPage({ params }: EventPageProps) {
@@ -196,6 +174,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
   const hasParticipants = participants.length > 0
   const hasResults = results.length > 0
   const dateInfo = event.date ? formatDateShort(event.date) : null
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(event.name, `/events/${event.slug}`)
 
   // Count results by type
   const resultsSummary = hasResults ? {
@@ -209,6 +188,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
 
   return (
     <div className="evd-page">
+      <JsonLdScript data={breadcrumbJsonLd} />
       <JsonLdScript data={eventSchema} />
 
       {/* ── AMBIENT EFFECTS ── */}
@@ -384,8 +364,8 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                   <div className="evd-roster">
                     {participants.map((participant, idx) => (
                       <Link
-                        key={participant.registrationNumber}
-                        href={`/athlete/${participant.registrationNumber}`}
+                        key={participant.skfId}
+                        href={`/athlete/${participant.skfId}`}
                         className="evd-roster__row"
                       >
                         <span className="evd-roster__index">{String(idx + 1).padStart(2, '0')}</span>
@@ -395,7 +375,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                         <div className="evd-roster__info">
                           <h3 className="evd-roster__name">{participant.athleteName}</h3>
                           <span className="evd-roster__meta">
-                            {participant.registrationNumber}
+                            {participant.skfId}
                             {participant.branchName && <> · {participant.branchName}</>}
                           </span>
                         </div>
@@ -427,7 +407,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                   <div className="evd-results-list">
                     {results.map((result, idx) => (
                       <div
-                        key={`${result.registrationNumber}-${result.id || result.award || result.medal || idx}`}
+                        key={`${result.skfId}-${result.id || result.award || result.medal || idx}`}
                         className="evd-result-row"
                       >
                         <span className="evd-result-row__index">{String(idx + 1).padStart(2, '0')}</span>
@@ -435,11 +415,11 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                           {result.athleteName?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div className="evd-result-row__info">
-                          <Link href={`/athlete/${result.registrationNumber}`} className="evd-result-row__name">
+                          <Link href={`/athlete/${result.skfId}`} className="evd-result-row__name">
                             {result.athleteName}
                           </Link>
                           <span className="evd-result-row__meta">
-                            {result.registrationNumber}
+                            {result.skfId}
                             {getResultMeta(result) && <> · {getResultMeta(result)}</>}
                           </span>
                         </div>

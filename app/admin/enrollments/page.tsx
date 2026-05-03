@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Papa from 'papaparse'
 import { CertificateModal } from '@/components/CertificateModal'
+import { getApiErrorMessage } from '@/app/admin/_utils/apiErrors'
 
 // Types
 interface Enrollment {
@@ -148,7 +149,8 @@ export default function AdminEnrollmentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enrollmentIds: selectedIds, action })
       })
-      if (!res.ok) throw new Error('Bulk API Error')
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(getApiErrorMessage(data, 'Bulk API Error'))
       
       // If complete, trigger WhatsApp generator automatically
       if (action === 'complete') {
@@ -173,7 +175,7 @@ export default function AdminEnrollmentsPage() {
         body: JSON.stringify({ enrollmentIds: selectedIds })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(getApiErrorMessage(data, 'Unable to send notifications.'))
       alert(`Sent ${data.count} emails successfully!`)
     } catch (error) {
       alert(error instanceof Error ? error.message : String(error))

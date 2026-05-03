@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 
 export interface TemplateField {
   id: string
@@ -41,7 +41,7 @@ export class CertificateRenderer {
     if (enrollment.status !== 'completed' && !isAdmin) throw new Error('NOT_COMPLETED')
     if (enrollment.skf_id !== requestingSkfId && !isAdmin) throw new Error('FORBIDDEN')
     
-    const athlete = await getAthleteByRegistrationNumberLive(enrollment.skf_id)
+    const athlete = await getAthleteBySkfIdLive(enrollment.skf_id)
     if (!athlete) throw new Error('STUDENT_NOT_FOUND')
     
     const templates = Array.isArray(enrollment.certificate_templates)

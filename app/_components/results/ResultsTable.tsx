@@ -168,8 +168,8 @@ export default function ResultsTable({ winners }) {
 
                 {/* Athlete name */}
                 <div className="res-tc-athlete">
-                  {w.registrationNumber ? (
-                    <Link href={`/athlete/${w.registrationNumber}`} className="lb-name" style={{ textDecoration: 'none' }}>
+                  {w.skfId ? (
+                    <Link href={`/athlete/${w.skfId}`} className="lb-name" style={{ textDecoration: 'none' }}>
                       {w.athleteName}
                     </Link>
                   ) : (

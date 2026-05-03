@@ -127,6 +127,45 @@ function requiredDate(value, label) {
   return trimmed
 }
 
+function calendarDateValue(value, label) {
+  const normalized = String(value ?? '').trim()
+  const dateOnlyMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/)
+
+  if (dateOnlyMatch) {
+    const year = Number(dateOnlyMatch[1])
+    const month = Number(dateOnlyMatch[2])
+    const day = Number(dateOnlyMatch[3])
+    const timestamp = Date.UTC(year, month - 1, day)
+    const parsed = new Date(timestamp)
+
+    if (
+      parsed.getUTCFullYear() !== year ||
+      parsed.getUTCMonth() !== month - 1 ||
+      parsed.getUTCDate() !== day
+    ) {
+      throw new ApiError(400, `${label} is invalid.`)
+    }
+
+    return timestamp
+  }
+
+  const parsed = new Date(normalized)
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new ApiError(400, `${label} is invalid.`)
+  }
+
+  return parsed.getTime()
+}
+
+function ensureEndDateIsNotBeforeStartDate(startDate, endDate) {
+  if (!endDate) return
+
+  if (calendarDateValue(endDate, 'End date') < calendarDateValue(startDate, 'Start date')) {
+    throw new ApiError(400, 'End date cannot be earlier than start date.')
+  }
+}
+
 function optionalDate(value, label) {
   if (value === undefined || value === null || String(value).trim() === '') {
     return ''
@@ -325,6 +364,18 @@ function normaliseAchievement(achievement, index) {
     examiner: optionalString(value.examiner, `Achievement ${index + 1} examiner`, {
       max: 120,
     }),
+    difficultyLevel: optionalNumberValue(
+      value.difficultyLevel,
+      `Achievement ${index + 1} difficulty level`,
+      { min: 0, max: 5 }
+    ),
+    wins: optionalInteger(value.wins, `Achievement ${index + 1} fights won`, {
+      min: 0,
+      max: 50,
+    }),
+    position: optionalString(value.position, `Achievement ${index + 1} position`, {
+      max: 40,
+    }),
     sourceEventLevel: optionalString(
       value.sourceEventLevel,
       `Achievement ${index + 1} source event level`,
@@ -379,9 +430,9 @@ function normaliseWinner(winner, index) {
     athleteName: requiredString(value.athleteName, `Winner ${index + 1} athlete name`, {
       max: 120,
     }),
-    registrationNumber: optionalString(
-      value.registrationNumber,
-      `Winner ${index + 1} registration number`,
+    skfId: optionalString(
+      value.skfId,
+      `Winner ${index + 1} SKF ID`,
       { max: 40 }
     ),
     branchName: requiredString(value.branchName, `Winner ${index + 1} branch`, {
@@ -439,9 +490,9 @@ function normaliseParticipant(participant, index) {
     athleteId: optionalString(value.athleteId, `Participant ${index + 1} athlete id`, {
       max: 80,
     }),
-    registrationNumber: requiredString(
-      value.registrationNumber,
-      `Participant ${index + 1} registration number`,
+    skfId: requiredString(
+      value.skfId,
+      `Participant ${index + 1} SKF ID`,
       { max: 40 }
     ),
     athleteName,
@@ -474,9 +525,9 @@ function normaliseEventResult(result, index, eventType) {
       max: 80,
     }),
     athleteId: optionalString(value.athleteId, `Result ${index + 1} athlete id`, { max: 80 }),
-    registrationNumber: requiredString(
-      value.registrationNumber,
-      `Result ${index + 1} registration number`,
+    skfId: requiredString(
+      value.skfId,
+      `Result ${index + 1} SKF ID`,
       { max: 40 }
     ),
     athleteName: participantName,
@@ -637,7 +688,7 @@ export function validateAthletePayload(payload) {
 
   return {
     id: optionalString(value.id, 'Athlete id', { max: 80 }),
-    registrationNumber: optionalString(value.registrationNumber, 'Registration number', {
+    skfId: optionalString(value.skfId, 'SKF ID', {
       max: 40,
     }),
     firstName: requiredString(value.firstName, 'First name', { max: 80 }),
@@ -683,9 +734,7 @@ export function validateTournamentPayload(payload) {
   const endDate = optionalDate(value.endDate, 'End date')
   const slug = slugifyIdentifier(optionalString(value.slug, 'Slug', { max: 120 }) || name)
 
-  if (endDate && new Date(endDate) < new Date(date)) {
-    throw new ApiError(400, 'End date cannot be earlier than start date.')
-  }
+  ensureEndDateIsNotBeforeStartDate(date, endDate)
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     throw new ApiError(400, 'Slug may only contain lowercase letters, numbers, and hyphens.')
@@ -735,6 +784,7 @@ export function validateTournamentPayload(payload) {
     }),
     isPublished: booleanValue(value.isPublished, false),
     isFeatured: booleanValue(value.isFeatured, false),
+    showInJourney: booleanValue(value.showInJourney, false),
     participants,
     results,
     winners,
@@ -752,9 +802,7 @@ export function validateEventPayload(payload) {
   const endDate = optionalDate(value.endDate, 'End date')
   const slug = slugifyIdentifier(optionalString(value.slug, 'Slug', { max: 120 }) || name)
 
-  if (endDate && new Date(endDate) < new Date(date)) {
-    throw new ApiError(400, 'End date cannot be earlier than start date.')
-  }
+  ensureEndDateIsNotBeforeStartDate(date, endDate)
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     throw new ApiError(400, 'Slug may only contain lowercase letters, numbers, and hyphens.')
@@ -792,6 +840,7 @@ export function validateEventPayload(payload) {
     isPublished: booleanValue(value.isPublished, false),
     isFeatured: booleanValue(value.isFeatured, false),
     isResultsPublished: booleanValue(value.isResultsPublished, false),
+    showInJourney: booleanValue(value.showInJourney, false),
     participants,
     results,
     resultsAppliedAt: optionalDate(value.resultsAppliedAt, 'Results applied at'),

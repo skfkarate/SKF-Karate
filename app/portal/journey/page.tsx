@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth/portal'
-import { getAthleteByRegistrationNumberLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import JourneyClient from './JourneyClient'
 import type { TimelineNode } from './JourneyClient'
@@ -23,7 +23,7 @@ type AthleteAchievement = {
 }
 
 type JourneyParticipant = {
-  registrationNumber?: string
+  skfId?: string
 }
 
 type JourneyEvent = {
@@ -47,7 +47,7 @@ export default async function JourneyPage() {
   }
 
   const [athlete, allEvents] = await Promise.all([
-    getAthleteByRegistrationNumberLive(session.skfId),
+    getAthleteBySkfIdLive(session.skfId),
     getAllEventsLive(),
   ])
 
@@ -98,9 +98,9 @@ export default async function JourneyPage() {
   const journeyEvents = (allEvents as JourneyEvent[]).filter((event) => event.showInJourney === true)
   journeyEvents.forEach((event) => {
     if (!event.date) return
-    const isParticipant = (event.participants || []).some((p) => p.registrationNumber === athlete.registrationNumber)
-    const hasResult = (event.results || []).some((r) => r.registrationNumber === athlete.registrationNumber)
-    const isWinner = (event.winners || []).some((w) => w.registrationNumber === athlete.registrationNumber)
+    const isParticipant = (event.participants || []).some((p) => p.skfId === athlete.skfId)
+    const hasResult = (event.results || []).some((r) => r.skfId === athlete.skfId)
+    const isWinner = (event.winners || []).some((w) => w.skfId === athlete.skfId)
 
     if (isParticipant || hasResult || isWinner) {
       timelineNodes.push({

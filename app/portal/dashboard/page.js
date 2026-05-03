@@ -5,7 +5,7 @@ import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth/portal'
 import AthleteProfileClient from '@/app/_components/athlete/profile/AthleteProfileClient'
 import { buildRestoredAthleteProfileData } from '@/app/_components/athlete/profile/athleteProfileData'
 import {
-  getAthleteByRegistrationNumberLive,
+  getAthleteBySkfIdLive,
   getAthleteRankLive,
 } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
@@ -22,7 +22,7 @@ export default async function DojoDashboard() {
     redirect('/portal/login')
   }
 
-  const athlete = await getAthleteByRegistrationNumberLive(session.skfId)
+  const athlete = await getAthleteBySkfIdLive(session.skfId)
   if (!athlete) {
     return (
       <div style={{ padding: '6rem 2rem', textAlign: 'center' }}>

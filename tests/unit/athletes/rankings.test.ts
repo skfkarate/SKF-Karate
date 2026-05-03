@@ -11,7 +11,7 @@ describe('ranking calculations', () => {
     const results = buildCompetitionResultsFromAthletes([
       {
         id: 'ath_1',
-        registrationNumber: 'SKF-001',
+        skfId: 'SKF24RJ001',
         firstName: 'Asha',
         lastName: 'Kumar',
         dateOfBirth: '2010-01-10',
@@ -43,7 +43,7 @@ describe('ranking calculations', () => {
     const athletes = [
       {
         id: 'ath_1',
-        registrationNumber: 'SKF-001',
+        skfId: 'SKF24RJ001',
         firstName: 'Asha',
         lastName: 'Kumar',
         branchName: 'Rajajinagar',
@@ -54,7 +54,7 @@ describe('ranking calculations', () => {
       },
       {
         id: 'ath_2',
-        registrationNumber: 'SKF-002',
+        skfId: 'SKF24ML002',
         firstName: 'Diya',
         lastName: 'Nair',
         branchName: 'Malleshwaram',

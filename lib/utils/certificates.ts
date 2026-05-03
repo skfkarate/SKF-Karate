@@ -13,7 +13,7 @@ export function createCertificateRecord({
   return {
     id: `${type}_${athlete.id}_${sourceId}`,
     athleteId: athlete.id,
-    registrationNumber: athlete.registrationNumber,
+    skfId: athlete.skfId,
     type,
     sourceId,
     issuedAt,
@@ -25,7 +25,7 @@ export function buildBeltCertificatePayload(athlete, gradingAchievement) {
   return {
     type: CERTIFICATE_TYPES.BELT,
     athleteName: `${athlete.firstName} ${athlete.lastName}`,
-    registrationNumber: athlete.registrationNumber,
+    skfId: athlete.skfId,
     belt: gradingAchievement.beltEarned || athlete.currentBelt,
     achievedAt: gradingAchievement.date,
     dojo: athlete.branchName,
@@ -39,7 +39,7 @@ export function buildAchievementPortfolioPayload(athlete, rankingEntry = null) {
   return {
     type: CERTIFICATE_TYPES.PORTFOLIO,
     athleteName: `${athlete.firstName} ${athlete.lastName}`,
-    registrationNumber: athlete.registrationNumber,
+    skfId: athlete.skfId,
     branchName: athlete.branchName,
     currentBelt: athlete.currentBelt,
     generatedAt: new Date().toISOString(),

@@ -6,15 +6,14 @@ import './_components/Footer.css'
 import './_components/Navbar.css'
 
 import './_components/pages/home/HomeBookTrialCTA.css'
-import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
-import SessionProvider from '@/app/_components/providers/SessionProvider'
 import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
-import { absoluteMediaUrl, absoluteSiteUrl, SITE_CONFIG } from '@/data/constants/siteConfig'
+import { SITE_CONFIG } from '@/data/constants/siteConfig'
+import { buildSeoMetadata } from '@/data/constants/seo'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -31,32 +30,13 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
+  ...buildSeoMetadata(
+    '/',
+    'SKF Karate offers professional karate classes in Karnataka with self-defense, kata, kumite, weapon training, kids programs, and adult coaching for all levels.'
+  ),
   metadataBase: new URL(SITE_CONFIG.URL),
   manifest: '/manifest.json',
-  title: 'SKF Karate',
-  description: 'SKF Karate (Sportkarate Federation) — Premier karate classes in Bangalore, Kunigal, Tumkur, and Udupi. WKF-affiliated. All ages welcome.',
-  keywords: ['SKF karate', 'karate Karnataka', 'karate Bangalore', 'WKF karate', 'sportkarate federation'],
-  alternates: {
-    canonical: absoluteSiteUrl('/'),
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_IN',
-    title: 'SKF Karate',
-    description: 'Join the fastest-growing WKF-affiliated Karate academy in Karnataka. Train with champions.',
-    url: absoluteSiteUrl('/'),
-    siteName: 'SKF Karate',
-    images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate students training in Karnataka' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@skfkarate',
-    title: 'SKF Karate',
-    description: 'WKF-affiliated karate classes for kids and adults across Karnataka.',
-    images: [absoluteMediaUrl()],
-  },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || '' },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true } }
 }
 
 
@@ -64,9 +44,7 @@ import { Providers } from '@/app/providers'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import CookieConsent from '@/components/CookieConsent'
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const nonce = (await headers()).get('x-nonce') || undefined
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>
       <body>
@@ -76,19 +54,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <div className="amb-orb amb-orb--3" />
 
         <Providers>
-          <SessionProvider>
-            <ClientLayoutWrapper 
-              navbar={<Navbar />} 
-              footer={<Footer />}
-              whatsappButton={<WhatsAppButton />}
-            >
-              {children}
-            </ClientLayoutWrapper>
+          <ClientLayoutWrapper
+            navbar={<Navbar />}
+            footer={<Footer />}
+            whatsappButton={<WhatsAppButton />}
+          >
+            {children}
+          </ClientLayoutWrapper>
 
-            <CookieConsent />
-          </SessionProvider>
+          <CookieConsent />
         </Providers>
-        <AnalyticsLoader nonce={nonce} />
+        <AnalyticsLoader />
       </body>
     </html>
   )

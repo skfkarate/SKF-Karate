@@ -1,31 +1,19 @@
 import ResultsPageClient from '../_components/results/ResultsPageClient'
-import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 import { getAllTournamentsLive } from '@/lib/server/repositories/tournaments-live'
+import JsonLdScript from '@/components/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import '@/app/results/results.css'
 
-export const metadata = {
-    title: 'SKF Karate',
-    description: 'Past SKF Karate competition results and statistics.',
-    alternates: {
-        canonical: absoluteSiteUrl('/results'),
-    },
-    openGraph: {
-        title: 'SKF Karate',
-        description: 'Past SKF Karate competition results and statistics.',
-        url: absoluteSiteUrl('/results'),
-        type: 'website',
-        images: [{ url: absoluteMediaUrl(), width: 1200, height: 630, alt: 'SKF Karate competition results' }],
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: 'SKF Karate',
-        description: 'Past SKF Karate competition results and statistics.',
-        images: [absoluteMediaUrl()],
-    },
-}
+export const revalidate = 300
+
+export const metadata = buildSeoMetadata(
+    '/results',
+    'See SKF Karate tournament results, medals, champions, kata and kumite performance, competition records, and official karate achievements across India.'
+)
 
 export default async function ResultsPage() {
     const allTournaments = await getAllTournamentsLive()
+    const breadcrumbJsonLd = buildBreadcrumbJsonLd('Results', '/results')
 
     // Calculate real stats from the database
     const stats = {
@@ -39,6 +27,7 @@ export default async function ResultsPage() {
     const availableYears = Array.from(new Set(allTournaments.map(t => new Date(t.date).getFullYear()))).sort((a, b) => b - a)
     return (
         <div className="res-page">
+            <JsonLdScript data={breadcrumbJsonLd} />
             <ResultsPageClient 
                 allTournaments={allTournaments}
                 stats={stats}

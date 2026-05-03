@@ -308,7 +308,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             </p>
           </div>
           {athleteInfo.countryFlag && (
-            <Image src={athleteInfo.countryFlag} alt="" width={54} height={36} unoptimized style={{ height: '36px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} crossOrigin="anonymous" />
+            <Image src={athleteInfo.countryFlag} alt="Country flag for SKF Karate athlete profile" width={54} height={36} unoptimized style={{ height: '36px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', objectFit: 'cover' }} crossOrigin="anonymous" />
           )}
         </div>
 

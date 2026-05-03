@@ -7,7 +7,7 @@ import {
   EVENT_CATEGORY_LABELS,
   TOURNAMENT_LEVEL_LABELS,
 } from '@/lib/types/tournament'
-import { normaliseRegistrationNumber } from '@/lib/utils/registration'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import {
   calculateEventAchievementPoints,
   normaliseResult,
@@ -17,12 +17,13 @@ import {
   getAllAthletesLive,
   updateAthleteLive,
 } from '@/lib/server/repositories/athletes-live'
+import { captureRankingSnapshotLive } from '@/lib/server/repositories/ranking-snapshots'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
 
 type EventResultRecord = {
   id?: string
   athleteId?: string
-  registrationNumber?: string
+  skfId?: string
   medal?: string
   result?: string
   completed?: boolean
@@ -78,7 +79,7 @@ type AthleteAchievement = {
 
 type AthleteRecord = {
   id?: string
-  registrationNumber?: string
+  skfId?: string
   currentBelt?: string
   achievements?: AthleteAchievement[]
 }
@@ -405,22 +406,22 @@ async function syncAchievementsForSource(
   sourceEventId: string,
   buildArtifacts: (
     athletesById: Map<string, AthleteRecord>,
-    athletesByRegistration: Map<string, AthleteRecord>
+    athletesBySkfId: Map<string, AthleteRecord>
   ) => Map<string, AthleteAchievement[]>
 ) {
   const athletes = (await getAllAthletesLive()) as unknown as AthleteRecord[]
   const athletesById = new Map<string, AthleteRecord>()
-  const athletesByRegistration = new Map<string, AthleteRecord>()
+  const athletesBySkfId = new Map<string, AthleteRecord>()
 
   for (const athlete of athletes) {
     athletesById.set(String(athlete.id), athlete)
-    athletesByRegistration.set(
-      normaliseRegistrationNumber(String(athlete.registrationNumber || '')).toUpperCase(),
+    athletesBySkfId.set(
+      normaliseSkfId(String(athlete.skfId || '')).toUpperCase(),
       athlete
     )
   }
 
-  const nextAchievementsByAthlete = buildArtifacts(athletesById, athletesByRegistration)
+  const nextAchievementsByAthlete = buildArtifacts(athletesById, athletesBySkfId)
   const athleteIdsWithExistingSourceData = athletes
     .filter((athlete) =>
       Array.isArray(athlete.achievements) &&
@@ -433,7 +434,7 @@ async function syncAchievementsForSource(
     ...nextAchievementsByAthlete.keys(),
   ])
 
-  const updatedRegistrationNumbers: string[] = []
+  const updatedSkfIds: string[] = []
 
   for (const athleteId of affectedAthleteIds) {
     const athlete = athletesById.get(athleteId)
@@ -458,47 +459,63 @@ async function syncAchievementsForSource(
       currentBelt,
     })
 
-    if (athlete.registrationNumber) {
-      updatedRegistrationNumbers.push(athlete.registrationNumber)
+    if (athlete.skfId) {
+      updatedSkfIds.push(athlete.skfId)
     }
   }
 
-  for (const registrationNumber of updatedRegistrationNumbers) {
-    revalidateAthleteSitePaths(registrationNumber)
+  for (const skfId of updatedSkfIds) {
+    revalidateAthleteSitePaths(skfId)
   }
 
   return {
-    updatedAthletes: updatedRegistrationNumbers.length,
+    updatedAthletes: updatedSkfIds.length,
   }
 }
 
 function resolveAthlete(
   entry: EventResultRecord,
   athletesById: Map<string, AthleteRecord>,
-  athletesByRegistration: Map<string, AthleteRecord>
+  athletesBySkfId: Map<string, AthleteRecord>
 ) {
   if (entry.athleteId && athletesById.has(String(entry.athleteId))) {
     return athletesById.get(String(entry.athleteId)) || null
   }
 
-  const registrationNumber = normaliseRegistrationNumber(String(entry.registrationNumber || '')).toUpperCase()
-  if (registrationNumber && athletesByRegistration.has(registrationNumber)) {
-    return athletesByRegistration.get(registrationNumber) || null
+  const skfId = normaliseSkfId(String(entry.skfId || '')).toUpperCase()
+  if (skfId && athletesBySkfId.has(skfId)) {
+    return athletesBySkfId.get(skfId) || null
   }
 
   return null
 }
 
 export async function clearSyncedEventArtifactsFromAthletes(sourceEventId: string) {
-  return syncAchievementsForSource(sourceEventId, () => new Map())
+  await captureRankingSnapshotLive({
+    reason: 'before_event_results_cleared',
+    sourceType: 'event',
+    sourceId: sourceEventId,
+  })
+  const summary = await syncAchievementsForSource(sourceEventId, () => new Map())
+  await captureRankingSnapshotLive({
+    reason: 'event_results_cleared',
+    sourceType: 'event',
+    sourceId: sourceEventId,
+  })
+  return summary
 }
 
 export async function syncStandaloneEventResultsToAthletes(event: EventRecord) {
-  return syncAchievementsForSource(String(event.id), (athletesById, athletesByRegistration) => {
+  await captureRankingSnapshotLive({
+    reason: 'before_event_results_published',
+    sourceType: String(event.type || 'event'),
+    sourceId: String(event.id || ''),
+  })
+  const summary = await syncAchievementsForSource(String(event.id), (athletesById, athletesBySkfId) => {
     const achievementsByAthlete = new Map<string, AthleteAchievement[]>()
 
     for (const result of Array.isArray(event.results) ? event.results : []) {
-      const athlete = resolveAthlete(result, athletesById, athletesByRegistration)
+      const athlete = resolveAthlete(result, athletesById, athletesBySkfId)
       if (!athlete) continue
 
       const nextAchievements = buildStandaloneEventAchievements(event, result)
@@ -509,10 +526,23 @@ export async function syncStandaloneEventResultsToAthletes(event: EventRecord) {
 
     return achievementsByAthlete
   })
+
+  await captureRankingSnapshotLive({
+    reason: 'event_results_published',
+    sourceType: String(event.type || 'event'),
+    sourceId: String(event.id || ''),
+  })
+
+  return summary
 }
 
 export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
-  return syncAchievementsForSource(String(tournament.id), (athletesById, athletesByRegistration) => {
+  await captureRankingSnapshotLive({
+    reason: 'before_tournament_results_published',
+    sourceType: 'tournament',
+    sourceId: String(tournament.id || ''),
+  })
+  const summary = await syncAchievementsForSource(String(tournament.id), (athletesById, athletesBySkfId) => {
     const achievementsByAthlete = new Map<string, AthleteAchievement[]>()
     const sourceEntries =
       Array.isArray(tournament.results) && tournament.results.length > 0
@@ -522,7 +552,7 @@ export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
           : []
 
     for (const entry of sourceEntries) {
-      const athlete = resolveAthlete(entry, athletesById, athletesByRegistration)
+      const athlete = resolveAthlete(entry, athletesById, athletesBySkfId)
       if (!athlete) continue
 
       const nextAchievement = buildTournamentAchievement(tournament, entry)
@@ -533,4 +563,12 @@ export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
 
     return achievementsByAthlete
   })
+
+  await captureRankingSnapshotLive({
+    reason: 'tournament_results_published',
+    sourceType: 'tournament',
+    sourceId: String(tournament.id || ''),
+  })
+
+  return summary
 }

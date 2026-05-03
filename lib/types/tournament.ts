@@ -72,7 +72,7 @@ export const TOURNAMENT_STATUSES = ['draft', 'upcoming', 'ongoing', 'completed',
  * @property {string} id
  * @property {string} [athleteId]
  * @property {string} athleteName
- * @property {string} [registrationNumber]
+ * @property {string} [skfId]
  * @property {string} belt
  * @property {string} branchName
  * @property {'kata-individual'|'kata-team'|'kumite-individual'|'kumite-team'|'mixed'} category
@@ -90,7 +90,7 @@ export const TOURNAMENT_STATUSES = ['draft', 'upcoming', 'ongoing', 'completed',
  * @property {string} id
  * @property {string} [athleteId]
  * @property {string} athleteName
- * @property {string} registrationNumber
+ * @property {string} skfId
  * @property {string} branchName
  * @property {string} belt
  * @property {string} [photoUrl]
@@ -120,6 +120,7 @@ export const TOURNAMENT_STATUSES = ['draft', 'upcoming', 'ongoing', 'completed',
  * @property {string} [affiliatedBody]
  * @property {boolean} isPublished
  * @property {boolean} isFeatured
+ * @property {boolean} [showInJourney]
  * @property {string} [resultsAppliedAt]
  * @property {string} createdAt
  * @property {string} updatedAt
