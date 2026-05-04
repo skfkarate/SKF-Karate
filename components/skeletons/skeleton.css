@@ -452,6 +452,637 @@
   border-radius: 20px;
 }
 
+/* Shop route loading screens */
+.skel-shop-shell {
+  padding: 6rem 0 8rem;
+  background: #050505;
+}
+
+.skel-shop-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.skel-shop-page-title {
+  margin-bottom: 3rem;
+}
+
+.skel-shop-listing__header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.skel-shop-listing__title {
+  margin: 0 auto;
+}
+
+.skel-shop-listing__filters {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1rem, 4vw, 3rem);
+  padding-bottom: 1.5rem;
+  margin-bottom: 4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+
+.skel-shop-listing__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 4rem 2rem;
+}
+
+.skel-shop-product-card {
+  min-width: 0;
+}
+
+.skel-shop-product-card__image {
+  height: auto !important;
+  aspect-ratio: 4 / 5;
+  margin-bottom: 1.25rem;
+}
+
+.skel-shop-product-card__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skel-shop-detail,
+.skel-shop-cart {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+.skel-shop-detail__gallery,
+.skel-shop-cart__items {
+  flex: 1 1 55%;
+  min-width: 0;
+}
+
+.skel-shop-detail__info,
+.skel-shop-cart__summary {
+  flex: 1 1 35%;
+  min-width: 0;
+}
+
+.skel-shop-detail__info,
+.skel-shop-cart__summary {
+  position: sticky;
+  top: 100px;
+}
+
+.skel-shop-detail__hero-image {
+  height: auto !important;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 1.5rem;
+}
+
+.skel-shop-detail__thumbs {
+  display: flex;
+  gap: 1rem;
+  overflow: hidden;
+  padding-bottom: 1rem;
+}
+
+.skel-shop-detail__badges {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.skel-shop-detail__description {
+  margin-bottom: 3rem;
+}
+
+.skel-shop-detail__selector-head,
+.skel-shop-detail__quantity {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skel-shop-detail__selector-head {
+  margin-bottom: 1rem;
+}
+
+.skel-shop-detail__sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+}
+
+.skel-shop-detail__quantity {
+  margin-bottom: 2rem;
+}
+
+.skel-shop-detail__trust {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.skel-shop-cart__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.skel-shop-cart__athlete {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.02);
+}
+
+.skel-shop-cart__item {
+  display: flex;
+  gap: 2rem;
+}
+
+.skel-shop-cart__image {
+  height: auto !important;
+  aspect-ratio: 3 / 4;
+  flex: 0 0 120px;
+}
+
+.skel-shop-cart__item-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.skel-shop-cart__item-head,
+.skel-shop-cart__item-actions,
+.skel-shop-cart__summary-row,
+.skel-shop-cart__total,
+.skel-shop-cart__promo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skel-shop-cart__summary {
+  padding-top: 0.25rem;
+}
+
+.skel-shop-cart__summary-row + .skel-shop-cart__summary-row {
+  margin-top: 1rem;
+}
+
+.skel-shop-cart__promo {
+  margin: 2rem 0;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.skel-shop-cart__promo-row > .skeleton-shimmer:first-child {
+  flex: 1;
+}
+
+.skel-shop-cart__total {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.skel-shop-orders {
+  padding-top: 8rem;
+}
+
+.skel-shop-orders__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.skel-shop-orders__head .skel-shop-page-title {
+  margin-bottom: 0;
+}
+
+.skel-shop-orders__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.skel-shop-orders__card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  background: rgba(255,255,255,0.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+.skel-shop-orders__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.skel-shop-orders__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.skel-shop-orders__detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4rem;
+  padding: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.skel-shop-success {
+  min-height: 100dvh;
+  padding: 6rem 1rem 8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050505;
+}
+
+.skel-shop-success__card {
+  max-width: 800px;
+  width: 100%;
+  padding: 4rem 2rem;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 24px;
+  background: rgba(255,255,255,0.01);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  backdrop-filter: blur(40px);
+}
+
+/* Checkout loading screen */
+.skel-shop-checkout {
+  padding: 6rem 0 8rem;
+  background: #050505;
+}
+
+.skel-shop-checkout__wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.skel-shop-checkout__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: clamp(2rem, 8vw, 4rem);
+}
+
+.skel-shop-checkout__steps,
+.skel-shop-checkout__step {
+  display: flex;
+  align-items: center;
+}
+
+.skel-shop-checkout__steps {
+  gap: clamp(0.5rem, 3vw, 1.5rem);
+}
+
+.skel-shop-checkout__step {
+  gap: 0.5rem;
+}
+
+.skel-shop-checkout__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+.skel-shop-checkout__main {
+  flex: 1 1 55%;
+  min-width: 0;
+}
+
+.skel-shop-checkout__summary {
+  flex: 1 1 35%;
+  min-width: 0;
+  position: sticky;
+  top: 100px;
+  padding: 2.5rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  background: rgba(255,255,255,0.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  backdrop-filter: blur(24px);
+}
+
+.skel-shop-checkout__title {
+  margin-bottom: 3rem;
+}
+
+.skel-shop-checkout__intro {
+  margin-bottom: 2rem;
+}
+
+.skel-shop-checkout__field + .skel-shop-checkout__field {
+  margin-top: 2rem;
+}
+
+.skel-shop-checkout__input {
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+}
+
+.skel-shop-checkout__items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.skel-shop-checkout__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.skel-shop-checkout__item-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.skel-shop-checkout__totals {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 2rem;
+}
+
+.skel-shop-checkout__total-row,
+.skel-shop-checkout__grand-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.skel-shop-checkout__total-row + .skel-shop-checkout__total-row {
+  margin-top: 1rem;
+}
+
+.skel-shop-checkout__grand-total {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+@media (max-width: 992px) {
+  .skel-shop-wrap {
+    padding: 0 1.5rem;
+  }
+
+  .skel-shop-detail,
+  .skel-shop-cart {
+    gap: 3rem;
+  }
+
+  .skel-shop-detail__gallery,
+  .skel-shop-detail__info,
+  .skel-shop-cart__items,
+  .skel-shop-cart__summary {
+    flex: 1 1 100%;
+  }
+
+  .skel-shop-detail__info,
+  .skel-shop-cart__summary {
+    position: static;
+  }
+
+  .skel-shop-checkout__wrap {
+    padding: 0 1.5rem;
+  }
+
+  .skel-shop-checkout__grid {
+    gap: 3rem;
+  }
+
+  .skel-shop-checkout__main,
+  .skel-shop-checkout__summary {
+    flex: 1 1 100%;
+  }
+
+  .skel-shop-checkout__summary {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .skel-shop-shell {
+    padding-top: 6rem;
+  }
+
+  .skel-shop-wrap {
+    padding: 0 1rem;
+  }
+
+  .skel-shop-page-title {
+    height: 44px !important;
+    margin-bottom: 2rem;
+  }
+
+  .skel-shop-listing__header {
+    margin-bottom: 3rem;
+  }
+
+  .skel-shop-listing__title {
+    height: 62px !important;
+  }
+
+  .skel-shop-listing__filters {
+    gap: clamp(0.9rem, 4vw, 1.25rem);
+    margin-bottom: 2rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .skel-shop-listing__filters .skeleton-shimmer {
+    width: clamp(42px, 13vw, 76px) !important;
+  }
+
+  .skel-shop-listing__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem 1rem;
+  }
+
+  .skel-shop-detail,
+  .skel-shop-cart {
+    gap: 2.5rem;
+  }
+
+  .skel-shop-detail__title {
+    height: 42px !important;
+  }
+
+  .skel-shop-detail__thumbs {
+    gap: 0.75rem;
+  }
+
+  .skel-shop-detail__thumbs .skeleton-shimmer {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .skel-shop-cart__item {
+    gap: 1.2rem;
+  }
+
+  .skel-shop-cart__image {
+    flex-basis: 90px;
+  }
+
+  .skel-shop-orders {
+    padding-top: 6rem;
+  }
+
+  .skel-shop-orders__head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skel-shop-orders__summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skel-shop-orders__status {
+    align-items: flex-start;
+  }
+
+  .skel-shop-orders__detail {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .skel-shop-checkout {
+    padding-top: 6rem;
+  }
+
+  .skel-shop-checkout__wrap {
+    padding: 0 1rem;
+  }
+
+  .skel-shop-checkout__topbar {
+    margin-bottom: 2.5rem;
+  }
+
+  .skel-shop-checkout__grid {
+    gap: 2.5rem;
+  }
+
+  .skel-shop-checkout__title {
+    margin-bottom: 2rem;
+  }
+
+  .skel-shop-checkout__summary {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .skel-shop-wrap {
+    padding: 0 0.75rem;
+  }
+
+  .skel-shop-page-title {
+    height: 34px !important;
+  }
+
+  .skel-shop-listing__title {
+    height: 44px !important;
+  }
+
+  .skel-shop-listing__grid {
+    gap: 1.5rem 0.75rem;
+  }
+
+  .skel-shop-product-card__body .skeleton-shimmer:first-child {
+    height: 13px !important;
+  }
+
+  .skel-shop-detail__title {
+    height: 34px !important;
+  }
+
+  .skel-shop-detail__sizes .skeleton-shimmer {
+    width: 58px !important;
+    height: 38px !important;
+  }
+
+  .skel-shop-cart__athlete {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .skel-shop-cart__item {
+    gap: 1rem;
+  }
+
+  .skel-shop-cart__image {
+    flex-basis: 75px;
+  }
+
+  .skel-shop-cart__item-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .skel-shop-cart__item-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .skel-shop-success__card {
+    padding: 3rem 1.25rem;
+  }
+
+  .skel-shop-checkout__wrap {
+    padding: 0 0.75rem;
+  }
+
+  .skel-shop-checkout__topbar {
+    align-items: flex-start;
+  }
+
+  .skel-shop-checkout__step .skeleton-shimmer:last-child {
+    display: none;
+  }
+
+  .skel-shop-checkout__summary {
+    padding: 1.5rem;
+    border-radius: 18px;
+  }
+
+  .skel-shop-checkout__item {
+    gap: 0.75rem;
+  }
+}
+
 /* Legacy section (about page: text + image side-by-side) */
 .skel-legacy-grid {
   display: grid;

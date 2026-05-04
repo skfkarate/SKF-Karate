@@ -9,51 +9,57 @@ import './skeleton.css'
  */
 export default function ShopProductSkeleton() {
   return (
-    <div className="skel-page" aria-label="Loading product" aria-busy="true" aria-hidden="true">
-      <div className="skel-section skel-section--wide" style={{ paddingTop: '6rem' }}>
-        <SkeletonLine width="140px" height={14} style={{ marginBottom: 32 }} />
+    <div className="skel-page skel-shop-shell" aria-label="Loading product" aria-busy="true" aria-hidden="true">
+      <div className="skel-shop-wrap">
+        <SkeletonLine width={140} height={14} style={{ marginBottom: '3rem' }} />
 
-        <div className="skel-grid skel-grid--2col">
-          {/* ── Image gallery ── */}
-          <div>
-            <SkeletonBlock height={500} radius={24} style={{ marginBottom: 16 }} />
-            <div className="skel-row" style={{ gap: 12 }}>
-              {[...Array(4)].map((_, i) => (
-                <SkeletonBlock key={i} width={80} height={80} radius={12} />
+        <div className="skel-shop-detail">
+          <div className="skel-shop-detail__gallery">
+            <SkeletonBlock className="skel-shop-detail__hero-image" height={640} radius={0} />
+            <div className="skel-shop-detail__thumbs">
+              {[...Array(3)].map((_, i) => (
+                <SkeletonBlock key={i} width={100} height={100} radius={0} />
               ))}
             </div>
           </div>
 
-          {/* ── Product info ── */}
-          <div>
-            <div className="skel-row skel-mb-md" style={{ gap: 8 }}>
-              <SkeletonLine width="80px" height={24} style={{ borderRadius: 50 }} />
-              <SkeletonLine width="100px" height={24} style={{ borderRadius: 50 }} />
+          <div className="skel-shop-detail__info">
+            <div className="skel-shop-detail__badges">
+              <SkeletonLine width={88} height={11} />
+              <SkeletonLine width={110} height={11} />
             </div>
-            <SkeletonLine width="85%" height={40} style={{ marginBottom: 8 }} />
-            <div className="skel-row skel-mb-lg" style={{ gap: 24 }}>
-              <SkeletonLine width="100px" height={32} />
-              <SkeletonLine width="120px" height={16} />
-            </div>
-            <SkeletonLine width="100%" height={14} style={{ marginBottom: 6 }} />
-            <SkeletonLine width="90%" height={14} style={{ marginBottom: 6 }} />
-            <SkeletonLine width="75%" height={14} style={{ marginBottom: 32 }} />
 
-            {/* Size selector */}
-            <SkeletonLine width="90px" height={12} style={{ marginBottom: 12 }} />
-            <div className="skel-row skel-mb-xl" style={{ gap: 10 }}>
+            <SkeletonLine className="skel-shop-detail__title" width="88%" height={58} style={{ marginBottom: 10 }} />
+            <SkeletonLine className="skel-shop-detail__title" width="58%" height={58} style={{ marginBottom: '1.75rem' }} />
+
+            <SkeletonLine width={110} height={25} style={{ marginBottom: '2.5rem' }} />
+
+            <div className="skel-shop-detail__description">
+              <SkeletonLine width="100%" height={14} style={{ marginBottom: 8 }} />
+              <SkeletonLine width="92%" height={14} style={{ marginBottom: 8 }} />
+              <SkeletonLine width="72%" height={14} />
+            </div>
+
+            <div className="skel-shop-detail__selector-head">
+              <SkeletonLine width={92} height={12} />
+              <SkeletonLine width={82} height={12} />
+            </div>
+            <div className="skel-shop-detail__sizes">
               {[...Array(5)].map((_, i) => (
-                <SkeletonBlock key={i} width={56} height={40} radius={8} />
+                <SkeletonBlock key={i} width={68} height={42} radius={50} />
               ))}
             </div>
 
-            {/* Action bar */}
-            <div style={{ padding: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="skel-row skel-row--between skel-mb-md">
-                <SkeletonBlock width={120} height={40} radius={8} />
-                <SkeletonLine width="120px" height={14} />
-              </div>
-              <SkeletonButton width="100%" height={48} />
+            <div className="skel-shop-detail__quantity">
+              <SkeletonBlock width={128} height={46} radius={50} />
+              <SkeletonLine width={108} height={12} />
+            </div>
+
+            <SkeletonButton width="100%" height={58} style={{ borderRadius: 50 }} />
+
+            <div className="skel-shop-detail__trust">
+              <SkeletonLine width={220} height={12} />
+              <SkeletonLine width={200} height={12} />
             </div>
           </div>
         </div>
