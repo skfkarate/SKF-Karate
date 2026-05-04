@@ -236,6 +236,11 @@ function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAd
   const parentName = parsedAddress.parentName || parsedAddress.fullName
   const studentName = parsedAddress.studentName
   const age = parsedAddress.age
+  const phone = parsedAddress.phone
+
+  if (!phone) {
+    throw new ApiError(400, 'Please enter a valid 10-digit mobile number.')
+  }
 
   return {
     ...parsedAddress,
@@ -243,6 +248,7 @@ function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAd
     parentName,
     studentName,
     age,
+    phone,
     addressLine1: 'SKF FREE TRAINING CAMP PICKUP',
     addressLine2: [
       studentName ? `Student: ${studentName}` : null,
