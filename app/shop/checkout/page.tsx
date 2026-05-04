@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import ShopCheckoutSkeleton from '@/components/skeletons/ShopCheckoutSkeleton'
 import { useCart } from '@/lib/shop/cartState'
 import { SHOP_IMAGE_FALLBACK } from '@/lib/shop/productImages'
 import {
@@ -380,13 +381,7 @@ export default function CheckoutPage() {
     }
 
     if (isAuthenticated === null) {
-        return (
-            <div className="obsidian-store" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '70vh' }}>
-                <div style={{ color: '#fff', textTransform: 'uppercase', letterSpacing: '2px', fontFamily: 'var(--font-heading)', fontWeight: 800 }}>
-                    LOADING...
-                </div>
-            </div>
-        )
+        return <ShopCheckoutSkeleton />
     }
 
     return (

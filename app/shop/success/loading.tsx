@@ -1,5 +1,5 @@
-import ShopPageSkeleton from '@/components/skeletons/ShopPageSkeleton'
+import ShopSuccessSkeleton from '@/components/skeletons/ShopSuccessSkeleton'
 
 export default function Loading() {
-  return <ShopPageSkeleton />
+  return <ShopSuccessSkeleton />
 }

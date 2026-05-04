@@ -1,8 +1,8 @@
 import { unstable_cache } from 'next/cache'
 import { getProducts } from '@/lib/server/repositories/shop'
 import { SHOP_PRODUCTS_CACHE_TAG } from '@/lib/shop/cache'
-import ShopListingClient from './ShopListingClient'
-import './shop.css'
+import ShopListingClient from '../ShopListingClient'
+import '../shop.css'
 
 export const revalidate = 300
 
