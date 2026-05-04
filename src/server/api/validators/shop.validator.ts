@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+import {
+  isValidIndianMobileNumber,
+  normalizeIndianMobileNumber,
+  SHOP_PHONE_ERROR_MESSAGE,
+} from '@/lib/shop/phone'
+
 const shopCartItemSchema = z.object({
   productId: z.string().trim().min(1).max(120),
   variantId: z.string().trim().min(1).max(120),
@@ -17,7 +23,11 @@ export const shopOrderAddressSchema = z.object({
   parentName: z.string().trim().min(1).max(160).nullish(),
   studentName: z.string().trim().min(1).max(160).nullish(),
   age: z.coerce.string().trim().max(10).nullish(),
-  phone: z.string().trim().regex(/^\+91[0-9]{10}$/),
+  phone: z
+    .string()
+    .max(64, SHOP_PHONE_ERROR_MESSAGE)
+    .refine(isValidIndianMobileNumber, SHOP_PHONE_ERROR_MESSAGE)
+    .transform((value) => normalizeIndianMobileNumber(value) ?? value),
   addressLine1: z.string().trim().min(5).max(240),
   addressLine2: z.string().trim().max(240).nullish(),
   city: z.string().trim().min(2).max(120),

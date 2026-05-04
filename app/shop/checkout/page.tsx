@@ -13,6 +13,11 @@ import {
     calculatePromoDiscount,
     calculateShippingFee,
 } from '@/lib/shop/logic'
+import {
+    isValidIndianMobileNumber,
+    normalizeIndianMobileNumber,
+    SHOP_PHONE_ERROR_MESSAGE,
+} from '@/lib/shop/phone'
 import { ArrowLeft, MapPin, UserCheck, Check, UploadCloud, ShoppingBag, ArrowRight } from 'lucide-react'
 import { flushCheckoutQueue, queueCheckoutSubmission } from './checkoutQueue'
 import '../shop.css'
@@ -21,7 +26,11 @@ const guestCheckoutSchema = z.object({
     parentName: z.string().min(2, 'Parent name is required'),
     studentName: z.string().min(2, 'Student name is required'),
     age: z.string().min(1, 'Age is required'),
-    phone: z.string().regex(/^\+91[0-9]{10}$/, 'Must be +91 followed by 10 digits'),
+    phone: z
+        .string()
+        .max(64, SHOP_PHONE_ERROR_MESSAGE)
+        .refine(isValidIndianMobileNumber, SHOP_PHONE_ERROR_MESSAGE)
+        .transform((value) => normalizeIndianMobileNumber(value) ?? value),
 })
 
 type GuestCheckoutFormData = z.infer<typeof guestCheckoutSchema>
