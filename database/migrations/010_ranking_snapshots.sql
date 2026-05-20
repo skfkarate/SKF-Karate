@@ -51,5 +51,8 @@ CREATE INDEX IF NOT EXISTS idx_ranking_snapshots_source
   ON ranking_snapshots(source_type, source_id, created_at DESC);
 
 ALTER TABLE ranking_snapshots ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role_full_ranking_snapshots" ON ranking_snapshots;
+
 CREATE POLICY "service_role_full_ranking_snapshots" ON ranking_snapshots
   FOR ALL USING (auth.role() = 'service_role');

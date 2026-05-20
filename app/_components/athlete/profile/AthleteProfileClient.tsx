@@ -258,13 +258,18 @@ function NextEventsSection({ nextEvents }) {
       <SectionHeader icon={<Calendar size={16} />} label="Upcoming Events" />
       <div className="ap-events-row">
         {nextEvents.map((ev) => (
-          <div key={`${ev.dateRange}-${ev.name}`} className="ap-ev-card">
+          <Link key={`${ev.dateRange}-${ev.name}`} href={ev.href || '/events'} className="ap-ev-card" style={{ textDecoration: 'none' }}>
             <div className="ap-ev-card__date">{ev.dateRange}</div>
             <div className="ap-ev-card__body">
               <span className="ap-ev-card__name">{ev.name}</span>
+              {ev.venue ? (
+                <span style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '0.78rem', marginTop: '0.25rem' }}>
+                  {ev.venue}{ev.city ? `, ${ev.city}` : ''}
+                </span>
+              ) : null}
             </div>
             <ChevronRight size={15} className="ap-ev-card__arrow" />
-          </div>
+          </Link>
         ))}
       </div>
     </section>

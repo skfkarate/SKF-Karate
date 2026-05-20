@@ -1,4 +1,5 @@
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { logger } from '@/src/server/lib/logger'
 import {
   normalizeCurrencyAmount,
   normalizeDecimal,
@@ -107,13 +108,13 @@ export async function getProducts(): Promise<ShopProduct[]> {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('[Shop/Product] Failed to fetch products from Supabase:', error)
+      logger.error('shop.products.fetch_failed', { error })
       return []
     }
 
     return Array.isArray(data) ? data.map((record) => normalizeShopProduct(record)) : []
   } catch (error) {
-    console.error('[Shop/Product] Unexpected product fetch error:', error)
+    logger.error('shop.products.fetch_unexpected_failed', { error })
     return []
   }
 }
@@ -154,7 +155,7 @@ export async function upsertProduct(input: SaveShopProductInput): Promise<ShopPr
     .maybeSingle()
 
   if (error || !data) {
-    console.error('[Shop/Product] Failed to upsert product:', error)
+    logger.error('shop.products.upsert_failed', { error })
     throw new Error('Failed to save the product.')
   }
 
@@ -197,7 +198,7 @@ export async function getShopOrderById(orderId: string): Promise<ShopOrder | nul
         return normalizeDatabaseOrder(data)
       }
     } catch (error) {
-      console.error('[Shop/Order] Failed to fetch database order by id:', error)
+      logger.error('shop.orders.fetch_by_id_failed', { orderId: normalizedOrderId, error })
     }
   }
 
@@ -232,7 +233,7 @@ export async function updateShopOrderStatus(
         return normalizeDatabaseOrder(data)
       }
     } catch (error) {
-      console.error('[Shop/Order] Failed to update database order status:', error)
+      logger.error('shop.orders.update_status_failed', { orderId: normalizedOrderId, status: normalizedStatus, error })
     }
   }
 
@@ -287,14 +288,14 @@ async function getDatabaseOrders(): Promise<ShopOrder[]> {
 
     if (error || !Array.isArray(data)) {
       if (error) {
-        console.error('[Shop/Order] Failed to fetch database orders:', error)
+        logger.error('shop.orders.fetch_failed', { error })
       }
       return []
     }
 
     return data.map((record) => normalizeDatabaseOrder(record))
   } catch (error) {
-    console.error('[Shop/Order] Unexpected database order fetch error:', error)
+    logger.error('shop.orders.fetch_unexpected_failed', { error })
     return []
   }
 }
@@ -595,14 +596,14 @@ async function tryPlaceShopOrderRpc(
 
     if (error || !data) {
       if (error) {
-        console.warn('[Shop/Order] Falling back from RPC order placement:', error.message)
+        logger.warn('shop.orders.rpc_place_fallback', { error })
       }
       return null
     }
 
     return normalizeDatabaseOrder(data as Partial<ShopOrderRow>)
   } catch (error) {
-    console.warn('[Shop/Order] RPC order placement failed, using fallback.', error)
+    logger.warn('shop.orders.rpc_place_unexpected_fallback', { error })
     return null
   }
 }
@@ -628,7 +629,7 @@ async function insertShopOrderRow(input: PersistShopOrderInput): Promise<{
       }
     }
 
-    console.error('[Shop/Order] Failed to insert order row:', error)
+    logger.error('shop.orders.insert_failed', { orderId: input.orderId, error })
     throw new Error('Failed to save the order.')
   }
 
@@ -685,7 +686,7 @@ async function reserveInventoryFallback(items: ShopOrderItem[]): Promise<void> {
       .maybeSingle()
 
     if (error || !data) {
-      console.error('[Shop/Order] Failed to fetch product inventory:', error)
+      logger.error('shop.orders.inventory_fetch_failed', { productId, error })
       throw new Error('Some items are no longer available. Please refresh your cart.')
     }
 
@@ -729,7 +730,7 @@ async function reserveInventoryFallback(items: ShopOrderItem[]): Promise<void> {
       .maybeSingle()
 
     if (updateError || !updatedRow) {
-      console.error('[Shop/Order] Failed to reserve inventory:', updateError)
+      logger.error('shop.orders.inventory_reserve_failed', { productId, error: updateError })
       throw new Error('Inventory changed while placing the order. Please retry.')
     }
   }
@@ -749,7 +750,7 @@ async function markOrderAsCancelled(orderId: string) {
       })
       .eq('order_id', orderId)
   } catch (error) {
-    console.error('[Shop/Order] Failed to cancel incomplete order:', error)
+    logger.error('shop.orders.cancel_incomplete_failed', { orderId, error })
   }
 }
 

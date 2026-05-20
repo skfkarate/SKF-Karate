@@ -26,6 +26,8 @@ export function revalidateAthleteSitePaths(skfId?: string) {
 export function revalidateEventSitePaths(event?: { id?: string; slug?: string; type?: string }) {
   revalidatePath('/admin/events')
   revalidatePath('/events')
+  revalidatePath('/portal/events')
+  revalidatePath('/portal/dashboard')
   revalidatePath('/')
 
   if (event?.id) {

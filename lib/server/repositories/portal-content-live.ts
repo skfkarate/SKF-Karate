@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/server/api'
 import { isPublicTechniqueVideosEnabled } from '@/lib/server/feature-flags'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { extractYouTubeId, getYouTubeThumbnailUrl, YOUTUBE_ID_PATTERN } from '@/lib/youtube'
+import { logger } from '@/src/server/lib/logger'
 
 import { getAllCitiesLive } from './classes-live'
 
@@ -333,7 +334,7 @@ export async function getAllPortalVideosAdmin() {
     if (error) throw error
     return (data || []).map(mapPortalVideoRow)
   } catch (error) {
-    console.warn('[portal-content] Failed to load portal videos:', error)
+    logger.warn('portal_content.videos_load_failed', { error })
     return []
   }
 }
@@ -447,7 +448,7 @@ export async function getAllBranchTimetablesAdmin() {
     if (error) throw error
     return (data || []).map(mapTimetableRow)
   } catch (error) {
-    console.warn('[portal-content] Failed to load branch timetables:', error)
+    logger.warn('portal_content.branch_timetables_load_failed', { error })
     return []
   }
 }
@@ -480,7 +481,7 @@ export async function getActiveTimetableForBranchName(branchName?: string | null
       null
     )
   } catch (error) {
-    console.warn('[portal-content] Failed to load active branch timetable:', error)
+    logger.warn('portal_content.active_branch_timetable_load_failed', { branchSlug, error })
     return null
   }
 }

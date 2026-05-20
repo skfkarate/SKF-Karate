@@ -8,6 +8,7 @@ export const POST = withRoute(
     bodySchema: videoProgressSchema,
     auth: { type: 'portal', roles: ['student'] },
     rateLimit: { tier: 'write' },
+    cacheControl: 'private, no-store',
   },
   async ({ portalSession, body }) => {
     const result = await PortalVideoProgressService.save(portalSession!.skfId!, body)
@@ -19,6 +20,7 @@ export const GET = withRoute(
   {
     auth: { type: 'portal', roles: ['student'] },
     rateLimit: { tier: 'authed' },
+    cacheControl: 'private, no-store',
   },
   async ({ portalSession }) => {
     const result = await PortalVideoProgressService.list(portalSession!.skfId!)

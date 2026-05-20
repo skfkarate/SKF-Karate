@@ -19,7 +19,6 @@
   pointer-events: none;
   z-index: 0;
   opacity: 0.35;
-  will-change: transform;
 }
 
 .home-orb--1 {
@@ -238,7 +237,6 @@
 .hero__reveal {
   opacity: 0;
   transform: translateY(28px);
-  filter: blur(8px);
   animation: heroReveal 0.82s var(--ease-out) forwards;
 }
 
@@ -294,7 +292,7 @@
 }
 
 @keyframes heroReveal {
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes heroFadeIn {
@@ -312,7 +310,6 @@
   .hero__scroll-hint--reveal {
     animation: none;
     opacity: 1;
-    filter: none;
   }
 
   .hero__watermark {
@@ -326,6 +323,17 @@
   .hero__particle,
   .hero__scroll-line {
     animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-orb,
+  .hero__particles {
+    display: none;
+  }
+
+  .hero__video {
+    filter: contrast(1.04) brightness(0.82);
   }
 }
 

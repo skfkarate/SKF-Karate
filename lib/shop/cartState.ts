@@ -103,7 +103,12 @@ const getAvailableCatalogItems = (products: ShopProduct[]) => {
     return items
 }
 
-export function useCart() {
+type UseCartOptions = {
+    syncWithCatalog?: boolean
+}
+
+export function useCart(options: UseCartOptions = {}) {
+    const { syncWithCatalog = true } = options
     const [cart, setCart] = useState<CartItem[]>([])
 
     useEffect(() => {
@@ -130,7 +135,7 @@ export function useCart() {
     }, [])
 
     useEffect(() => {
-        if (typeof window === 'undefined' || cart.length === 0) return
+        if (!syncWithCatalog || typeof window === 'undefined' || cart.length === 0) return
 
         let cancelled = false
 
@@ -168,7 +173,7 @@ export function useCart() {
         return () => {
             cancelled = true
         }
-    }, [cart, saveCart])
+    }, [cart, saveCart, syncWithCatalog])
 
     const addToCart = (item: CartItem) => {
         const normalizedItem = normalizeCartItem(item)

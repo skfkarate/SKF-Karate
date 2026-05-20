@@ -20,5 +20,5 @@ export const videoProgressSchema: EntitySchema = {
     last_watched:    { type: 'date',    supabaseType: 'TIMESTAMPTZ', required: false, default: 'NOW()' },
   },
   indexes: ['UNIQUE(skf_id, video_id)'],
-  notes: 'Used by /api/portal/videos/progress/route.js. Videos themselves live in Google Sheets.',
+  notes: 'Used by /api/portal/videos/progress. Videos live in the Supabase portal_videos table.',
 }

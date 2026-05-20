@@ -4,6 +4,7 @@ import { ReactNode, Suspense } from "react"
 import { usePathname } from "next/navigation"
 import GlobalRouteProgress from "@/components/navigation/GlobalRouteProgress"
 import RouteTransitionClickCapture from "@/components/navigation/RouteTransitionClickCapture"
+import ClientErrorReporter from "@/app/_components/ClientErrorReporter"
 
 export default function ClientLayoutWrapper({ 
   children,
@@ -18,8 +19,12 @@ export default function ClientLayoutWrapper({
 }) {
   const pathname = usePathname()
 
-  // Hide the public shell on admin routes and auth portal routes
-  const isPublicRoute = !pathname?.startsWith('/admin') && !pathname?.startsWith('/portal')
+  // Hide the public shell on private operational areas.
+  const isPrivateRoute =
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/fee') ||
+    pathname?.startsWith('/portal')
+  const isPublicRoute = !isPrivateRoute
   const showHeaderFooter = isPublicRoute
   // Shop screens have fixed cart/product controls, so the floating WhatsApp button stays hidden there only.
   const showWhatsAppButton = showHeaderFooter && !pathname?.startsWith('/shop')
@@ -27,6 +32,8 @@ export default function ClientLayoutWrapper({
   return (
     <>
       {/* Top-of-page route-transition progress bar */}
+      <ClientErrorReporter />
+
       <Suspense fallback={null}>
         <GlobalRouteProgress />
       </Suspense>

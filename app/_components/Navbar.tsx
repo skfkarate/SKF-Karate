@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -20,8 +20,9 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false)
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set())
+    const scrolledRef = useRef(false)
     const pathname = usePathname()
-    const { cartTotalCount } = useCart()
+    const { cartTotalCount } = useCart({ syncWithCatalog: false })
 
 
     // Close drawer on route change
@@ -30,14 +31,36 @@ export default function Navbar() {
             setDrawerOpen(false)
             setExpandedMenus(new Set())
         }, 0)
+
         return () => window.clearTimeout(id)
     }, [pathname])
 
     // Scroll detection
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 60)
+        let rafId = 0
+
+        const syncScrolledState = () => {
+            rafId = 0
+            const nextScrolled = window.scrollY > 60
+            if (scrolledRef.current === nextScrolled) return
+
+            scrolledRef.current = nextScrolled
+            setScrolled(nextScrolled)
+        }
+
+        const onScroll = () => {
+            if (rafId) return
+            rafId = window.requestAnimationFrame(syncScrolledState)
+        }
+
+        syncScrolledState()
         window.addEventListener('scroll', onScroll, { passive: true })
-        return () => window.removeEventListener('scroll', onScroll)
+        return () => {
+            window.removeEventListener('scroll', onScroll)
+            if (rafId) {
+                window.cancelAnimationFrame(rafId)
+            }
+        }
     }, [])
 
     // Lock body scroll when drawer is open
@@ -68,7 +91,7 @@ export default function Navbar() {
                         className="nav__brand"
                     >
                         <div className="nav__brand-stack">
-                            <Image src="/logo/SKF logo.png" alt="SKF Karate" width={42} height={42} className="nav__brand-logo" />
+                            <Image src="/icons/icon-192.png" alt="SKF Karate" width={42} height={42} className="nav__brand-logo" priority />
                             <span className="nav__brand-text">
                                 <span className="nav__brand-name">SKF</span>
                                 <span className="nav__brand-accent">KARATE</span>
@@ -98,6 +121,7 @@ export default function Navbar() {
                             disabled
                             className="nav__link nav__link--disabled"
                             aria-disabled="true"
+                            title="Honours Board coming soon"
                         >
                             Honours
                         </button>
@@ -159,9 +183,10 @@ export default function Navbar() {
                         <button
                             type="button"
                             disabled
-                            className="nav__icon nav__mobile-only nav__icon--disabled"
+                            className="nav__icon nav__icon--disabled nav__mobile-only"
                             aria-label="Honours"
-                            title="Honours"
+                            aria-disabled="true"
+                            title="Honours Board coming soon"
                         >
                             <FaMedal />
                         </button>

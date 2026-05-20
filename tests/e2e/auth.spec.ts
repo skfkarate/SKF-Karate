@@ -34,7 +34,13 @@ test('invalid DOB login shows error', async ({ page }) => {
     await route.fulfill({
       status: 401,
       contentType: 'application/json',
-      body: JSON.stringify({ error: 'Invalid SKF ID or date of birth' }),
+      body: JSON.stringify({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Invalid SKF ID or date of birth',
+        },
+      }),
     })
   })
 
@@ -43,4 +49,5 @@ test('invalid DOB login shows error', async ({ page }) => {
   await page.getByLabel('Date of Birth').fill('01-01-2000')
   await page.getByRole('button', { name: /access portal/i }).click()
   await expect(page.locator('.dojo-login__error')).toBeVisible()
+  await expect(page.locator('.dojo-login__error')).toContainText('Invalid SKF ID or date of birth')
 })

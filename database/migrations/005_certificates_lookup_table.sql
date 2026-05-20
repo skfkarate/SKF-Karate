@@ -11,5 +11,7 @@ CREATE INDEX IF NOT EXISTS idx_certificates_verification_code ON certificates(ve
 
 ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_full_certificates" ON certificates;
+
 CREATE POLICY "service_role_full_certificates" ON certificates
   FOR ALL USING (auth.role() = 'service_role');

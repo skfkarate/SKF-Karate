@@ -3,11 +3,12 @@ import { NextResponse } from 'next/server'
 import { buildAdminAthleteRecord, buildAthletePayloadFromAdminForm } from '@/lib/admin/athlete-records'
 import { createAthleteLive, getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { revalidateAthleteSitePaths } from '@/lib/server/revalidation'
-import { supabaseAdmin } from '@/lib/server/supabase'
+import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { validateAthletePayload } from '@/lib/server/validation'
 import { createStudentSchema } from '@/lib/validators'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 
 export const GET = withRoute(
   { auth: { type: 'admin', roles: ['admin', 'instructor'] }, rateLimit: { tier: 'authed' } },
@@ -23,7 +24,7 @@ export const POST = withRoute(
     bodySchema: createStudentSchema,
     rateLimit: { tier: 'write' },
   },
-  async ({ body: formValues, requestId }) => {
+  async ({ adminSession, body: formValues, requestId }) => {
     const athlete = await createAthleteLive(
       validateAthletePayload(buildAthletePayloadFromAdminForm(formValues))
     )
@@ -47,6 +48,18 @@ export const POST = withRoute(
         skfId: athlete.skfId,
         error: authError,
       })
+    }
+
+    if (isSupabaseReady()) {
+      try {
+        await FeeOperationsService.syncStudent(adminSession!, athlete.skfId, new Date().getFullYear())
+      } catch (syncError) {
+        logger.error('admin.students.fee_sync_failed', {
+          requestId,
+          skfId: athlete.skfId,
+          error: syncError,
+        })
+      }
     }
 
     return NextResponse.json(

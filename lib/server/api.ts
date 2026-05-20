@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { checkRateLimit } from './rate-limit-redis'
+import { logger } from '@/src/server/lib/logger'
 
 export class ApiError extends Error {
   status: number
@@ -66,6 +67,6 @@ export function createErrorResponse(error: unknown, fallbackMessage = 'Something
     )
   }
 
-  console.error(error)
+  logger.error('api.legacy_error_response', { error })
   return NextResponse.json({ error: fallbackMessage }, { status: 500 })
 }

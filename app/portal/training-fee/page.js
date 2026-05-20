@@ -1,3 +1,5 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-export { default } from '../fees/page'
+export default function TrainingFeeAliasPage() {
+  redirect('/portal/fees')
+}

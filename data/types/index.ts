@@ -24,7 +24,16 @@ export type TournamentStatus = 'draft' | 'upcoming' | 'ongoing' | 'completed' | 
 export type EventCategory = 'kata-individual' | 'kata-team' | 'kumite-individual' | 'kumite-team' | 'mixed'
 export type AgeGroup = 'sub-junior' | 'junior' | 'senior' | 'open'
 export type AthleteStatus = 'active' | 'inactive'
-export type FeeStatus = 'paid' | 'due' | 'overdue'
+export type FeeStatus =
+  | 'paid'
+  | 'due'
+  | 'overdue'
+  | 'pending_verification'
+  | 'break'
+  | 'waived'
+  | 'rejected'
+
+export type FeeType = 'monthly' | 'admission' | 'dress' | 'credit_adjustment'
 export type AttendanceStatus = 'Present' | 'Absent' | 'Leave'
 export type StudentStatus = 'Active' | 'Inactive'
 export type PointTransactionType = 'EARN' | 'REDEEM'
@@ -289,14 +298,21 @@ export interface Student {
 }
 
 export interface FeeRow {
+  id?: string
   skfId: string
   month: string
   year: number
   amount: number
   status: FeeStatus
+  feeType?: FeeType
   paidDate?: string
   receiptId?: string
   paymentMethod?: string
+  verifiedBy?: string
+  verifiedAt?: string
+  rejectedReason?: string
+  notes?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface VideoRow {

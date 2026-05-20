@@ -3,6 +3,7 @@ import { normaliseSkfId } from '@/lib/utils/registration'
 
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { getRankSnapshotsLive } from './athletes-live'
+import { logger } from '@/src/server/lib/logger'
 
 export type RankMovement = 'up' | 'down' | 'same' | 'new'
 
@@ -458,7 +459,7 @@ export async function getLatestRankingSnapshotRowsLive(): Promise<RankingSnapsho
     return (data || []).map(mapRankingSnapshotRow)
   } catch (error) {
     if (isMissingRankingSnapshotTableError(error)) return []
-    console.warn('[ranking-snapshots] Unable to read latest ranking snapshot:', error)
+    logger.warn('ranking_snapshots.latest_read_failed', { error })
     return []
   }
 }
@@ -496,7 +497,7 @@ export async function captureRankingSnapshotLive(
 
     if (error) {
       if (isMissingRankingSnapshotTableError(error)) {
-        console.warn('[ranking-snapshots] Missing ranking_snapshots table. Run migration 010.')
+        logger.warn('ranking_snapshots.table_missing', { migration: '010_ranking_snapshots' })
         return { captured: false, rows: 0, snapshotKey: null }
       }
       throw error
@@ -509,11 +510,11 @@ export async function captureRankingSnapshotLive(
     }
   } catch (error) {
     if (isMissingRankingSnapshotTableError(error)) {
-      console.warn('[ranking-snapshots] Missing ranking_snapshots table. Run migration 010.')
+      logger.warn('ranking_snapshots.table_missing', { migration: '010_ranking_snapshots' })
       return { captured: false, rows: 0, snapshotKey: null }
     }
 
-    console.warn('[ranking-snapshots] Unable to capture ranking snapshot:', error)
+    logger.warn('ranking_snapshots.capture_failed', { error })
     return { captured: false, rows: 0, snapshotKey: null }
   }
 }

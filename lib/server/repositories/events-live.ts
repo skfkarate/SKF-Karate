@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
+import { cache } from 'react'
 
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
+import { logger } from '@/src/server/lib/logger'
 import {
   buildUnifiedTournamentEvent,
   createEventRecord,
@@ -236,7 +238,7 @@ async function readAllStandaloneEventsFromDatabase(): Promise<EventRecord[]> {
   return (data || []).map(mapEventRowToRecord)
 }
 
-async function getStandaloneEventDataset(): Promise<EventRecord[]> {
+const getStandaloneEventDataset = cache(async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   if (!isSupabaseReady()) {
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
@@ -246,12 +248,12 @@ async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   try {
     return await readAllStandaloneEventsFromDatabase()
   } catch (error) {
-    console.warn('[events-live] Falling back to local standalone events:', error)
+    logger.warn('events_live.local_fallback', { error })
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
   }
-}
+})
 
 async function hasStandaloneEventSlugLive(slug: string, excludeId: string | null = null) {
   const normalized = String(slug || '').trim().toLowerCase()

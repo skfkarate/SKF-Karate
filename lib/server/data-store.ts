@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { logger } from '@/src/server/lib/logger'
 
 function getDataRoot() {
   const configuredDir = process.env.SKF_DATA_DIR?.trim()
@@ -24,7 +25,7 @@ export function readJsonArray<T = unknown>(filePath: string): T[] | null {
 // Kept for local development only.
 export function writeJsonAtomically(filePath: string, data: unknown): void {
   if (process.env.VERCEL) {
-    console.warn('[data-store] writeJsonAtomically skipped — Vercel filesystem is read-only.')
+    logger.warn('data_store.write_skipped_readonly_filesystem', { filePath })
     return
   }
 

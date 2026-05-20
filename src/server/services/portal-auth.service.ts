@@ -1,4 +1,5 @@
 import { createJWT, buildPortalCookie } from '@/lib/server/auth/portal'
+import { isEligiblePortalAthlete } from '@/lib/server/auth/portal-athlete'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import type { PortalAuthInput } from '@/src/server/api/validators/portal.validator'
@@ -56,8 +57,23 @@ export class PortalAuthService {
       throw new AuthenticationError('Invalid SKF ID or date of birth.')
     }
 
+    if (!isEligiblePortalAthlete(athlete)) {
+      await recordSiteAnalyticsEvent({
+        eventType: 'portal_login_failed',
+        path: '/portal/login',
+        pageTitle: 'Athlete Portal Login',
+        referrer: requestMeta.referrer,
+        skfId: normalizedId,
+        metadata: { reason: 'inactive-athlete', status: athlete.status || null },
+        userAgent: requestMeta.userAgent,
+        ipAddress: requestMeta.ipAddress,
+      })
+
+      throw new AuthenticationError('Portal access is not active for this athlete. Please contact your Branch Sensei.')
+    }
+
     const token = createJWT({
-      skfId: normalizedId,
+      skfId: athlete.skfId || normalizedId,
       role: 'student',
       branch: athlete.branchName || null,
       batch: athlete.batch || null,

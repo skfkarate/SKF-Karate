@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PORTAL_COOKIE_NAME = 'skf_portal_token'
+const FEETRACK_HOST = 'fees.skfkarate.org'
 
 type PortalJwtPayload = {
   skfId?: string
@@ -75,6 +76,26 @@ function attachSecurityHeaders(
   return response
 }
 
+function isLegacyFeeHost(host: string) {
+  return host === 'fee.skfkarate.org' || host === 'fee.skfkkarate.org' || host.startsWith('fee.')
+}
+
+function buildFeeTrackRedirectUrl(request: NextRequest) {
+  const target = new URL(request.url)
+  target.protocol = 'https:'
+  target.host = FEETRACK_HOST
+
+  if (target.pathname === '/' || target.pathname === '/fee' || target.pathname === '/fee/login') {
+    target.pathname = '/'
+  } else if (target.pathname.startsWith('/fee/')) {
+    target.pathname = target.pathname.slice('/fee'.length) || '/'
+  } else if (target.pathname.startsWith('/admin')) {
+    target.pathname = '/'
+  }
+
+  return target
+}
+
 function base64UrlToBytes(value: string) {
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
   const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
@@ -142,6 +163,10 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const host = request.headers.get('host')?.toLowerCase() || ''
 
+  if (isLegacyFeeHost(host)) {
+    return attachSecurityHeaders(NextResponse.redirect(buildFeeTrackRedirectUrl(request), 308), csp)
+  }
+
   const portalToken = request.cookies.get(PORTAL_COOKIE_NAME)?.value
   const portalSession = await verifyPortalJwt(portalToken)
   const clearPortalCookie = Boolean(portalToken && !portalSession)
@@ -157,29 +182,6 @@ export async function proxy(request: NextRequest) {
     request.cookies.get('__Secure-next-auth.session-token')?.value
   const isAdminLoginPage = pathname === '/admin/login'
   const isAdminRoute = pathname.startsWith('/admin')
-  const isFeeLoginPage = pathname === '/fee/login'
-  const isFeeRoute = pathname.startsWith('/fee')
-  const isFeeHost =
-    host === 'fee.skfkarate.org' ||
-    host === 'fee.skfkkarate.org' ||
-    host.startsWith('fee.')
-
-  if (isFeeHost && pathname === '/') {
-    return attachSecurityHeaders(NextResponse.redirect(new URL('/fee', request.url)), csp)
-  }
-
-  if (isFeeHost && isAdminRoute) {
-    const mappedPath =
-      pathname === '/admin' || pathname === '/admin/dashboard'
-        ? '/fee'
-        : pathname === '/admin/login'
-          ? '/fee/login'
-          : pathname.replace(/^\/admin/, '/fee')
-
-    const target = new URL(request.url)
-    target.pathname = mappedPath
-    return attachSecurityHeaders(NextResponse.redirect(target), csp)
-  }
 
   if (isPortalRoute) {
     if (!portalSession && !isPortalLoginPage) {
@@ -190,16 +192,6 @@ export async function proxy(request: NextRequest) {
 
     if (portalSession && isPortalLoginPage) {
       return attachSecurityHeaders(NextResponse.redirect(new URL('/portal/dashboard', request.url)), csp)
-    }
-  }
-
-  if (isFeeRoute) {
-    if (!adminToken && !isFeeLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(new URL('/fee/login', request.url)), csp)
-    }
-
-    if (adminToken && isFeeLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(new URL('/fee', request.url)), csp)
     }
   }
 

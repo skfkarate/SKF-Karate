@@ -12,6 +12,8 @@ import {
   getAllAthletesLive,
   getAthleteBySkfIdLive,
 } from '@/lib/server/repositories/athletes-live'
+import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
 
 const MONTHS = [
   'January',
@@ -28,7 +30,8 @@ const MONTHS = [
   'December',
 ] as const
 
-type LedgerStatus = 'paid' | 'due' | 'overdue'
+type LedgerStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
+type LedgerFeeType = 'monthly' | 'admission' | 'dress' | 'credit_adjustment'
 
 type AthleteLike = {
   skfId?: string | null
@@ -42,7 +45,13 @@ type AthleteLike = {
   pointsLifetime?: number | null
 }
 
+type BillingProfileLike = {
+  billing_status?: string | null
+  billing_end_date?: string | null
+}
+
 export interface FeeLedgerEntry {
+  id?: string | null
   key: string
   skfId: string
   athleteName: string
@@ -52,9 +61,11 @@ export interface FeeLedgerEntry {
   year: number
   amount: number
   status: LedgerStatus
+  feeType: LedgerFeeType
   paidDate: string | null
   receiptId: string | null
   paymentMethod: string | null
+  rejectedReason?: string | null
 }
 
 function toMonthName(input: string): string {
@@ -76,8 +87,9 @@ function getMonthIndex(input: string): number {
 }
 
 function deriveLedgerStatus(row: FeeRow): LedgerStatus {
-  if (row.status === 'paid') return 'paid'
-  if (row.status === 'overdue') return 'overdue'
+  if (['paid', 'overdue', 'pending_verification', 'break', 'waived', 'rejected'].includes(row.status)) {
+    return row.status as LedgerStatus
+  }
 
   const monthIndex = getMonthIndex(row.month)
   const now = new Date()
@@ -102,8 +114,71 @@ function normalizeRupees(value: unknown): number {
 
 function buildReceiptId(skfId: string, month: string, year: number) {
   const monthIndex = getMonthIndex(month)
-  const monthToken = monthIndex >= 0 ? MONTHS[monthIndex].slice(0, 3).toUpperCase() : String(month || '').slice(0, 3).toUpperCase()
-  return `RCP_${skfId}_${monthToken}_${year}`
+  const monthToken = String(monthIndex >= 0 ? monthIndex + 1 : 0).padStart(2, '0')
+  return `SKF-FEE-${year}-${monthToken}-MON-${String(skfId || '').trim().toUpperCase()}`
+}
+
+function formatFeeType(input?: string | null) {
+  const normalized = String(input || 'monthly').replace(/_/g, ' ').trim()
+  return normalized
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(' ')
+}
+
+async function getPortalBillingProfile(skfId: string): Promise<BillingProfileLike | null> {
+  if (!isSupabaseReady()) return null
+
+  const { data, error } = await supabaseAdmin
+    .from('student_billing_profiles')
+    .select('billing_status, billing_end_date')
+    .eq('skf_id', skfId)
+    .maybeSingle()
+
+  if (error) return null
+  return data || null
+}
+
+function periodValue(year: number, monthIndex: number) {
+  if (monthIndex < 0) return null
+  return year * 12 + monthIndex
+}
+
+function billingEndPeriod(profile?: BillingProfileLike | null) {
+  const value = String(profile?.billing_end_date || '').trim()
+  if (!value) return null
+
+  const date = new Date(`${value.split('T')[0]}T00:00:00.000Z`)
+  if (!Number.isFinite(date.getTime())) return null
+  return date.getUTCFullYear() * 12 + date.getUTCMonth()
+}
+
+function isDiscontinuedBillingProfile(profile?: BillingProfileLike | null) {
+  return String(profile?.billing_status || '').trim().toLowerCase() === 'discontinued'
+}
+
+function shouldGenerateCurrentMonth(profile: BillingProfileLike | null, currentYear: number, currentMonth: number) {
+  if (!isDiscontinuedBillingProfile(profile)) return true
+
+  const endPeriod = billingEndPeriod(profile)
+  if (endPeriod === null) return false
+
+  const currentPeriod = periodValue(currentYear, currentMonth)
+  return currentPeriod !== null && currentPeriod < endPeriod
+}
+
+function shouldHideFromPortalFees(entry: FeeLedgerEntry, profile: BillingProfileLike | null) {
+  if (entry.feeType !== 'monthly') return false
+  if (entry.status === 'break' || entry.status === 'waived') return true
+  if (!isDiscontinuedBillingProfile(profile) || entry.status === 'paid') return false
+
+  const entryPeriod = periodValue(entry.year, entry.monthIndex)
+  const endPeriod = billingEndPeriod(profile)
+  if (entryPeriod === null) return false
+  if (endPeriod === null) return true
+
+  return entryPeriod >= endPeriod
 }
 
 export class FeeLedgerService {
@@ -117,15 +192,16 @@ export class FeeLedgerService {
       ? Math.min(Math.max(2020, Math.trunc(requestedYear)), currentYear)
       : currentYear
 
-    const [athlete, initialFeeRows] = await Promise.all([
+    const [athlete, initialFeeRows, billingProfile] = await Promise.all([
       getAthleteBySkfIdLive(normalizedSkfId),
       getFeesBySkfIdLive(normalizedSkfId, targetYear),
+      getPortalBillingProfile(normalizedSkfId),
     ])
     let student: Awaited<ReturnType<typeof getStudentBySkfId>> | null = null
     let feeRows = initialFeeRows
 
     // Sync only when needed for the current year to avoid expensive work on every request.
-    if (targetYear === currentYear) {
+    if (targetYear === currentYear && shouldGenerateCurrentMonth(billingProfile, currentYear, currentMonth)) {
       const hasCurrentMonthRow = feeRows.some((row) => getMonthIndex(row.month) === currentMonth)
       if (!hasCurrentMonthRow) {
         await ensureFeeRowsForStudent(normalizedSkfId, {
@@ -149,7 +225,8 @@ export class FeeLedgerService {
         const month = toMonthName(row.month)
         const monthIndex = getMonthIndex(month)
         return {
-          key: `${row.skfId}:${month}:${row.year}`,
+          id: row.id || null,
+          key: `${row.skfId}:${row.feeType || 'monthly'}:${month}:${row.year}`,
           skfId: row.skfId,
           athleteName,
           branch,
@@ -158,17 +235,62 @@ export class FeeLedgerService {
           year: row.year,
           amount: normalizeRupees(row.amount),
           status: deriveLedgerStatus(row),
+          feeType: (row.feeType || 'monthly') as LedgerFeeType,
           paidDate: row.paidDate || null,
           receiptId: row.receiptId || null,
           paymentMethod: row.paymentMethod || null,
+          rejectedReason: row.rejectedReason || null,
         }
       })
       .filter((entry) => (targetYear === currentYear ? entry.monthIndex <= currentMonth : true))
+      .filter((entry) => !shouldHideFromPortalFees(entry, billingProfile))
       .sort((a, b) => (b.year - a.year) || (b.monthIndex - a.monthIndex))
 
     const paid = entries.filter((entry) => entry.status === 'paid')
-    const due = entries.filter((entry) => entry.status !== 'paid')
+    const due = entries.filter((entry) => ['due', 'overdue', 'rejected'].includes(entry.status))
+    const pendingVerification = entries.filter((entry) => entry.status === 'pending_verification')
     const nextDue = [...due].sort((a, b) => (a.year - b.year) || (a.monthIndex - b.monthIndex))[0] || null
+    let pendingProofs: Array<{
+      id: string
+      feeRecordId: string | null
+      amount: number
+      submittedAt: string
+      month: string
+      year: number
+      feeType: LedgerFeeType
+    }> = []
+
+    if (isSupabaseReady() && pendingVerification.length) {
+      const feeRecordIds = feeRows
+        .filter((row) => row.id && row.status === 'pending_verification')
+        .map((row) => row.id as string)
+      if (feeRecordIds.length) {
+        const { data } = await supabaseAdmin
+          .from('fee_payment_proofs')
+          .select('id, fee_record_id, amount, submitted_at')
+          .eq('skf_id', normalizedSkfId)
+          .eq('status', 'submitted')
+          .in('fee_record_id', feeRecordIds)
+          .order('submitted_at', { ascending: false })
+        const entryByRecordId = new Map(
+          feeRows
+            .filter((row) => row.id)
+            .map((row) => [row.id as string, row])
+        )
+        pendingProofs = (data || []).map((proof) => {
+          const row = entryByRecordId.get(String(proof.fee_record_id || ''))
+          return {
+            id: String(proof.id || ''),
+            feeRecordId: proof.fee_record_id || null,
+            amount: normalizeRupees(proof.amount),
+            submittedAt: String(proof.submitted_at || ''),
+            month: toMonthName(row?.month || ''),
+            year: Number(row?.year || targetYear),
+            feeType: (row?.feeType || 'monthly') as LedgerFeeType,
+          }
+        })
+      }
+    }
 
     return {
       brand: {
@@ -187,9 +309,11 @@ export class FeeLedgerService {
         totalDue: due.reduce((sum, row) => sum + row.amount, 0),
         paidCount: paid.length,
         dueCount: due.length,
+        pendingVerificationCount: pendingVerification.length,
       },
       nextDue,
       entries,
+      pendingProofs,
     }
   }
 
@@ -242,7 +366,8 @@ export class FeeLedgerService {
         const status = deriveLedgerStatus(row)
 
         return {
-          key: `${skfId}:${month}:${row.year}`,
+          id: row.id || null,
+          key: `${skfId}:${row.feeType || 'monthly'}:${month}:${row.year}`,
           skfId,
           athleteName,
           branch,
@@ -251,9 +376,11 @@ export class FeeLedgerService {
           year: row.year,
           amount: normalizeRupees(row.amount),
           status,
+          feeType: (row.feeType || 'monthly') as LedgerFeeType,
           paidDate: row.paidDate || null,
           receiptId: row.receiptId || null,
           paymentMethod: row.paymentMethod || null,
+          rejectedReason: row.rejectedReason || null,
         } satisfies FeeLedgerEntry
       })
       .filter((entry) => (monthFilter ? entry.month.toLowerCase() === monthFilter.toLowerCase() : true))
@@ -273,10 +400,14 @@ export class FeeLedgerService {
       totalRows: entries.length,
       totalExpected: entries.reduce((sum, row) => sum + row.amount, 0),
       totalPaid: entries.filter((row) => row.status === 'paid').reduce((sum, row) => sum + row.amount, 0),
-      totalDue: entries.filter((row) => row.status !== 'paid').reduce((sum, row) => sum + row.amount, 0),
+      totalDue: entries.filter((row) => ['due', 'overdue', 'rejected'].includes(row.status)).reduce((sum, row) => sum + row.amount, 0),
       paidCount: entries.filter((row) => row.status === 'paid').length,
       dueCount: entries.filter((row) => row.status === 'due').length,
       overdueCount: entries.filter((row) => row.status === 'overdue').length,
+      pendingVerificationCount: entries.filter((row) => row.status === 'pending_verification').length,
+      breakCount: entries.filter((row) => row.status === 'break').length,
+      waivedCount: entries.filter((row) => row.status === 'waived').length,
+      rejectedCount: entries.filter((row) => row.status === 'rejected').length,
     }
 
     const activeAthletes = athletes.filter(
@@ -330,6 +461,8 @@ export class FeeLedgerService {
     paymentMethod?: string
     paymentReference?: string
     receiptId?: string
+    feeType?: LedgerFeeType
+    reviewer?: string
   }) {
     const skfId = String(input.skfId || '').trim().toUpperCase()
     const month = toMonthName(input.month)
@@ -351,7 +484,15 @@ export class FeeLedgerService {
       .filter(Boolean)
       .join(' • ') || 'Manual'
 
-    const updated = await markFeeAsPaid(skfId, month, receiptId, paymentMethod, year)
+    const updated = await markFeeAsPaid(
+      skfId,
+      month,
+      receiptId,
+      paymentMethod,
+      year,
+      input.feeType || 'monthly',
+      input.reviewer
+    )
     if (!updated) {
       throw new Error('Unable to mark fee as paid.')
     }
@@ -366,7 +507,7 @@ export class FeeLedgerService {
     }
   }
 
-  static async markDue(input: { skfId: string; month: string; year: number }) {
+  static async markDue(input: { skfId: string; month: string; year: number; feeType?: LedgerFeeType }) {
     const skfId = String(input.skfId || '').trim().toUpperCase()
     const month = toMonthName(input.month)
     const year = Number(input.year || new Date().getFullYear())
@@ -379,7 +520,7 @@ export class FeeLedgerService {
       paidDate: '',
       receiptId: '',
       paymentMethod: '',
-    })
+    }, input.feeType || 'monthly')
     if (!updated) {
       throw new Error('Unable to mark fee as due.')
     }
@@ -449,9 +590,13 @@ export class FeeLedgerService {
       return null
     }
 
+    const snapshot = await FeeReceiptsService.getReceiptForStudent(normalizedSkfId, normalizedReceiptId)
+    if (snapshot) return snapshot
+
     const receiptRow = await findFeeByReceiptIdLive(normalizedReceiptId)
     if (!receiptRow) return null
     if (String(receiptRow.skfId || '').trim().toUpperCase() !== normalizedSkfId) return null
+    if (receiptRow.status !== 'paid') return null
 
     const [athlete, student] = await Promise.all([
       getAthleteBySkfIdLive(normalizedSkfId),
@@ -474,12 +619,18 @@ export class FeeLedgerService {
       skfId: normalizedSkfId,
       athleteName,
       branch,
+      feeType: formatFeeType(receiptRow.feeType),
       month: toMonthName(receiptRow.month),
       year: receiptRow.year,
       amount: normalizeRupees(receiptRow.amount),
       paidDate,
       paymentMethod: receiptRow.paymentMethod || 'Manual Entry',
+      verifiedBy: receiptRow.verifiedBy || '',
+      verifiedAt: receiptRow.verifiedAt || receiptRow.paidDate || '',
       dojoAddress,
+      issuedAt: receiptRow.verifiedAt || receiptRow.paidDate || paidDate,
+      themeId: 'skf_iconic',
+      source: 'legacy',
     }
   }
 }

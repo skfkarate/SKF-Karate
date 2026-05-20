@@ -10,12 +10,22 @@ import {
   validateTournamentPayload,
 } from '@/lib/server/validation'
 import {
+  revalidateAthleteSitePaths,
   revalidateEventSitePaths,
   revalidateTournamentSitePaths,
 } from '@/lib/server/revalidation'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import { looseObjectSchema } from '@/src/server/api/validators/admin-general.validator'
 import { NotFoundError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
+
+function collectParticipantSkfIds(event: { participants?: Array<{ skfId?: string | null }> } | null | undefined) {
+  return new Set(
+    (event?.participants || [])
+      .map((participant) => normaliseSkfId(String(participant.skfId || '')))
+      .filter(Boolean)
+  )
+}
 
 export const PUT = withRoute(
   {
@@ -54,6 +64,16 @@ export const PUT = withRoute(
       revalidateEventSitePaths(updated)
     }
 
+    if (Object.prototype.hasOwnProperty.call(body, 'participants')) {
+      const affectedSkfIds = new Set([
+        ...collectParticipantSkfIds(existing),
+        ...collectParticipantSkfIds(updated),
+      ])
+      for (const skfId of affectedSkfIds) {
+        revalidateAthleteSitePaths(skfId)
+      }
+    }
+
     return NextResponse.json({ success: true, event: updated })
   }
 )
@@ -77,6 +97,10 @@ export const DELETE = withRoute(
       revalidateTournamentSitePaths(existing || { id })
     } else {
       revalidateEventSitePaths(existing || { id })
+    }
+
+    for (const skfId of collectParticipantSkfIds(existing)) {
+      revalidateAthleteSitePaths(skfId)
     }
 
     return NextResponse.json({ success: true })

@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto'
+import { cache } from 'react'
 
 import { SEEDED_BLOG_POSTS } from '@/data/blogPosts'
 import { ApiError } from '@/lib/server/api'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { logger } from '@/src/server/lib/logger'
 
 export type BlogPostStatus = 'draft' | 'published'
 
@@ -233,7 +235,7 @@ async function seedBlogPostsInDatabase(): Promise<BlogPost[]> {
   return (data || []).map(mapBlogRowToRecord)
 }
 
-async function getBlogDataset(): Promise<BlogPost[]> {
+const getBlogDataset = cache(async function getBlogDataset(): Promise<BlogPost[]> {
   if (!isSupabaseReady()) {
     return cloneBlogData(seededPosts())
   }
@@ -245,12 +247,12 @@ async function getBlogDataset(): Promise<BlogPost[]> {
     return await seedBlogPostsInDatabase()
   } catch (error) {
     if (!isMissingBlogTableError(error)) {
-      console.warn('[blogs-live] Falling back to seeded blog posts:', error)
+      logger.warn('blogs_live.seeded_fallback', { error })
     }
 
     return cloneBlogData(seededPosts())
   }
-}
+})
 
 async function hasBlogSlugLive(slug: string, excludeId: string | null = null) {
   const normalized = slugify(slug)

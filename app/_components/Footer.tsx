@@ -31,12 +31,12 @@ export default async function Footer() {
                     <PrefetchLink href="/about" className="ft__river-link" pendingClassName="ft__pending-indicator">About</PrefetchLink>
                     <PrefetchLink href="/rankings" className="ft__river-link" pendingClassName="ft__pending-indicator">Rankings</PrefetchLink>
                     <PrefetchLink href="/events" className="ft__river-link" pendingClassName="ft__pending-indicator">Events</PrefetchLink>
-                    <button type="button" disabled className="ft__river-link ft__river-link--disabled" aria-disabled="true">Results</button>
+                    <PrefetchLink href="/results" className="ft__river-link" pendingClassName="ft__pending-indicator">Results</PrefetchLink>
                     <PrefetchLink href="/gallery" className="ft__river-link" pendingClassName="ft__pending-indicator">Gallery</PrefetchLink>
                     <PrefetchLink href="/grading" className="ft__river-link" pendingClassName="ft__pending-indicator">Belt Grading</PrefetchLink>
                     <PrefetchLink href="/shop" className="ft__river-link" pendingClassName="ft__pending-indicator">Shop</PrefetchLink>
                     <PrefetchLink href="/contact" className="ft__river-link" pendingClassName="ft__pending-indicator">Contact</PrefetchLink>
-                    <button type="button" disabled className="ft__river-link ft__river-link--portal ft__river-link--disabled" aria-disabled="true">Athlete Portal</button>
+                    <PrefetchLink href="/portal" className="ft__river-link ft__river-link--portal" pendingClassName="ft__pending-indicator">Athlete Portal</PrefetchLink>
                 </nav>
 
                 {/* ── DOJOS: Location chips ── */}
@@ -65,8 +65,7 @@ export default async function Footer() {
                     </div>
                     <div className="ft__socials">
                         <a href={SOCIAL_LINKS.INSTAGRAM} className="ft__soc ft__soc--ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-                        {/* Keep the YouTube icon visible, but disabled until the channel link should be active again. */}
-                        <button type="button" className="ft__soc ft__soc--yt ft__soc--disabled" aria-label="YouTube" disabled><FaYoutube /></button>
+                        <a href={SOCIAL_LINKS.YOUTUBE} className="ft__soc ft__soc--yt" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
                         <a href={SOCIAL_LINKS.FACEBOOK} className="ft__soc ft__soc--fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><FaFacebookF /></a>
                         <a href={`https://wa.me/${CONTACT.PHONE_RAW}`} className="ft__soc ft__soc--wa" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><FaWhatsapp /></a>
                     </div>

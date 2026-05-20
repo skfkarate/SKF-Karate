@@ -61,7 +61,7 @@ export default function HeroVideo() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             poster="/videos/home-hero-poster.jpg"
             aria-hidden="true"
         >

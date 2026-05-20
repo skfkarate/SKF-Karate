@@ -7,6 +7,7 @@ import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import { extractClientIp, recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 // The schema matching FreeTrialForm.tsx
 const leadSchema = z.object({
@@ -89,24 +90,14 @@ export const POST = withRoute(
     ].filter(Boolean).join('\n')
 
     try {
-      if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+      if (hasTelegramChannel('leads')) {
         await retryWithBackoff(async () => {
-          const res = await fetch(
-            `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: process.env.TELEGRAM_CHAT_ID,
-                text: telegramMessage,
-                parse_mode: 'Markdown',
-              }),
-            }
-          )
-          if (!res.ok) {
-            const errorBody = await res.text()
-            throw new Error(`Telegram HTTP ${res.status}: ${errorBody}`)
-          }
+          const result = await sendTelegramMessage({
+            channel: 'leads',
+            text: telegramMessage,
+            parseMode: 'Markdown',
+          })
+          if (!result.ok) throw new Error(result.error || 'Telegram leads alert failed')
         }, 2, 800)
         telegramOk = true
       } else {

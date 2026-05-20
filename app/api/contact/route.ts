@@ -6,6 +6,7 @@ import { validateContactPayload } from '@/lib/server/validation'
 import { retryWithBackoff } from '@/lib/utils/retry'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 const contactBodySchema = z.object({
     name: z.string().trim().min(1).max(120),
@@ -92,27 +93,13 @@ export const POST = withRoute(
         ].filter(Boolean).join('\n')
 
         try {
-            if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
-                throw new Error('Missing Telegram credentials: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set')
-            }
-
             await retryWithBackoff(async () => {
-                const res = await fetch(
-                    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: process.env.TELEGRAM_CHAT_ID,
-                            text: telegramMessage,
-                            parse_mode: 'Markdown',
-                        }),
-                    }
-                )
-                if (!res.ok) {
-                    const errorBody = await res.text()
-                    throw new Error(`Telegram HTTP ${res.status}: ${errorBody}`)
-                }
+                const result = await sendTelegramMessage({
+                    channel: 'leads',
+                    text: telegramMessage,
+                    parseMode: 'Markdown',
+                })
+                if (!result.ok) throw new Error(result.error || 'Telegram leads alert failed')
             }, 2, 800)
             telegramOk = true
         } catch (err) {

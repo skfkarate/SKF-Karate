@@ -3,10 +3,26 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
 import { FaSpinner } from 'react-icons/fa'
 import './login.css'
+
+function getPortalLoginErrorMessage(payload) {
+  if (typeof payload?.error === 'string') {
+    return payload.error
+  }
+
+  if (typeof payload?.error?.message === 'string') {
+    return payload.error.message
+  }
+
+  if (typeof payload?.message === 'string') {
+    return payload.message
+  }
+
+  return 'Authentication failed'
+}
 
 function DojoLoginInner() {
   const router = useRouter()
@@ -24,7 +40,8 @@ function DojoLoginInner() {
         if (res.ok) {
           router.replace(callbackUrl)
         } else {
-          setLoading(false)
+          return fetch('/api/auth/portal/logout', { method: 'POST', credentials: 'same-origin' })
+            .finally(() => setLoading(false))
         }
       })
       .catch(() => {
@@ -44,13 +61,13 @@ function DojoLoginInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skfId: skfId.trim(), dob: dob.trim() }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
 
       if (res.ok) {
         router.push(callbackUrl)
         router.refresh()
       } else {
-        setError(data.error || 'Authentication failed')
+        setError(getPortalLoginErrorMessage(data))
         setLoading(false)
       }
     } catch {
@@ -190,7 +207,7 @@ function DojoLoginInner() {
                 setDob('12-04-1995')
               }}
             >
-              Dev Fill (Admin)
+              Dev Fill (Sample Athlete)
             </button>
           </motion.div>
         )}
@@ -198,10 +215,6 @@ function DojoLoginInner() {
     </div>
   )
 }
-
-// Add this to suppress hydration warnings for AnimatePresence
-import { AnimatePresence as FramerAnimatePresence } from 'framer-motion'
-const AnimatePresence = ({ children }) => <FramerAnimatePresence>{children}</FramerAnimatePresence>
 
 // Wrap in Suspense for useSearchParams compatibility
 export default function DojoLogin() {

@@ -15,7 +15,15 @@ export const GET = withRoute(
         process.env.GOOGLE_PRIVATE_KEY
       ),
       razorpay: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
-      resend: !!process.env.RESEND_API_KEY
+      resend: !!process.env.RESEND_API_KEY,
+      telegramSystem: !!(
+        process.env.TELEGRAM_SYSTEM_BOT_TOKEN &&
+        process.env.TELEGRAM_SYSTEM_CHAT_ID
+      ),
+      telegramReminders: !!(
+        process.env.TELEGRAM_REMINDERS_BOT_TOKEN &&
+        process.env.TELEGRAM_REMINDERS_CHAT_ID
+      ),
     })
   }
 )

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo } from 'react'
-import type { ComponentProps, FocusEventHandler, MouseEventHandler } from 'react'
+import type { ComponentProps, FocusEventHandler, MouseEventHandler, TouchEventHandler } from 'react'
 import LinkPendingIndicator from './LinkPendingIndicator'
 import { startRouteTransition } from './routeTransitionTelemetry'
 
@@ -74,6 +74,11 @@ export default function PrefetchLink({
     onFocus?.(event)
   }
 
+  const handleTouchStart: TouchEventHandler<HTMLAnchorElement> = (event) => {
+    prefetchIntentRoutes()
+    onTouchStart?.(event)
+  }
+
   const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
     onClick?.(event)
     if (event.defaultPrevented) return
@@ -97,7 +102,7 @@ export default function PrefetchLink({
       href={href}
       onMouseEnter={handleMouseEnter}
       onFocus={handleFocus}
-      onTouchStart={onTouchStart}
+      onTouchStart={handleTouchStart}
       onClick={handleClick}
       {...rest}
     >

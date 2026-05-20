@@ -31,6 +31,7 @@ const validationMocks = vi.hoisted(() => ({
 }))
 
 const revalidationMocks = vi.hoisted(() => ({
+  revalidateAthleteSitePaths: vi.fn(),
   revalidateEventSitePaths: vi.fn(),
   revalidateTournamentSitePaths: vi.fn(),
 }))
@@ -60,6 +61,7 @@ vi.mock('@/lib/server/validation', () => ({
 }))
 
 vi.mock('@/lib/server/revalidation', () => ({
+  revalidateAthleteSitePaths: revalidationMocks.revalidateAthleteSitePaths,
   revalidateEventSitePaths: revalidationMocks.revalidateEventSitePaths,
   revalidateTournamentSitePaths: revalidationMocks.revalidateTournamentSitePaths,
 }))
@@ -77,6 +79,7 @@ describe('/api/admin/events/[id]', () => {
     apiMocks.createErrorResponse.mockClear()
     validationMocks.validateEventPayload.mockReset()
     validationMocks.validateTournamentPayload.mockReset()
+    revalidationMocks.revalidateAthleteSitePaths.mockReset()
     revalidationMocks.revalidateEventSitePaths.mockReset()
     revalidationMocks.revalidateTournamentSitePaths.mockReset()
   })

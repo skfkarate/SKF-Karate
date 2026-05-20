@@ -5,6 +5,7 @@ import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../
 import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements';
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from '../data-store';
 import { ApiError } from '../api';
+import { logger } from '@/src/server/lib/logger';
 
 const ATHLETES_DATA_FILE = resolveDataFile('athletes.json');
 
@@ -481,7 +482,7 @@ function ensureAthletesLoaded() {
       mockAthletes = stored as typeof mockAthletes
     }
   } catch (error) {
-    console.error('Failed to load athlete store:', error);
+    logger.error('athletes.local_store_load_failed', { error });
   }
 }
 

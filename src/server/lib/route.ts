@@ -4,6 +4,11 @@ import type { Session } from 'next-auth'
 
 import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { getPortalSession } from '@/lib/server/auth/portal'
+import {
+  buildCanonicalPortalSession,
+  isEligiblePortalAthlete,
+} from '@/lib/server/auth/portal-athlete'
+import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import type { JWTPayload, UserRole } from '@/types'
 import { AppError, AuthenticationError, AuthorizationError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -125,11 +130,16 @@ async function resolveAuth(
     throw new AuthenticationError()
   }
 
+  const athlete = await getAthleteBySkfIdLive(portalSession.skfId)
+  if (!isEligiblePortalAthlete(athlete)) {
+    throw new AuthenticationError()
+  }
+
   if (auth.roles && !auth.roles.includes(portalSession.role)) {
     throw new AuthorizationError()
   }
 
-  return { adminSession: null, portalSession }
+  return { adminSession: null, portalSession: buildCanonicalPortalSession(portalSession, athlete!) }
 }
 
 function buildErrorResponse(error: unknown, requestId: string): Response {
@@ -141,7 +151,7 @@ function buildErrorResponse(error: unknown, requestId: string): Response {
 
   if (error instanceof AppError) {
     return errorResponse(error.code, error.message, error.statusCode, {
-      details: error.details,
+      details: error.expose ? error.details : undefined,
     })
   }
 
@@ -226,15 +236,20 @@ export function withRoute<TBody = Record<string, never>, TQuery = Record<string,
 
       return finalResponse
     } catch (error) {
-      logger.error('api.request_failed', {
+      const response = buildErrorResponse(error, requestId)
+      const status = response.status
+      const isServerError = status >= 500
+
+      logger[isServerError ? 'error' : 'warn']('api.request_failed', {
         requestId,
         method: request.method,
         path: new URL(request.url).pathname,
+        status,
         durationMs: Date.now() - startedAt,
         error,
+        systemAlert: isServerError,
       })
 
-      const response = buildErrorResponse(error, requestId)
       return withResponseHeaders(response, { 'X-Request-ID': requestId }, rateLimitHeaders)
     }
   }

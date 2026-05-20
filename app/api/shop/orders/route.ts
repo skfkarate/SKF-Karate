@@ -18,6 +18,7 @@ import {
 } from '@/src/server/api/validators/shop.validator'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
 
 export const POST = withRoute(
   { rateLimit: { tier: 'write' } },
@@ -53,44 +54,41 @@ export const POST = withRoute(
       : createCampPickupAddress(payload?.address)
 
     const orderId = createOrderId()
-    // 1. Send to Telegram
+    // 1. Send to Telegram orders channel
     let telegramNotified = 'No'
-    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      try {
-        const message = `
-🛍️ *New Shop Order*
-*Order ID:* ${orderId}
-*Customer:* ${address.fullName}
-*Phone:* ${address.phone || 'N/A'}
-*Student:* ${address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'Athlete Profile Linked'}
-*Amount:* ₹${preparedOrder.total.toLocaleString()}
-*Items:* ${preparedOrder.items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ')}
-        `;
+    try {
+      const message = [
+        'New shop order',
+        '',
+        `Order ID: ${orderId}`,
+        `Customer: ${address.fullName}`,
+        `Phone: ${address.phone || 'N/A'}`,
+        `Student: ${address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'Athlete Profile Linked'}`,
+        `Amount: ₹${preparedOrder.total.toLocaleString('en-IN')}`,
+        `Items: ${preparedOrder.items.map((item) => `${item.quantity}x ${item.name} (${item.size})`).join(', ')}`,
+      ].join('\n')
 
-        if (payload.paymentProofBase64) {
-          const base64Data = payload.paymentProofBase64.split(';base64,').pop();
-          if (base64Data) {
-            const buffer = Buffer.from(base64Data, 'base64');
-            const formData = new FormData();
-            formData.append('chat_id', TELEGRAM_CHAT_ID);
-            formData.append('caption', message);
-            formData.append('parse_mode', 'Markdown');
-            formData.append('photo', new Blob([buffer]), payload.paymentProofName || 'screenshot.jpg');
-
-            const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-              method: 'POST',
-              body: formData,
-            });
-            if (tgRes.ok) telegramNotified = 'Yes';
-            else console.warn('Telegram photo send failed:', await tgRes.text());
-          }
+      if (payload.paymentProofBase64) {
+        const base64Data = payload.paymentProofBase64.split(';base64,').pop()
+        if (base64Data) {
+          const buffer = Buffer.from(base64Data, 'base64')
+          const result = await sendTelegramPhoto({
+            channel: 'orders',
+            caption: message,
+            photo: new Blob([buffer]),
+            filename: payload.paymentProofName || 'screenshot.jpg',
+          })
+          if (result.ok) telegramNotified = 'Yes'
+          else logger.warn('shop.order.telegram_failed', { orderId, status: result.status, skipped: result.skipped, error: result.error })
         }
-      } catch (e) {
-        console.error('Telegram Error:', e);
+      } else {
+        const result = await sendTelegramMessage({ channel: 'orders', text: message })
+        if (result.ok) telegramNotified = 'Yes'
+        else logger.warn('shop.order.telegram_failed', { orderId, status: result.status, skipped: result.skipped, error: result.error })
       }
+    } catch (error) {
+      logger.warn('shop.order.telegram_failed', { orderId, error })
     }
 
     // Save to the configured shop sheet first, then fall back to the legacy Orders sheet shape.
@@ -145,7 +143,7 @@ export const POST = withRoute(
         address,
       })
     } catch (error) {
-      console.warn('Primary DB placement failed, relying on Google Sheets webhook.', error)
+      logger.warn('shop.order.primary_db_placement_failed', { orderId, error })
       order = {
         orderId,
         customerType: actor.authenticated ? 'athlete' : 'guest'

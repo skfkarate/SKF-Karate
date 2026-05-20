@@ -1,11 +1,10 @@
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { verifyJWT, COOKIE_NAME } from '@/lib/server/auth/portal'
-import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
+import { requirePortalAthlete } from '@/lib/server/auth/require-portal-athlete'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import JourneyClient from './JourneyClient'
 import type { TimelineNode } from './JourneyClient'
 import { getBelt } from '@/data/constants/belts'
+import { getAssignedPortalEvents, isAssignedToEvent } from '@/lib/utils/portal-events'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,24 +37,13 @@ type JourneyEvent = {
 }
 
 export default async function JourneyPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(COOKIE_NAME)?.value
-  const session = verifyJWT(token)
-
-  if (!session || !session.skfId) {
-    redirect('/portal/login')
-  }
-
-  const [athlete, allEvents] = await Promise.all([
-    getAthleteBySkfIdLive(session.skfId),
+  const { athlete } = await requirePortalAthlete()
+  const [allEvents] = await Promise.all([
     getAllEventsLive(),
   ])
 
-  if (!athlete) {
-    redirect('/portal/login')
-  }
-
   const currentTimeMs = getCurrentTimeMs()
+  const athleteSkfId = normaliseSkfId(athlete.skfId)
   
   const timelineNodes: TimelineNode[] = []
 
@@ -77,7 +65,9 @@ export default async function JourneyPage() {
   const achievements = Array.isArray(athlete.achievements)
     ? (athlete.achievements as AthleteAchievement[])
     : []
-  const beltAchievements = achievements.filter((ach) => ach.type === 'belt-pass' || ach.type === 'enrollment')
+  const beltAchievements = achievements.filter((ach) =>
+    ['belt-pass', 'belt-grading', 'enrollment'].includes(String(ach.type || ''))
+  )
   beltAchievements.forEach((ach) => {
     if (!ach.date) return
     const beltObj = getBelt(ach.beltEarned)
@@ -98,9 +88,9 @@ export default async function JourneyPage() {
   const journeyEvents = (allEvents as JourneyEvent[]).filter((event) => event.showInJourney === true)
   journeyEvents.forEach((event) => {
     if (!event.date) return
-    const isParticipant = (event.participants || []).some((p) => p.skfId === athlete.skfId)
-    const hasResult = (event.results || []).some((r) => r.skfId === athlete.skfId)
-    const isWinner = (event.winners || []).some((w) => w.skfId === athlete.skfId)
+    const isParticipant = isAssignedToEvent(event, athleteSkfId)
+    const hasResult = (event.results || []).some((r) => normaliseSkfId(String(r.skfId || '')) === athleteSkfId)
+    const isWinner = (event.winners || []).some((w) => normaliseSkfId(String(w.skfId || '')) === athleteSkfId)
 
     if (isParticipant || hasResult || isWinner) {
       timelineNodes.push({
@@ -117,13 +107,36 @@ export default async function JourneyPage() {
     }
   })
 
-  // Sort Chronologically
+  // 4. Upcoming Belt Exam / Major Event
+  const futureEvents = getAssignedPortalEvents(allEvents as JourneyEvent[], athleteSkfId).filter(
+    (event) => event.date && new Date(event.date).getTime() > currentTimeMs
+  )
+  // Find the earliest upcoming event that is a grading, tournament, or has SKM in the name
+  const upcomingMilestone = futureEvents
+    .filter(e => e.type === 'grading' || e.type === 'tournament' || e.name?.toLowerCase().includes('skm'))
+    .sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime())[0]
+
+  if (upcomingMilestone) {
+    timelineNodes.push({
+      id: `upcoming-${upcomingMilestone.id}`,
+      type: 'event',
+      date: upcomingMilestone.date!,
+      title: upcomingMilestone.name || 'Upcoming Milestone',
+      description: upcomingMilestone.type === 'grading' ? 'Next Belt Examination' : 'Upcoming Major Event',
+      isCurrent: false,
+      isUpcoming: true,
+      eventType: upcomingMilestone.type,
+      timestamp: new Date(upcomingMilestone.date!).getTime(),
+    })
+  }
+
+  // Sort Chronologically (Oldest at top, newest/upcoming at bottom)
   timelineNodes.sort((a, b) => a.timestamp - b.timestamp)
 
-  // Mark the last belt as current
-  const lastBeltIndex = timelineNodes.map(n => n.type).lastIndexOf('belt')
-  if (lastBeltIndex >= 0) {
-    timelineNodes[lastBeltIndex].isCurrent = true
+  // Mark the current belt (since array is chronological, newest belt is the LAST 'belt' found)
+  const currentBeltIndex = timelineNodes.map(n => n.type).lastIndexOf('belt')
+  if (currentBeltIndex >= 0) {
+    timelineNodes[currentBeltIndex].isCurrent = true
   } else if (timelineNodes.length > 0 && timelineNodes[0].type === 'origin') {
     timelineNodes[0].isCurrent = true
   }

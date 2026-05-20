@@ -271,9 +271,29 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                                 ))}
                             </div>
 
-                            <Link href="/honours" style={{ display: 'block', textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '1.5rem', textDecoration: 'none' }}>
+                            <button
+                                type="button"
+                                disabled
+                                title="Honours Board coming soon"
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    textAlign: 'center',
+                                    fontSize: '0.8rem',
+                                    color: 'rgba(255,255,255,0.35)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1px',
+                                    marginTop: '1.5rem',
+                                    textDecoration: 'none',
+                                    background: 'none',
+                                    border: 0,
+                                    padding: 0,
+                                    cursor: 'not-allowed',
+                                    fontFamily: 'inherit',
+                                }}
+                            >
                                 VIEW FULL BOARD &rarr;
-                            </Link>
+                            </button>
                         </div>
                     )}
 

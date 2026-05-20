@@ -1,4 +1,8 @@
 import { withSentryConfig } from '@sentry/nextjs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url))
 
 function parseRemoteFromOrigin(originLike) {
   const raw = (originLike || '').trim()
@@ -18,6 +22,12 @@ function parseRemoteFromOrigin(originLike) {
 }
 
 const mediaCdnRemote = parseRemoteFromOrigin(process.env.NEXT_PUBLIC_MEDIA_CDN_ORIGIN)
+const immutableAssetHeaders = [
+  {
+    key: 'Cache-Control',
+    value: 'public, max-age=31536000, immutable'
+  }
+]
 const legacyAssetAliases = [
   { source: '/gallery/Belt Exam.HEIC', destination: '/gallery/Belt Exam.jpeg' },
   { source: '/gallery/In dojo2.HEIC', destination: '/gallery/In dojo2.jpeg' },
@@ -31,7 +41,12 @@ const nextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   typescript: { ignoreBuildErrors: false },
-  turbopack: {},
+  turbopack: {
+    root: projectRoot,
+  },
+  outputFileTracingIncludes: {
+    '/api/profile-photos/[skfId]': ['./SKF Photos/**/*'],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2678400,
@@ -42,6 +57,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.ytimg.com' },
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: '*.googleusercontent.com' },
+      { protocol: 'https', hostname: 'skfkarate.github.io' },
       { protocol: 'https', hostname: 'www.sportdata.org' },
       { protocol: 'https', hostname: 'www.wkf.net' },
       ...(mediaCdnRemote ? [mediaCdnRemote] : []),
@@ -68,12 +84,35 @@ const nextConfig = {
     return [
       {
         source: '/videos/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable'
-          }
-        ]
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/gallery/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/Shop/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/logo/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/icons/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/affliciation/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/fonts/:path*',
+        headers: immutableAssetHeaders
+      },
+      {
+        source: '/no-profile/:path*',
+        headers: immutableAssetHeaders
       },
       {
         source: '/(.*)',

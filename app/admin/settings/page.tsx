@@ -1,14 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, X, RefreshCw, Database, CreditCard, Mail, FileSpreadsheet } from 'lucide-react'
+import { Bot, Check, X, RefreshCw, Database, CreditCard, Mail, FileSpreadsheet, ReceiptText } from 'lucide-react'
+
+type ReceiptTheme = {
+  id: string
+  name: string
+  description: string
+}
+
+type ReceiptSettings = {
+  themes: ReceiptTheme[]
+  activeThemeId: string
+  updatedBy: string | null
+  updatedAt: string | null
+}
 
 export default function AdminSettingsPage() {
-  const [status, setStatus] = useState({})
+  const [status, setStatus] = useState<Record<string, boolean>>({})
+  const [receiptSettings, setReceiptSettings] = useState<ReceiptSettings | null>(null)
+  const [receiptSaving, setReceiptSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     checkStatus()
+    loadReceiptSettings()
   }, [])
 
   async function checkStatus() {
@@ -21,6 +37,31 @@ export default function AdminSettingsPage() {
       setStatus({ error: true })
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadReceiptSettings() {
+    try {
+      const res = await fetch('/api/admin/settings/receipts', { cache: 'no-store' })
+      const data = await res.json()
+      if (data?.success) setReceiptSettings(data.data)
+    } catch {
+      setReceiptSettings(null)
+    }
+  }
+
+  async function saveReceiptTheme(activeThemeId: string) {
+    setReceiptSaving(true)
+    try {
+      const res = await fetch('/api/admin/settings/receipts', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeThemeId }),
+      })
+      const data = await res.json()
+      if (data?.success) setReceiptSettings(data.data)
+    } finally {
+      setReceiptSaving(false)
     }
   }
 
@@ -52,6 +93,20 @@ export default function AdminSettingsPage() {
       icon: Mail,
       description: 'Broadcast and transactional comms.',
       envVars: ['RESEND_API_KEY']
+    },
+    {
+      name: 'System Telegram Bot',
+      key: 'telegramSystem',
+      icon: Bot,
+      description: 'Warnings, server errors, route failures, and process-level crash alerts.',
+      envVars: ['TELEGRAM_SYSTEM_BOT_TOKEN', 'TELEGRAM_SYSTEM_CHAT_ID']
+    },
+    {
+      name: 'Reminders Telegram Bot',
+      key: 'telegramReminders',
+      icon: Bot,
+      description: 'Birthday and upcoming event reminder digests.',
+      envVars: ['TELEGRAM_REMINDERS_BOT_TOKEN', 'TELEGRAM_REMINDERS_CHAT_ID']
     },
   ]
 
@@ -100,6 +155,74 @@ export default function AdminSettingsPage() {
       </div>
 
       <div style={{ padding: '0 2.5rem' }}>
+        <section style={{
+          background: '#050505',
+          border: '1px solid #222',
+          padding: '2rem',
+          borderRadius: '4px',
+          marginBottom: '2rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              background: '#111',
+              border: '1px solid #333',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <ReceiptText size={20} />
+            </div>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 500 }}>Fee Receipt Theme</h2>
+              <p style={{ margin: '0.35rem 0 0', color: '#888', fontSize: '0.9rem' }}>
+                One active theme is used for all newly generated fee receipts. Existing receipts stay unchanged.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            {(receiptSettings?.themes || []).map((theme) => {
+              const active = receiptSettings?.activeThemeId === theme.id
+              return (
+                <button
+                  type="button"
+                  key={theme.id}
+                  disabled={receiptSaving}
+                  onClick={() => saveReceiptTheme(theme.id)}
+                  style={{
+                    textAlign: 'left',
+                    background: active ? '#111' : '#000',
+                    border: `1px solid ${active ? '#f5b52e' : '#222'}`,
+                    color: '#fff',
+                    borderRadius: '4px',
+                    padding: '1rem',
+                    cursor: receiptSaving ? 'wait' : 'pointer'
+                  }}
+                >
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: '0.7rem',
+                    color: active ? '#f5b52e' : '#777',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    marginBottom: '0.7rem'
+                  }}>
+                    {active ? <Check size={12} /> : null}
+                    {active ? 'Active' : 'Available'}
+                  </span>
+                  <strong style={{ display: 'block', marginBottom: '0.35rem' }}>{theme.name}</strong>
+                  <span style={{ color: '#888', fontSize: '0.82rem', lineHeight: 1.45 }}>{theme.description}</span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '2rem' }}>
           {services.map(svc => {
             const Icon = svc.icon
