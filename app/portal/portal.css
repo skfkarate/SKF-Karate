@@ -12,43 +12,19 @@
   overflow-x: hidden;
 }
 
-/* Base background glow effects */
-.hub-layout::before {
-  content: '';
-  position: fixed;
-  top: -20vh;
-  left: -20vw;
-  width: 60vw;
-  height: 60vh;
-  background: radial-gradient(circle, rgba(214, 40, 40, 0.05) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.hub-layout::after {
-  content: '';
-  position: fixed;
-  bottom: -20vh;
-  right: -20vw;
-  width: 60vw;
-  height: 60vh;
-  background: radial-gradient(circle, rgba(255, 183, 3, 0.03) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* ── MAIN CONTENT AREA ── */
 .hub-main {
   flex: 1;
   position: relative;
   z-index: 10;
-  padding: 2rem 1rem 7rem 1rem; /* Extra padding bottom for mobile dock */
+  padding: 0 0 2rem 0;
   min-width: 0;
 }
 
 @media (min-width: 900px) {
   .hub-main {
-    padding: 3rem 4rem 3rem 120px; /* Room for the floating dock on the left */
+    margin-left: 120px;
+    padding: 0;
   }
 }
 
@@ -190,61 +166,229 @@
   letter-spacing: 0.1em;
 }
 
+/* ══════════ MOBILE FAB SYSTEM ══════════ */
 
-/* ── MOBILE FLOATING DOCK ── */
-.kuroobi-dock-mobile {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 70px;
-  background: rgba(10, 14, 22, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 0.5rem;
-  z-index: 50;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+/* FAB — "Liquid Glass" */
+@keyframes fab-breathe {
+  0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05); }
+  50%      { box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.15), 0 0 20px rgba(255,255,255,0.1); }
 }
 
-@media (min-width: 900px) {
-  .kuroobi-dock-mobile {
-    display: none;
+.kuroobi-fab {
+  display: none;
+  position: fixed;
+  bottom: 2rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  z-index: 99998;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, background 0.2s ease;
+  animation: fab-breathe 4s ease-in-out infinite;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kuroobi-fab:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.kuroobi-fab.fab-hidden {
+  transform: translateY(120px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 899px) {
+  .kuroobi-fab {
+    display: flex;
   }
 }
 
-.kuroobi-mobile-link {
+/* Overlay — "The Dojo Gate" */
+.kuroobi-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 15, 0.97);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  z-index: 99997;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 899px) {
+  .kuroobi-overlay {
+    display: flex;
+  }
+}
+
+.kuroobi-overlay__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem 2rem;
+}
+
+.kuroobi-overlay__brand-logo {
+  filter: drop-shadow(0 0 10px rgba(255, 183, 3, 0.3));
+}
+
+.kuroobi-overlay__brand-text {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+.kuroobi-overlay__links {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+}
+
+.kuroobi-overlay__link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kuroobi-overlay__link:active {
+  background: rgba(255,255,255,0.04);
+}
+
+.kuroobi-overlay__link--active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.12), transparent);
+}
+
+.kuroobi-overlay__link--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: var(--crimson, #d62828);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 12px var(--crimson, #d62828);
+}
+
+.kuroobi-overlay__link-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.3);
-  position: relative;
-  flex: 1;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
 }
 
-.kuroobi-mobile-link.active {
-  color: var(--crimson, #d62828);
+.kuroobi-overlay__link--active .kuroobi-overlay__link-icon {
+  background: rgba(214, 40, 40, 0.15);
+  border-color: rgba(214, 40, 40, 0.3);
 }
 
-.kuroobi-mobile-link__icon {
-  position: relative;
-  z-index: 2;
+.kuroobi-overlay__divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 0.5rem 1.5rem;
 }
 
-.kuroobi-mobile-link__label {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  position: absolute;
-  bottom: 8px;
+.kuroobi-overlay__signout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin: 0 1.5rem 3rem;
+  background: none;
+  border: 1px solid rgba(214, 40, 40, 0.15);
+  border-radius: 16px;
+  color: #ff6b6b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kuroobi-overlay__signout:active {
+  background: rgba(214, 40, 40, 0.1);
+}
+
+/* Back Button — "The Return Path" */
+.kuroobi-back {
+  display: flex;
+  position: fixed;
+  top: 1.25rem;
+  left: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #fff;
+  cursor: pointer;
+  z-index: 99996;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kuroobi-back:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.kuroobi-back:active {
+  background: rgba(255,255,255,0.18);
+  transform: scale(0.9);
+}
+
+.kuroobi-back.back-hidden {
+  transform: translateY(-80px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .kuroobi-back {
+    left: 8.5rem;
+    top: 2rem;
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /* ── KUROOBI OVERRIDES FOR ATHLETE PROFILE (DASHBOARD ONLY) ── */

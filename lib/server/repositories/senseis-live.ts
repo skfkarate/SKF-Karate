@@ -12,6 +12,8 @@ import {
 
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
+import { logger } from '@/src/server/lib/logger'
+import { cache } from 'react'
 
 type SenseiRow = {
   id: string
@@ -370,7 +372,7 @@ function getStaticSenseiDataset() {
   return cloneData(buildStaticSenseiDataset())
 }
 
-export async function getAllSenseisLive() {
+export const getAllSenseisLive = cache(async function getAllSenseisLive() {
   if (!isSupabaseReady()) {
     return getStaticSenseiDataset()
   }
@@ -378,10 +380,10 @@ export async function getAllSenseisLive() {
   try {
     return cloneData(await readAllSenseisFromDatabase())
   } catch (error) {
-    console.warn('[senseis-live] Falling back to static sensei data:', error)
+    logger.warn('senseis_live.static_fallback', { error })
     return getStaticSenseiDataset()
   }
-}
+})
 
 export async function getPublicSenseisLive() {
   const records = await getAllSenseisLive()

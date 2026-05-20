@@ -21,11 +21,10 @@ nextjs-portal {
 .nav--scrolled {
     padding: 0.6rem 0;
     background: rgba(3, 5, 8, 0.5); /* Intense transparency for orbs */
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-    will-change: backdrop-filter, background;
 }
 
 .nav__inner {
@@ -241,6 +240,7 @@ nextjs-portal {
     cursor: pointer;
     transition: all 0.2s ease;
     margin-left: 0.2rem;
+    touch-action: manipulation;
 }
 
 .nav__hamburger:hover {
@@ -263,8 +263,8 @@ nextjs-portal {
 .drawer-overlay--open {
     background: rgba(0, 0, 0, 0.6);
     pointer-events: all;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 
 /* Drawer panel */
@@ -278,8 +278,8 @@ nextjs-portal {
     height: 100dvh;
     z-index: 1200;
     background: rgba(3, 5, 8, 0.85); /* Deep obsidian tint */
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-left: 1px solid rgba(255, 255, 255, 0.05); /* Match global border style */
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -287,6 +287,7 @@ nextjs-portal {
     flex-direction: column;
     overflow-y: auto;
     overscroll-behavior: contain;
+    will-change: transform;
 }
 
 .drawer--open {
@@ -498,6 +499,23 @@ nextjs-portal {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav,
+    .nav__link,
+    .nav__link::after,
+    .nav__icon,
+    .nav__hamburger,
+    .drawer-overlay,
+    .drawer,
+    .wkf-menu-link,
+    .wkf-menu-arrow,
+    .wkf-submenu,
+    .wkf-submenu-link,
+    .mobile-sticky-cta {
+        transition-duration: 0.01ms !important;
+    }
 }
 
 .mobile-sticky-cta__pending {

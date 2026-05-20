@@ -30,8 +30,12 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_category
 
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "public_read_published_blog_posts" ON public.blog_posts;
+
 CREATE POLICY "public_read_published_blog_posts" ON public.blog_posts
   FOR SELECT USING (status = 'published');
+
+DROP POLICY IF EXISTS "service_role_full_blog_posts" ON public.blog_posts;
 
 CREATE POLICY "service_role_full_blog_posts" ON public.blog_posts
   FOR ALL

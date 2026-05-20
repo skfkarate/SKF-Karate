@@ -26,7 +26,9 @@ const MONTHS = [
 ] as const
 
 type FeeRecordRow = {
+  id?: string | null
   skf_id?: string | null
+  fee_type?: string | null
   month?: string | null
   year?: number | string | null
   amount?: number | string | null
@@ -34,6 +36,11 @@ type FeeRecordRow = {
   paid_date?: string | null
   receipt_id?: string | null
   payment_method?: string | null
+  verified_by?: string | null
+  verified_at?: string | null
+  rejected_reason?: string | null
+  notes?: string | null
+  metadata?: Record<string, unknown> | null
 }
 
 function requireFeeDatabase() {
@@ -47,13 +54,36 @@ function requireFeeDatabase() {
   return true
 }
 
+function throwFeeRepositoryError(error: unknown): never {
+  const details = error && typeof error === 'object' ? error as Record<string, unknown> : {}
+  const code = String(details.code || '')
+  const message = String(details.message || '')
+  const hint = String(details.hint || '')
+  const combined = `${code} ${message} ${hint}`.toLowerCase()
+
+  if (
+    ['42p01', '42703', 'pgrst200', 'pgrst202', 'pgrst204', 'pgrst205'].includes(code.toLowerCase()) ||
+    combined.includes('fee_records')
+  ) {
+    throw new ApiError(503, 'Fee database schema is not ready. Run database/migrations/015_fee_operations_console.sql in Supabase, then reload the fee page.', {
+      details: { code, message, hint },
+    })
+  }
+
+  throw new ApiError(503, 'Fee database request failed.', {
+    details: { code, message, hint },
+  })
+}
+
 function normalizeSkfId(skfId: string) {
   return String(skfId || '').trim().toUpperCase()
 }
 
 function mapFeeRecord(row: FeeRecordRow): FeeRow {
   return {
+    id: row.id || undefined,
     skfId: normalizeSkfId(row.skf_id || ''),
+    feeType: (row.fee_type || 'monthly') as FeeRow['feeType'],
     month: String(row.month || '').trim(),
     year: Number(row.year || new Date().getFullYear()),
     amount: Number(row.amount || 0),
@@ -61,6 +91,11 @@ function mapFeeRecord(row: FeeRecordRow): FeeRow {
     paidDate: row.paid_date || '',
     receiptId: row.receipt_id || '',
     paymentMethod: row.payment_method || '',
+    verifiedBy: row.verified_by || '',
+    verifiedAt: row.verified_at || '',
+    rejectedReason: row.rejected_reason || '',
+    notes: row.notes || '',
+    metadata: row.metadata || {},
   }
 }
 
@@ -79,7 +114,7 @@ export async function getFeesBySkfIdLive(skfId: string, year?: number): Promise<
 
   let query = supabaseAdmin
     .from('fee_records')
-    .select('skf_id, month, year, amount, status, paid_date, receipt_id, payment_method')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
     .eq('skf_id', normalizedSkfId)
 
   if (year) {
@@ -87,7 +122,7 @@ export async function getFeesBySkfIdLive(skfId: string, year?: number): Promise<
   }
 
   const { data, error } = await query.order('year', { ascending: false })
-  if (error) throw error
+  if (error) throwFeeRepositoryError(error)
   return (data || []).map(mapFeeRecord)
 }
 
@@ -98,14 +133,14 @@ export async function getAllFeesLive(year?: number): Promise<FeeRow[]> {
 
   let query = supabaseAdmin
     .from('fee_records')
-    .select('skf_id, month, year, amount, status, paid_date, receipt_id, payment_method')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
 
   if (year) {
     query = query.eq('year', year)
   }
 
   const { data, error } = await query.order('year', { ascending: false })
-  if (error) throw error
+  if (error) throwFeeRepositoryError(error)
   return (data || []).map(mapFeeRecord)
 }
 
@@ -119,11 +154,11 @@ export async function findFeeByReceiptIdLive(receiptId: string): Promise<FeeRow 
 
   const { data, error } = await supabaseAdmin
     .from('fee_records')
-    .select('skf_id, month, year, amount, status, paid_date, receipt_id, payment_method')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
     .eq('receipt_id', normalizedReceiptId)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) throwFeeRepositoryError(error)
   return data ? mapFeeRecord(data) : null
 }
 
@@ -149,9 +184,10 @@ export async function ensureFeeRowsForStudent(
     .from('fee_records')
     .select('month, amount')
     .eq('skf_id', normalizedSkfId)
+    .eq('fee_type', 'monthly')
     .eq('year', year)
 
-  if (existingError) throw existingError
+  if (existingError) throwFeeRepositoryError(existingError)
 
   const existingByMonth = new Map(
     (existingRows || []).map((row) => [String(row.month || '').trim(), Number(row.amount || 0)])
@@ -167,6 +203,7 @@ export async function ensureFeeRowsForStudent(
     if (existingAmount === undefined) {
       rowsToInsert.push({
         skf_id: normalizedSkfId,
+        fee_type: 'monthly',
         month,
         year,
         amount: Number(options.monthlyFee || 0),
@@ -182,8 +219,13 @@ export async function ensureFeeRowsForStudent(
   }
 
   if (rowsToInsert.length) {
-    const { error } = await supabaseAdmin.from('fee_records').insert(rowsToInsert)
-    if (error) throw error
+    const { error } = await supabaseAdmin
+      .from('fee_records')
+      .upsert(rowsToInsert, {
+        onConflict: 'skf_id,fee_type,month,year',
+        ignoreDuplicates: true,
+      })
+    if (error) throwFeeRepositoryError(error)
   }
 
   for (const month of rowsToUpdate) {
@@ -191,10 +233,12 @@ export async function ensureFeeRowsForStudent(
       .from('fee_records')
       .update({ amount: Number(options.monthlyFee || 0), updated_at: now })
       .eq('skf_id', normalizedSkfId)
+      .eq('fee_type', 'monthly')
       .eq('month', month)
       .eq('year', year)
+      .in('status', ['due', 'overdue', 'rejected'])
 
-    if (error) throw error
+    if (error) throwFeeRepositoryError(error)
   }
 
   return { created: rowsToInsert.length, updated: rowsToUpdate.length }
@@ -205,7 +249,9 @@ export async function markFeeAsPaid(
   month: string,
   receiptId: string,
   paymentId: string,
-  year?: number
+  year?: number,
+  feeType = 'monthly',
+  reviewer?: string
 ): Promise<boolean> {
   const normalizedSkfId = normalizeSkfId(skfId)
   const targetYear = Number(year || new Date().getFullYear())
@@ -221,13 +267,17 @@ export async function markFeeAsPaid(
       paid_date: new Date().toISOString(),
       receipt_id: receiptId,
       payment_method: paymentId,
+      verified_by: reviewer || null,
+      verified_at: new Date().toISOString(),
+      rejected_reason: null,
       updated_at: new Date().toISOString(),
     })
     .eq('skf_id', normalizedSkfId)
+    .eq('fee_type', feeType)
     .eq('month', month)
     .eq('year', targetYear)
 
-  if (error) throw error
+  if (error) throwFeeRepositoryError(error)
   return true
 }
 
@@ -235,7 +285,8 @@ export async function markFeeStatus(
   skfId: string,
   month: string,
   year: number,
-  updates: Partial<Pick<FeeRow, 'status' | 'paidDate' | 'receiptId' | 'paymentMethod'>>
+  updates: Partial<Pick<FeeRow, 'status' | 'paidDate' | 'receiptId' | 'paymentMethod' | 'rejectedReason' | 'notes'>>,
+  feeType = 'monthly'
 ): Promise<boolean> {
   const normalizedSkfId = normalizeSkfId(skfId)
   if (!requireFeeDatabase()) {
@@ -249,12 +300,15 @@ export async function markFeeStatus(
       paid_date: updates.paidDate || null,
       receipt_id: updates.receiptId || null,
       payment_method: updates.paymentMethod || null,
+      rejected_reason: updates.rejectedReason || null,
+      notes: updates.notes || null,
       updated_at: new Date().toISOString(),
     })
     .eq('skf_id', normalizedSkfId)
+    .eq('fee_type', feeType)
     .eq('month', month)
     .eq('year', year)
 
-  if (error) throw error
+  if (error) throwFeeRepositoryError(error)
   return true
 }

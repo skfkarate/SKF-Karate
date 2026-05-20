@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
+import { cache } from 'react'
 
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
+import { logger } from '@/src/server/lib/logger'
 import {
   createTournament,
   deleteTournament,
@@ -189,7 +191,7 @@ async function readAllTournamentsFromDatabase(): Promise<TournamentRecord[]> {
   return (data || []).map((row) => mapTournamentRowToRecord(row))
 }
 
-async function getTournamentDataset(): Promise<TournamentRecord[]> {
+const getTournamentDataset = cache(async function getTournamentDataset(): Promise<TournamentRecord[]> {
   if (!isSupabaseReady()) {
     return cloneTournamentData(getAllTournamentsAdmin())
   }
@@ -197,10 +199,10 @@ async function getTournamentDataset(): Promise<TournamentRecord[]> {
   try {
     return await readAllTournamentsFromDatabase()
   } catch (error) {
-    console.warn('[tournaments-live] Falling back to local tournament repository:', error)
+    logger.warn('tournaments_live.local_fallback', { error })
     return cloneTournamentData(getAllTournamentsAdmin())
   }
-}
+})
 
 async function hasTournamentSlugLive(slug: string, excludeId: string | null = null) {
   const normalized = String(slug || '').trim().toLowerCase()

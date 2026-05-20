@@ -1,9 +1,11 @@
 import { type Branch, type City, type School, cities as staticCities } from '@/lib/classesData'
 import type { SenseiSummary } from '@/lib/types/sensei'
+import { cache } from 'react'
 
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { buildStaticSenseiDataset } from './senseis-live'
+import { logger } from '@/src/server/lib/logger'
 
 type SchoolRecord = School & { id: string; sortOrder?: number }
 
@@ -344,7 +346,7 @@ async function resolveBranchSenseiPayload(
   }
 }
 
-export async function getAllCitiesLive() {
+export const getAllCitiesLive = cache(async function getAllCitiesLive() {
   if (!isSupabaseReady()) {
     return getStaticCityDataset()
   }
@@ -352,10 +354,10 @@ export async function getAllCitiesLive() {
   try {
     return cloneData(await readAllCitiesFromDatabase())
   } catch (error) {
-    console.warn('[classes-live] Falling back to static classes data:', error)
+    logger.warn('classes_live.static_fallback', { error })
     return getStaticCityDataset()
   }
-}
+})
 
 export async function getCityBySlugLive(slug: string) {
   const cities = await getAllCitiesLive()

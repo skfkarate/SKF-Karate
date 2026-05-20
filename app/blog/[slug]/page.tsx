@@ -9,6 +9,7 @@ import {
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import BlogReadingClient from './BlogReadingClient'
 import '../blog.css'
 
 export const revalidate = 300
@@ -113,13 +114,20 @@ export default async function BlogDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      {/* Ambient Orbs */}
+      <div className="blog-amb-orb blog-amb-orb--1" aria-hidden="true" />
+      <div className="blog-amb-orb blog-amb-orb--2" aria-hidden="true" />
+
+      {/* Reading Progress + Back to Top */}
+      <BlogReadingClient />
+
       <article className="blog-reader" aria-labelledby="article-title">
-        <Link href="/blog" className="blog-back-link">
+        <Link href="/blog" className="blog-back-link blog-reveal blog-reveal--1">
           <ArrowLeft size={16} />
           All blogs
         </Link>
 
-        <header className="blog-reader__header">
+        <header className="blog-reader__header blog-reveal blog-reveal--2">
           <div className="blog-eyebrow">
             <BookOpen size={15} />
             {post.category}
@@ -139,7 +147,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </div>
         </header>
 
-        <div className="blog-reader__content">
+        <div className="blog-reader__content blog-reveal blog-reveal--3">
           {articleParagraphs.map((paragraph, index) => (
             <p key={index} className={index === 0 ? 'blog-reader__lead' : undefined}>
               {paragraph}
@@ -149,7 +157,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
       </article>
 
       {moreGuides.length > 0 ? (
-        <section className="blog-reader-more" aria-labelledby="more-guides-title">
+        <section className="blog-reader-more blog-reveal blog-reveal--4" aria-labelledby="more-guides-title">
           <h2 id="more-guides-title">More guides</h2>
           <div className="blog-reader-more__list">
             {moreGuides.map((entry) => (
@@ -158,7 +166,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
                   <small>{entry.category}</small>
                   <strong>{entry.title}</strong>
                 </span>
-                <ArrowUpRight size={17} />
+                <span className="blog-reader-more__arrow">
+                  Read <ArrowUpRight size={14} />
+                </span>
               </Link>
             ))}
           </div>

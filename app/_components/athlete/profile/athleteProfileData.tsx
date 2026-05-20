@@ -9,6 +9,11 @@ import {
 } from '@/lib/types/tournament'
 import { calculateResultPoints } from '@/lib/utils/points'
 import { normaliseSkfId } from '@/lib/utils/registration'
+import {
+  getAssignedPortalEvents,
+  getPortalEventHref,
+  isUpcomingPortalEvent,
+} from '@/lib/utils/portal-events'
 
 type AthleteAchievement = {
   id?: string
@@ -57,9 +62,15 @@ type EventParticipant = {
 
 type AthleteEventSource = {
   id?: string
+  slug?: string
   date?: string
   endDate?: string
   name?: string
+  type?: string
+  sourceKind?: string
+  venue?: string
+  city?: string
+  isPublished?: boolean
   participants?: EventParticipant[]
 }
 
@@ -383,23 +394,19 @@ function buildCompetitionCategories(
 }
 
 function buildUpcomingEvents(athlete: AthleteProfileSource, allEvents: AthleteEventSource[]) {
-  const now = Date.now()
   const athleteSkfId = normaliseSkfId(String(athlete.skfId || '')).toUpperCase()
-  return (allEvents || [])
-    .filter((event) => new Date(event.date || '').getTime() >= now)
-    .filter((event) =>
-      Array.isArray(event.participants) &&
-      event.participants.some(
-        (participant) =>
-          normaliseSkfId(String(participant.skfId || '')).toUpperCase() === athleteSkfId
-      )
-    )
+  return getAssignedPortalEvents(allEvents || [], athleteSkfId)
+    .filter((event) => isUpcomingPortalEvent(event))
     .sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime())
     .slice(0, 4)
     .map((event) => ({
       id: event.id,
       dateRange: formatDateRange(event.date || '', event.endDate),
       name: event.name,
+      href: getPortalEventHref(event),
+      type: event.type,
+      venue: event.venue,
+      city: event.city,
     }))
 }
 

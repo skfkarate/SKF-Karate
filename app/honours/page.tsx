@@ -9,12 +9,12 @@ import {
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
 import JsonLdScript from '@/components/JsonLdScript'
-import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import { buildBreadcrumbJsonLd, buildNoIndexMetadata } from '@/data/constants/seo'
 import './honours.css'
 
 export const revalidate = 300
 
-export const metadata = buildSeoMetadata(
+export const metadata = buildNoIndexMetadata(
   '/honours',
   'Celebrate SKF Karate black belts, champions, top performers, medal winners, instructors, and athletes recognized for karate excellence in Karnataka today.'
 )

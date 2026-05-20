@@ -50,6 +50,7 @@ const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
 })
 
 const requiredTables = [
+  ['staff_accounts', 'id'],
   ['programs', 'id'],
   ['athletes', 'id'],
   ['portal_videos', 'youtube_id'],
@@ -67,6 +68,17 @@ const requiredTables = [
   ['event_categories', 'slug'],
   ['student_points', 'skf_id'],
   ['point_transactions', 'id'],
+  ['student_billing_profiles', 'skf_id'],
+  ['fee_receipt_settings', 'active_theme_id'],
+  ['fee_receipts', 'receipt_id'],
+  ['fee_payment_proofs', 'id'],
+  ['fee_credits', 'id'],
+  ['development_fund_expenses', 'id'],
+  ['fee_audit_logs', 'id'],
+  ['fee_followups', 'id'],
+  ['fee_payment_intents', 'id'],
+  ['fee_reminder_logs', 'id'],
+  ['fee_extra_incomes', 'id'],
 ]
 
 const requiredColumns = [
@@ -74,6 +86,11 @@ const requiredColumns = [
     'athletes',
     'skf_id',
     'Run database/migrations/011_rename_registration_number_to_skf_id.sql.',
+  ],
+  [
+    'staff_accounts',
+    'password_hash',
+    'Run database/migrations/015_fee_operations_console.sql.',
   ],
   [
     'athletes',
@@ -115,9 +132,35 @@ const requiredColumns = [
     'lead_sensei_id',
     'Run database/migrations/014_admin_event_class_linkage.sql.',
   ],
+  [
+    'fee_records',
+    'fee_type',
+    'Run database/migrations/015_fee_operations_console.sql and database/migrations/016_fee_receipts_and_atomic_operations.sql.',
+  ],
+  [
+    'student_billing_profiles',
+    'admission_fee',
+    'Run database/migrations/015_fee_operations_console.sql.',
+  ],
+  [
+    'fee_payment_proofs',
+    'payment_intent_id',
+    'Run database/migrations/019_fee_collection_workflow.sql.',
+  ],
+  [
+    'fee_payment_proofs',
+    'metadata',
+    'Run database/migrations/019_fee_collection_workflow.sql.',
+  ],
+  [
+    'fee_extra_incomes',
+    'deleted_at',
+    'Run database/migrations/020_extra_incomes.sql.',
+  ],
 ]
 
 const sensitiveAnonTables = [
+  ['staff_accounts', 'id'],
   ['athletes', 'id'],
   ['portal_videos', 'youtube_id'],
   ['video_progress', 'id'],
@@ -126,6 +169,16 @@ const sensitiveAnonTables = [
   ['fee_records', 'id'],
   ['student_points', 'skf_id'],
   ['point_transactions', 'id'],
+  ['student_billing_profiles', 'skf_id'],
+  ['fee_receipts', 'receipt_id'],
+  ['fee_payment_proofs', 'id'],
+  ['fee_credits', 'id'],
+  ['development_fund_expenses', 'id'],
+  ['fee_audit_logs', 'id'],
+  ['fee_followups', 'id'],
+  ['fee_payment_intents', 'id'],
+  ['fee_reminder_logs', 'id'],
+  ['fee_extra_incomes', 'id'],
 ]
 
 let failures = 0
@@ -191,7 +244,7 @@ async function checkAnonExposure(table, column) {
   mark('WARN', `${table}: anon direct read returned rows; verify this is intentional RLS exposure`)
 }
 
-async function checkTrainingVideosBucket() {
+async function checkPrivateBucket(bucketName) {
   const { data, error } = await admin.storage.listBuckets()
 
   if (error) {
@@ -200,20 +253,20 @@ async function checkTrainingVideosBucket() {
     return
   }
 
-  const bucket = data.find((item) => item.name === 'training-videos')
+  const bucket = data.find((item) => item.name === bucketName)
   if (!bucket) {
     failures += 1
-    mark('FAIL', 'training-videos bucket: missing')
+    mark('FAIL', `${bucketName} bucket: missing`)
     return
   }
 
   if (bucket.public) {
     failures += 1
-    mark('FAIL', 'training-videos bucket: exists but is public')
+    mark('FAIL', `${bucketName} bucket: exists but is public`)
     return
   }
 
-  mark('PASS', 'training-videos bucket: exists and is private')
+  mark('PASS', `${bucketName} bucket: exists and is private`)
 }
 
 console.log('Supabase readiness check: read-only')
@@ -231,7 +284,8 @@ for (const [table, column] of sensitiveAnonTables) {
   await checkAnonExposure(table, column)
 }
 
-await checkTrainingVideosBucket()
+await checkPrivateBucket('training-videos')
+await checkPrivateBucket('fee-payment-proofs')
 
 if (failures > 0) {
   console.error(`Supabase readiness failed: ${failures} failures, ${warnings} warnings.`)

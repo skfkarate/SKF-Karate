@@ -29,6 +29,16 @@ export interface SeedEvent {
 
 export const events: SeedEvent[] = [
   {
+    id: 'evt_kyu_grading_june_2026', slug: 'kyu-belt-grading-june-2026',
+    name: 'Kyu Belt Grading Examination', shortName: 'Kyu Grading',
+    type: "grading", status: "upcoming", date: '2026-06-07', endDate: '',
+    venue: 'MP Sports Club', city: 'Bangalore', state: 'Karnataka',
+    description: 'The first belt grading examination of the season. Exact dates in June will be finalized and announced shortly.',
+    coverImageUrl: '', affiliatedBody: '',
+    isPublished: true, isFeatured: false, isResultsPublished: false,
+    hostingBranch: 'MP Sports Club', createdAt: '2026-05-13T00:00:00Z', updatedAt: '2026-05-13T00:00:00Z',
+  },
+  {
     id: 'evt_summer_camp_2026', slug: 'summer-camp-2026',
     name: 'Summer Camp 2026', shortName: 'Summer Camp 2026',
     type: "camp", status: "upcoming", date: '2026-04-01', endDate: '2026-05-31',

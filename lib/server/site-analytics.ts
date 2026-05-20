@@ -1,4 +1,5 @@
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { logger } from '@/src/server/lib/logger'
 
 export const SITE_ANALYTICS_EVENT_TYPES = [
   'page_view',
@@ -187,13 +188,11 @@ export async function recordSiteAnalyticsEvent(input: SiteAnalyticsEventInput) {
 
   if (error) {
     if (isMissingTableError(error)) {
-      console.warn(
-        '[site-analytics] Missing "site_analytics_events" table. Apply database/schema.sql to enable admin website analytics.'
-      )
+      logger.warn('site_analytics.missing_table', { table: 'site_analytics_events' })
       return { ok: false, reason: 'missing-table' as const }
     }
 
-    console.error('[site-analytics] Failed to record analytics event:', error)
+    logger.error('site_analytics.record_failed', { error })
     return { ok: false, reason: 'insert-failed' as const }
   }
 
@@ -356,7 +355,7 @@ export async function getWebsiteAnalyticsSummary(): Promise<{
       },
     }
   } catch (error) {
-    console.error('[site-analytics] Failed to load website analytics:', error)
+    logger.error('site_analytics.load_failed', { error })
     return {
       data: null,
       warning: 'Website analytics could not be loaded.',

@@ -35,7 +35,13 @@ export const POST = withRoute(
   const event = razorpayWebhookSchema.parse(JSON.parse(body))
   if (event.event === 'payment.captured' && event.payload?.payment?.entity) {
     const { notes } = event.payload.payment.entity
-    const receiptId = `RCP_${notes.skfId}_${notes.month}_${notes.year}`
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    const rawMonth = String(notes.month || '').trim()
+    const parsedMonth = /^\d+$/.test(rawMonth)
+      ? Number(rawMonth)
+      : months.findIndex((month) => month.toLowerCase() === rawMonth.toLowerCase() || month.slice(0, 3).toLowerCase() === rawMonth.slice(0, 3).toLowerCase()) + 1
+    const monthNumber = String(parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth : 1).padStart(2, '0')
+    const receiptId = `SKF-FEE-${notes.year}-${monthNumber}-MON-${String(notes.skfId || '').trim().toUpperCase()}`
     await markFeeAsPaid(notes.skfId, notes.month, receiptId, event.payload.payment.entity.id)
   }
   return Response.json({ received: true })

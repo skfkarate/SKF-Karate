@@ -1,21 +1,96 @@
 import type { AuthOptions, User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import bcrypt from 'bcryptjs'
 
-interface AuthUser extends User {
+import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+
+export interface AuthUser extends User {
   id: string
   role: string
+  branchScope?: string
 }
 
 function buildUser({
   id,
   name,
   role,
+  branchScope = 'all',
 }: {
   id: string
   name: string
   role: string
+  branchScope?: string
 }): AuthUser {
-  return { id, name, role }
+  return { id, name, role, branchScope }
+}
+
+async function findStaffAccount(username: string, password: string): Promise<AuthUser | null> {
+  if (!isSupabaseReady()) return null
+
+  const { data, error } = await supabaseAdmin
+    .from('staff_accounts')
+    .select('id, username, password_hash, display_name, role, branch_scope, is_active')
+    .eq('username', username)
+    .maybeSingle()
+
+  if (error || !data?.is_active || !data.password_hash) {
+    return null
+  }
+
+  const valid = await bcrypt.compare(password, String(data.password_hash))
+  if (!valid) return null
+
+  await supabaseAdmin
+    .from('staff_accounts')
+    .update({ last_login_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq('id', data.id)
+
+  return buildUser({
+    id: String(data.id),
+    name: String(data.display_name || data.username || 'Fee Staff'),
+    role: String(data.role || 'fee_manager'),
+    branchScope: String(data.branch_scope || 'all'),
+  })
+}
+
+export async function authorizeStaffCredentials(
+  usernameInput: string,
+  passwordInput: string
+): Promise<AuthUser | null> {
+  const username = String(usernameInput || '').trim()
+  const password = String(passwordInput || '')
+  if (!username || !password) return null
+
+  const staffAccount = await findStaffAccount(username, password)
+  if (staffAccount) {
+    return staffAccount
+  }
+
+  if (
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    return buildUser({
+      id: 'admin-1',
+      name: 'Admin',
+      role: 'admin',
+      branchScope: 'all',
+    })
+  }
+
+  if (
+    username === process.env.INSTRUCTOR_USERNAME &&
+    password === process.env.INSTRUCTOR_PASSWORD
+  ) {
+    return buildUser({
+      id: 'instructor-1',
+      name: 'Instructor',
+      role: 'instructor',
+      branchScope: 'all',
+    })
+  }
+
+  return null
 }
 
 export const authOptions: AuthOptions = {
@@ -31,29 +106,7 @@ export const authOptions: AuthOptions = {
           return null
         }
 
-        if (
-          credentials.username === process.env.ADMIN_USERNAME &&
-          credentials.password === process.env.ADMIN_PASSWORD
-        ) {
-          return buildUser({
-            id: 'admin-1',
-            name: 'Admin',
-            role: 'admin',
-          })
-        }
-
-        if (
-          credentials.username === process.env.INSTRUCTOR_USERNAME &&
-          credentials.password === process.env.INSTRUCTOR_PASSWORD
-        ) {
-          return buildUser({
-            id: 'instructor-1',
-            name: 'Instructor',
-            role: 'instructor',
-          })
-        }
-
-        return null
+        return authorizeStaffCredentials(credentials.username, credentials.password)
       },
     }),
   ],
@@ -66,6 +119,7 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.branchScope = user.branchScope
       }
 
       return token
@@ -78,6 +132,10 @@ export const authOptions: AuthOptions = {
 
         if (typeof token.role === 'string') {
           session.user.role = token.role
+        }
+
+        if (typeof token.branchScope === 'string') {
+          session.user.branchScope = token.branchScope
         }
       }
 

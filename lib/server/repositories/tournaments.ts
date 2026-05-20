@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from '../data-store'
 import { ApiError } from '../api'
+import { logger } from '@/src/server/lib/logger'
 
 /**
  * Mock tournament data for SKF Karate
@@ -455,7 +456,7 @@ function ensureTournamentsLoaded() {
       )
     }
   } catch (error) {
-    console.error('Failed to load tournament store:', error)
+    logger.error('tournaments.local_store_load_failed', { error })
   }
 }
 

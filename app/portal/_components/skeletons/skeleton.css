@@ -1,5 +1,6 @@
-/* skeleton.css */
+/* skeleton.css — Production-grade skeleton system for SKF Athlete Portal */
 
+/* ═══════ SHIMMER ANIMATION ═══════ */
 @keyframes skeleton-shimmer {
   0%   { background-position: -800px 0; }
   100% { background-position:  800px 0; }
@@ -16,15 +17,16 @@
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
   display: block;
   flex-shrink: 0;
+  max-width: 100%; /* Prevent overflow on mobile */
 }
 
-/* Light mode (or fallback) */
+/* ═══════ DESIGN TOKENS ═══════ */
 :root {
-  --skeleton-base:  rgba(255, 255, 255, 0.05);
-  --skeleton-shine: rgba(255, 255, 255, 0.12);
+  --skeleton-base:  rgba(255, 255, 255, 0.04);
+  --skeleton-shine: rgba(255, 255, 255, 0.10);
 }
 
-/* Content fade-in — apply to real content when it replaces skeleton */
+/* ═══════ CONTENT ARRIVAL ANIMATION ═══════ */
 @keyframes content-arrive {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -34,9 +36,23 @@
   animation: content-arrive 0.18s ease-out forwards;
 }
 
+/* ═══════ ACCESSIBILITY ═══════ */
 @media (prefers-reduced-motion: reduce) {
   .skeleton-shimmer {
     animation: none;
     background: var(--skeleton-base);
+  }
+  .content-arrive {
+    animation: none;
+  }
+}
+
+/* ═══════ MOBILE RESPONSIVE SKELETON OVERRIDES ═══════ */
+/* These ensure skeleton widths/heights never overflow on smaller screens */
+
+@media (max-width: 768px) {
+  /* Clamp all skeleton line widths that use fixed pixel values */
+  .skeleton-shimmer {
+    max-width: 100%;
   }
 }

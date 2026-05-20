@@ -4,9 +4,9 @@ import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import { retryWithBackoff } from '@/lib/utils/retry'
 import type { LeadInput } from '@/src/server/api/validators/lead.validator'
-import { env, hasEnv } from '@/src/server/config/env'
 import { ExternalServiceError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
+import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 function escapeTelegramMarkdown(value: string) {
   return value.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
@@ -59,7 +59,7 @@ export class LeadService {
       logger.warn('lead.sheets_failed', { error })
     }
 
-    if (hasEnv('TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID')) {
+    if (hasTelegramChannel('leads')) {
       const telegramMessage = [
         '🥋 *New Free Trial Request*',
         '',
@@ -77,23 +77,14 @@ export class LeadService {
 
       try {
         await retryWithBackoff(async () => {
-          const response = await fetch(
-            `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: env.TELEGRAM_CHAT_ID,
-                text: telegramMessage,
-                parse_mode: 'Markdown',
-              }),
-              signal: AbortSignal.timeout(5000),
-            }
-          )
+          const result = await sendTelegramMessage({
+            channel: 'leads',
+            text: telegramMessage,
+            parseMode: 'Markdown',
+            timeoutMs: 5000,
+          })
 
-          if (!response.ok) {
-            throw new Error(`Telegram HTTP ${response.status}`)
-          }
+          if (!result.ok) throw new Error(result.error || 'Telegram leads alert failed')
         })
         telegram = true
       } catch (error) {

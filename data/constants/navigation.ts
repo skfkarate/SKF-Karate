@@ -26,7 +26,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
     label: 'Events',
     children: [
       { label: 'Upcoming Events', href: '/events' },
-      { label: 'Results', href: '/results', disabled: true },
+      { label: 'Results', href: '/results' },
     ],
   },
   {
@@ -51,7 +51,7 @@ export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
   {
     label: 'For Athletes',
     children: [
-      { label: 'Athlete Portal', href: '/portal', disabled: true },
+      { label: 'Athlete Portal', href: '/portal' },
       { label: 'Belt Grading', href: '/grading' },
       { label: 'Verify Certificate', href: '/verify' },
     ],
@@ -121,7 +121,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { label: 'Shop Orders', href: '/admin/shop', description: 'Fulfilment and approvals' },
       { label: 'Shop Products', href: '/admin/shop/products', description: 'Merchandise catalog' },
-      { label: 'Training Fees', href: '/admin/training-fee', description: 'Monthly fee ledger and receipts' },
     ],
   },
   {
@@ -137,10 +136,10 @@ export const ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((group) => group.items)
 /* ── Portal Nav ── */
 export const PORTAL_NAV_ITEMS = [
   { href: '/portal/dashboard', label: 'Identity', iconName: 'UserCircle' },
-  { href: '/portal/grading', label: 'Grading', iconName: 'TrendingUp' },
-  { href: '/portal/trophy-room', label: 'Trophy Room', iconName: 'Trophy' },
-  { href: '/portal/points', label: 'Points', iconName: 'Award' },
+  { href: '/portal/journey', label: 'Journey', iconName: 'Map' },
+  { href: '/portal/fees', label: 'Fees', iconName: 'CreditCard' },
   { href: '/portal/events', label: 'Events', iconName: 'Flag' },
   { href: '/portal/videos', label: 'Home Practice', iconName: 'PlayCircle' },
   { href: '/portal/timetable', label: 'Timetable', iconName: 'Calendar' },
+  { href: '/portal/blackbelt', label: 'Black Belt', iconName: 'Trophy' },
 ] as const

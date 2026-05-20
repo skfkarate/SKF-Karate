@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache'
 import type { 
   Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement, Belt
 } from '@/types'
+import { logger } from '@/src/server/lib/logger'
 
 type SheetCell = string | number | boolean | null | undefined
 type SheetRow = SheetCell[]
@@ -123,7 +124,7 @@ export async function getAllSkfIds(): Promise<string[]> {
     const rows = res.data.values || []
     return sheetDataRows(rows).map(r => r[0]).filter(Boolean)
   } catch (error) {
-    console.error('getAllSkfIds error:', error)
+    logger.error('sheets.get_all_skf_ids_failed', { error })
     return []
   }
 }
@@ -164,7 +165,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
       } as Student
     }
   } catch (error) {
-    console.error('getStudentBySkfId Sheets fetch failed, falling back to mock DB:', error instanceof Error ? error.message : error)
+    logger.warn('sheets.get_student_by_skf_id_failed', { skfId, error })
   }
 
   // Fallback to local mock athletes for development if Sheet fails or is empty
@@ -213,7 +214,7 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
       dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
-    console.error('getAllStudents error:', error)
+    logger.error('sheets.get_all_students_failed', { error })
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
     const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes.map((athlete) => ({
@@ -254,7 +255,7 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
       dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
-    console.error('getStudentsByBranch error:', error)
+    logger.error('sheets.get_students_by_branch_failed', { branch, error })
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
     const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes
@@ -299,7 +300,7 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
       dob: normalizeSheetDob(row[11])
     } as Student))
   } catch (error) {
-    console.error('getStudentsByPhone error:', error)
+    logger.error('sheets.get_students_by_phone_failed', { phone, error })
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
     const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes
@@ -341,7 +342,7 @@ export const getFeesBySkfId = cacheRead(async (skfId: string): Promise<FeeRow[]>
       paymentMethod: row[7]
     }))
   } catch (error) {
-    console.error('getFeesBySkfId error:', error)
+    logger.error('sheets.get_fees_by_skf_id_failed', { skfId, error })
     return []
   }
 }, ['getFeesBySkfId'], 30)
@@ -384,7 +385,7 @@ export async function getAllFeesLive(year?: number): Promise<FeeRow[]> {
       .map((entry) => entry.fee)
       .filter((row) => (Number.isFinite(Number(year)) ? row.year === Number(year) : true))
   } catch (error) {
-    console.error('getAllFeesLive error:', error)
+    logger.error('sheets.get_all_fees_live_failed', { error })
     return []
   }
 }
@@ -397,7 +398,7 @@ export async function findFeeByReceiptIdLive(receiptId: string): Promise<FeeRow 
     const rows = await getFeeRowsWithSheetIndex()
     return rows.find((entry) => String(entry.fee.receiptId || '').trim() === normalizedReceiptId)?.fee || null
   } catch (error) {
-    console.error('findFeeByReceiptIdLive error:', error)
+    logger.error('sheets.find_fee_by_receipt_id_failed', { receiptId, error })
     return null
   }
 }
@@ -468,7 +469,7 @@ export async function ensureFeeRowsForStudent(
 
     return { created, updated }
   } catch (error) {
-    console.error('ensureFeeRowsForStudent error:', error)
+    logger.error('sheets.ensure_fee_rows_for_student_failed', { skfId, year: options.year, error })
     return { created: 0, updated: 0 }
   }
 }
@@ -500,7 +501,7 @@ export async function markFeeAsPaid(skfId: string, month: string, receiptId: str
     })
     return true
   } catch (error) {
-    console.error('markFeeAsPaid error:', error)
+    logger.error('sheets.mark_fee_as_paid_failed', { skfId, month, receiptId, error })
     return false
   }
 }
@@ -536,7 +537,7 @@ export async function markFeeStatus(
 
     return true
   } catch (error) {
-    console.error('markFeeStatus error:', error)
+    logger.error('sheets.mark_fee_status_failed', { skfId, month, status, error })
     return false
   }
 }
@@ -565,7 +566,7 @@ export const getVideosByBranchAndBatch = cacheRead(async (branch: string, batch:
         durationMin: Number(row[9])
       }))
   } catch (error) {
-    console.error('getVideosByBranchAndBatch error:', error)
+    logger.error('sheets.get_videos_by_branch_and_batch_failed', { branch, batch, error })
     return []
   }
 }, ['getVideosByBranchAndBatch'], 300)
@@ -582,7 +583,7 @@ export const getVideoUrlById = cacheRead(async (videoId: string): Promise<string
     if (!row) return null
     return row[2] // YouTube_URL
   } catch (error) {
-    console.error('getVideoUrlById error:', error)
+    logger.error('sheets.get_video_url_by_id_failed', { videoId, error })
     return null
   }
 }, ['getVideoUrlById'], 3600)
@@ -610,7 +611,7 @@ export const getTimetableByBranch = cacheRead(async (branch: string): Promise<{ 
       year: Number(row[2])
     }
   } catch (error) {
-    console.error('getTimetableByBranch error:', error)
+    logger.error('sheets.get_timetable_by_branch_failed', { branch, error })
     return null
   }
 }, ['getTimetableByBranch'], 3600)
@@ -630,7 +631,7 @@ export const getTournamentsBySkfId = cacheRead(async (skfId: string): Promise<To
       points: Number(row[5])
     }))
   } catch (error) {
-    console.error('getTournamentsBySkfId error:', error)
+    logger.error('sheets.get_tournaments_by_skf_id_failed', { skfId, error })
     return []
   }
 }, ['getTournamentsBySkfId'], 300)
@@ -654,7 +655,7 @@ export const getEnrollmentsBySkfId = cacheRead(async (skfId: string): Promise<En
       { id: '2', type: 'certificate', title: 'Elite Kumite Workshop', date: '2025-12-05' }
     ]
   } catch (error) {
-    console.error('getEnrollmentsBySkfId error:', error)
+    logger.error('sheets.get_enrollments_by_skf_id_failed', { skfId, error })
     return []
   }
 }, ['getEnrollmentsBySkfId'], 300)
@@ -673,7 +674,7 @@ export const getAttendanceBySkfId = cacheRead(async (skfId: string, month: strin
       markedBy: row[3]
     }))
   } catch (error) {
-    console.error('getAttendanceBySkfId error:', error)
+    logger.error('sheets.get_attendance_by_skf_id_failed', { skfId, error })
     return []
   }
 }, ['getAttendanceBySkfId'], 60)
@@ -690,7 +691,7 @@ export async function markAttendance(rows: AttendanceRow[]): Promise<boolean> {
     })
     return true
   } catch (error) {
-    console.error('markAttendance error:', error)
+    logger.error('sheets.mark_attendance_failed', { count: rows.length, error })
     return false
   }
 }
@@ -712,7 +713,7 @@ export async function createStudent(student: Omit<Student, 'skfId'> & { skfId: s
     })
     return true
   } catch (error) {
-    console.error('createStudent error:', error)
+    logger.error('sheets.create_student_failed', { skfId: student.skfId, error })
     return false
   }
 }
@@ -748,7 +749,7 @@ export async function updateStudent(skfId: string, updates: Partial<Student>): P
     })
     return true
   } catch (error) {
-    console.error('updateStudent error:', error)
+    logger.error('sheets.update_student_failed', { skfId, error })
     return false
   }
 }
@@ -777,7 +778,7 @@ export async function getVideosByBranch(branch: string): Promise<AdminVideoRow[]
         youtubeUrl: row[2] // Admin specific
     }))
   } catch (error) {
-    console.error('getVideosByBranch error:', error)
+    logger.error('sheets.get_videos_by_branch_failed', { branch, error })
     return []
   }
 }
@@ -816,7 +817,7 @@ export async function upsertTimetable(branch: string, imageUrl: string): Promise
     }
     return true
   } catch (error) {
-    console.error('upsertTimetable error:', error)
+    logger.error('sheets.upsert_timetable_failed', { branch, error })
     return false
   }
 }
@@ -844,7 +845,7 @@ export const getAnnouncements = cacheRead(async (branch?: string): Promise<Annou
       return true
     })
   } catch (error) {
-    console.error('getAnnouncements error:', error)
+    logger.error('sheets.get_announcements_failed', { branch, error })
     return []
   }
 }, ['getAnnouncements'], 60)
@@ -903,7 +904,7 @@ export const getTechniqueVideos = cacheRead(async (beltLevel?: string, category?
     })
 
   } catch (error) {
-    console.error('getTechniqueVideos error:', error)
+    logger.error('sheets.get_technique_videos_failed', { beltLevel, category, error })
     return []
   }
 }, ['getTechniqueVideos'], 3600)
@@ -921,7 +922,7 @@ export async function submitContactForm(row: SheetRow): Promise<boolean> {
     })
     return true
   } catch (error) {
-    console.error('submitContactForm error:', error)
+    logger.error('sheets.submit_contact_form_failed', { error })
     return false
   }
 }
@@ -951,7 +952,7 @@ export async function getSponsors(): Promise<Sponsor[]> {
       .filter(s => s.active)
       .sort((a, b) => (TIER_ORDER[a.tier] || 99) - (TIER_ORDER[b.tier] || 99))
   } catch (error) {
-    console.error('getSponsors error:', error)
+    logger.error('sheets.get_sponsors_failed', { error })
     return []
   }
 }
@@ -968,7 +969,7 @@ export async function submitLead(row: string[]): Promise<boolean> {
     })
     return true
   } catch (error) {
-    console.error('submitLead error:', error)
+    logger.error('sheets.submit_lead_failed', { error })
     return false
   }
 }
@@ -985,7 +986,7 @@ export async function submitSummerCampEnrollment(row: SheetRow): Promise<boolean
     })
     return true
   } catch (error) {
-    console.error('submitSummerCampEnrollment error:', error)
+    logger.error('sheets.submit_summer_camp_enrollment_failed', { error })
     return false
   }
 }
@@ -1020,7 +1021,7 @@ export const getSummerCampByBranch = cacheRead(async (branch: string) => {
       availableSlots: Number(row[5]) || 0
     }
   } catch (error) {
-    console.error('getSummerCampByBranch error:', error)
+    logger.error('sheets.get_summer_camp_by_branch_failed', { branch, error })
     return {
       branch,
       registrationOpen: true,
@@ -1055,7 +1056,7 @@ export async function decrementSummerCampSlots(branch: string): Promise<boolean>
     })
     return true
   } catch (error) {
-    console.error('decrementSummerCampSlots error:', error)
+    logger.error('sheets.decrement_summer_camp_slots_failed', { branch, error })
     return false
   }
 }
@@ -1098,10 +1099,10 @@ export async function createShopOrder(order: ShopOrder): Promise<boolean> {
             }
         })
         return true
-    } catch (error) {
-        console.error('Failed to create shop order:', error)
-        return false
-    }
+  } catch (error) {
+    logger.error('sheets.shop_order_create_failed', { orderId: order.orderId, error })
+    return false
+  }
 }
 
 export const getShopOrdersBySkfId = cacheRead(async (skfId: string): Promise<ShopOrder[]> => {
@@ -1124,7 +1125,7 @@ export const getShopOrdersBySkfId = cacheRead(async (skfId: string): Promise<Sho
                 addressJson: row[8]
             }))
     } catch (e) {
-        console.error('Failed to fetch Orders by SKFID:', e)
+        logger.error('sheets.shop_orders_by_skf_id_failed', { skfId, error: e })
         return []
     }
 }, ['shopOrdersBySkfId'], 15)
@@ -1147,7 +1148,7 @@ export const getAllShopOrders = cacheRead(async (): Promise<ShopOrder[]> => {
             addressJson: row[8]
         }))
     } catch (e) {
-        console.error('Failed to fetch all orders logger:', e)
+        logger.error('sheets.shop_orders_fetch_all_failed', { error: e })
         return []
     }
 }, ['allShopOrders'], 15)
@@ -1170,7 +1171,7 @@ export async function updateShopOrderStatus(orderId: string, status: string): Pr
         })
         return true
     } catch (e) {
-        console.error('Failed to update shop order status', e)
+        logger.error('sheets.shop_order_status_update_failed', { orderId, status, error: e })
         return false
     }
 }

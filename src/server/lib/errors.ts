@@ -67,7 +67,7 @@ export class RateLimitError extends AppError {
 
 export class ExternalServiceError extends AppError {
   constructor(message = 'External service unavailable', details?: unknown) {
-    super('EXTERNAL_SERVICE_ERROR', message, 503, details)
+    super('EXTERNAL_SERVICE_ERROR', message, 503, details, false)
     this.name = 'ExternalServiceError'
   }
 }

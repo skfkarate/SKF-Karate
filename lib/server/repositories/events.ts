@@ -18,6 +18,7 @@ import type {
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from "../data-store"
 import { ApiError } from "../api"
 import { events as seedEvents } from "../../../data/seed/events"
+import { logger } from '@/src/server/lib/logger'
 
 const EVENTS_DATA_FILE = resolveDataFile("events.json")
 
@@ -86,7 +87,7 @@ function ensureEventsLoaded() {
       events = sortByDateDesc(stored as EventRecord[])
     }
   } catch (error) {
-    console.error("Failed to load event store:", error)
+    logger.error('events.local_store_load_failed', { error })
   }
 }
 

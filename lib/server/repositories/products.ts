@@ -1,4 +1,5 @@
 import { supabaseAdmin, isSupabaseReady } from '../supabase'
+import { logger } from '@/src/server/lib/logger'
 
 export interface ProductVariant {
   id: string
@@ -38,13 +39,13 @@ export async function getProducts(): Promise<AdminProduct[]> {
             .order('created_at', { ascending: false });
 
         if (error || !data) {
-            console.error('[Products/DB] Failed to fetch products:', error);
+            logger.error('products.fetch_failed', { error });
             return [];
         }
 
         return data as AdminProduct[];
-    } catch {
-        console.warn('[Products/DB] Failed to fetch from Supabase.');
+    } catch (error) {
+        logger.warn('products.fetch_unexpected_failed', { error });
         return [];
     }
 }
@@ -71,12 +72,12 @@ export async function upsertProduct(product: AdminProduct): Promise<boolean> {
             }, { onConflict: 'id' });
 
         if (error) {
-            console.error('[Products/DB] Error upserting product:', error);
+            logger.error('products.upsert_failed', { error });
             return false;
         }
         return true;
     } catch (e) {
-        console.error('[Products/DB] Exception in upsert:', e);
+        logger.error('products.upsert_unexpected_failed', { error: e });
         return false;
     }
 }

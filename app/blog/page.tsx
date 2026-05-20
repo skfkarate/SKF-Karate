@@ -36,9 +36,13 @@ export default async function BlogPage() {
     <main className="blog-page">
       <JsonLdScript data={breadcrumbJsonLd} />
 
+      {/* Ambient Orbs */}
+      <div className="blog-amb-orb blog-amb-orb--1" aria-hidden="true" />
+      <div className="blog-amb-orb blog-amb-orb--2" aria-hidden="true" />
+
       <section className="blog-hero" aria-labelledby="blog-title">
         <div className="blog-hero__content">
-          <div className="blog-hero__copy">
+          <div className="blog-hero__copy blog-reveal blog-reveal--1">
             <div className="blog-eyebrow">
               <BookOpen size={15} />
               SKF Karate Journal
@@ -58,20 +62,22 @@ export default async function BlogPage() {
           </div>
 
           {heroPost ? (
-            <Link href={`/blog/${heroPost.slug}`} className="blog-hero__start">
-              <span className="blog-hero__feature-kicker">Start here</span>
-              <strong>{heroPost.title}</strong>
-              <span>{heroPost.excerpt}</span>
-              <small>
-                Read guide <ArrowUpRight size={14} />
-              </small>
-            </Link>
+            <div className="blog-hero__spotlight blog-reveal blog-reveal--2">
+              <Link href={`/blog/${heroPost.slug}`} className="blog-hero__start">
+                <span className="blog-hero__feature-kicker">Start here</span>
+                <strong>{heroPost.title}</strong>
+                <span>{heroPost.excerpt}</span>
+                <small>
+                  Read guide <ArrowUpRight size={14} />
+                </small>
+              </Link>
+            </div>
           ) : null}
         </div>
       </section>
 
       <section className="blog-shell" aria-label="Blog guide list">
-        <div className="blog-section-head">
+        <div className="blog-section-head blog-reveal blog-reveal--3">
           <div>
             <span className="blog-section-head__kicker">
               <Layers3 size={15} />
@@ -87,7 +93,7 @@ export default async function BlogPage() {
         </div>
 
         {secondaryFeaturedPosts.length > 0 ? (
-          <section className="blog-featured" aria-label="Featured blog guides">
+          <section className="blog-featured blog-reveal blog-reveal--4" aria-label="Featured blog guides">
             {secondaryFeaturedPosts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="blog-featured__item">
                 <span>{post.category}</span>
@@ -100,7 +106,7 @@ export default async function BlogPage() {
           </section>
         ) : null}
 
-        <div className="blog-list-head">
+        <div className="blog-list-head blog-reveal blog-reveal--5">
           <span>
             <Search size={15} />
             Latest guides
@@ -108,7 +114,7 @@ export default async function BlogPage() {
           <span>Updated {formatDate(posts[0]?.publishedAt || null)}</span>
         </div>
 
-        <div className="blog-list blog-list--text">
+        <div className="blog-list blog-list--text blog-reveal blog-reveal--6">
           {posts.map((post, index) => (
             <article
               key={post.slug}

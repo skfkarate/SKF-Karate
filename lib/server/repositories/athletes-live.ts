@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { cache } from 'react'
 
 import { calculateAllRanks } from '../../utils/rank'
 import { buildCompetitionResultsFromAthletes, getAthleteRankEntry } from '../../utils/rankings'
@@ -6,6 +7,7 @@ import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../
 import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements'
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
+import { logger } from '@/src/server/lib/logger'
 import {
   createAthlete,
   getAllAthletes,
@@ -319,7 +321,7 @@ async function readAllAthletesFromDatabase(): Promise<AthleteRecord[]> {
   return (data || []).map(mapAthleteRowToRecord)
 }
 
-async function getAthleteDataset(): Promise<AthleteRecord[]> {
+const getAthleteDataset = cache(async function getAthleteDataset(): Promise<AthleteRecord[]> {
   if (!isSupabaseReady()) {
     return cloneAthleteData(getAllAthletes())
   }
@@ -327,10 +329,10 @@ async function getAthleteDataset(): Promise<AthleteRecord[]> {
   try {
     return await readAllAthletesFromDatabase()
   } catch (error) {
-    console.warn('[athletes-live] Falling back to local athlete repository:', error)
+    logger.warn('athletes_live.local_fallback', { error })
     return cloneAthleteData(getAllAthletes())
   }
-}
+})
 
 async function getNextSequenceNumberLive(year: number, branchName = 'MP'): Promise<number> {
   const athletes = await getAthleteDataset()
@@ -435,7 +437,7 @@ export async function getAthleteBySkfIdLive(skfId: string) {
 
     return null
   } catch (error) {
-    console.warn('[athletes-live] Falling back to local athlete lookup by SKF ID:', error)
+    logger.warn('athletes_live.local_lookup_by_skf_id_fallback', { skfId, error })
     return cloneAthleteData(getAthleteBySkfId(skfId))
   }
 }
@@ -459,7 +461,7 @@ export async function getAthleteByIdLive(id: string) {
 
     return mapAthleteRowToRecord(data)
   } catch (error) {
-    console.warn('[athletes-live] Falling back to local athlete lookup by id:', error)
+    logger.warn('athletes_live.local_lookup_by_id_fallback', { id, error })
     return cloneAthleteData(getAthleteById(id))
   }
 }

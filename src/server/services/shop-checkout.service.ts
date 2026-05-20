@@ -17,13 +17,19 @@ function getRazorpayClient() {
   return razorpayClient
 }
 
+function buildShopReceiptId() {
+  const now = new Date()
+  const stamp = now.toISOString().replace(/[-:TZ.]/g, '').slice(0, 17)
+  return `SKF-SHOP-${stamp}`
+}
+
 export class ShopCheckoutService {
   static async createOrder(input: { amount: number; receipt?: string; notes?: Record<string, string> }) {
     const client = getRazorpayClient()
     const order = await client.orders.create({
       amount: Math.round(input.amount * 100),
       currency: 'INR',
-      receipt: input.receipt || `shop_rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      receipt: input.receipt || buildShopReceiptId(),
       notes: input.notes,
     })
 

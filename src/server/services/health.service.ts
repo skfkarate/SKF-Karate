@@ -27,6 +27,12 @@ export class HealthService {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         version: process.env.npm_package_version || '0.0.0',
+        environment: process.env.VERCEL_ENV || process.env.NODE_ENV || 'unknown',
+        deployment: {
+          commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || null,
+          id: process.env.VERCEL_DEPLOYMENT_ID || null,
+          region: process.env.VERCEL_REGION || null,
+        },
         checks: {
           database,
           cache,

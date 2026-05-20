@@ -8,6 +8,7 @@ import { getAllEventsAdminLive } from '@/lib/server/repositories/events-live'
 import { getAllBlogPostsAdminLive } from '@/lib/server/repositories/blogs-live'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { getWebsiteAnalyticsSummary } from '@/lib/server/site-analytics'
+import { logger } from '@/src/server/lib/logger'
 
 type DashboardEvent = {
   status?: string
@@ -38,7 +39,7 @@ async function withFallback<T>(promise: Promise<T>, fallback: T, label: string) 
   try {
     return await promise
   } catch (error) {
-    console.error(`[admin-dashboard] Failed to load ${label}:`, error)
+    logger.error('admin_dashboard.load_section_failed', { label, error })
     return fallback
   }
 }
@@ -138,7 +139,7 @@ async function getFastDashboardStats(): Promise<DashboardStats> {
       publishedBlogPosts,
     }
   } catch (error) {
-    console.warn('[admin-dashboard] Falling back to repository summary:', error)
+    logger.warn('admin_dashboard.repository_summary_fallback', { error })
     return getRepositoryDashboardStats()
   }
 }
@@ -249,12 +250,11 @@ export default async function AdminDashboardPage() {
       ],
     },
     {
-      title: 'Commerce & Fees',
-      description: 'Shop fulfilment, product catalog, and monthly training fee operations are linked here.',
+      title: 'Commerce',
+      description: 'Shop fulfilment and product catalog controls for the public website.',
       items: [
         { label: 'Shop Orders', href: '/admin/shop', meta: 'Fulfilment and approval queue' },
         { label: 'Shop Products', href: '/admin/shop/products', meta: 'Merchandise catalog' },
-        { label: 'Training Fees', href: '/admin/training-fee', meta: 'Monthly ledger and receipts' },
       ],
     },
     {

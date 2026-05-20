@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ValidationError, ExternalServiceError } from '@/src/server/lib/errors';
 import { logger } from '@/src/server/lib/logger';
 import { withRoute } from '@/src/server/lib/route';
+import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service';
 
 type SummerCampRegistrationPayload = {
   registrationType: 'existing' | 'new';
@@ -81,10 +82,6 @@ const summerCampRegistrationSchema = z.object({
   }
 });
 
-function escapeTelegramMarkdown(value: unknown) {
-  return String(value ?? '').replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
-}
-
 function safeSheetCell(value: unknown) {
   const text = String(value ?? '').trim();
   return /^[=+\-@]/.test(text) ? `'${text}` : text;
@@ -122,59 +119,42 @@ export const POST = withRoute(
     const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
     const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP;
     
-    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-
     const isExisting = data.registrationType === 'existing';
 
     let telegramNotified = 'No';
     const proof = getPaymentProof(data);
 
-    // 1. Send to Telegram
-    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      try {
-        const depositLine = isExisting ? '' : '\n*Deposit:* ₹300 (Paid via UPI)';
-        const message = `
-🥋 *New Summer Camp Registration*
-*Type:* ${isExisting ? 'Existing Member' : 'New Participant'}
-*Name:* ${escapeTelegramMarkdown(data.studentName)}
-${data.skfId ? `*SKF ID:* ${escapeTelegramMarkdown(data.skfId)}` : ''}
-*Contact:* ${escapeTelegramMarkdown(data.contactNumber)}
-*School:* ${escapeTelegramMarkdown(data.schoolName)} (Karate in School: ${escapeTelegramMarkdown(data.schoolKarate)})${depositLine}
-        `;
+    // 1. Send to Telegram orders channel
+    try {
+      const message = [
+        'New summer camp registration',
+        '',
+        `Type: ${isExisting ? 'Existing Member' : 'New Participant'}`,
+        `Name: ${data.studentName}`,
+        data.skfId ? `SKF ID: ${data.skfId}` : '',
+        `Contact: ${data.contactNumber}`,
+        `School: ${data.schoolName} (Karate in School: ${data.schoolKarate})`,
+        isExisting ? '' : 'Deposit: ₹300 (Paid via UPI)',
+      ].filter(Boolean).join('\n');
 
-        // If there's a payment proof image, send as photo with caption, else send text message
-        if (proof) {
-          const formData = new FormData();
-          formData.append('chat_id', TELEGRAM_CHAT_ID);
-          formData.append('caption', message);
-          formData.append('parse_mode', 'Markdown');
-          formData.append('photo', new Blob([proof.buffer]), proof.filename);
+      if (proof) {
+        const result = await sendTelegramPhoto({
+          channel: 'orders',
+          caption: message,
+          photo: new Blob([proof.buffer]),
+          filename: proof.filename,
+        });
 
-          const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (tgRes.ok) telegramNotified = 'Yes';
-          else logger.warn('summer_camp.telegram_photo_failed', { requestId, status: tgRes.status });
-        } else {
-          const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: TELEGRAM_CHAT_ID,
-              text: message,
-              parse_mode: 'Markdown',
-            }),
-          });
-          
-          if (tgRes.ok) telegramNotified = 'Yes';
-          else logger.warn('summer_camp.telegram_message_failed', { requestId, status: tgRes.status });
-        }
-      } catch (e: unknown) {
-        logger.error('summer_camp.telegram_failed', { requestId, error: e });
+        if (result.ok) telegramNotified = 'Yes';
+        else logger.warn('summer_camp.telegram_photo_failed', { requestId, status: result.status, skipped: result.skipped, error: result.error });
+      } else {
+        const result = await sendTelegramMessage({ channel: 'orders', text: message });
+
+        if (result.ok) telegramNotified = 'Yes';
+        else logger.warn('summer_camp.telegram_message_failed', { requestId, status: result.status, skipped: result.skipped, error: result.error });
       }
+    } catch (e: unknown) {
+      logger.error('summer_camp.telegram_failed', { requestId, error: e });
     }
 
     // 2. Save to Google Sheets

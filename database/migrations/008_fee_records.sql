@@ -28,6 +28,8 @@ CREATE INDEX IF NOT EXISTS idx_fee_records_status
 
 ALTER TABLE fee_records ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_full_fee_records" ON fee_records;
+
 CREATE POLICY "service_role_full_fee_records"
 ON fee_records
 FOR ALL

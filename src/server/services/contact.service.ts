@@ -1,9 +1,9 @@
 import { submitContactForm } from '@/lib/server/sheets'
 import { retryWithBackoff } from '@/lib/utils/retry'
 import type { ContactInput } from '@/src/server/api/validators/contact.validator'
-import { env, hasEnv } from '@/src/server/config/env'
 import { ExternalServiceError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
+import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 type ContactSubmissionResult = {
   sheet: boolean
@@ -61,7 +61,7 @@ export class ContactService {
       logger.warn('contact.sheets_failed', { error })
     }
 
-    if (hasEnv('TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID')) {
+    if (hasTelegramChannel('leads')) {
       const telegramMessage = [
         '🥋 *New Callback Request*',
         '',
@@ -79,23 +79,14 @@ export class ContactService {
 
       try {
         await retryWithBackoff(async () => {
-          const response = await fetch(
-            `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: env.TELEGRAM_CHAT_ID,
-                text: telegramMessage,
-                parse_mode: 'Markdown',
-              }),
-              signal: AbortSignal.timeout(5000),
-            }
-          )
+          const result = await sendTelegramMessage({
+            channel: 'leads',
+            text: telegramMessage,
+            parseMode: 'Markdown',
+            timeoutMs: 5000,
+          })
 
-          if (!response.ok) {
-            throw new Error(`Telegram HTTP ${response.status}`)
-          }
+          if (!result.ok) throw new Error(result.error || 'Telegram leads alert failed')
         })
         telegram = true
       } catch (error) {

@@ -55,7 +55,6 @@ export const POST = withRoute(
 
     const order = await ShopCheckoutService.createOrder({
       amount: preparedOrder.total,
-      receipt: `shop_rcpt_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       notes: {
         customerType: actor.authenticated ? 'athlete' : 'guest',
         skfId: actor.skfId || '',

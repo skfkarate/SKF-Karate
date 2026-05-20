@@ -121,9 +121,20 @@ describe('athlete achievement defaults', () => {
       [
         {
           id: 'evt_1',
+          slug: 'state-training-camp',
           name: 'State Training Camp',
+          type: 'camp',
           date: '2099-01-10',
+          venue: 'SKF Arena',
           participants: [{ skfId: 'skf26mp001' }],
+        },
+        {
+          id: 'evt_2',
+          slug: 'open-seminar',
+          name: 'Open Seminar',
+          type: 'seminar',
+          date: '2099-01-11',
+          participants: [{ skfId: 'SKF26MP999' }],
         },
       ]
     )
@@ -132,7 +143,44 @@ describe('athlete achievement defaults', () => {
       expect.objectContaining({
         id: 'evt_1',
         name: 'State Training Camp',
+        href: '/events/state-training-camp',
+        venue: 'SKF Arena',
       }),
     ])
+  })
+
+  it('links assigned upcoming tournaments to the results detail page', () => {
+    const profile = buildRestoredAthleteProfileData(
+      {
+        skfId: 'SKF26MP001',
+        firstName: 'Asha',
+        lastName: 'Kumar',
+        gender: 'female',
+        dateOfBirth: '2012-05-09',
+        branchName: 'M P Sports Club',
+        currentBelt: 'white',
+        status: 'active',
+        joinDate: '2026-01-10',
+        achievements: [],
+      },
+      null,
+      [
+        {
+          id: 'tour_1',
+          slug: 'state-karate-championship',
+          name: 'State Karate Championship',
+          type: 'tournament',
+          sourceKind: 'tournament',
+          date: '2099-02-10',
+          participants: [{ skfId: 'SKF26MP001' }],
+        },
+      ]
+    )
+
+    expect(profile.nextEvents[0]).toEqual(
+      expect.objectContaining({
+        href: '/results/state-karate-championship',
+      })
+    )
   })
 })

@@ -23,7 +23,7 @@ export const GET = withRoute(
   },
   async ({ request, params, portalSession }) => {
     const skfId = portalSession!.skfId!
-    const receiptRateLimit = await applyRateLimit(request, 'upload', `receipt:${skfId}`)
+    const receiptRateLimit = await applyRateLimit(request, 'authed', `receipt:${skfId}`)
     if (!receiptRateLimit.allowed) {
       throw new RateLimitError(receiptRateLimit.headers)
     }
@@ -39,27 +39,34 @@ export const GET = withRoute(
       throw new NotFoundError('Receipt')
     }
 
+    const mode = new URL(request.url).searchParams.get('mode') === 'download' ? 'download' : 'preview'
     const receiptDocument = React.createElement(ReceiptDocument, {
         receiptId: data.receiptId,
         studentName: data.athleteName,
         skfId: data.skfId,
         branch: data.branch,
+        feeType: data.feeType,
         month: data.month,
         year: data.year,
         amount: data.amount,
         paidDate: data.paidDate,
         paymentMethod: data.paymentMethod,
         dojoAddress: data.dojoAddress,
+        verifiedBy: data.verifiedBy,
+        verifiedAt: data.verifiedAt,
+        issuedAt: data.issuedAt,
       }) as unknown as Parameters<typeof renderToStream>[0]
     const stream = await renderToStream(receiptDocument)
 
     const fileId = formatFilename(`${data.athleteName}_${data.month}_${data.year}_${data.receiptId}`)
+    const disposition = mode === 'download' ? 'attachment' : 'inline'
 
     return new Response(stream as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${fileId || data.receiptId}.pdf"`,
-        'Cache-Control': 'private, no-store',
+        'Content-Disposition': `${disposition}; filename="${fileId || data.receiptId}.pdf"`,
+        'Cache-Control': data.source === 'snapshot' ? 'private, max-age=86400, immutable' : 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
       },
     })
   }

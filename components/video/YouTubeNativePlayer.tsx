@@ -55,6 +55,9 @@ type YouTubeNativePlayerProps = {
   youtubeId: string
   title: string
   posterUrl?: string
+  initialProgressPercent?: number
+  onProgress?: (payload: { progressPercent: number }) => void
+  onComplete?: () => void
   onEscape?: () => void
 }
 
@@ -105,6 +108,9 @@ export default function YouTubeNativePlayer({
   youtubeId,
   title,
   posterUrl,
+  initialProgressPercent = 0,
+  onProgress,
+  onComplete,
   onEscape,
 }: YouTubeNativePlayerProps) {
   const playerHostRef = useRef<HTMLDivElement | null>(null)
@@ -112,6 +118,11 @@ export default function YouTubeNativePlayer({
   const playerRef = useRef<YouTubePlayer | null>(null)
   const pollRef = useRef<number | null>(null)
   const hideControlsTimerRef = useRef<number | null>(null)
+  const lastReportedProgressRef = useRef(0)
+  const completedReportedRef = useRef(false)
+  const onProgressRef = useRef(onProgress)
+  const onCompleteRef = useRef(onComplete)
+  const initialProgressRef = useRef(initialProgressPercent)
 
   const [isReady, setIsReady] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -123,7 +134,15 @@ export default function YouTubeNativePlayer({
   const [error, setError] = useState('')
 
   useEffect(() => {
+    initialProgressRef.current = initialProgressPercent
+    onProgressRef.current = onProgress
+    onCompleteRef.current = onComplete
+  }, [initialProgressPercent, onComplete, onProgress])
+
+  useEffect(() => {
     let cancelled = false
+    lastReportedProgressRef.current = Math.max(0, Math.min(100, Math.round(initialProgressRef.current || 0)))
+    completedReportedRef.current = false
 
     async function initializePlayer() {
       try {
@@ -160,19 +179,49 @@ export default function YouTubeNativePlayer({
               setDuration(player.getDuration() || 0)
               setIsReady(true)
 
+              const readyDuration = player.getDuration() || 0
+              const initialPercent = Math.max(0, Math.min(95, Number(initialProgressRef.current || 0)))
+              if (readyDuration > 0 && initialPercent > 0) {
+                const startAt = (readyDuration * initialPercent) / 100
+                player.seekTo(startAt, true)
+                setCurrentTime(startAt)
+              }
+
               pollRef.current = window.setInterval(() => {
                 const currentPlayer = playerRef.current
                 if (!currentPlayer) return
-                setCurrentTime(currentPlayer.getCurrentTime() || 0)
-                setDuration(currentPlayer.getDuration() || 0)
+                const nextCurrentTime = currentPlayer.getCurrentTime() || 0
+                const nextDuration = currentPlayer.getDuration() || 0
+                const nextProgress = nextDuration > 0 ? Math.min(100, Math.round((nextCurrentTime / nextDuration) * 100)) : 0
+
+                setCurrentTime(nextCurrentTime)
+                setDuration(nextDuration)
                 setIsMuted(currentPlayer.isMuted())
+
+                if (
+                  nextProgress > 0 &&
+                  nextProgress < 100 &&
+                  Math.abs(nextProgress - lastReportedProgressRef.current) >= 5
+                ) {
+                  lastReportedProgressRef.current = nextProgress
+                  onProgressRef.current?.({ progressPercent: nextProgress })
+                }
               }, 500)
             },
             onStateChange: (event) => {
               const state = window.YT?.PlayerState
               if (!state) return
               setIsPlaying(event.data === state.PLAYING)
-              if (event.data === state.ENDED) setCurrentTime(playerRef.current?.getDuration() || 0)
+              if (event.data === state.ENDED) {
+                const finalDuration = playerRef.current?.getDuration() || 0
+                setCurrentTime(finalDuration)
+                if (!completedReportedRef.current) {
+                  completedReportedRef.current = true
+                  lastReportedProgressRef.current = 100
+                  onProgressRef.current?.({ progressPercent: 100 })
+                  onCompleteRef.current?.()
+                }
+              }
             },
           },
         })
