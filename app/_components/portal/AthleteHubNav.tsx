@@ -147,6 +147,36 @@ export default function AthleteHubNav() {
             {visibleNavLinks.map((link) => {
               const Icon = link.icon
               const isActive = pathname === link.href
+              const isDisabled = 'disabled' in link ? link.disabled : false
+
+              if (isDisabled) {
+                return (
+                  <div 
+                    key={link.href} 
+                    className="kuroobi-dock__link"
+                    title={!isHovered ? link.label : ''}
+                    style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                  >
+                    <div className="kuroobi-dock__icon-wrapper">
+                      <Icon size={20} strokeWidth={1.5} />
+                    </div>
+                    
+                    <AnimatePresence>
+                      {isHovered && (
+                        <motion.span 
+                          className="kuroobi-dock__link-label"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10, transition: { duration: 0.1 } }}
+                          transition={{ duration: 0.15, delay: 0.05 }}
+                        >
+                          {link.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )
+              }
 
               return (
                 <Link 
@@ -274,6 +304,28 @@ export default function AthleteHubNav() {
               {visibleNavLinks.map((link, idx) => {
                 const Icon = link.icon
                 const isActive = pathname === link.href
+                const isDisabled = 'disabled' in link ? link.disabled : false
+
+                if (isDisabled) {
+                  return (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.08 + idx * 0.05, duration: 0.3 }}
+                    >
+                      <div
+                        className="kuroobi-overlay__link"
+                        style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                      >
+                        <div className="kuroobi-overlay__link-icon">
+                          <Icon size={18} strokeWidth={1.5} />
+                        </div>
+                        {link.label}
+                      </div>
+                    </motion.div>
+                  )
+                }
 
                 return (
                   <motion.div

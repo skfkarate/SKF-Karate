@@ -203,11 +203,11 @@ function DojoLoginInner() {
               type="button"
               className="dojo-login__test-btn"
               onClick={() => {
-                setSkfId('SKF18MP001')
-                setDob('12-04-1995')
+                setSkfId('SKF01MP999')
+                setDob('15-08-1992')
               }}
             >
-              Dev Fill (Sample Athlete)
+              Dev Fill (Reference Athlete)
             </button>
           </motion.div>
         )}
