@@ -1,4 +1,4 @@
-import { Inter, Outfit } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import './profile.css'
 import '@/components/skeletons/skeleton.css'
@@ -15,18 +15,40 @@ import WhatsAppButton from '@/components/WhatsAppButton'
 import { SITE_CONFIG } from '@/data/constants/siteConfig'
 import { buildSeoMetadata } from '@/data/constants/seo'
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+const bodyFont = localFont({
+  src: [
+    {
+      path: '../public/fonts/Montserrat-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Montserrat-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  variable: '--font-body',
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+  variable: '--font-body-local',
 })
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+const headingFont = localFont({
+  src: [
+    {
+      path: '../public/fonts/Cinzel-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Cinzel-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  variable: '--font-heading',
+  fallback: ['Georgia', 'Times New Roman', 'serif'],
+  variable: '--font-heading-local',
 })
 
 export const metadata: Metadata = {
@@ -45,7 +67,7 @@ import CookieConsent from '@/components/CookieConsent'
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" dir="ltr" className={`${bodyFont.variable} ${headingFont.variable}`}>
       <body>
         {/* Global Cinematic Orbs */}
         <div className="amb-orb amb-orb--1" />
