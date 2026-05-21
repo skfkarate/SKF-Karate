@@ -54,6 +54,9 @@ export function revalidateClassesSitePaths(options: {
   revalidatePath('/classes')
   revalidatePath('/book-trial')
   revalidatePath('/contact')
+  revalidatePath('/about')
+  revalidatePath('/honours')
+  revalidatePath('/instructors/[slug]', 'page')
   revalidatePath('/')
 
   if (options.citySlug) {
@@ -66,12 +69,16 @@ export function revalidateClassesSitePaths(options: {
 }
 
 export function revalidateSenseiSitePaths(slug?: string) {
-  void slug
-
   revalidatePath('/admin/senseis')
+  revalidatePath('/about')
   revalidatePath('/classes')
   revalidatePath('/honours')
+  revalidatePath('/instructors/[slug]', 'page')
   revalidatePath('/')
+
+  if (slug) {
+    revalidatePath(`/instructors/${slug}`)
+  }
 }
 
 export function revalidateTournamentSitePaths(tournament?: { id?: string; slug?: string }) {

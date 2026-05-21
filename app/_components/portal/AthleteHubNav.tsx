@@ -76,7 +76,30 @@ export default function AthleteHubNav() {
   const [isBBCandidate, setIsBBCandidate] = useState(false)
   const scrollHidden = useScrollDirection()
 
+  const [backHovered, setBackHovered] = useState(false)
+  const [backHintActive, setBackHintActive] = useState(false)
+
   const isLoginPage = pathname === '/portal/login'
+  const isBackToHome = true
+  const backText = 'Home Page'
+
+  useEffect(() => {
+    const triggerHint = () => {
+      setBackHintActive(true)
+      setTimeout(() => {
+        setBackHintActive(false)
+      }, 2500)
+    }
+
+    const initialTimer = setTimeout(triggerHint, 4000)
+    const interval = setInterval(triggerHint, 25000)
+
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(interval)
+    }
+  }, [])
+
 
   useEffect(() => {
     if (isLoginPage) return
@@ -229,8 +252,10 @@ export default function AthleteHubNav() {
 
       {/* ══════════ BACK BUTTON (RESPONSIVE & DYNAMIC POSITIONING) ══════════ */}
       <motion.button
-        className={`kuroobi-back ${(scrollHidden && !menuOpen) ? 'back-hidden' : ''}`}
+        className={`kuroobi-back ${backHovered || backHintActive ? 'expanded' : ''} ${isBackToHome ? 'back-home' : ''} ${(scrollHidden && !menuOpen) ? 'back-hidden' : ''}`}
         onClick={handleBack}
+        onMouseEnter={() => setBackHovered(true)}
+        onMouseLeave={() => setBackHovered(false)}
         aria-label={isLoginPage ? 'Back to website' : 'Go back'}
         style={{ display: menuOpen ? 'none' : undefined }}
         animate={{ 
@@ -238,7 +263,10 @@ export default function AthleteHubNav() {
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <ChevronLeft size={20} strokeWidth={2} />
+        <div className="kuroobi-back-inner">
+          <ChevronLeft size={20} strokeWidth={2.2} className="kuroobi-back-icon" />
+          <span className="kuroobi-back-text">{backText}</span>
+        </div>
       </motion.button>
 
       {/* ══════════ MOBILE: FAB BUTTON ══════════ */}

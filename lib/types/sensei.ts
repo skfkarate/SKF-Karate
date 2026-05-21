@@ -19,6 +19,8 @@ export interface SenseiSummary {
   specialty: string
   description: string
   imageUrl: string
+  objectPosition?: string
+  hidePhoto?: boolean
   accent: SenseiAccent
   isPublic: boolean
   isActive: boolean

@@ -16,11 +16,11 @@
   --dim: rgba(255,255,255,0.45);
   --dimmer: rgba(255,255,255,0.25);
   --bright: #ffffff;
-  --r: 20px;
-  --rs: 14px;
+  --r: 24px;
+  --rs: 20px;
   padding: 0 1rem 6rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   color: var(--bright);
   font-family: 'Inter', sans-serif;
@@ -29,14 +29,17 @@
 /* ═══ HERO SECTION ═══ */
 .bb-hero {
   position: relative;
-  padding: 3rem 2.5rem 0;
+  padding: 2.5rem 2.5rem 0.5rem;
   border-radius: var(--r);
-  background: var(--void);
-  border: 1px solid var(--edge);
-  margin-top: 2rem;
+  background: rgba(10, 14, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 0;
   margin-bottom: 2rem;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
 
 .bb-hero__bg {
@@ -216,11 +219,14 @@
 }
 
 .bb-card {
-  background: var(--glass);
-  border: 1px solid var(--edge);
+  background: rgba(10, 14, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--rs);
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 /* ═══ SECTION HEADERS ═══ */
@@ -585,7 +591,13 @@
     border-top: none; 
     padding: 1rem 0 1.25rem 0; 
     gap: 0.75rem;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
+  .bb-tabs::-webkit-scrollbar { display: none; }
   .bb-tab { 
     padding: 0.6rem 1.25rem; 
     border-radius: 999px; 
@@ -593,6 +605,7 @@
     border: 1px solid var(--edge);
     flex-direction: row; gap: 0.4rem;
     font-size: 0.85rem;
+    flex-shrink: 0 !important;
   }
   .bb-tab::after { display: none; }
   .bb-tab--active { 

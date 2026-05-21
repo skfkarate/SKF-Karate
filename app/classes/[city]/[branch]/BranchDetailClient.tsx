@@ -172,7 +172,7 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                                 referrerPolicy="no-referrer-when-downgrade"
                                 src={branch.mapUrl && branch.mapUrl.includes('embed')
                                     ? branch.mapUrl
-                                    : `https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${encodeURIComponent(branch.name + ', ' + cityName)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
+                                    : `https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${encodeURIComponent(branch.name)},${encodeURIComponent(cityName)}&t=&z=14&ie=UTF8&iwloc=B&output=embed`}
                             ></iframe>
                         </div>
                     </div>

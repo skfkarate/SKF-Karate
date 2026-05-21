@@ -34,7 +34,7 @@ export function getLocalProfilePhotoUrl(
 
 export function resolveAthleteProfilePhoto(source: ProfilePhotoSource) {
   const explicitPhotoUrl = String(source.photoUrl || '').trim()
-  if (explicitPhotoUrl) return explicitPhotoUrl
+  if (explicitPhotoUrl && !explicitPhotoUrl.includes('/no-profile/')) return explicitPhotoUrl
 
   return getLocalProfilePhotoUrl(source.skfId, source.gender) || getAthleteFallbackProfilePhoto(source.gender)
 }

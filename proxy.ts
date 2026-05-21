@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
 const PORTAL_COOKIE_NAME = 'skf_portal_token'
+const ADMIN_COOKIE_NAMES = ['next-auth.session-token', '__Secure-next-auth.session-token'] as const
+const ADMIN_ROLES = new Set(['admin', 'instructor'])
 const FEETRACK_HOST = 'fees.skfkarate.org'
 
 type PortalJwtPayload = {
@@ -49,7 +52,7 @@ function buildContentSecurityPolicy() {
       'https://www.youtube-nocookie.com',
       'https://*.ingest.sentry.io',
     ].join(' '),
-    "frame-src 'self' https://checkout.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://drive.google.com",
+    "frame-src 'self' https://checkout.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://drive.google.com https://www.google.com https://maps.google.com",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -61,9 +64,21 @@ function buildContentSecurityPolicy() {
 function attachSecurityHeaders(
   response: NextResponse,
   csp: string,
-  options: { clearPortalCookie?: boolean } = {}
+  options: { clearAdminCookies?: boolean; clearPortalCookie?: boolean } = {}
 ) {
   response.headers.set('Content-Security-Policy', csp)
+  if (options.clearAdminCookies) {
+    for (const cookieName of ADMIN_COOKIE_NAMES) {
+      response.cookies.set(cookieName, '', {
+        path: '/',
+        maxAge: 0,
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
+    }
+  }
+
   if (options.clearPortalCookie) {
     response.cookies.set(PORTAL_COOKIE_NAME, '', {
       path: '/',
@@ -155,12 +170,29 @@ async function verifyPortalJwt(token: string | undefined): Promise<PortalJwtPayl
   }
 }
 
+async function getValidAdminToken(request: NextRequest) {
+  if (!process.env.NEXTAUTH_SECRET) return null
+
+  try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+    const role = typeof token?.role === 'string' ? token.role : ''
+
+    return ADMIN_ROLES.has(role) ? token : null
+  } catch {
+    return null
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const csp = buildContentSecurityPolicy()
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('Content-Security-Policy', csp)
 
   const pathname = request.nextUrl.pathname
+  requestHeaders.set('x-skf-pathname', pathname)
   const host = request.headers.get('host')?.toLowerCase() || ''
 
   if (isLegacyFeeHost(host)) {
@@ -177,11 +209,13 @@ export async function proxy(request: NextRequest) {
   const isPortalLoginPage = pathname === '/portal/login'
   const isPortalRoute = pathname.startsWith('/portal')
 
-  const adminToken =
-    request.cookies.get('next-auth.session-token')?.value ||
-    request.cookies.get('__Secure-next-auth.session-token')?.value
   const isAdminLoginPage = pathname === '/admin/login'
   const isAdminRoute = pathname.startsWith('/admin')
+  const rawAdminToken = ADMIN_COOKIE_NAMES.some((cookieName) =>
+    Boolean(request.cookies.get(cookieName)?.value)
+  )
+  const adminToken = isAdminRoute ? await getValidAdminToken(request) : null
+  const clearAdminCookies = Boolean(isAdminRoute && rawAdminToken && !adminToken)
 
   if (isPortalRoute) {
     if (!portalSession && !isPortalLoginPage) {
@@ -197,7 +231,9 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminRoute) {
     if (!adminToken && !isAdminLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)), csp)
+      return attachSecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)), csp, {
+        clearAdminCookies,
+      })
     }
 
     if (adminToken && isAdminLoginPage) {
@@ -211,7 +247,7 @@ export async function proxy(request: NextRequest) {
     },
   })
 
-  return attachSecurityHeaders(response, csp, { clearPortalCookie })
+  return attachSecurityHeaders(response, csp, { clearAdminCookies, clearPortalCookie })
 }
 
 export const config = {

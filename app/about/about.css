@@ -278,7 +278,7 @@
 /* ── LEGACY GRID (DUAL COLUMN) ── */
 .abt-legacy-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.15fr;
   gap: 4rem;
   align-items: center;
 }
@@ -734,7 +734,8 @@
 
   .abt-focus-image {
     order: 2;
-    aspect-ratio: 4/3; /* Wider on mobile */
+    aspect-ratio: 3/4 !important; /* Portrait on mobile to fit features cleanly */
+    height: auto !important;
   }
 
   .abt-legacy-text {

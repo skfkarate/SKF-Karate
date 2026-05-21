@@ -41,8 +41,8 @@
   --text-muted: rgba(255, 255, 255, 0.4);
 
   /* Typography */
-  --font-heading: var(--font-heading-local, 'Cinzel'), Georgia, serif;
-  --font-body: var(--font-body-local, 'Montserrat'), system-ui, sans-serif;
+  --font-heading: var(--font-heading-google, 'Outfit'), sans-serif;
+  --font-body: var(--font-body-google, 'Inter'), sans-serif;
 
   /* SKF Universal Tokens */
   --bg-primary: #030508;
