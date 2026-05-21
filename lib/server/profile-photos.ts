@@ -55,7 +55,7 @@ export function getLocalProfilePhotoFile(skfId: string | null | undefined): Loca
 
 export function resolveServerAthleteProfilePhoto(source: ProfilePhotoSource) {
   const explicitPhotoUrl = String(source.photoUrl || '').trim()
-  if (explicitPhotoUrl) return explicitPhotoUrl
+  if (explicitPhotoUrl && !explicitPhotoUrl.includes('/no-profile/')) return explicitPhotoUrl
 
   const photoFile = getLocalProfilePhotoFile(source.skfId)
   return photoFile

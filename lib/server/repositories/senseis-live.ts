@@ -55,7 +55,7 @@ type CityLookupRow = {
   name: string
 }
 
-const DEFAULT_IMAGE = '/gallery/In Dojo.jpeg'
+const DEFAULT_IMAGE = '/no-profile/no profile male.png'
 
 function cloneData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -242,10 +242,19 @@ export function buildStaticSenseiDataset(): SenseiProfile[] {
   const seenNames = new Set<string>()
 
   for (const [index, instructor] of instructors.entries()) {
-    const shouldInclude = instructor.isSensei || /^sensei\b/i.test(instructor.name)
+    const shouldInclude =
+      instructor.isFounder ||
+      instructor.isExecutiveCommittee ||
+      instructor.isSensei ||
+      /^sensei\b/i.test(instructor.name)
     if (!shouldInclude) continue
 
     const assignments = assignmentMap.get(normalizePersonKey(instructor.name)) || []
+    const isAssignable = Boolean(
+      instructor.isSensei ||
+      /^sensei\b/i.test(instructor.name) ||
+      assignments.length > 0
+    )
     const record: SenseiProfile = {
       id: instructor.id,
       slug: instructor.slug,
@@ -260,12 +269,14 @@ export function buildStaticSenseiDataset(): SenseiProfile[] {
       achievements: Array.isArray(instructor.achievements) ? instructor.achievements : [],
       quote: instructor.quote || '',
       imageUrl: instructor.image || DEFAULT_IMAGE,
+      objectPosition: instructor.objectPosition,
+      hidePhoto: instructor.hidePhoto,
       accent: normalizeAccent(instructor.color),
       isFounder: Boolean(instructor.isFounder),
       isExecutiveCommittee: Boolean(instructor.isExecutiveCommittee),
       isPublic: true,
       isActive: true,
-      isAssignable: true,
+      isAssignable,
       sortOrder: index,
       assignments,
     }
@@ -313,6 +324,7 @@ function mapSenseiRowToRecord(
       : [],
     quote: row.quote || '',
     imageUrl: row.image_url || DEFAULT_IMAGE,
+    hidePhoto: row.image_url ? (row.image_url.includes('/no-profile/') || row.image_url.includes('no profile')) : true,
     accent: normalizeAccent(row.accent_color),
     isFounder: Boolean(row.is_founder),
     isExecutiveCommittee: Boolean(row.is_executive_committee),
@@ -390,6 +402,60 @@ export async function getPublicSenseisLive() {
   return records.filter((sensei) => sensei.isPublic && sensei.isActive)
 }
 
+export async function getPublicExecutiveCommitteeLive() {
+  const records = await getAllSenseisLive()
+  const staticCommittee = getStaticSenseiDataset().filter(
+    (sensei) => sensei.isFounder || sensei.isExecutiveCommittee
+  )
+  const liveById = new Map(records.map((sensei) => [sensei.id, sensei]))
+  const liveBySlug = new Map(records.map((sensei) => [sensei.slug, sensei]))
+  const usedLiveKeys = new Set<string>()
+  const merged: SenseiProfile[] = []
+
+  for (const staticSensei of staticCommittee) {
+    const liveSensei = liveById.get(staticSensei.id) || liveBySlug.get(staticSensei.slug)
+
+    if (liveSensei) {
+      usedLiveKeys.add(liveSensei.id)
+      usedLiveKeys.add(liveSensei.slug)
+
+      if (
+        liveSensei.isPublic &&
+        liveSensei.isActive &&
+        (liveSensei.isFounder || liveSensei.isExecutiveCommittee)
+      ) {
+        merged.push(liveSensei)
+      }
+
+      continue
+    }
+
+    if (staticSensei.isPublic && staticSensei.isActive) {
+      merged.push(staticSensei)
+    }
+  }
+
+  for (const liveSensei of records) {
+    if (
+      !liveSensei.isPublic ||
+      !liveSensei.isActive ||
+      (!liveSensei.isFounder && !liveSensei.isExecutiveCommittee) ||
+      usedLiveKeys.has(liveSensei.id) ||
+      usedLiveKeys.has(liveSensei.slug)
+    ) {
+      continue
+    }
+
+    merged.push(liveSensei)
+  }
+
+  return merged
+    .sort((a, b) => {
+      if (a.isFounder !== b.isFounder) return a.isFounder ? -1 : 1
+      return a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)
+    })
+}
+
 export async function getAssignableSenseisLive() {
   const records = await getAllSenseisLive()
   return records.filter((sensei) => sensei.isAssignable && sensei.isActive)
@@ -400,6 +466,18 @@ export async function getSenseiBySlugLive(slug: string) {
   if (!normalized) return null
   const records = await getAllSenseisLive()
   return records.find((sensei) => sensei.slug === normalized) || null
+}
+
+export async function getPublicSenseiBySlugLive(slug: string) {
+  const sensei = await getSenseiBySlugLive(slug)
+  if (sensei) {
+    return sensei.isPublic && sensei.isActive ? sensei : null
+  }
+
+  const normalized = String(slug || '').trim()
+  const staticSensei = getStaticSenseiDataset().find((record) => record.slug === normalized)
+  if (!staticSensei || !staticSensei.isPublic || !staticSensei.isActive) return null
+  return staticSensei
 }
 
 export async function getSenseiByIdLive(id: string) {
@@ -670,6 +748,8 @@ export function toSenseiSummary(sensei: SenseiProfile | null | undefined): Sense
     specialty: sensei.specialty,
     description: sensei.description,
     imageUrl: sensei.imageUrl,
+    objectPosition: sensei.objectPosition,
+    hidePhoto: sensei.hidePhoto,
     accent: sensei.accent,
     isPublic: sensei.isPublic,
     isActive: sensei.isActive,

@@ -44,7 +44,7 @@ export const cities: City[] = [
         slug: 'bangalore',
         name: 'Bangalore',
         state: 'Karnataka',
-        photo: '/gallery/In Dojo.jpeg',
+        photo: '/cities/bangalore.png',
         branches: [
             {
                 slug: 'mp-sports-club',
@@ -88,7 +88,7 @@ export const cities: City[] = [
         slug: 'kunigal',
         name: 'Kunigal',
         state: 'Karnataka',
-        photo: '/gallery/In Dojo.jpeg',
+        photo: '/cities/kunigal.png',
         branches: [
             {
                 slug: 'kunigal-main',
@@ -111,7 +111,7 @@ export const cities: City[] = [
         slug: 'tumkur',
         name: 'Tumkur',
         state: 'Karnataka',
-        photo: '/gallery/In Dojo.jpeg',
+        photo: '/cities/tumkur.png',
         branches: [
             {
                 slug: 'tumkur-main',
@@ -134,7 +134,7 @@ export const cities: City[] = [
         slug: 'udupi',
         name: 'Udupi',
         state: 'Karnataka',
-        photo: '/gallery/In Dojo.jpeg',
+        photo: '/cities/udupi.png',
         branches: [
             {
                 slug: 'udupi-main',

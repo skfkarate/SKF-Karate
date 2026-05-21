@@ -2,9 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { FaCheckCircle, FaTrophy, FaBuilding, FaUsers, FaMedal, FaShieldAlt, FaCertificate, FaMapMarkerAlt } from 'react-icons/fa'
-import { getExecutiveCommittee } from '@/data/seed/instructors'
+import { getPublicExecutiveCommitteeLive } from '@/lib/server/repositories/senseis-live'
+import type { SenseiBranchAssignment, SenseiProfile } from '@/lib/types/sensei'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+
+export const revalidate = 300
 
 export const metadata: Metadata = buildSeoMetadata(
     '/about',
@@ -14,10 +17,25 @@ export const metadata: Metadata = buildSeoMetadata(
 import { buildOrgJsonLd, ORG_STATS, LEGACY_HIGHLIGHTS, AFFILIATIONS, SITE_CONFIG } from '@/data/constants/siteConfig'
 import './about.css'
 
-export default function AboutPage() {
-    const committee = getExecutiveCommittee()
-    const founder = committee[0]
-    const activeCommittee = committee.slice(1)
+function formatAssignmentLabel(assignments: SenseiBranchAssignment[] = []) {
+    const branchNames = Array.from(
+        new Set(assignments.map((assignment) => assignment.branchName.trim()).filter(Boolean))
+    )
+
+    return branchNames.join(', ')
+}
+
+function hasDisplayRank(instructor: SenseiProfile) {
+    const rank = String(instructor.dan || '').trim()
+    if (!rank) return false
+
+    return rank !== 'Lead Instructor' || instructor.isFounder || /^sensei\b/i.test(instructor.name)
+}
+
+export default async function AboutPage() {
+    const committee = await getPublicExecutiveCommitteeLive()
+    const founder = committee.find((instructor) => instructor.isFounder) || committee[0]
+    const activeCommittee = committee.filter((instructor) => instructor.id !== founder.id)
     const jsonLd = buildOrgJsonLd()
     const breadcrumbJsonLd = buildBreadcrumbJsonLd('About', '/about')
 
@@ -102,7 +120,13 @@ export default function AboutPage() {
                     </div>
                     
                     <div className="abt-focus-image">
-                        <Image src={founder.image} alt={founder.name} fill priority />
+                        <Image
+                            src={founder.imageUrl}
+                            alt={founder.name}
+                            fill
+                            style={{ objectFit: 'cover', objectPosition: founder.objectPosition || 'center' }}
+                            priority
+                        />
                         <div className="abt-focus-overlay">
                             <div style={{ textAlign: 'left' }}>
                                 <div style={{ color: 'var(--gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.3rem' }}>{founder.title}</div>
@@ -152,9 +176,19 @@ export default function AboutPage() {
 
                 <div className="abt-roster-grid">
                     {activeCommittee.map((instructor, idx) => (
-                        <Link key={idx} href={`/instructors/${instructor.slug}`} className="abt-roster-card">
+                        <Link key={instructor.id || idx} href={`/instructors/${instructor.slug}`} className="abt-roster-card">
                             <div className="abt-roster-card__imgwrap">
-                                <Image src={instructor.image} alt={instructor.name} fill />
+                                <Image
+                                    src={instructor.imageUrl}
+                                    alt={instructor.name}
+                                    fill
+                                    style={{
+                                        objectPosition: instructor.hidePhoto ? 'center 25%' : (instructor.objectPosition || 'center'),
+                                        objectFit: instructor.hidePhoto ? 'contain' : 'cover',
+                                        opacity: instructor.hidePhoto ? 0.3 : 1,
+                                        inset: instructor.hidePhoto ? '2rem' : '0'
+                                    }}
+                                />
                             </div>
                             <div className="abt-roster-card__gradient" />
                             
@@ -163,8 +197,12 @@ export default function AboutPage() {
                                 <div className="abt-roster-name">{instructor.name}</div>
                                 
                                 <div className="abt-roster-meta">
-                                    <div className="abt-roster-pill"><FaCertificate style={{ color: 'var(--gold)' }} /> {instructor.rank || instructor.dan}</div>
-                                    <div className="abt-roster-pill"><FaMapMarkerAlt style={{ color: 'var(--crimson-light)' }} /> {instructor.branch}</div>
+                                    {hasDisplayRank(instructor) && (
+                                        <div className="abt-roster-pill"><FaCertificate style={{ color: 'var(--gold)' }} /> {instructor.dan}</div>
+                                    )}
+                                    {formatAssignmentLabel(instructor.assignments) && (
+                                        <div className="abt-roster-pill"><FaMapMarkerAlt style={{ color: 'var(--crimson-light)' }} /> {formatAssignmentLabel(instructor.assignments)}</div>
+                                    )}
                                 </div>
                             </div>
                         </Link>

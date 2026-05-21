@@ -4,8 +4,11 @@ import { getPublishedBlogPostsLive } from '@/lib/server/repositories/blogs-live'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getProducts } from '@/lib/server/repositories/products'
+import {
+  getPublicExecutiveCommitteeLive,
+  getPublicSenseisLive,
+} from '@/lib/server/repositories/senseis-live'
 import { getAllTournamentsLive } from '@/lib/server/repositories/tournaments-live'
-import { getExecutiveCommittee } from '@/data/seed/instructors'
 import { absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 type SitemapRoute = {
@@ -44,12 +47,14 @@ function uniqueRoutes(routes: SitemapRoute[]) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [cities, events, tournaments, posts, products] = await Promise.all([
+  const [cities, events, tournaments, posts, products, senseis, executiveCommittee] = await Promise.all([
     getAllCitiesLive(),
     getAllEventsLive(),
     getAllTournamentsLive(),
     getPublishedBlogPostsLive(),
     getProducts(),
+    getPublicSenseisLive(),
+    getPublicExecutiveCommitteeLive(),
   ])
 
   const classRoutes = cities.flatMap((city) => {
@@ -93,7 +98,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'monthly' as const,
   }))
 
-  const instructorRoutes = getExecutiveCommittee().map((instructor) => ({
+  const instructors = Array.from(
+    new Map([...senseis, ...executiveCommittee].map((instructor) => [instructor.slug, instructor])).values()
+  )
+
+  const instructorRoutes = instructors.map((instructor) => ({
     path: `/instructors/${instructor.slug}`,
     priority: 0.7,
     changeFrequency: 'monthly' as const,

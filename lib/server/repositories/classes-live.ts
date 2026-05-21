@@ -169,7 +169,8 @@ function mapSenseiRowToSummary(row: SenseiSummaryRow): SenseiSummary {
     role: row.role || row.title || 'Lead Instructor',
     specialty: row.specialty || 'Karate Instruction',
     description: row.description || `${row.name} serves in the SKF Karate coaching team.`,
-    imageUrl: row.image_url || '/gallery/In Dojo.jpeg',
+    imageUrl: row.image_url || '/no-profile/no profile male.png',
+    hidePhoto: row.image_url ? (row.image_url.includes('/no-profile/') || row.image_url.includes('no profile')) : true,
     accent: row.accent_color === 'crimson' || row.accent_color === 'blue' || row.accent_color === 'neutral'
       ? row.accent_color
       : 'gold',

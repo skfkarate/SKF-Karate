@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken'
 import type { JWTPayload } from '@/types'
 
 const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRY = '30d'
-const COOKIE_MAX_AGE = 30 * 24 * 60 * 60
+const PORTAL_SESSION_DAYS = 180
+const JWT_EXPIRY = `${PORTAL_SESSION_DAYS}d`
+const COOKIE_MAX_AGE = PORTAL_SESSION_DAYS * 24 * 60 * 60
 
 export const COOKIE_NAME = 'skf_portal_token'
 

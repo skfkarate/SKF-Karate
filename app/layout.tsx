@@ -1,4 +1,4 @@
-import localFont from 'next/font/local'
+import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import './profile.css'
 import '@/components/skeletons/skeleton.css'
@@ -15,40 +15,18 @@ import WhatsAppButton from '@/components/WhatsAppButton'
 import { SITE_CONFIG } from '@/data/constants/siteConfig'
 import { buildSeoMetadata } from '@/data/constants/seo'
 
-const bodyFont = localFont({
-  src: [
-    {
-      path: '../public/fonts/Montserrat-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Montserrat-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
+const bodyFont = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
   display: 'swap',
-  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-  variable: '--font-body-local',
+  variable: '--font-body-google',
 })
 
-const headingFont = localFont({
-  src: [
-    {
-      path: '../public/fonts/Cinzel-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Cinzel-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
+const headingFont = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
   display: 'swap',
-  fallback: ['Georgia', 'Times New Roman', 'serif'],
-  variable: '--font-heading-local',
+  variable: '--font-heading-google',
 })
 
 export const metadata: Metadata = {

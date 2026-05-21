@@ -91,7 +91,7 @@ export default function DanCarousel({ danHolders }: { danHolders: DanHolder[] })
   // We want to extract exactly MAX_VISIBLE items based on the current centerIdx
   // Order: center, next 1 right, next 1 left, next 2 right, next 2 left.
   const carouselOrder: { athlete: DanHolder; depth: number }[] = []
-  
+
   if (n > 0) {
     const ordered: number[] = [centerIdx]
     let left = 1, right = 1
@@ -127,13 +127,23 @@ export default function DanCarousel({ danHolders }: { danHolders: DanHolder[] })
             className={`hon-ccard hon-ccard--d${Math.min(depth, 2)}`}
           >
             <div className="hon-ccard__photo" style={{ position: 'relative' }}>
-              <Image 
-                src={getCardImage(athlete)}
-                alt={getCardName(athlete)}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 768px) 100vw, 300px"
-              />
+              {(() => {
+                const img = getCardImage(athlete)
+                const isPlaceholder = img.includes('no-profile') || img.includes('no profile')
+                return (
+                  <Image
+                    src={img}
+                    alt={getCardName(athlete)}
+                    fill
+                    style={{
+                      objectFit: isPlaceholder ? 'contain' : 'cover',
+                      inset: isPlaceholder ? '1.5rem' : '0',
+                      opacity: isPlaceholder ? 0.35 : 1
+                    }}
+                    sizes="(max-width: 768px) 100vw, 300px"
+                  />
+                )
+              })()}
             </div>
             <div className="hon-ccard__badge">{getCardBadge(athlete)}</div>
             <h3 className="hon-ccard__name">{getCardName(athlete)}</h3>

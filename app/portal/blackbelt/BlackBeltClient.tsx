@@ -3,6 +3,8 @@ import { useState, useMemo } from 'react'
 import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import type { BBProgram, BBCandidate, BBProgressEntry } from '@/lib/server/repositories/blackbelt-live'
+import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
+import { motion } from 'framer-motion'
 import './blackbelt.css'
 
 /* ═══ Constants ═══ */
@@ -305,66 +307,106 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
   const daysLeft = useMemo(() => getDaysUntil(program?.exam_date ?? null), [program])
 
   if (!program) return (
-    <div className="bb"><div className="bb-empty">
-      <div className="bb-empty__ic"><Trophy size={28} color="rgba(255,255,255,0.3)" /></div>
-      <h2 className="bb-empty__title">No Active Program</h2>
-      <p className="bb-empty__text">Check back when your Sensei announces the next Black Belt examination cycle.</p>
-    </div></div>
+    <SecureContentWrapper>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
+          <div className="bb-empty">
+            <div className="bb-empty__ic"><Trophy size={28} color="rgba(255,255,255,0.3)" /></div>
+            <h2 className="bb-empty__title">No Active Program</h2>
+            <p className="bb-empty__text">Check back when your Sensei announces the next Black Belt examination cycle.</p>
+          </div>
+        </div>
+      </div>
+    </SecureContentWrapper>
   )
 
   if (!me) return (
-    <div className="bb">
-      <div className="bb-banner"><span className="bb-banner__kanji">黒帯</span>
-        <h1 className="bb-banner__title">{program.title}</h1>
-        <p className="bb-banner__sub">{program.tagline || 'Forging the next generation.'}</p>
+    <SecureContentWrapper>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
+          <div className="bb-banner"><span className="bb-banner__kanji">黒帯</span>
+            <h1 className="bb-banner__title">{program.title}</h1>
+            <p className="bb-banner__sub">{program.tagline || 'Forging the next generation.'}</p>
+          </div>
+          <div className="bb-empty" style={{ marginTop: '2rem' }}>
+            <div className="bb-empty__ic"><Shield size={28} color="rgba(255,255,255,0.3)" /></div>
+            <h2 className="bb-empty__title">Not Enrolled</h2>
+            <p className="bb-empty__text">Only selected candidates can view this program.</p>
+          </div>
+        </div>
       </div>
-      <div className="bb-empty">
-        <div className="bb-empty__ic"><Shield size={28} color="rgba(255,255,255,0.3)" /></div>
-        <h2 className="bb-empty__title">Not Enrolled</h2>
-        <p className="bb-empty__text">Only selected candidates can view this program.</p>
-      </div>
-    </div>
+    </SecureContentWrapper>
   )
 
   const md = MONTHS[activeMonth - 1]
   const tasks = md.tasks(me)
   const contTasks = CONTINUOUS_GOALS(me)
-  
+
   const allTasksCount = MONTHS.reduce((s, m) => s + m.tasks(me).length, 0) + contTasks.length
   const allDoneCount = MONTHS.reduce((s, m) => s + m.tasks(me).filter(t => t.status === 'done').length, 0) + contTasks.filter(t => t.status === 'done').length
   const pct = allTasksCount > 0 ? Math.round(allDoneCount / allTasksCount * 100) : 0
   const monthDone = activeMonth < curMonth
 
   return (
-    <div className="bb">
-      {/* HERO SECTION */}
-      <div className="bb-hero bb-in">
-        <div className="bb-hero__bg">
-          <span className="bb-hero__kanji">黒帯</span>
-          <div className="bb-hero__gradient"></div>
-        </div>
-        
-        <div className="bb-hero__content">
-          <div className="bb-hero__info">
-            <div className="bb-hero__tag">
-              <Flame size={12} /> {daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'EXAM DAY'}
+    <SecureContentWrapper>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+
+        {/* ── BACKGROUND GLOWS ── */}
+        <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'absolute', top: '20%', left: '-10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,183,3,0.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+
+        <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
+
+          {/* ── PREMIUM HEADER ── */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{ paddingTop: '3rem', marginBottom: '3rem', textAlign: 'center' }}
+          >
+            <h1 style={{
+              fontFamily: 'var(--font-heading, "Outfit")', fontSize: 'clamp(3rem, 7vw, 4.5rem)',
+              fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 0.5rem 0',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.4) 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              textShadow: '0 10px 30px rgba(0,0,0,0.5)'
+            }}>
+              {program.title}
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1.1rem', margin: '0 auto', maxWidth: '600px', fontWeight: 500 }}>
+              {program.tagline || 'Your path to Black Belt.'}
+            </p>
+
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(230,57,70,0.1)', padding: '0.4rem 0.8rem', borderRadius: '99px', border: '1px solid rgba(230,57,70,0.2)', marginTop: '1.25rem' }}>
+              <Flame size={14} color="#e63946" />
+              <span style={{ color: '#e63946', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                {daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'EXAM DAY'}
+              </span>
             </div>
-            <h1 className="bb-hero__title">{program.title}</h1>
-            <p className="bb-hero__sub">{program.tagline || 'Your path to Black Belt.'}</p>
-          </div>
-          
-          <div className="bb-hero__xp">
-            <XPRing pct={pct} />
-            <div className="bb-hero__xp-details">
-              <div className="bb-hero__xp-label">Overall Progress</div>
-              <div className="bb-hero__xp-stats">
-                <span>{allDoneCount}/{allTasksCount} Tasks</span>
-                <span className="bb-hero__xp-dot"></span>
-                <span>Level {curMonth}/5</span>
+          </motion.div>
+
+          {/* HERO SECTION */}
+          <div className="bb-hero bb-in" style={{ marginTop: 0 }}>
+            <div className="bb-hero__bg">
+              <span className="bb-hero__kanji">黒帯</span>
+              <div className="bb-hero__gradient"></div>
+            </div>
+
+            <div className="bb-hero__content" style={{ justifyContent: 'center', margin: '0 auto 2.5rem' }}>
+              <div className="bb-hero__xp" style={{ width: '100%', maxWidth: '450px' }}>
+                <XPRing pct={pct} />
+                <div className="bb-hero__xp-details">
+                  <div className="bb-hero__xp-label">Overall Progress</div>
+                  <div className="bb-hero__xp-stats">
+                    <span>{allDoneCount}/{allTasksCount} Tasks</span>
+                    <span className="bb-hero__xp-dot"></span>
+                    <span>Level {curMonth}/5</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
         {/* TABS NAVIGATION */}
         <div className="bb-tabs">
@@ -689,5 +731,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
         )}
       </div>
     </div>
+    </div>
+    </SecureContentWrapper>
   )
 }

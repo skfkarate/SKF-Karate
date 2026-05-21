@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import type { JWTPayload } from '@/types'
 
 const JWT_SECRET = process.env.JWT_SECRET
+const PORTAL_SESSION_DAYS = 180
 
 function getJwtSecret() {
   if (!JWT_SECRET) {
@@ -24,7 +25,7 @@ export async function verifyPin(pin: string, hash: string): Promise<boolean> {
 }
 
 export function createStudentJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: '30d' })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: `${PORTAL_SESSION_DAYS}d` })
 }
 
 export function verifyStudentJWT(token: string): JWTPayload | null {

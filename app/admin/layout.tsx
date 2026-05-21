@@ -1,6 +1,10 @@
 import AdminSidebar from "@/app/_components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/utils/auth";
 import { buildNoIndexMetadata } from "@/data/constants/seo";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+const ADMIN_ROLES = new Set(['admin', 'instructor'])
 
 export const metadata = buildNoIndexMetadata(
   '/admin',
@@ -9,14 +13,24 @@ export const metadata = buildNoIndexMetadata(
 
 export default async function AdminLayout({ children }) {
   const session = await getAdminSession()
+  const headerStore = await headers()
+  const pathname = headerStore.get('x-skf-pathname') || ''
+  const isLoginPage = pathname === '/admin/login'
 
-  // If not logged in, show the login page (children will render login route)
   if (!session) {
+    if (!isLoginPage) {
+      redirect('/admin/login')
+    }
+
     return (
       <div style={{ minHeight: '100dvh', background: '#0a0a0a', color: '#fff' }}>
         {children}
       </div>
     )
+  }
+
+  if (!ADMIN_ROLES.has(String(session.user?.role || ''))) {
+    redirect('/admin/login')
   }
 
   return (
