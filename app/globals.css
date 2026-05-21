@@ -1,4 +1,4 @@
-/* Fonts are loaded via next/font in layout.js — zero render-blocking */
+/* Fonts are loaded locally via next/font in layout.tsx. */
 @import "tailwindcss";
 
 /* Custom theme for SKF brand colors used in Tailwind utility classes */
@@ -12,7 +12,7 @@
   --color-navy-light: #1b2d4f;
 }
 
-/* Fonts loaded via next/font in layout.js — zero render-blocking */
+/* Fonts loaded via next/font/local in layout.tsx. */
 
 /* ===== DESIGN SYSTEM ===== */
 :root {
@@ -41,8 +41,8 @@
   --text-muted: rgba(255, 255, 255, 0.4);
 
   /* Typography */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: var(--font-heading-local, 'Cinzel'), Georgia, serif;
+  --font-body: var(--font-body-local, 'Montserrat'), system-ui, sans-serif;
 
   /* SKF Universal Tokens */
   --bg-primary: #030508;
