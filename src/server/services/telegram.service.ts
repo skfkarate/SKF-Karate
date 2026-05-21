@@ -37,29 +37,29 @@ function credentialsFor(channel: TelegramChannel) {
   switch (channel) {
     case 'fees':
       return {
-        token: env.TELEGRAM_FEES_BOT_TOKEN,
-        chatId: env.TELEGRAM_FEES_CHAT_ID,
+        token: env.TELEGRAM_FEES_BOT_TOKEN || env.TELEGRAM_LEADS_BOT_TOKEN,
+        chatId: env.TELEGRAM_FEES_CHAT_ID || env.TELEGRAM_LEADS_CHAT_ID,
       }
     case 'orders':
       return {
-        token: env.TELEGRAM_ORDERS_BOT_TOKEN,
-        chatId: env.TELEGRAM_ORDERS_CHAT_ID,
+        token: env.TELEGRAM_ORDERS_BOT_TOKEN || env.TELEGRAM_LEADS_BOT_TOKEN,
+        chatId: env.TELEGRAM_ORDERS_CHAT_ID || env.TELEGRAM_LEADS_CHAT_ID,
       }
     case 'system':
       return {
-        token: env.TELEGRAM_SYSTEM_BOT_TOKEN,
-        chatId: env.TELEGRAM_SYSTEM_CHAT_ID,
+        token: env.TELEGRAM_SYSTEM_BOT_TOKEN || env.TELEGRAM_LEADS_BOT_TOKEN,
+        chatId: env.TELEGRAM_SYSTEM_CHAT_ID || env.TELEGRAM_LEADS_CHAT_ID,
       }
     case 'reminders':
       return {
-        token: env.TELEGRAM_REMINDERS_BOT_TOKEN,
-        chatId: env.TELEGRAM_REMINDERS_CHAT_ID,
+        token: env.TELEGRAM_REMINDERS_BOT_TOKEN || env.TELEGRAM_LEADS_BOT_TOKEN,
+        chatId: env.TELEGRAM_REMINDERS_CHAT_ID || env.TELEGRAM_LEADS_CHAT_ID,
       }
     case 'leads':
     default:
       return {
-        token: env.TELEGRAM_BOT_TOKEN,
-        chatId: env.TELEGRAM_CHAT_ID,
+        token: env.TELEGRAM_LEADS_BOT_TOKEN,
+        chatId: env.TELEGRAM_LEADS_CHAT_ID,
       }
   }
 }

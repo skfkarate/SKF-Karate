@@ -108,10 +108,15 @@ export async function syncStudentToAthleteMirror(student: StudentRecord) {
     phone: student.phone ?? existingAthlete?.phone ?? '',
     email: student.email ?? existingAthlete?.email ?? '',
     batch: student.batch ?? existingAthlete?.batch ?? '',
-    monthlyFee:
-      student.monthlyFee === undefined || student.monthlyFee === null
-        ? existingAthlete?.monthlyFee || 0
-        : Number(student.monthlyFee || 0),
+    monthlyFee: (() => {
+      const explicitFee = student.monthlyFee !== undefined && student.monthlyFee !== null ? Number(student.monthlyFee) : null;
+      if (explicitFee !== null && explicitFee !== 0) return explicitFee;
+      if ((existingAthlete?.monthlyFee || 0) !== 0) return existingAthlete!.monthlyFee;
+      
+      const branchName = resolveClassBranchLabel(classes, student.branch || existingAthlete?.branchName) ||
+        resolveBranchLabel(student.branch || existingAthlete?.branchName);
+      return branchName.toLowerCase() === 'herohalli' ? 500 : 0;
+    })(),
     photoConsent:
       student.photoConsent === undefined
         ? existingAthlete?.photoConsent ?? false

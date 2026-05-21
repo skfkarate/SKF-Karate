@@ -61,16 +61,16 @@ export class LeadService {
 
     if (hasTelegramChannel('leads')) {
       const telegramMessage = [
-        '🥋 *New Free Trial Request*',
+        '📋 *New Free Trial Request*',
         '',
-        `👤 *Student:* ${escapeTelegramMarkdown(input.studentName.trim())}`,
-        `📞 *Phone:* ${escapeTelegramMarkdown(input.parentPhone.trim())}`,
-        `🎂 *Age:* ${escapeTelegramMarkdown(String(input.childAge))}`,
-        `🏢 *Branch:* ${escapeTelegramMarkdown(branchLabel)}`,
-        `⏰ *Batch:* ${escapeTelegramMarkdown(input.preferredBatch.trim())}`,
-        input.hearAboutUs ? `📣 *Source:* ${escapeTelegramMarkdown(input.hearAboutUs.trim())}` : '',
+        `*Student:* ${escapeTelegramMarkdown(input.studentName.trim())}`,
+        `*Phone:* ${escapeTelegramMarkdown(input.parentPhone.trim())}`,
+        `*Age:* ${escapeTelegramMarkdown(String(input.childAge))}`,
+        `*Branch:* ${escapeTelegramMarkdown(branchLabel)}`,
+        `*Batch:* ${escapeTelegramMarkdown(input.preferredBatch.trim())}`,
+        input.hearAboutUs ? `*Source:* ${escapeTelegramMarkdown(input.hearAboutUs.trim())}` : '',
         '',
-        `🕐 ${escapeTelegramMarkdown(timestamp)}`,
+        escapeTelegramMarkdown(timestamp),
       ]
         .filter(Boolean)
         .join('\n')

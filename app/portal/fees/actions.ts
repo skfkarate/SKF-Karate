@@ -30,7 +30,6 @@ export async function submitManualFeePayment(formData: FormData) {
     .getAll('feeKeys')
     .map((value) => String(value || '').trim())
     .filter(Boolean)
-  const paymentReference = String(formData.get('paymentReference') || '').trim()
 
   if (selectedFeeKeys.length === 0) {
     throw new Error('Select at least one due fee record.')
@@ -61,7 +60,6 @@ export async function submitManualFeePayment(formData: FormData) {
       year: fee.year,
       feeType: fee.feeType,
       amount: fee.amount,
-      paymentReference,
       paymentProofBase64,
       paymentProofName
     })

@@ -27,10 +27,10 @@ type PendingStudentForReport = {
 
 function formatBranchPendingMessage(branchName: string, students: PendingStudentForReport[], monthName: string) {
   if (students.length === 0) {
-    return `✅ *${branchName.toUpperCase()} Branch Completely Paid!*\nNo pendings for ${monthName}. Great job! 🥳`
+    return `*${branchName.toUpperCase()} Branch - Fully Paid*\nNo pendings for ${monthName}.`
   }
 
-  const lines = [`⚠️ *${branchName.toUpperCase()} - Pending Fees (${monthName})*`]
+  const lines = [`*${branchName.toUpperCase()} - Pending Fees (${monthName})*`]
   students.forEach((s, index) => {
     lines.push(`${index + 1}. ${s.athleteName} - ₹${s.amount}`)
   })
@@ -47,7 +47,7 @@ export class TelegramReportsService {
     const monthName = MONTHS[new Date().getMonth()]
     
     const message = [
-      `🔔 *Monthly Fee Reminder - ${monthName}*`,
+      `📋 *Monthly Fee Reminder - ${monthName}*`,
       `Please ensure a gentle reminder message is posted in all parent groups (MPSC & Herohalli) to clear the fees for ${monthName} by the 10th.`,
     ].join('\n')
     
@@ -75,8 +75,8 @@ export class TelegramReportsService {
     )
 
     const title = isEscalation 
-      ? `🚨 *ESCALATION: Pending Fees - ${monthName}*`
-      : `📋 *Mid-Month Pending Fees - ${monthName}*`
+      ? `*ESCALATION: Pending Fees - ${monthName}*`
+      : `*Mid-Month Pending Fees - ${monthName}*`
       
     const intro = isEscalation
       ? `These accounts are heavily overdue for ${monthName}. Please contact parents immediately.`
@@ -128,15 +128,15 @@ export class TelegramReportsService {
     // Build Health Alert String
     let healthAlert = ''
     if (cmCollectionRate < 75) {
-      healthAlert = `\n⚠️ *CRITICAL ALERT:* Collection rate for ${monthName} is heavily down (${cmCollectionRate}%).\n`
+      healthAlert = `\n*CRITICAL:* Collection rate for ${monthName} is heavily down (${cmCollectionRate}%).\n`
     } else if (cmCollectionRate < 90) {
-      healthAlert = `\n⚠️ *ALERT:* Collection rate for ${monthName} is below target (${cmCollectionRate}%).\n`
+      healthAlert = `\n*ALERT:* Collection rate for ${monthName} is below target (${cmCollectionRate}%).\n`
     } else {
-      healthAlert = `\n✅ *SYSTEM HEALTHY:* Collection rate for ${monthName} is fantastic (${cmCollectionRate}%).\n`
+      healthAlert = `\n*HEALTHY:* Collection rate for ${monthName} is at ${cmCollectionRate}%.\n`
     }
 
     const message = [
-      `📊 *MONTH-END RECONCILIATION - ${monthName} ${year}*`,
+      `*MONTH-END RECONCILIATION - ${monthName} ${year}*`,
       healthAlert,
       `*Financial Health (${monthName}):*`,
       `• Expected: ₹${cmExpected}`,
@@ -146,7 +146,7 @@ export class TelegramReportsService {
       `*Development Fund Budget (YTD):*`,
       `• 30% Budget: ₹${devFundBudget}`,
       `• Total Spent: ₹${devFundSpent}`,
-      `• Available Balance: ₹${devFundBalance} ${devFundBalance < 0 ? '(⚠️ OVER BUDGET)' : ''}`,
+      `• Available Balance: ₹${devFundBalance} ${devFundBalance < 0 ? '(OVER BUDGET)' : ''}`,
       ``,
       `*Long Pending Issues (2+ Months Due):*`,
       longPendings.length > 0 
@@ -174,7 +174,7 @@ export class TelegramReportsService {
     }
 
     const message = [
-      `⏰ *ACTION REQUIRED: Pending Approvals*`,
+      `*ACTION REQUIRED: Pending Approvals*`,
       `There are currently *${pendingVerifications.length}* fee payments awaiting manual verification.`,
       `Please approve them as soon as possible in the FeeTrack Action Inbox so the students' athlete portals are updated.`,
       ``,

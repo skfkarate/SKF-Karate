@@ -63,16 +63,16 @@ export class ContactService {
 
     if (hasTelegramChannel('leads')) {
       const telegramMessage = [
-        '🥋 *New Callback Request*',
+        '📋 *New Callback Request*',
         '',
-        `👤 *Name:* ${escapeTelegramMarkdown(name)}`,
-        `📞 *Phone:* ${escapeTelegramMarkdown(phone)}`,
-        `⏰ *Call Time:* ${escapeTelegramMarkdown(preferredTime || 'Anytime')}`,
-        email ? `📧 *Email:* ${escapeTelegramMarkdown(email)}` : '',
-        `🎯 *Interest:* ${escapeTelegramMarkdown(interest)}`,
-        message ? `💬 *Message:* ${escapeTelegramMarkdown(message)}` : '',
+        `*Name:* ${escapeTelegramMarkdown(name)}`,
+        `*Phone:* ${escapeTelegramMarkdown(phone)}`,
+        `*Call Time:* ${escapeTelegramMarkdown(preferredTime || 'Anytime')}`,
+        email ? `*Email:* ${escapeTelegramMarkdown(email)}` : '',
+        `*Interest:* ${escapeTelegramMarkdown(interest)}`,
+        message ? `*Message:* ${escapeTelegramMarkdown(message)}` : '',
         '',
-        `🕐 ${escapeTelegramMarkdown(timestamp)}`,
+        escapeTelegramMarkdown(timestamp),
       ]
         .filter(Boolean)
         .join('\n')

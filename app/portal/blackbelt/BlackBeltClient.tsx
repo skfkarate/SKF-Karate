@@ -1,6 +1,7 @@
 'use client'
+import { submitBBEnrollmentPayment } from './actions'
 import { useState, useMemo } from 'react'
-import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle, AlertCircle } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import type { BBProgram, BBCandidate, BBProgressEntry } from '@/lib/server/repositories/blackbelt-live'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
@@ -295,13 +296,21 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
   
   const [isSubmittingFee, setIsSubmittingFee] = useState(false)
   const [hasScreenshot, setHasScreenshot] = useState(false)
+  const [bbError, setBbError] = useState<string | null>(null)
 
-  const handleFeeSubmit = async (e: React.FormEvent) => {
+  const handleFeeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setBbError(null)
     setIsSubmittingFee(true)
-    await new Promise(r => setTimeout(r, 1200))
-    if (me) setMe({ ...me, enrollment_fee_status: 'verifying' })
-    setIsSubmittingFee(false)
+    try {
+      const formData = new FormData(e.currentTarget)
+      await submitBBEnrollmentPayment(formData)
+      if (me) setMe({ ...me, enrollment_fee_status: 'verifying' })
+    } catch (err) {
+      setBbError(err instanceof Error ? err.message : 'Failed to submit payment details.')
+    } finally {
+      setIsSubmittingFee(false)
+    }
   }
   
   const daysLeft = useMemo(() => getDaysUntil(program?.exam_date ?? null), [program])
@@ -512,14 +521,46 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
                         </div>
                       </div>
 
+                      {bbError && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          background: 'rgba(214, 40, 40, 0.15)',
+                          border: '1px solid rgba(214, 40, 40, 0.3)',
+                          color: '#ff6b6b',
+                          padding: '1rem',
+                          borderRadius: '12px',
+                          fontSize: '0.9rem',
+                          marginBottom: '1.5rem',
+                          lineHeight: 1.4
+                        }}>
+                          <AlertCircle size={20} style={{ flexShrink: 0 }} />
+                          <span>{bbError}</span>
+                        </div>
+                      )}
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                         <div>
                           <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Upload Payment Screenshot <span style={{ color: '#ff6b6b' }}>*</span></label>
-                          <input type="file" accept="image/*" required onChange={e => setHasScreenshot(!!e.target.files?.[0])} style={{ width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '0.8rem', borderRadius: '12px', outline: 'none' }} />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>UTR / Reference Number (Optional)</label>
-                          <input type="text" placeholder="e.g. 312345678901" style={{ width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '0.8rem', borderRadius: '12px', outline: 'none' }} />
+                          <input
+                            type="file"
+                            name="screenshot"
+                            accept="image/*"
+                            required
+                            onChange={(e) => {
+                              setBbError(null)
+                              const file = e.target.files?.[0]
+                              if (file && file.size > 5 * 1024 * 1024) {
+                                setBbError('Payment screenshot must be 5 MB or smaller.')
+                                e.currentTarget.value = ''
+                                setHasScreenshot(false)
+                                return
+                              }
+                              setHasScreenshot(!!file)
+                            }}
+                            style={{ width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '0.8rem', borderRadius: '12px', outline: 'none' }}
+                          />
                         </div>
                       </div>
 

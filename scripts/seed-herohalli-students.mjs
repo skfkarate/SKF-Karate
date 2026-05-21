@@ -183,7 +183,13 @@ async function main() {
       phone: phone || null,
       email: email || null,
       batch: null,
-      monthly_fee: 0,
+      monthly_fee: skfId === 'SKF17BL000'
+        ? 1000
+        : skfId === 'SKF21HE003'
+          ? 500
+          : (skfId === 'SKF21HE002' || skfId === 'SKF23HE003')
+            ? 0
+            : 400,
       photo_consent: false,
       is_public: true,
       is_featured: false,
