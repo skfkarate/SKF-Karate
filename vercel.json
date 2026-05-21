@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/fees-approvals",
-      "schedule": "0 */8 * * *"
+      "schedule": "30 4 * * *"
     }
   ]
 }
