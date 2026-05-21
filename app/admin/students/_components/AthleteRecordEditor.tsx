@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useState, useEffect, type CSSProperties, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type SubmitHandler, useForm } from 'react-hook-form'
@@ -194,6 +194,7 @@ export default function AthleteRecordEditor({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(createStudentSchema),
@@ -207,6 +208,14 @@ export default function AthleteRecordEditor({
     branchSelectOptions.find(
       (branch) => branch.slug === selectedBranchValue || branch.name === selectedBranchValue
     ) || null
+
+  const currentFee = watch('monthlyFee')
+
+  useEffect(() => {
+    if (mode === 'create' && selectedBranchValue === 'herohalli' && (currentFee === 0 || currentFee === undefined)) {
+      setValue('monthlyFee', 500, { shouldDirty: true })
+    }
+  }, [selectedBranchValue, mode, currentFee, setValue])
 
   const currentPublicProfileHref = useMemo(() => {
     if (createResult?.skfId) {

@@ -7,7 +7,7 @@ import { normaliseSkfId } from '@/lib/utils/registration'
 import { env } from '@/src/server/config/env'
 import { AuthorizationError, ExternalServiceError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
-import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
+import { hasTelegramChannel, sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
 import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
 import type {
   DevelopmentFundExpenseInput,
@@ -1001,6 +1001,26 @@ async function notifyMissingMonthlyRows(input: {
   }
 }
 
+async function notifyTreasuryAction(title: string, details: string[]) {
+  if (!hasTelegramChannel('fees')) return
+  const text = [
+    `📋 *${title}*`,
+    '',
+    ...details
+  ].filter(Boolean).join('\n')
+
+  try {
+    await sendTelegramMessage({
+      channel: 'fees',
+      text,
+      parseMode: 'Markdown',
+      timeoutMs: 5000,
+    })
+  } catch (error) {
+    logger.warn('fee.treasury_action_notification_failed', { error })
+  }
+}
+
 async function notifyPaymentProofSubmitted(input: {
   skfId: string
   studentName: string
@@ -1011,28 +1031,46 @@ async function notifyPaymentProofSubmitted(input: {
   amount: number
   proofId: string
   paymentReference?: string | null
+  proofBuffer?: Buffer
+  proofFilename?: string
+  proofContentType?: string
 }) {
   if (!hasTelegramChannel('fees')) return
 
   const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org').replace(/\/$/, '')
   const text = [
-    'SKF payment proof submitted',
+    '📋 *SKF Payment Proof Submitted*',
     '',
-    `Student: ${input.studentName} (${input.skfId})`,
-    input.branch ? `Branch: ${input.branch}` : '',
-    `Fee: ${formatFeeTypeLabel(input.feeType)} / ${input.month} ${input.year}`,
-    `Amount: ₹${input.amount.toLocaleString('en-IN')}`,
-    input.paymentReference ? `Reference: ${input.paymentReference}` : '',
-    `Proof ID: ${input.proofId}`,
-    `Review: ${siteUrl}/fee/payments?status=pending_verification`,
+    `*Student:* ${input.studentName} (${input.skfId})`,
+    input.branch ? `*Branch:* ${input.branch}` : '',
+    `*Fee:* ${formatFeeTypeLabel(input.feeType)} / ${input.month} ${input.year}`,
+    `*Amount:* ₹${input.amount.toLocaleString('en-IN')}`,
+    input.paymentReference ? `*Reference:* ${input.paymentReference}` : '',
+    `*Submitted:* ${new Date().toLocaleString('en-IN')}`,
+    '',
+    `[Review Pending Proofs](${siteUrl}/admin/treasury?status=pending_verification)`,
   ].filter(Boolean).join('\n')
 
   try {
-    const result = await sendTelegramMessage({
-      channel: 'fees',
-      text,
-      timeoutMs: 5000,
-    })
+    let result
+    if (input.proofBuffer) {
+      const blob = new Blob([new Uint8Array(input.proofBuffer)], { type: input.proofContentType || 'image/png' })
+      result = await sendTelegramPhoto({
+        channel: 'fees',
+        photo: blob,
+        filename: input.proofFilename || 'proof.png',
+        caption: text,
+        parseMode: 'Markdown',
+        timeoutMs: 5000,
+      })
+    } else {
+      result = await sendTelegramMessage({
+        channel: 'fees',
+        text,
+        parseMode: 'Markdown',
+        timeoutMs: 5000,
+      })
+    }
     if (!result.ok) {
       logger.warn('fee.payment_proof_alert_failed', {
         status: result.status,
@@ -2213,6 +2251,12 @@ export class FeeOperationsService {
         after: adjustmentRow,
         metadata: { creditId: input.creditId, month, year: targetYear, targetFeeRecordId: updatedTarget.id },
       })
+      notifyTreasuryAction('Fee Credit Applied', [
+        `*Student:* ${athleteName(athlete)} (${skfId})`,
+        `*Credit:* ₹${amount}`,
+        `*Applied To:* ${formatFeeTypeLabel(feeType)} / ${month} ${targetYear}`,
+        `*Applied By:* ${actorName(session)}`
+      ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
       return {
         success: true,
         creditId: input.creditId,
@@ -2269,6 +2313,13 @@ export class FeeOperationsService {
       const after = normalizeFeeRecord(data)
       const receipt = await ensureReceiptForPaidRow({ row: after, athlete, issuedAt: now })
       await logAudit(session, { action: 'fee_marked_paid', skfId, feeRecordId: row.id, before, after })
+      notifyTreasuryAction('Manual Payment Recorded', [
+        `*Student:* ${athleteName(athlete)} (${skfId})`,
+        `*Fee:* ${formatFeeTypeLabel(feeType)} / ${month} ${targetYear}`,
+        `*Amount:* ₹${amount}`,
+        `*Method:* ${paymentMethod}`,
+        `*Recorded By:* ${actorName(session)}`
+      ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
       return { success: true, entry: rowToEntry(after, athlete), receipt }
     }
 
@@ -2827,6 +2878,9 @@ export class FeeOperationsService {
       amount: normalizeAmount(input.amount),
       proofId: String(proofRow.id || ''),
       paymentReference,
+      proofBuffer: proof.buffer,
+      proofFilename: input.paymentProofName || 'proof.png',
+      proofContentType: proof.contentType,
     })
 
     return {
@@ -2975,16 +3029,6 @@ export class FeeOperationsService {
       .single()
     if (proofError) throwFeeDatabaseError(proofError)
 
-    await markPaymentIntentStatus({
-      intentId: proof.payment_intent_id,
-      status: 'rejected',
-      proofId,
-      metadata: {
-        reviewNote: note,
-        reviewedBy: actorName(session),
-        reviewedAt: now,
-      },
-    })
 
     await markPaymentIntentStatus({
       intentId: proof.payment_intent_id,
@@ -3012,6 +3056,13 @@ export class FeeOperationsService {
       },
     })
 
+    notifyTreasuryAction('Payment Proof Approved', [
+      `*Student:* ${athlete ? athleteName(athlete) : row.skf_id} (${row.skf_id})`,
+      `*Fee:* ${formatFeeTypeLabel(row.fee_type)} / ${row.month} ${row.year}`,
+      `*Amount:* ₹${updatedRow.amount}`,
+      `*Approved By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
+
     return { success: true, proof: updatedProof, entry: normalizedUpdatedRow, receipt }
   }
 
@@ -3038,6 +3089,17 @@ export class FeeOperationsService {
       .select('*')
       .single()
     if (proofError) throwFeeDatabaseError(proofError)
+
+    await markPaymentIntentStatus({
+      intentId: proof.payment_intent_id,
+      status: 'rejected',
+      proofId,
+      metadata: {
+        reviewNote: note,
+        reviewedBy: actorName(session),
+        reviewedAt: now,
+      },
+    }).catch(() => null)
 
     let updatedRow = null
     if (proof.fee_record_id) {
@@ -3072,6 +3134,12 @@ export class FeeOperationsService {
         paymentReference: proof.payment_reference || null,
       },
     })
+
+    notifyTreasuryAction('Payment Proof Rejected', [
+      `*Student:* ${proof.skf_id}`,
+      `*Reason:* ${note}`,
+      `*Rejected By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
 
     return { success: true, proof: updatedProof, entry: updatedRow ? normalizeFeeRecord(updatedRow) : null }
   }
@@ -3157,6 +3225,13 @@ export class FeeOperationsService {
       .single()
     if (error) throwFeeDatabaseError(error)
     await logAudit(session, { action: 'fee_credit_created', skfId, after: data })
+    notifyTreasuryAction('Fee Credit Issued', [
+      `*Student:* ${athleteName(athlete)} (${skfId})`,
+      `*Amount:* ₹${input.amount}`,
+      `*Reason:* ${input.reason}`,
+      `*Note:* ${input.description || 'N/A'}`,
+      `*Issued By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return data
   }
 
@@ -3243,6 +3318,12 @@ export class FeeOperationsService {
       .single()
     if (error) throwFeeDatabaseError(error)
     await logAudit(session, { action: 'development_fund_expense_created', after: data })
+    notifyTreasuryAction('Development Fund Expense', [
+      `*Amount:* ₹${input.amount}`,
+      `*Category:* ${input.title}`,
+      `*Note:* ${input.description || 'N/A'}`,
+      `*Recorded By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return data
   }
 
@@ -3287,6 +3368,11 @@ export class FeeOperationsService {
       before: existing,
       after: data,
     })
+    notifyTreasuryAction('Development Expense Deleted', [
+      `*Title:* ${existing.title}`,
+      `*Amount:* ₹${existing.amount}`,
+      `*Deleted By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return { success: true, expense: data }
   }
 
@@ -3355,6 +3441,12 @@ export class FeeOperationsService {
       .single()
     if (error) throwFeeDatabaseError(error)
     await logAudit(session, { action: 'fee_extra_income_created', after: data })
+    notifyTreasuryAction('Extra Income Recorded', [
+      `*Amount:* ₹${input.amount}`,
+      `*Source:* ${input.title}`,
+      `*Note:* ${input.description || 'N/A'}`,
+      `*Recorded By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return data
   }
 
@@ -3399,6 +3491,11 @@ export class FeeOperationsService {
       before: existing,
       after: data,
     })
+    notifyTreasuryAction('Extra Income Deleted', [
+      `*Title:* ${existing.title}`,
+      `*Amount:* ₹${existing.amount}`,
+      `*Deleted By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return { success: true, income: data }
   }
 }

@@ -15,9 +15,11 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
   const [hasScreenshot, setHasScreenshot] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [uiError, setUiError] = useState<string | null>(null)
 
   const handleDownloadReceipt = async (receiptId: string) => {
     setDownloadingId(receiptId)
+    setUiError(null)
     try {
       const res = await fetch(`/api/portal/receipts/${encodeURIComponent(receiptId)}?mode=download`)
       if (!res.ok) throw new Error('Download failed')
@@ -31,7 +33,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch {
-      alert('Failed to download receipt. Please try again.')
+      setUiError('Failed to download receipt. Please try again.')
     } finally {
       setDownloadingId(null)
     }
@@ -60,13 +62,14 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
   const hasPending = pendingRecords.length > 0
 
   const handleManualSubmit = async (formData: FormData) => {
+    setUiError(null)
     const screenshot = formData.get('screenshot') as File | null
     if (!screenshot || screenshot.size === 0) {
-      alert("Please upload a payment screenshot.")
+      setUiError("Please upload a payment screenshot.")
       return
     }
     if (selectedFeeKeys.size === 0) {
-      alert('Please select at least one fee record.')
+      setUiError('Please select at least one fee record.')
       return
     }
 
@@ -75,7 +78,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
       await submitManualFeePayment(formData)
       setPaymentSuccess(true)
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to submit payment details. Please try again.")
+      setUiError(e instanceof Error ? e.message : "Failed to submit payment details. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -113,6 +116,52 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
           <span style={{ color: '#2dd4bf', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Secure 256-bit</span>
         </div>
       </motion.div>
+
+      {/* ── ERROR DISPLAY ── */}
+      <AnimatePresence>
+        {uiError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, y: -10 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -10 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              background: 'rgba(214, 40, 40, 0.15)',
+              border: '1px solid rgba(214, 40, 40, 0.3)',
+              color: '#ff6b6b',
+              padding: '1rem 1.5rem',
+              borderRadius: '16px',
+              fontSize: '0.95rem',
+              marginBottom: '2rem',
+              lineHeight: 1.4,
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <AlertCircle size={20} style={{ flexShrink: 0 }} />
+              <span>{uiError}</span>
+            </div>
+            <button 
+              onClick={() => setUiError(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(255,255,255,0.5)',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                lineHeight: 1,
+                padding: '0.2rem',
+                flexShrink: 0
+              }}
+            >
+              &times;
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── THE "BLACK CARD" LAYOUT ── */}
       <div className="fees-grid-top" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
@@ -186,7 +235,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                 </div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2dd4bf', marginBottom: '0.5rem' }}>Verification Pending</h3>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                  Your payment details have been submitted securely. The Sensei will verify the UTR and update your ledger shortly.
+                  Your payment details have been submitted securely. The Sensei will verify the screenshot and update your ledger shortly.
                 </p>
               </motion.div>
             ) : isPaying && !isClear ? (
@@ -243,22 +292,6 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                    UTR / Payment Reference
-                  </label>
-                  <input
-                    type="text"
-                    name="paymentReference"
-                    maxLength={120}
-                    placeholder="UPI reference or transaction ID"
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.9)', padding: '0.75rem', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
-                  />
-                  <p style={{ margin: '0.5rem 0 0', color: 'rgba(255,255,255,0.42)', fontSize: '0.78rem' }}>
-                    Optional, but it helps the fee team verify your payment faster.
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Payment Screenshot <span style={{ color: '#ff6b6b' }}>*</span></label>
                   <input
                     type="file"
@@ -266,9 +299,10 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                     accept="image/*"
                     required
                     onChange={(e) => {
+                      setUiError(null)
                       const file = e.target.files?.[0]
                       if (file && file.size > 5 * 1024 * 1024) {
-                        alert('Payment screenshot must be 5 MB or smaller.')
+                        setUiError('Payment screenshot must be 5 MB or smaller.')
                         e.currentTarget.value = ''
                         setHasScreenshot(false)
                         return

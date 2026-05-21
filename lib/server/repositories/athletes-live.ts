@@ -269,9 +269,11 @@ function normaliseAthletePayload(
     phone: input.phone || existing?.phone || '',
     email: input.email || existing?.email || '',
     batch: input.batch || existing?.batch || '',
-    monthlyFee: Number.isFinite(input.monthlyFee)
+    monthlyFee: Number.isFinite(input.monthlyFee) && input.monthlyFee !== 0
       ? input.monthlyFee
-      : existing?.monthlyFee || 0,
+      : (existing?.monthlyFee || 0) !== 0
+        ? existing!.monthlyFee
+        : (branchName.toLowerCase() === 'herohalli' ? 500 : 0),
     photoConsent:
       typeof input.photoConsent === 'boolean'
         ? input.photoConsent
