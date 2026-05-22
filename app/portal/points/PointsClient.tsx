@@ -7,6 +7,7 @@ import { Crown, Loader2, Medal, TrendingUp, Trophy } from 'lucide-react'
 
 import PointsHistory from '@/app/_components/points/PointsHistory'
 import TierProgressBar from '@/app/_components/points/TierProgressBar'
+import { PointsPageSkeleton } from '../_components/skeletons/PointsPageSkeleton'
 
 type BalanceState = {
   balance: number
@@ -74,6 +75,10 @@ export default function PointsClient() {
     }
   }, [])
 
+  if (loading) {
+    return <PointsPageSkeleton />
+  }
+
   return (
     <div style={{ padding: '2rem 1rem 6rem', maxWidth: '1100px', margin: '0 auto', width: '100%', minHeight: '70vh' }}>
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: '5rem', marginBottom: '3rem', textAlign: 'center' }}>
@@ -96,11 +101,7 @@ export default function PointsClient() {
         </p>
       </motion.div>
 
-      {loading ? (
-        <div style={{ minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold, #ffb703)' }}>
-          <Loader2 className="spin" size={32} />
-        </div>
-      ) : error ? (
+      {error ? (
         <div style={{ padding: '3rem 2rem', borderRadius: 24, border: '1px solid rgba(214,40,40,0.25)', background: 'rgba(214,40,40,0.08)', color: '#ffb4b4', textAlign: 'center', fontWeight: 700 }}>
           {error}
         </div>

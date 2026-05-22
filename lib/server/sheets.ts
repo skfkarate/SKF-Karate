@@ -143,49 +143,28 @@ const cacheRead = <Args extends unknown[], Result>(
  * Reads "Students" tab, finds by SKF_ID column.
  */
 export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Student | null> => {
+  const { getAthleteBySkfIdLive } = await import('@/lib/server/repositories/athletes-live')
   try {
-    const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
-    const rows = res.data.values || []
-    const row = sheetDataRows(rows).find(r => r[0] === skfId)
-    if (row) {
+    const localAthlete = await getAthleteBySkfIdLive(skfId)
+    
+    if (localAthlete) {
       return {
-        skfId: row[0],
-        name: row[1],
-        branch: row[2],
-        batch: row[3],
-        belt: row[4],
-        parentName: row[5],
-        phone: row[6],
-        status: row[7],
-        enrolledDate: row[8],
-        monthlyFee: Number(row[9] || 0),
-        photoConsent: row[10] === 'Yes',
-        dob: normalizeSheetDob(row[11])
+        skfId: localAthlete.skfId,
+        name: `${localAthlete.firstName} ${localAthlete.lastName}`.trim(),
+        branch: localAthlete.branchName || 'Sunkadakatte',
+        batch: localAthlete.batch || 'Evening',
+        belt: localAthlete.currentBelt || 'white',
+        parentName: localAthlete.parentName || 'Parent',
+        phone: localAthlete.phone || '9999999999',
+        status: localAthlete.status === 'active' ? 'Active' : 'Inactive',
+        enrolledDate: localAthlete.joinDate || '2022-01-01',
+        monthlyFee: localAthlete.monthlyFee ? Number(localAthlete.monthlyFee) : 1500,
+        photoConsent: localAthlete.photoConsent !== false,
+        dob: localAthlete.dateOfBirth
       } as Student
     }
   } catch (error) {
     logger.warn('sheets.get_student_by_skf_id_failed', { skfId, error })
-  }
-
-  // Fallback to local mock athletes for development if Sheet fails or is empty
-  const { getAthleteBySkfIdLive } = await import('@/lib/server/repositories/athletes-live')
-  const localAthlete = await getAthleteBySkfIdLive(skfId)
-  
-  if (localAthlete) {
-    return {
-      skfId: localAthlete.skfId,
-      name: `${localAthlete.firstName} ${localAthlete.lastName}`.trim(),
-      branch: localAthlete.branchName || 'Sunkadakatte',
-      batch: 'Evening', // Mock default
-      belt: localAthlete.currentBelt || 'white',
-      parentName: localAthlete.parentName || 'Parent',
-      phone: localAthlete.phone || '9999999999',
-      status: localAthlete.status === 'active' ? 'Active' : 'Inactive',
-      enrolledDate: localAthlete.joinDate || '2022-01-01',
-      monthlyFee: 1500,
-      photoConsent: true
-    } as Student
   }
 
   return null

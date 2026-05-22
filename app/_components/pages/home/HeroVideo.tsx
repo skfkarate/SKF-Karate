@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Cinematic hero background video.
- * Uses optimized muted variants and pauses when off-screen for perf.
+ * Uses optimized muted variants as a non-interactive looping background.
  */
 export default function HeroVideo() {
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -16,6 +16,14 @@ export default function HeroVideo() {
         video.defaultMuted = true
         video.muted = true
         video.playsInline = true
+        video.controls = false
+        video.loop = true
+        video.autoplay = true
+        video.disablePictureInPicture = true
+        video.setAttribute('webkit-playsinline', 'true')
+        video.setAttribute('x5-playsinline', 'true')
+        video.setAttribute('x5-video-player-type', 'h5-page')
+        video.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback')
 
         const playVideo = () => {
             if (document.visibilityState === 'visible') {
@@ -23,32 +31,20 @@ export default function HeroVideo() {
             }
         }
 
-        // Pause video when hero scrolls out of view to save GPU/battery
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    playVideo()
-                } else {
-                    video.pause()
-                }
-            },
-            { rootMargin: '200px 0px', threshold: 0.01 }
-        )
-
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 playVideo()
-            } else {
-                video.pause()
             }
         }
 
         playVideo()
-        observer.observe(video)
+        video.addEventListener('loadeddata', playVideo)
+        video.addEventListener('canplay', playVideo)
         document.addEventListener('visibilitychange', handleVisibilityChange)
 
         return () => {
-            observer.disconnect()
+            video.removeEventListener('loadeddata', playVideo)
+            video.removeEventListener('canplay', playVideo)
             document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
     }, [])
@@ -57,12 +53,17 @@ export default function HeroVideo() {
         <video
             ref={videoRef}
             className="hero__video"
+            style={{ pointerEvents: 'none' }}
             autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            preload="auto"
             poster="/videos/home-hero-poster.jpg"
+            tabIndex={-1}
             aria-hidden="true"
         >
             <source

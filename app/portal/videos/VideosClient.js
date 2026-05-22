@@ -7,6 +7,7 @@ import { ChevronLeft, Clock, Lock, Play, PlayCircle } from 'lucide-react'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
 import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
+import { VideosPageSkeleton } from '../_components/skeletons/VideosPageSkeleton'
 
 function normalizeVideo(video) {
   return {
@@ -133,6 +134,9 @@ export default function VideosClient() {
 
   return (
     <SecureContentWrapper>
+      {isLoading ? (
+        <VideosPageSkeleton />
+      ) : (
       <div style={{ background: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden', paddingBottom: '6rem' }}>
         <header style={{ padding: '5rem 4% 2rem' }}>
           <h1 style={{ margin: 0, color: '#fff', fontFamily: 'var(--font-heading, "Outfit")', fontSize: 'clamp(2.6rem, 6vw, 4.8rem)', fontWeight: 900, letterSpacing: '-0.03em' }}>
@@ -143,7 +147,7 @@ export default function VideosClient() {
           </p>
         </header>
 
-        {isLoading ? null : error ? (
+        {error ? (
           <div style={{ margin: '2rem 4%', padding: '2rem', borderRadius: 20, background: 'rgba(214,40,40,0.1)', border: '1px solid rgba(214,40,40,0.25)', color: '#ffb4b4', fontWeight: 700 }}>
             {error}
           </div>
@@ -202,6 +206,7 @@ export default function VideosClient() {
           )}
         </AnimatePresence>
       </div>
+      )}
     </SecureContentWrapper>
   )
 }

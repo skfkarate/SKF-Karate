@@ -260,6 +260,19 @@ const STUDENTS = [
     year: TARGET_YEAR,
     statuses: ['', 'Paid', 'Break', 'Break'],
   },
+  {
+    skfId: 'SKF26HE002',
+    name: 'FAKE DATA',
+    monthlyFee: 500,
+    dateOfBirth: '2000-01-01',
+    gender: 'male',
+    joinDate: '2026-05-22',
+    parentName: 'Fake Parent',
+    phone: '',
+    email: '',
+    year: TARGET_YEAR,
+    statuses: ['', '', '', '', '', '', '', '', '', '', '', ''],
+  },
 ]
 
 function titleCase(value) {

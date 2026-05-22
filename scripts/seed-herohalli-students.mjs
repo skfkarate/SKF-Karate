@@ -90,6 +90,7 @@ const RAW_STUDENTS = [
   ['SKF25HE001', 'LIKHITH GOWDA U R',  '01/02/2020', 'M', 'Rajesh U N',      '9880952278', '9880952278', 'rajeshun1984@gmail.com',           '',           'Active'],
   ['SKF25HE002', 'MANAV',              '',           'M', '',                 '9686244845', '9686244845', '',                                 '',           'NOT ACTIVE'],
   ['SKF26HE001', 'M MONISHPRASAD',     '24/07/2020', 'M', 'Murthy G K',      '6366669065', '6366669065', '',                                 '',           'Active'],
+  ['SKF26HE002', 'FAKE DATA',          '01/01/2000', 'M', 'Fake Parent',     '',           '',           '',                                 '22/05/2026', 'Active'],
 ]
 
 // SKF IDs for Black Belt program enrollment
@@ -185,7 +186,7 @@ async function main() {
       batch: null,
       monthly_fee: skfId === 'SKF17BL000'
         ? 1000
-        : skfId === 'SKF21HE003'
+        : skfId === 'SKF21HE003' || skfId === 'SKF26HE002'
           ? 500
           : (skfId === 'SKF21HE002' || skfId === 'SKF23HE003')
             ? 0
