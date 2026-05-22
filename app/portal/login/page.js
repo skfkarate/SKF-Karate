@@ -50,6 +50,32 @@ function DojoLoginInner() {
   }, [router, callbackUrl])
 
 
+  const handleDobChange = (e) => {
+    const input = e.target.value;
+    
+    // If the user is deleting, just update the state
+    if (input.length < dob.length) {
+      setDob(input);
+      return;
+    }
+
+    // Remove all non-digits
+    const digits = input.replace(/\D/g, '');
+    
+    // Limit to 8 digits
+    const truncated = digits.slice(0, 8);
+    
+    // Add dashes
+    let formatted = truncated;
+    if (truncated.length > 4) {
+      formatted = `${truncated.slice(0, 2)}-${truncated.slice(2, 4)}-${truncated.slice(4)}`;
+    } else if (truncated.length > 2) {
+      formatted = `${truncated.slice(0, 2)}-${truncated.slice(2)}`;
+    }
+    
+    setDob(formatted);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
@@ -154,7 +180,7 @@ function DojoLoginInner() {
               className="dojo-input"
               placeholder="DD-MM-YYYY"
               value={dob}
-              onChange={(e) => setDob(e.target.value)}
+              onChange={handleDobChange}
               required
             />
             <label htmlFor="dob">Date of Birth</label>

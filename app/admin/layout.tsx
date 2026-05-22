@@ -13,14 +13,9 @@ export const metadata = buildNoIndexMetadata(
 
 export default async function AdminLayout({ children }) {
   const session = await getAdminSession()
-  const headerStore = await headers()
-  const pathname = headerStore.get('x-skf-pathname') || ''
-  const isLoginPage = pathname === '/admin/login'
-
   if (!session) {
-    if (!isLoginPage) {
-      redirect('/admin/login')
-    }
+    // If not logged in, just render the dark wrapper for the login page
+    // The actual protected pages will call requireAdminSession() and redirect if needed.
 
     return (
       <div style={{ minHeight: '100dvh', background: '#0a0a0a', color: '#fff' }}>
