@@ -40,6 +40,8 @@ const envSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: optionalString(z.string().min(1)),
   RESEND_API_KEY: optionalString(z.string().min(1)),
   ADMIN_EMAIL: optionalString(z.string().email()),
+  TELEGRAM_BOT_TOKEN: optionalString(z.string().min(1)),
+  TELEGRAM_CHAT_ID: optionalString(z.string().min(1)),
   TELEGRAM_LEADS_BOT_TOKEN: optionalString(z.string().min(1)),
   TELEGRAM_LEADS_CHAT_ID: optionalString(z.string().min(1)),
   TELEGRAM_FEES_BOT_TOKEN: optionalString(z.string().min(1)),

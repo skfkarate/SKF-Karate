@@ -573,7 +573,12 @@ async function createManualPaymentIntent(input: {
 
   if (error) {
     if (isOptionalWorkflowSchemaError(error)) return null
-    throwFeeDatabaseError(error)
+    logger.warn('fee.payment_intent_create_failed', {
+      skfId: input.skfId,
+      feeRecordId: input.row.id,
+      error,
+    })
+    return null
   }
 
   return data as Record<string, unknown>
@@ -1035,51 +1040,69 @@ async function notifyPaymentProofSubmitted(input: {
   proofFilename?: string
   proofContentType?: string
 }) {
-  if (!hasTelegramChannel('fees')) return
+  if (!hasTelegramChannel('fees')) {
+    logger.warn('fee.payment_proof_alert_missing_channel', { channel: 'fees' })
+    return
+  }
 
   const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org').replace(/\/$/, '')
   const text = [
-    '📋 *SKF Payment Proof Submitted*',
+    'SKF Payment Proof Submitted',
     '',
-    `*Student:* ${input.studentName} (${input.skfId})`,
-    input.branch ? `*Branch:* ${input.branch}` : '',
-    `*Fee:* ${formatFeeTypeLabel(input.feeType)} / ${input.month} ${input.year}`,
-    `*Amount:* ₹${input.amount.toLocaleString('en-IN')}`,
-    input.paymentReference ? `*Reference:* ${input.paymentReference}` : '',
-    `*Submitted:* ${new Date().toLocaleString('en-IN')}`,
+    `Student: ${input.studentName} (${input.skfId})`,
+    input.branch ? `Branch: ${input.branch}` : '',
+    `Fee: ${formatFeeTypeLabel(input.feeType)} / ${input.month} ${input.year}`,
+    `Amount: ₹${input.amount.toLocaleString('en-IN')}`,
+    input.paymentReference ? `Reference: ${input.paymentReference}` : '',
+    `Submitted: ${new Date().toLocaleString('en-IN')}`,
     '',
-    `[Review Pending Proofs](${siteUrl}/admin/treasury?status=pending_verification)`,
+    `Review Pending Proofs: ${siteUrl}/admin/treasury?status=pending_verification`,
   ].filter(Boolean).join('\n')
 
   try {
-    let result
     if (input.proofBuffer) {
       const blob = new Blob([new Uint8Array(input.proofBuffer)], { type: input.proofContentType || 'image/png' })
-      result = await sendTelegramPhoto({
+      const photoResult = await sendTelegramPhoto({
         channel: 'fees',
         photo: blob,
         filename: input.proofFilename || 'proof.png',
         caption: text,
-        parseMode: 'Markdown',
-        timeoutMs: 5000,
+        timeoutMs: 3000,
       })
-    } else {
-      result = await sendTelegramMessage({
-        channel: 'fees',
-        text,
-        parseMode: 'Markdown',
-        timeoutMs: 5000,
+
+      if (photoResult.ok) return
+
+      logger.warn('fee.payment_proof_photo_alert_failed', {
+        status: photoResult.status,
+        skipped: photoResult.skipped,
+        error: photoResult.error,
       })
     }
-    if (!result.ok) {
+
+    const messageResult = await sendTelegramMessage({
+      channel: 'fees',
+      text,
+      timeoutMs: 3000,
+    })
+    if (!messageResult.ok) {
       logger.warn('fee.payment_proof_alert_failed', {
-        status: result.status,
-        skipped: result.skipped,
-        error: result.error,
+        status: messageResult.status,
+        skipped: messageResult.skipped,
+        error: messageResult.error,
       })
     }
   } catch (error) {
     logger.warn('fee.payment_proof_alert_failed', { error })
+
+    try {
+      await sendTelegramMessage({
+        channel: 'fees',
+        text,
+        timeoutMs: 3000,
+      })
+    } catch (fallbackError) {
+      logger.warn('fee.payment_proof_alert_fallback_failed', { error: fallbackError })
+    }
   }
 }
 
@@ -2825,13 +2848,24 @@ export class FeeOperationsService {
           review_note: 'Replaced by a newer payment proof submission.',
         })
         .in('id', (replacedProofs || []).map((oldProof) => oldProof.id))
-      if (replaceError) throwFeeDatabaseError(replaceError)
-      if (oldProofPaths.length) {
-        await supabaseAdmin.storage.from(PROOF_BUCKET).remove(oldProofPaths)
+      if (replaceError) {
+        logger.warn('fee.payment_proof_replace_old_failed', {
+          skfId: normalizedSkfId,
+          feeRecordId: row.id,
+          error: replaceError,
+        })
+      } else if (oldProofPaths.length) {
+        await supabaseAdmin.storage.from(PROOF_BUCKET).remove(oldProofPaths).catch((error) => {
+          logger.warn('fee.payment_proof_old_storage_cleanup_failed', {
+            skfId: normalizedSkfId,
+            feeRecordId: row.id,
+            error,
+          })
+        })
       }
     }
 
-    const { data: updatedRow, error: updateError } = await supabaseAdmin
+    const { data: updatedRowData, error: updateError } = await supabaseAdmin
       .from('fee_records')
       .update({
         status: 'pending_verification',
@@ -2847,7 +2881,17 @@ export class FeeOperationsService {
       .eq('id', row.id)
       .select('*')
       .single()
-    if (updateError) throwFeeDatabaseError(updateError)
+    const updatedRow = updateError
+      ? { ...row, status: 'pending_verification' as const }
+      : normalizeFeeRecord(updatedRowData)
+    if (updateError) {
+      logger.warn('fee.payment_proof_fee_record_pending_update_failed', {
+        skfId: normalizedSkfId,
+        feeRecordId: row.id,
+        proofId: String(proofRow.id || ''),
+        error: updateError,
+      })
+    }
 
     await markPaymentIntentStatus({
       intentId: String(paymentIntent?.id || ''),
@@ -2887,7 +2931,7 @@ export class FeeOperationsService {
       success: true,
       proofId: String(proofRow.id || ''),
       paymentIntentId: paymentIntent?.id || null,
-      entry: rowToEntry(normalizeFeeRecord(updatedRow), athlete),
+      entry: rowToEntry(updatedRow, athlete),
     }
   }
 
