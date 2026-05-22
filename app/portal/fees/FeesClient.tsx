@@ -1,21 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import type { FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wallet, CreditCard, ShieldCheck, CheckCircle2, History, AlertCircle, QrCode, Upload, Info, Clock, Download, Loader2 } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import { submitManualFeePayment } from './actions'
 
+const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
+const ALLOWED_SCREENSHOT_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+
 export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[] }) {
   usePortalAuth()
+  const router = useRouter()
 
   const [isPaying, setIsPaying] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasScreenshot, setHasScreenshot] = useState(false)
-  const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [uiError, setUiError] = useState<string | null>(null)
+  const [locallySubmittedFeeKeys, setLocallySubmittedFeeKeys] = useState<Set<string>>(() => new Set())
+  const submitLockedRef = useRef(false)
 
   const handleDownloadReceipt = async (receiptId: string) => {
     setDownloadingId(receiptId)
@@ -41,13 +48,19 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
 
   // Calculate current balance 
   const isPendingVerification = (f: FeeLedgerEntry) => f.status === 'pending_verification'
-  const visibleFeeRecords = feeRecords.filter(
+  const effectiveFeeRecords = feeRecords.map((fee) =>
+    locallySubmittedFeeKeys.has(fee.key) ? { ...fee, status: 'pending_verification' as const } : fee
+  )
+  const visibleFeeRecords = effectiveFeeRecords.filter(
     (f) => !(f.feeType === 'monthly' && (f.status === 'break' || f.status === 'waived'))
   )
 
   const dueRecords = visibleFeeRecords.filter(f => !isPendingVerification(f) && (f.status === 'due' || f.status === 'overdue' || f.status === 'rejected'))
   const pendingRecords = visibleFeeRecords.filter(f => isPendingVerification(f))
-  const [selectedFeeKeys, setSelectedFeeKeys] = useState<Set<string>>(() => new Set(dueRecords.map((fee) => fee.key)))
+  const [selectedFeeKeys, setSelectedFeeKeys] = useState<Set<string>>(() => {
+    const oldestDueRecord = dueRecords[dueRecords.length - 1]
+    return oldestDueRecord ? new Set([oldestDueRecord.key]) : new Set()
+  })
 
   const totalDue = dueRecords.reduce((sum, f) => sum + (Number(f.amount) || 0), 0)
   const selectedDueRecords = dueRecords.filter((fee) => selectedFeeKeys.has(fee.key))
@@ -61,11 +74,25 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
   const isClear = totalDue === 0
   const hasPending = pendingRecords.length > 0
 
-  const handleManualSubmit = async (formData: FormData) => {
+  const handleManualSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (submitLockedRef.current) return
+
     setUiError(null)
-    const screenshot = formData.get('screenshot') as File | null
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const screenshotValue = formData.get('screenshot')
+    const screenshot = screenshotValue instanceof File ? screenshotValue : null
     if (!screenshot || screenshot.size === 0) {
       setUiError("Please upload a payment screenshot.")
+      return
+    }
+    if (!ALLOWED_SCREENSHOT_TYPES.has(String(screenshot.type || '').toLowerCase())) {
+      setUiError('Please upload a PNG, JPG, or WebP screenshot.')
+      return
+    }
+    if (screenshot.size > MAX_SCREENSHOT_BYTES) {
+      setUiError('Payment screenshot must be 5 MB or smaller.')
       return
     }
     if (selectedFeeKeys.size === 0) {
@@ -73,18 +100,38 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
       return
     }
 
+    submitLockedRef.current = true
     setIsSubmitting(true)
     try {
-      await submitManualFeePayment(formData)
-      setPaymentSuccess(true)
-    } catch (e) {
-      setUiError(e instanceof Error ? e.message : "Failed to submit payment details. Please try again.")
+      const result = await submitManualFeePayment(formData)
+      if (result.ok === false) {
+        setUiError(result.message)
+        return
+      }
+
+      setLocallySubmittedFeeKeys((current) => {
+        const next = new Set(current)
+        for (const key of result.submittedFeeKeys) next.add(key)
+        return next
+      })
+      const submittedKeys = new Set(result.submittedFeeKeys)
+      const remainingDueRecords = dueRecords.filter((fee) => !submittedKeys.has(fee.key))
+      const oldestRemainingDue = remainingDueRecords[remainingDueRecords.length - 1]
+      setSelectedFeeKeys(oldestRemainingDue ? new Set([oldestRemainingDue.key]) : new Set())
+      setHasScreenshot(false)
+      setIsPaying(false)
+      form.reset()
+      router.refresh()
+    } catch {
+      setUiError("We couldn't submit the payment proof right now. Please try again.")
     } finally {
+      submitLockedRef.current = false
       setIsSubmitting(false)
     }
   }
 
   function toggleFeeSelection(key: string) {
+    if (isSubmitting) return
     setSelectedFeeKeys((current) => {
       const next = new Set(current)
       if (next.has(key)) next.delete(key)
@@ -228,7 +275,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
           style={{ display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'center' }}
         >
           <AnimatePresence mode="wait">
-            {paymentSuccess || hasPending ? (
+            {hasPending && isClear ? (
               <motion.div key="success" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.2)', borderRadius: '24px', padding: '2rem', textAlign: 'center' }}>
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(45,212,191,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                   <ShieldCheck size={32} color="#2dd4bf" />
@@ -239,7 +286,36 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                 </p>
               </motion.div>
             ) : isPaying && !isClear ? (
-              <motion.form action={handleManualSubmit} key="pay-form" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '2rem', backdropFilter: 'blur(20px)' }}>
+              <motion.form onSubmit={handleManualSubmit} key="pay-form" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} aria-busy={isSubmitting} style={{ position: 'relative', background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '2rem', backdropFilter: 'blur(20px)', overflow: 'hidden' }}>
+                <AnimatePresence>
+                  {isSubmitting && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 20,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        background: 'rgba(6, 8, 13, 0.84)',
+                        backdropFilter: 'blur(10px)',
+                        textAlign: 'center',
+                        padding: '2rem',
+                      }}
+                    >
+                      <Loader2 size={28} color="var(--gold, #ffb703)" style={{ animation: 'spin 1s linear infinite' }} />
+                      <strong style={{ color: '#fff', fontSize: '1rem' }}>Submitting proof...</strong>
+                      <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem', lineHeight: 1.45 }}>
+                        Please wait while we send the screenshot.
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <QrCode size={20} color="var(--gold, #ffb703)" /> Secure UPI Payment
                 </h3>
@@ -274,6 +350,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                         <input
                           type="checkbox"
                           checked={selectedFeeKeys.has(fee.key)}
+                          disabled={isSubmitting}
                           onChange={() => toggleFeeSelection(fee.key)}
                         />
                         <span style={{ color: '#fff', fontWeight: 700, textTransform: 'capitalize' }}>
@@ -296,12 +373,19 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                   <input
                     type="file"
                     name="screenshot"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     required
+                    disabled={isSubmitting}
                     onChange={(e) => {
                       setUiError(null)
                       const file = e.target.files?.[0]
-                      if (file && file.size > 5 * 1024 * 1024) {
+                      if (file && !ALLOWED_SCREENSHOT_TYPES.has(String(file.type || '').toLowerCase())) {
+                        setUiError('Please upload a PNG, JPG, or WebP screenshot.')
+                        e.currentTarget.value = ''
+                        setHasScreenshot(false)
+                        return
+                      }
+                      if (file && file.size > MAX_SCREENSHOT_BYTES) {
                         setUiError('Payment screenshot must be 5 MB or smaller.')
                         e.currentTarget.value = ''
                         setHasScreenshot(false)
@@ -314,11 +398,11 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button type="button" onClick={() => setIsPaying(false)} style={{ flex: 1, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '1rem', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                  <button type="button" onClick={() => setIsPaying(false)} disabled={isSubmitting} style={{ flex: 1, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '1rem', borderRadius: '12px', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.6 : 1 }}>
                     Cancel
                   </button>
                   <button type="submit" disabled={isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0} style={{ flex: 2, background: 'linear-gradient(135deg, var(--crimson, #d62828), #b31b1b)', color: '#fff', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 700, cursor: isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0 ? 'not-allowed' : 'pointer', opacity: isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0 ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    {isSubmitting ? 'Verifying...' : <><Upload size={16} /> Submit Proof</>}
+                    {isSubmitting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...</> : <><Upload size={16} /> Submit Proof</>}
                   </button>
                 </div>
               </motion.form>
