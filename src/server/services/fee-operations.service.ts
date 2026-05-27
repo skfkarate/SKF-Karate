@@ -1159,7 +1159,7 @@ async function notifyPaymentProofSubmitted(input: {
     return
   }
 
-  const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org').replace(/\/$/, '')
+  const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org').replace(/\/$/, '')
   const text = [
     'SKF Payment Proof Submitted',
     '',
@@ -2886,7 +2886,7 @@ export class FeeOperationsService {
     assertWrite(session)
     requireFeeDatabase()
 
-    const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org').replace(/\/$/, '')
+    const siteUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org').replace(/\/$/, '')
     const results = []
 
     for (const target of input.targets) {

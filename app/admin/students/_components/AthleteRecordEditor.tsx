@@ -135,7 +135,7 @@ function maskDobYear(value?: string | null) {
 }
 
 function buildPortalWelcomeMessage(skfId: string, dob?: string | null) {
-  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/portal`
+  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org'}/portal`
   const dobLine = dob ? `\nDate of birth: ${formatDobForPortal(dob)}` : ''
   return `Welcome to SKF Karate. Use these details to log in to the athlete portal:\nSKF ID: ${skfId}${dobLine}\nPortal: ${portalUrl}`
 }

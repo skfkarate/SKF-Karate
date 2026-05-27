@@ -5,7 +5,7 @@ export interface CertEmailProps {
   skfId: string
 }
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org'
 
 export function certificateReadyTemplate({ parentName, studentName, programName, skfId }: CertEmailProps) {
   return {

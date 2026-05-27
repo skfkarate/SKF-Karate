@@ -226,7 +226,7 @@ function toAbsoluteUrl(value: string) {
   if (!trimmed) return ''
   if (/^https?:\/\//i.test(trimmed)) return trimmed
 
-  const baseUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org')
+  const baseUrl = String(env.NEXT_PUBLIC_SITE_URL || env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org')
   try {
     return new URL(trimmed, baseUrl).toString()
   } catch {

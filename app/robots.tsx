@@ -7,6 +7,6 @@ export default function robots() {
                 disallow: ['/admin', '/portal', '/api', '/athlete', '/verify'],
             },
         ],
-        sitemap: 'https://skfkarate.org/sitemap.xml',
+        sitemap: 'https://www.skfkarate.org/sitemap.xml',
     }
 }

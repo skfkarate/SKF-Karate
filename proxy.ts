@@ -6,7 +6,7 @@ const PORTAL_COOKIE_NAME = 'skf_portal_token'
 const ADMIN_COOKIE_NAMES = ['next-auth.session-token', '__Secure-next-auth.session-token'] as const
 const ADMIN_ROLES = new Set(['admin', 'instructor'])
 const FEETRACK_HOST = 'fees.skfkarate.org'
-const DEFAULT_CANONICAL_HOST = 'skfkarate.org'
+const DEFAULT_CANONICAL_HOST = 'www.skfkarate.org'
 
 type PortalJwtPayload = {
   skfId?: string
@@ -23,10 +23,16 @@ function generateNonce() {
 function getCanonicalHost() {
   try {
     const configuredUrl = new URL(process.env.NEXT_PUBLIC_APP_URL || `https://${DEFAULT_CANONICAL_HOST}`)
-    return configuredUrl.host.toLowerCase().replace(/^www\./, '')
+    return configuredUrl.host.toLowerCase()
   } catch {
     return DEFAULT_CANONICAL_HOST
   }
+}
+
+function getAlternateCanonicalHost(canonicalHost: string) {
+  return canonicalHost.startsWith('www.')
+    ? canonicalHost.slice(4)
+    : `www.${canonicalHost}`
 }
 
 function buildContentSecurityPolicy(nonce: string) {
@@ -136,7 +142,7 @@ function buildCanonicalRedirectUrl(request: NextRequest, host: string) {
     target.protocol = 'https:'
   }
 
-  if (host === `www.${canonicalHost}`) {
+  if (host === getAlternateCanonicalHost(canonicalHost)) {
     target.protocol = 'https:'
     target.host = canonicalHost
   }
@@ -150,7 +156,7 @@ function shouldRedirectToCanonical(request: NextRequest, host: string) {
   const canonicalHost = getCanonicalHost()
   const forwardedProto = request.headers.get('x-forwarded-proto')?.toLowerCase()
   return (
-    host === `www.${canonicalHost}` ||
+    host === getAlternateCanonicalHost(canonicalHost) ||
     (process.env.NODE_ENV === 'production' && forwardedProto === 'http')
   )
 }

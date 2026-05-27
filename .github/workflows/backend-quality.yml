@@ -31,8 +31,8 @@ jobs:
       - name: Production environment check
         run: npm run check:env -- --production
         env:
-          NEXT_PUBLIC_APP_URL: https://skfkarate.org
-          NEXT_PUBLIC_SITE_URL: https://skfkarate.org
+          NEXT_PUBLIC_APP_URL: https://www.skfkarate.org
+          NEXT_PUBLIC_SITE_URL: https://www.skfkarate.org
           JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
           NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
           ADMIN_USERNAME: ci-admin
@@ -42,6 +42,9 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ci_supabase_service_role_key
           UPSTASH_REDIS_REST_URL: https://ci-upstash.example.com
           UPSTASH_REDIS_REST_TOKEN: ci_upstash_token
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ci-google-service-account@example.iam.gserviceaccount.com
+          GOOGLE_PRIVATE_KEY: ci_google_private_key_placeholder
+          ADMISSION_PHOTO_DRIVE_FOLDER_ID: ci_admission_photo_drive_folder
           FEETRACK_API_KEY: ci_feetrack_api_key_32_chars
           SENTRY_DSN: https://public@example.ingest.sentry.io/1
           SENTRY_AUTH_TOKEN: ci_sentry_auth_token
