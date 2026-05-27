@@ -191,6 +191,8 @@ export function withRoute<TBody = Record<string, never>, TQuery = Record<string,
     let rateLimitHeaders: HeadersInit | undefined
 
     try {
+      assertBodySize(request, options.maxBodyBytes)
+
       if (options.rateLimit) {
         const rateLimit = await applyRateLimit(
           request,

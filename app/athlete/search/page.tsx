@@ -124,8 +124,7 @@ export default function FindProfilePage() {
 
       const data = await res.json() as AthleteSearchResponse
       setResults(data.results || data.athletes || [])
-    } catch (err) {
-      console.error(err)
+    } catch {
       setError('Could not complete search. Please try again.')
     } finally {
       setIsLoading(false)

@@ -18,6 +18,7 @@ import {
 } from '@/src/server/api/validators/shop.validator'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
 
 export const POST = withRoute(
@@ -150,8 +151,51 @@ export const POST = withRoute(
       }
     }
 
+    let feeLedgerRecorded = false
+    if (actor.authenticated && actor.skfId && preparedOrder.total > 0) {
+      try {
+        const feeResult = await FeeOperationsService.recordPaidSourcePayment({
+          skfId: actor.skfId,
+          feeType: 'other',
+          amount: preparedOrder.total,
+          paymentMethod: 'upi_qr',
+          paymentReference: orderId,
+          notes: 'Recorded automatically from athlete shop checkout.',
+          sourceKey: `shop:${orderId}`,
+          sourceType: 'shop_order',
+          sourceId: orderId,
+          sourceLabel: buildShopFeeSourceLabel(orderId, preparedOrder.items),
+          branchSnapshot: actor.branch || null,
+          verifiedBy: 'Shop Checkout',
+          metadata: {
+            orderId,
+            orderStatus: preparedOrder.status,
+            fulfillmentMethod: 'dojo-pickup',
+            subtotal: preparedOrder.subtotal,
+            shippingFee: preparedOrder.shippingFee,
+            discount: preparedOrder.discount,
+            pointsUsed: preparedOrder.pointsUsed,
+            promoCode: preparedOrder.promoCode,
+            items: preparedOrder.items.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              name: item.name,
+              size: item.size,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              lineTotal: item.lineTotal,
+            })),
+          },
+        })
+        feeLedgerRecorded = !feeResult.skipped
+      } catch (error) {
+        logger.warn('shop.order.fee_ledger_record_failed', { orderId, skfId: actor.skfId, error })
+      }
+    }
+
     revalidatePath('/admin/shop')
     revalidatePath('/admin/shop/products')
+    revalidatePath('/portal/fees')
     revalidatePath('/shop')
     revalidatePath('/shop/orders')
     // Inventory changes should invalidate the cached shop listing after every order.
@@ -166,6 +210,7 @@ export const POST = withRoute(
       order,
       customerType: order.customerType,
       sheetSaved: sheetResult.saved,
+      feeLedgerRecorded,
     })
   }
 )
@@ -257,6 +302,16 @@ function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAd
     state: 'Karnataka',
     pincode: '000000',
   }
+}
+
+function buildShopFeeSourceLabel(orderId: string, items: ShopOrderItem[]) {
+  const summary = items
+    .slice(0, 2)
+    .map((item) => `${item.quantity}x ${item.name}${item.size ? ` (${item.size})` : ''}`)
+    .join(', ')
+  const remaining = items.length > 2 ? ` +${items.length - 2} more` : ''
+  const label = `Shop Order ${orderId}${summary ? ` - ${summary}${remaining}` : ''}`
+  return label.slice(0, 180)
 }
 
 function createOrderId() {

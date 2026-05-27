@@ -114,12 +114,15 @@ export default function CookieConsent() {
                   <h4>Analytics</h4>
                   <p>Allows us to measure and improve the performance of our site.</p>
                 </div>
-                <div
+                <button
+                  type="button"
                   className={`cookie-toggle ${preferences.analytics ? 'cookie-toggle--active' : ''}`}
                   onClick={() => setPreferences({...preferences, analytics: !preferences.analytics})}
+                  aria-label="Toggle analytics cookies"
+                  aria-pressed={preferences.analytics}
                 >
                   <div className="cookie-toggle-dot" />
-                </div>
+                </button>
               </div>
 
               <div className="cookie-option">
@@ -127,12 +130,15 @@ export default function CookieConsent() {
                   <h4>Marketing</h4>
                   <p>Tracks visitors across websites to display relevant ads.</p>
                 </div>
-                <div
+                <button
+                  type="button"
                   className={`cookie-toggle ${preferences.marketing ? 'cookie-toggle--active' : ''}`}
                   onClick={() => setPreferences({...preferences, marketing: !preferences.marketing})}
+                  aria-label="Toggle marketing cookies"
+                  aria-pressed={preferences.marketing}
                 >
                   <div className="cookie-toggle-dot" />
-                </div>
+                </button>
               </div>
             </div>
 

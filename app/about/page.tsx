@@ -120,13 +120,14 @@ export default async function AboutPage() {
                     </div>
                     
                     <div className="abt-focus-image">
-                        <Image
-                            src={founder.imageUrl}
-                            alt={founder.name}
-                            fill
-                            style={{ objectFit: 'cover', objectPosition: founder.objectPosition || 'center' }}
-                            priority
-                        />
+	                        <Image
+	                            src={founder.imageUrl}
+	                            alt={founder.name}
+	                            fill
+	                            sizes="(max-width: 900px) 100vw, 50vw"
+	                            style={{ objectFit: 'cover', objectPosition: founder.objectPosition || 'center' }}
+	                            priority
+	                        />
                         <div className="abt-focus-overlay">
                             <div style={{ textAlign: 'left' }}>
                                 <div style={{ color: 'var(--gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.3rem' }}>{founder.title}</div>
@@ -159,7 +160,7 @@ export default async function AboutPage() {
                     </div>
                     
                     <div className="abt-focus-image" style={{ borderColor: 'rgba(255,183,3,0.2)' }}>
-                        <Image src="/gallery/In Dojo.jpeg" alt="SKF Training" fill style={{ objectPosition: 'center 40%' }} />
+	                        <Image src="/gallery/In Dojo.jpeg" alt="SKF Training" fill sizes="(max-width: 900px) 100vw, 50vw" style={{ objectPosition: 'center 40%' }} />
                     </div>
                 </div>
             </section>
@@ -178,11 +179,12 @@ export default async function AboutPage() {
                     {activeCommittee.map((instructor, idx) => (
                         <Link key={instructor.id || idx} href={`/instructors/${instructor.slug}`} className="abt-roster-card">
                             <div className="abt-roster-card__imgwrap">
-                                <Image
-                                    src={instructor.imageUrl}
-                                    alt={instructor.name}
-                                    fill
-                                    style={{
+	                                <Image
+	                                    src={instructor.imageUrl}
+	                                    alt={instructor.name}
+	                                    fill
+	                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+	                                    style={{
                                         objectPosition: instructor.hidePhoto ? 'center 25%' : (instructor.objectPosition || 'center'),
                                         objectFit: instructor.hidePhoto ? 'contain' : 'cover',
                                         opacity: instructor.hidePhoto ? 0.3 : 1,

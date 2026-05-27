@@ -57,7 +57,7 @@ export const cities: City[] = [
                 sensei: 'Sensei Usha C',
                 senseiDan: 'Black Belt',
                 classDays: [2, 3, 5],
-                classTime: '5:30 PM – 7:00 PM',
+                classTime: '5:00 PM - 6:30 PM',
                 mapUrl: 'https://maps.app.goo.gl/ZsgVX25nyK27oCZ17',
                 photos: ['/gallery/In Dojo.jpeg'],
                 description: 'The headquarters of SKF Karate. World-class WKF-approved tatami mats, elite conditioning equipment, and an atmosphere of pure discipline.',
@@ -72,7 +72,7 @@ export const cities: City[] = [
                 sensei: 'Sensei Krishna C',
                 senseiDan: 'Black Belt',
                 classDays: [2, 3, 5], // Tue, Wed, Fri
-                classTime: '4:30 PM – 6:00 PM',
+                classTime: '6:00 AM - 7:00 AM',
                 mapUrl: 'https://maps.app.goo.gl/mQQhiQYSNR7bhQ3eA',
                 photos: ['/gallery/In Dojo.jpeg'],
                 description: 'A thriving SKF Karate branch bringing championship-level training to Herohalli.',

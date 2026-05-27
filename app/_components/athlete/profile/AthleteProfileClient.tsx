@@ -54,7 +54,7 @@ function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpe
     fetch(`/api/certificates/public?skfId=${skfId}`)
       .then(res => res.json())
       .then(data => setCerts(data.certificates || []))
-      .catch(console.error)
+      .catch(() => undefined)
       .finally(() => setLoading(false))
   }, [skfId])
 
@@ -578,8 +578,7 @@ export default function AthleteProfileClient({
       a.href = url
       a.download = `SKF_Rank_${athleteInfo.name.replace(/\s+/g, '_')}.jpg`
       a.click()
-    } catch (err) {
-      console.error('Failed to export ranking card:', err)
+    } catch {
       alert("Failed to generate the ranking card. Please try again.")
     } finally {
       setIsExporting(false)

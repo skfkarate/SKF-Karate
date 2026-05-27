@@ -109,11 +109,12 @@ nextjs-portal {
     position: absolute;
     bottom: 0;
     left: 50%;
-    width: 0;
+    width: 70%;
     height: 2px;
     background: var(--gold);
-    transition: all 0.3s var(--ease-out);
-    transform: translateX(-50%);
+    transition: transform 0.3s var(--ease-out);
+    transform: translateX(-50%) scaleX(0);
+    transform-origin: center;
 }
 
 .nav__link:hover {
@@ -128,11 +129,11 @@ nextjs-portal {
 
 .nav__link--disabled::after,
 .nav__link--disabled:hover::after {
-    width: 0;
+    transform: translateX(-50%) scaleX(0);
 }
 
 .nav__link:hover::after {
-    width: 70%;
+    transform: translateX(-50%) scaleX(1);
 }
 
 .nav__link--active {
@@ -140,8 +141,8 @@ nextjs-portal {
 }
 
 .nav__link--active::after {
-    width: 70%;
     background: var(--gold);
+    transform: translateX(-50%) scaleX(1);
 }
 
 .link-pending-indicator {
@@ -150,7 +151,7 @@ nextjs-portal {
     border-radius: 999px;
     opacity: 0;
     transform: scale(0.7);
-    transition: opacity 0.16s ease, transform 0.16s ease, width 0.16s ease, height 0.16s ease;
+    transition: opacity 0.16s ease, transform 0.16s ease;
     background: transparent;
 }
 
@@ -241,6 +242,20 @@ nextjs-portal {
     transition: all 0.2s ease;
     margin-left: 0.2rem;
     touch-action: manipulation;
+    position: relative;
+}
+
+.nav__icon::before,
+.nav__hamburger::before,
+.drawer__close::before,
+.drawer__socials a::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 
 .nav__hamburger:hover {
@@ -313,6 +328,7 @@ nextjs-portal {
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .drawer__close:hover {
@@ -465,6 +481,7 @@ nextjs-portal {
     color: var(--text-muted);
     background: rgba(255, 255, 255, 0.04);
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .drawer__socials a:hover {

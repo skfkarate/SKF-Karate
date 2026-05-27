@@ -4,8 +4,10 @@ import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { cinematicValuesData as values } from '@/data/constants/homeContent'
+import { useNonce } from '@/components/NonceProvider'
 
 export default function CinematicValues() {
+  const nonce = useNonce()
   const marqueeItems = [...values, ...values]
   const sectionRef = useRef(null)
   const isInView = useInView(sectionRef, { once: true, amount: 0.3 })
@@ -27,7 +29,7 @@ export default function CinematicValues() {
         </h2>
       </motion.div>
 
-      <style>{`
+      <style nonce={nonce}>{`
         .marquee-container {
           display: flex;
           width: 200vw;

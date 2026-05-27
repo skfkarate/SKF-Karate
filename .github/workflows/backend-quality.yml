@@ -28,6 +28,26 @@ jobs:
       - name: Environment contract
         run: npm run check:env
 
+      - name: Production environment check
+        run: npm run check:env -- --production
+        env:
+          NEXT_PUBLIC_APP_URL: https://skfkarate.org
+          NEXT_PUBLIC_SITE_URL: https://skfkarate.org
+          JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
+          NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci_supabase_anon_key
+          SUPABASE_SERVICE_ROLE_KEY: ci_supabase_service_role_key
+          UPSTASH_REDIS_REST_URL: https://ci-upstash.example.com
+          UPSTASH_REDIS_REST_TOKEN: ci_upstash_token
+          FEETRACK_API_KEY: ci_feetrack_api_key_32_chars
+          SENTRY_DSN: https://public@example.ingest.sentry.io/1
+          SENTRY_AUTH_TOKEN: ci_sentry_auth_token
+          SENTRY_ORG: skf-karate
+          SENTRY_PROJECT: skf-website
+
       - name: Full lint
         run: npm run lint
 
@@ -41,13 +61,18 @@ jobs:
         run: npm run audit:assets:ci
 
       - name: Media manifest audit
-        run: npm run audit:media-manifest
+        run: npm run audit:media-manifest:ci
 
       - name: Production build
         run: npm run build:ci
         env:
           JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
           NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Bundle budget
+        run: npm run check:bundle
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -57,3 +82,8 @@ jobs:
         env:
           JWT_SECRET: ci_jwt_secret_32_chars_minimum_value
           NEXTAUTH_SECRET: ci_nextauth_secret_32_chars_min_value
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Lighthouse budgets
+        run: npm run check:lighthouse

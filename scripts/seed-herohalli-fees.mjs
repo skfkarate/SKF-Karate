@@ -225,7 +225,7 @@ const STUDENTS = [
     skfId: 'SKF24HE001',
     name: 'KUSHIL V',
     monthlyFee: 400,
-    dateOfBirth: '2017-01-21',
+    dateOfBirth: '2017-07-21',
     gender: 'male',
     joinDate: '2024-01-01',
     parentName: 'Venkatesh S',
@@ -259,19 +259,6 @@ const STUDENTS = [
     email: '',
     year: TARGET_YEAR,
     statuses: ['', 'Paid', 'Break', 'Break'],
-  },
-  {
-    skfId: 'SKF26HE002',
-    name: 'FAKE DATA',
-    monthlyFee: 500,
-    dateOfBirth: '2000-01-01',
-    gender: 'male',
-    joinDate: '2026-05-22',
-    parentName: 'Fake Parent',
-    phone: '',
-    email: '',
-    year: TARGET_YEAR,
-    statuses: ['', '', '', '', '', '', '', '', '', '', '', ''],
   },
 ]
 

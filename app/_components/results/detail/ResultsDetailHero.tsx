@@ -51,8 +51,8 @@ export default function ResultsDetailHero({ tournament }) {
       await navigator.clipboard.writeText(window.location.href)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy', err)
+    } catch {
+      // Clipboard access can be denied by the browser.
     }
   }
 

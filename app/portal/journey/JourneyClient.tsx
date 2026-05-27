@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Medal, Award, Star, X, Info } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
+import { useNonce } from '@/components/NonceProvider'
 
 // Local helper to map the belt colour strings to actual hexes
 const getHexColor = (beltStr: string) => {
@@ -34,6 +35,7 @@ export type TimelineNode = {
 }
 
 export default function JourneyClient({ timelineNodes }: { timelineNodes: TimelineNode[] }) {
+  const nonce = useNonce()
   usePortalAuth()
   const [selectedNode, setSelectedNode] = useState<TimelineNode | null>(null)
 
@@ -267,7 +269,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
         )}
       </AnimatePresence>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
         /* Desktop Default Layout */
         .timeline-node-container {
           display: flex;

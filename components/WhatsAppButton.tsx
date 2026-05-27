@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ChevronRight, UserCircle } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { BRANCH_WHATSAPP_NUMBERS } from '@/data/constants/contact'
+import { useNonce } from '@/components/NonceProvider'
 
 type Props = {
     branch?: string
@@ -12,12 +13,16 @@ type Props = {
 type PortalStatus = 'checking' | 'authenticated' | 'guest'
 
 type PortalSessionResponse = {
-    name?: string | null
+    authenticated?: boolean
+    user?: {
+        name?: string | null
+    } | null
 }
 
 const BRANCH_NUMBERS = BRANCH_WHATSAPP_NUMBERS
 
 export default function WhatsAppButton({ branch }: Props) {
+    const nonce = useNonce()
     const [isVisible, setIsVisible] = useState(false)
     const [portalStatus, setPortalStatus] = useState<PortalStatus>('checking')
     const [portalName, setPortalName] = useState<string | null>(null)
@@ -28,7 +33,7 @@ export default function WhatsAppButton({ branch }: Props) {
 
         async function checkPortalSession() {
             try {
-                const response = await fetch('/api/auth/portal/session', {
+                const response = await fetch('/api/auth/me', {
                     cache: 'no-store',
                     credentials: 'same-origin',
                     signal: controller.signal,
@@ -36,11 +41,11 @@ export default function WhatsAppButton({ branch }: Props) {
 
                 if (response.ok) {
                     const session = await response.json().catch(() => null) as PortalSessionResponse | null
-                    if (isMounted) {
-                        setPortalName(typeof session?.name === 'string' ? session.name : null)
+                    if (isMounted && session?.authenticated) {
+                        setPortalName(typeof session.user?.name === 'string' ? session.user.name : null)
                         setPortalStatus('authenticated')
+                        return
                     }
-                    return
                 }
             } catch {
                 if (controller.signal.aborted) return
@@ -76,7 +81,7 @@ export default function WhatsAppButton({ branch }: Props) {
     if (portalStatus === 'authenticated') {
         return (
             <div className="skf-floating-action-container">
-                <style dangerouslySetInnerHTML={{__html: `
+                <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
                     .skf-floating-action-container {
                         position: fixed;
                         bottom: 2rem;
@@ -174,7 +179,7 @@ export default function WhatsAppButton({ branch }: Props) {
 
     return (
         <div className="skf-floating-action-container">
-            <style dangerouslySetInnerHTML={{__html: `
+            <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
                 .skf-floating-action-container {
                     position: fixed;
                     bottom: 2rem;

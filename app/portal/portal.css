@@ -21,6 +21,10 @@
   min-width: 0;
 }
 
+.hub-main__page {
+  animation: content-arrive 0.2s ease-out forwards;
+}
+
 @media (min-width: 900px) {
   .hub-main {
     margin-left: 120px;
@@ -487,4 +491,283 @@
   background: rgba(255,255,255,0.05) !important;
   border-color: rgba(255,255,255,0.1) !important;
   color: rgba(255,255,255,0.7) !important;
+}
+
+/* ── SIBLING PROFILE SWITCHER ── */
+.kuroobi-dock__switcher-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.kuroobi-dock__switch {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  margin-bottom: 0.5rem;
+}
+
+.kuroobi-dock__switch:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+
+.kuroobi-dock__sibling-menu {
+  position: absolute;
+  left: calc(100% + 15px);
+  bottom: 0;
+  min-width: 260px;
+  max-width: 320px;
+  background: rgba(10, 14, 22, 0.95);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  z-index: 100;
+}
+
+.kuroobi-overlay__switcher {
+  margin: 0 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.25rem;
+}
+
+.sibling-menu-header {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.sibling-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sibling-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sibling-item:not(.active):hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.sibling-item.active {
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(214, 40, 40, 0.05));
+  border-color: rgba(214, 40, 40, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  cursor: default;
+}
+
+.sibling-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sibling-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sibling-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sibling-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sibling-id {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sibling-current-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--crimson, #d62828);
+  background: rgba(214, 40, 40, 0.15);
+  padding: 4px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* ── TOP RIGHT FAMILY SWITCHER WIDGET (LIQUID GLASS) ── */
+.kuroobi-top-switcher {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 99995;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.kuroobi-top-switcher.hidden {
+  transform: translateY(-80px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kuroobi-top-switcher-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(20, 24, 32, 0.4);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 16px 6px 6px;
+  border-radius: 40px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.kuroobi-top-switcher-button:hover {
+  background: rgba(30, 35, 45, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+}
+
+.kuroobi-top-switcher-button:active {
+  transform: translateY(0);
+  background: rgba(20, 24, 32, 0.6);
+}
+
+.kuroobi-top-switcher-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: border-color 0.3s ease;
+}
+
+.kuroobi-top-switcher-button:hover .kuroobi-top-switcher-avatar {
+  border-color: rgba(255,255,255,0.3);
+}
+
+.kuroobi-top-switcher-avatar img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+}
+
+.kuroobi-top-switcher-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.kuroobi-top-switcher-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.kuroobi-top-switcher-role {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.kuroobi-top-switcher-caret {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: rgba(255,255,255,0.5);
+  margin-left: 0.25rem;
+}
+
+.kuroobi-top-switcher-button:hover .kuroobi-top-switcher-caret {
+  color: #fff;
+}
+
+/* Override dropdown placement for top right */
+.kuroobi-dock__sibling-menu.top-right-mode {
+  left: auto;
+  right: 0;
+  top: calc(100% + 12px);
+  bottom: auto;
+  transform-origin: top right;
+  border-radius: 24px;
+  padding: 1rem;
+  min-width: 280px;
+  max-width: calc(100vw - 3rem);
+  background: rgba(15, 20, 28, 0.7);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+@media (max-width: 899px) {
+  .kuroobi-top-switcher {
+    top: 1.25rem;
+    right: 1.25rem;
+  }
 }

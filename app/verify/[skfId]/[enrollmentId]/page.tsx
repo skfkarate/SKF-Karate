@@ -70,7 +70,9 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
     if (athlete) {
       studentName = [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || studentName
     }
-  } catch {}
+  } catch {
+    // Verification still succeeds when the optional athlete profile lookup is unavailable.
+  }
 
   const program = getProgramRelation(cert.programs)
 

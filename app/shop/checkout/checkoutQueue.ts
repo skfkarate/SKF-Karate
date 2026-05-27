@@ -54,6 +54,7 @@ export async function flushCheckoutQueue() {
 
         const res = await fetch('/api/shop/orders', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(item.payload),
           signal: controller.signal

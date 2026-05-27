@@ -8,11 +8,12 @@ import './_components/Navbar.css'
 import './_components/pages/home/HomeBookTrialCTA.css'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
 import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
-import { SITE_CONFIG } from '@/data/constants/siteConfig'
+import { getCanonicalOrigin } from '@/data/constants/siteConfig'
 import { buildSeoMetadata } from '@/data/constants/seo'
 
 const bodyFont = Inter({
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     '/',
     'SKF Karate offers professional karate classes in Karnataka with self-defense, kata, kumite, weapon training, kids programs, and adult coaching for all levels.'
   ),
-  metadataBase: new URL(SITE_CONFIG.URL),
+  metadataBase: new URL(getCanonicalOrigin()),
   manifest: '/manifest.json',
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || '' },
 }
@@ -42,27 +43,39 @@ export const metadata: Metadata = {
 
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import CookieConsent from '@/components/CookieConsent'
+import ResourceHints from '@/components/ResourceHints'
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
+import WebVitals from '@/components/WebVitals'
+import { NonceProvider } from '@/components/NonceProvider'
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en" dir="ltr" className={`${bodyFont.variable} ${headingFont.variable}`}>
-      <body>
-        {/* Global Cinematic Orbs */}
-        <div className="amb-orb amb-orb--1" />
-        <div className="amb-orb amb-orb--2" />
-        <div className="amb-orb amb-orb--3" />
+export default async function RootLayout({ children }: { children: ReactNode }) {
+	const nonce = (await headers()).get('x-nonce') || undefined
 
-        <ClientLayoutWrapper
-          navbar={<Navbar />}
-          footer={<Footer />}
-          whatsappButton={<WhatsAppButton />}
-        >
-          {children}
-        </ClientLayoutWrapper>
+	return (
+		<html lang="en" dir="ltr" className={`${bodyFont.variable} ${headingFont.variable}`}>
+			<body>
+				<NonceProvider nonce={nonce}>
+					<ResourceHints />
+					<a href="#main-content" className="skip-to-content">Skip to main content</a>
+					{/* Global Cinematic Orbs */}
+					<div className="amb-orb amb-orb--1" />
+					<div className="amb-orb amb-orb--2" />
+					<div className="amb-orb amb-orb--3" />
 
-        <CookieConsent />
-        <AnalyticsLoader />
-      </body>
-    </html>
-  )
+	        <ClientLayoutWrapper
+	          navbar={<Navbar />}
+	          footer={<Footer />}
+	          whatsappButton={<WhatsAppButton />}
+	        >
+	          {children}
+	        </ClientLayoutWrapper>
+
+					<CookieConsent />
+					<AnalyticsLoader nonce={nonce} />
+					<ServiceWorkerRegistration />
+					<WebVitals />
+				</NonceProvider>
+			</body>
+		</html>
+	)
 }

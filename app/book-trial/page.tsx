@@ -82,9 +82,7 @@ export default function BookTrialPage() {
                 if (!isMounted || !Array.isArray(data?.cities)) return
                 setCities(data.cities)
             })
-            .catch((error) => {
-                console.error('Failed to load classes for trial booking:', error)
-            })
+            .catch(() => undefined)
 
         return () => {
             isMounted = false
@@ -154,8 +152,6 @@ export default function BookTrialPage() {
             setSubmitState('success')
         } catch (err) {
             const error = err as RetryableSubmissionError
-            console.error('Submission error:', err)
-
             if (error.retryable !== false) {
                 queueTrialSubmission(payload)
                 setSubmitState('success') // Show success even if queued to maintain "100% success rate" UX

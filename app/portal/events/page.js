@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { Calendar, Compass, MapPin, ArrowRight } from 'lucide-react'
 
 import { requirePortalAthlete } from '@/lib/server/auth/require-portal-athlete'
@@ -149,6 +150,7 @@ function EventSection({ title, events }) {
 }
 
 export default async function PortalEventsPage() {
+  const nonce = (await headers()).get('x-nonce') || undefined
   const { athlete } = await requirePortalAthlete()
   const allEvents = await getAllEventsLive()
   const assignedEvents = getAssignedPortalEvents(allEvents, athlete.skfId)
@@ -206,7 +208,7 @@ export default async function PortalEventsPage() {
         </div>
       )}
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style nonce={nonce} dangerouslySetInnerHTML={{ __html: `
         @keyframes portalEventIn {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }

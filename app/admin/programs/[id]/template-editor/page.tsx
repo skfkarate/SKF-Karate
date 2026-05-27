@@ -30,8 +30,8 @@ export default function TemplateEditorPage({ params }) {
             setBackgroundUrl(data.template.background_url)
           }
         }
-      } catch (e) {
-        console.error("Failed to load template layout", e)
+      } catch {
+        // Template editor can start with a blank canvas when the saved layout is unavailable.
       }
     }
     loadTemplate()

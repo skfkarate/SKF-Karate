@@ -10,9 +10,11 @@ import { getShopProductImages, getShopProductPrimaryImage } from '@/lib/shop/pro
 import type { ShopProduct } from '@/lib/shop/types'
 import { BELT_HIERARCHY } from '@/lib/shop/types'
 import ShopProductSkeleton from '@/components/skeletons/ShopProductSkeleton'
+import { useNonce } from '@/components/NonceProvider'
 import '../shop.css'
 
 export default function ProductDetailPage() {
+    const nonce = useNonce()
     const params = useParams()
     const router = useRouter()
     const productId = params.productId as string
@@ -253,13 +255,13 @@ export default function ProductDetailPage() {
                     {/* LEFT: MINIMAL GALLERY */}
                     <div className="shop-detail-gallery">
                         <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', background: '#111' }}>
-                            <Image src={productImages[selectedImage] || productImages[0] || '/og-default.jpg'} alt={product.name} fill style={{ objectFit: 'cover' }} priority />
+	                            <Image src={productImages[selectedImage] || productImages[0] || '/og-default.jpg'} alt={product.name} fill sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: 'cover' }} priority />
                         </div>
                         {productImages.length > 1 && (
                             <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
                                 {productImages.map((img: string, i: number) => (
                                     <div key={i} onClick={() => setSelectedImage(i)} style={{ width: '100px', height: '100px', position: 'relative', background: '#111', cursor: 'pointer', border: selectedImage === i ? '1px solid #fff' : '1px solid transparent', opacity: selectedImage === i ? 1 : 0.5, transition: 'all 0.2s' }}>
-                                        <Image src={img} alt={`Gallery ${i}`} fill style={{ objectFit: 'cover' }} />
+	                                        <Image src={img} alt={`${product.name} gallery image ${i + 1}`} fill sizes="100px" style={{ objectFit: 'cover' }} />
                                     </div>
                                 ))}
                             </div>
@@ -378,7 +380,7 @@ export default function ProductDetailPage() {
 
             </div>
 
-            <style dangerouslySetInnerHTML={{__html: `
+            <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
                 @keyframes slideInRight {
                     from { transform: translateX(120%); opacity: 0; }
                     to { transform: translateX(0); opacity: 1; }

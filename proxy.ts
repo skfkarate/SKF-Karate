@@ -6,6 +6,7 @@ const PORTAL_COOKIE_NAME = 'skf_portal_token'
 const ADMIN_COOKIE_NAMES = ['next-auth.session-token', '__Secure-next-auth.session-token'] as const
 const ADMIN_ROLES = new Set(['admin', 'instructor'])
 const FEETRACK_HOST = 'fees.skfkarate.org'
+const DEFAULT_CANONICAL_HOST = 'skfkarate.org'
 
 type PortalJwtPayload = {
   skfId?: string
@@ -13,16 +14,42 @@ type PortalJwtPayload = {
   exp?: number
 }
 
-function buildContentSecurityPolicy() {
+function generateNonce() {
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  return btoa(String.fromCharCode(...bytes))
+}
+
+function getCanonicalHost() {
+  try {
+    const configuredUrl = new URL(process.env.NEXT_PUBLIC_APP_URL || `https://${DEFAULT_CANONICAL_HOST}`)
+    return configuredUrl.host.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return DEFAULT_CANONICAL_HOST
+  }
+}
+
+function buildContentSecurityPolicy(nonce: string) {
   const isDev = process.env.NODE_ENV !== 'production'
-  const scriptSrc = isDev
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://s.ytimg.com"
-    : "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://s.ytimg.com"
+  const scriptSources = [
+    "'self'",
+    `'nonce-${nonce}'`,
+    'https://checkout.razorpay.com',
+    'https://www.googletagmanager.com',
+    'https://www.youtube.com',
+    'https://www.youtube-nocookie.com',
+    'https://s.ytimg.com',
+  ]
+
+  if (isDev) scriptSources.push("'unsafe-eval'")
 
   return [
     "default-src 'self'",
-    scriptSrc,
-    "style-src 'self' 'unsafe-inline'",
+    `script-src ${scriptSources.join(' ')}`,
+    "style-src 'self'",
+    `style-src-elem 'self' 'nonce-${nonce}'`,
+    // TODO(framer-motion/react-inline-styles): remove style-src-attr once static JSX style props are migrated to CSS classes.
+    "style-src-attr 'unsafe-inline'",
     [
       "img-src 'self' data: blob:",
       'https://*.supabase.co',
@@ -93,6 +120,39 @@ function attachSecurityHeaders(
 
 function isLegacyFeeHost(host: string) {
   return host === 'fee.skfkarate.org' || host === 'fee.skfkkarate.org' || host.startsWith('fee.')
+}
+
+function isLoopbackHost(host: string) {
+  const hostname = host.split(':')[0]
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '[::1]'
+}
+
+function buildCanonicalRedirectUrl(request: NextRequest, host: string) {
+  const canonicalHost = getCanonicalHost()
+  const target = new URL(request.url)
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.toLowerCase()
+
+  if (process.env.NODE_ENV === 'production' && forwardedProto === 'http') {
+    target.protocol = 'https:'
+  }
+
+  if (host === `www.${canonicalHost}`) {
+    target.protocol = 'https:'
+    target.host = canonicalHost
+  }
+
+  return target
+}
+
+function shouldRedirectToCanonical(request: NextRequest, host: string) {
+  if (isLoopbackHost(host)) return false
+
+  const canonicalHost = getCanonicalHost()
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.toLowerCase()
+  return (
+    host === `www.${canonicalHost}` ||
+    (process.env.NODE_ENV === 'production' && forwardedProto === 'http')
+  )
 }
 
 function buildFeeTrackRedirectUrl(request: NextRequest) {
@@ -187,9 +247,11 @@ async function getValidAdminToken(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
-  const csp = buildContentSecurityPolicy()
+  const nonce = generateNonce()
+  const csp = buildContentSecurityPolicy(nonce)
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('Content-Security-Policy', csp)
+  requestHeaders.set('x-nonce', nonce)
 
   const pathname = request.nextUrl.pathname
   requestHeaders.set('x-skf-pathname', pathname)
@@ -197,6 +259,10 @@ export async function proxy(request: NextRequest) {
 
   if (isLegacyFeeHost(host)) {
     return attachSecurityHeaders(NextResponse.redirect(buildFeeTrackRedirectUrl(request), 308), csp)
+  }
+
+  if (shouldRedirectToCanonical(request, host)) {
+    return attachSecurityHeaders(NextResponse.redirect(buildCanonicalRedirectUrl(request, host), 308), csp)
   }
 
   const portalToken = request.cookies.get(PORTAL_COOKIE_NAME)?.value

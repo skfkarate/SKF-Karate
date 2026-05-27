@@ -23,9 +23,10 @@ interface BranchDetailClientProps {
     citySlug: string
     topPerformers?: TopPerformer[]
     isDirectSkipBranch?: boolean
+    admissionFormHref?: string | null
 }
 
-export default function BranchDetailClient({ branch, cityName, citySlug, topPerformers = [], isDirectSkipBranch = false }: BranchDetailClientProps) {
+export default function BranchDetailClient({ branch, cityName, citySlug, topPerformers = [], isDirectSkipBranch = false, admissionFormHref = null }: BranchDetailClientProps) {
     const now = new Date()
     const [calYear] = useState(now.getFullYear())
     const [calMonth] = useState(now.getMonth())
@@ -97,6 +98,15 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                         >
                             BOOK A TRIAL CLASS
                         </Link>
+                        {admissionFormHref ? (
+                            <Link
+                                href={admissionFormHref}
+                                className="obs-cta-btn"
+                                style={{ width: '100%', justifyContent: 'center', padding: '1rem', textDecoration: 'none', textAlign: 'center', marginTop: '0.75rem' }}
+                            >
+                                ADMISSION FORM
+                            </Link>
+                        ) : null}
                     </div>
                 </div>
             </header>
@@ -110,12 +120,13 @@ export default function BranchDetailClient({ branch, cityName, citySlug, topPerf
                     {/* Visual Gallery Carousels/Modules */}
                     <div className="obs-glass-pane obs-pane-gallery" style={{ padding: 0 }}>
                         <div style={{ position: 'relative', width: '100%', height: '350px' }}>
-                             <Image
-                                src={branch.photos?.[1] || branch.photos?.[0] || '/gallery/In Dojo.jpeg'}
-                                alt="Dojo Interior"
-                                fill
-                                style={{ objectFit: 'cover' }}
-                            />
+	                             <Image
+	                                src={branch.photos?.[1] || branch.photos?.[0] || '/gallery/In Dojo.jpeg'}
+	                                alt="Dojo Interior"
+	                                fill
+	                                sizes="(max-width: 900px) 100vw, 66vw"
+	                                style={{ objectFit: 'cover' }}
+	                            />
                             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(3,5,8,0.9) 100%)' }} />
                             <h3 style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem', margin: 0, fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.5rem, 5vw, 2rem)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                                 Community Learning

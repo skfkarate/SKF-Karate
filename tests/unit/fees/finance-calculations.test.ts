@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const state = vi.hoisted(() => ({
   expenses: [] as Array<Record<string, unknown>>,
   incomes: [] as Array<Record<string, unknown>>,
+  eventExpenses: [] as Array<Record<string, unknown>>,
+  eventDeposits: [] as Array<Record<string, unknown>>,
   supabaseFrom: vi.fn(),
 }))
 
@@ -67,23 +69,44 @@ function feeEntry(feeType: string, amount: number, metadata: Record<string, unkn
 
 function setupSupabaseMock() {
   state.supabaseFrom.mockImplementation((table: string) => {
-    if (table !== 'development_fund_expenses' && table !== 'fee_extra_incomes') {
+    if (
+      table !== 'development_fund_expenses' &&
+      table !== 'fee_extra_incomes' &&
+      table !== 'event_fee_expenses' &&
+      table !== 'event_fee_deposits'
+    ) {
       throw new Error(`Unexpected table ${table}`)
     }
-    const rows = table === 'development_fund_expenses' ? state.expenses : state.incomes
+    const rowsByTable: Record<string, Array<Record<string, unknown>>> = {
+      development_fund_expenses: state.expenses,
+      fee_extra_incomes: state.incomes,
+      event_fee_expenses: state.eventExpenses,
+      event_fee_deposits: state.eventDeposits,
+    }
+    const rows = rowsByTable[table] || []
 
-    return {
-      select: () => ({
-        eq: () => ({
-          is: () => ({
-            order: async () => ({
-              data: rows,
-              error: null,
-            }),
-          }),
-        }),
+    type SupabaseQueryMock = {
+      select: () => SupabaseQueryMock
+      eq: () => SupabaseQueryMock
+      gte: () => SupabaseQueryMock
+      lte: () => SupabaseQueryMock
+      is: () => SupabaseQueryMock
+      order: () => Promise<{ data: Array<Record<string, unknown>>; error: null }>
+    }
+
+    const query: SupabaseQueryMock = {
+      select: () => query,
+      eq: () => query,
+      gte: () => query,
+      lte: () => query,
+      is: () => query,
+      order: async () => ({
+        data: rows,
+        error: null,
       }),
     }
+
+    return query
   })
 }
 
@@ -91,6 +114,8 @@ describe('fee finance calculations', () => {
   beforeEach(() => {
     state.expenses = []
     state.incomes = []
+    state.eventExpenses = []
+    state.eventDeposits = []
     state.supabaseFrom.mockReset()
     setupSupabaseMock()
     vi.spyOn(FeeOperationsService, 'getDataQuality').mockResolvedValue({ groups: [] } as never)

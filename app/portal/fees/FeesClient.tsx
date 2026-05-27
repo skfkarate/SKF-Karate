@@ -8,11 +8,36 @@ import { Wallet, CreditCard, ShieldCheck, CheckCircle2, History, AlertCircle, Qr
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import { submitManualFeePayment } from './actions'
+import { useNonce } from '@/components/NonceProvider'
 
 const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 const ALLOWED_SCREENSHOT_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
 
+function feeTypeLabel(feeType: string) {
+  return String(feeType || 'monthly')
+    .replace(/_/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(' ')
+}
+
+function feeDisplayLabel(fee: FeeLedgerEntry) {
+  if (fee.sourceLabel) {
+    const targetBelt = typeof fee.metadata?.targetBelt === 'string' ? fee.metadata.targetBelt : ''
+    return targetBelt ? `${fee.sourceLabel} - ${targetBelt}` : fee.sourceLabel
+  }
+  if (fee.feeType === 'monthly') return `${fee.month} ${fee.year}`
+  return `${feeTypeLabel(fee.feeType)} ${fee.year}`
+}
+
+function feeCategoryLabel(fee: FeeLedgerEntry) {
+  if (fee.sourceType === 'shop_order') return 'Shop'
+  return feeTypeLabel(fee.feeType)
+}
+
 export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[] }) {
+  const nonce = useNonce()
   usePortalAuth()
   const router = useRouter()
 
@@ -68,7 +93,11 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
 
   // Get oldest due for display
   const oldestDue = dueRecords.length > 0 ? dueRecords[dueRecords.length - 1] : null
-  const dueDateStr = oldestDue ? `10 ${oldestDue.month.substring(0, 3)} ${oldestDue.year}` : 'N/A'
+  const dueDateStr = oldestDue
+    ? oldestDue.dueDate
+      ? new Date(`${oldestDue.dueDate}T00:00:00`).toLocaleDateString('en-GB')
+      : `10 ${oldestDue.month.substring(0, 3)} ${oldestDue.year}`
+    : 'N/A'
 
   // Status booleans
   const isClear = totalDue === 0
@@ -354,7 +383,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                           onChange={() => toggleFeeSelection(fee.key)}
                         />
                         <span style={{ color: '#fff', fontWeight: 700, textTransform: 'capitalize' }}>
-                          {fee.feeType === 'monthly' ? `${fee.month} ${fee.year}` : `${fee.feeType.replace('_', ' ')} ${fee.year}`}
+                          {feeDisplayLabel(fee)}
                         </span>
                         <strong style={{ color: 'var(--gold, #ffb703)' }}>₹{Number(fee.amount || 0).toLocaleString()}</strong>
                       </label>
@@ -408,7 +437,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
               </motion.form>
             ) : (
               <motion.div key="action-prompt" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '2rem', backdropFilter: 'blur(20px)' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#fff' }}>Monthly Contribution</h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#fff' }}>Fee Contribution</h3>
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '2rem' }}>
                   Your dues support Dojo maintenance, master classes, and ongoing digital infrastructure like this Athlete Portal.
                 </p>
@@ -473,7 +502,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
             }
 
             // Capitalize Fee Type
-            const feeTypeLabel = tx.feeType === 'monthly' ? `${tx.month} ${tx.year}` : `${tx.feeType} ${tx.year}`.replace('_', ' ').toUpperCase()
+            const txFeeLabel = feeDisplayLabel(tx)
 
             return (
               <div key={tx.key || idx} className="fees-ledger-row" style={{
@@ -497,7 +526,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                         <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', textTransform: 'capitalize' }}>
-                          {feeTypeLabel}
+                          {txFeeLabel}
                         </span>
                         <span style={{
                           fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
@@ -510,7 +539,8 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500, display: 'flex', gap: '0.5rem' }}>
                         {isPaid && tx.paidDate ? new Date(tx.paidDate).toLocaleDateString('en-GB') : ''}
-                        {tx.feeType !== 'monthly' && <span style={{ color: 'var(--gold, #ffb703)' }}>{tx.feeType.toUpperCase()}</span>}
+                        {tx.dueDate && <span>Due {new Date(`${tx.dueDate}T00:00:00`).toLocaleDateString('en-GB')}</span>}
+                        {tx.feeType !== 'monthly' && <span style={{ color: 'var(--gold, #ffb703)' }}>{feeCategoryLabel(tx).toUpperCase()}</span>}
                       </div>
                     </div>
                   </div>
@@ -563,7 +593,7 @@ export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[
       </motion.div>
 
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
         @media (max-width: 768px) {
           .fees-black-card {
             aspect-ratio: auto !important;

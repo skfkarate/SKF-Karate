@@ -116,8 +116,8 @@ export default function AdminEventsClient({ initialEvents }: { initialEvents: Ad
       const res = await fetch('/api/admin/events')
       const data = await res.json() as AdminEventsResponse
       setEvents(Array.isArray(data.events) ? data.events : [])
-    } catch (error) {
-      console.error('Failed to load events hub:', error)
+    } catch {
+      // Empty state handles transient event hub load failures.
     } finally {
       setLoading(false)
     }
@@ -151,8 +151,7 @@ export default function AdminEventsClient({ initialEvents }: { initialEvents: Ad
         const data = await res.json().catch(() => null)
         alert(getApiErrorMessage(data, 'Failed to delete record'))
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
       alert('Failed to delete record')
     }
   }

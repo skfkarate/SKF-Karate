@@ -3,7 +3,16 @@ import { z } from 'zod'
 const yearSchema = z.coerce.number().int().min(2020).max(2100)
 const skfIdSchema = z.string().trim().min(1).max(64)
 const monthSchema = z.string().trim().min(3).max(20)
-const feeTypeSchema = z.enum(['monthly', 'admission', 'dress', 'credit_adjustment']).default('monthly')
+const feeTypeSchema = z.enum([
+  'monthly',
+  'admission',
+  'dress',
+  'credit_adjustment',
+  'belt_exam',
+  'tournament',
+  'event',
+  'other',
+]).default('monthly')
 const booleanQuerySchema = z.preprocess((value) => {
   if (value === 'true' || value === '1') return true
   if (value === 'false' || value === '0') return false
@@ -84,7 +93,7 @@ export const feeConsoleQuerySchema = z.object({
   year: yearSchema.optional(),
   month: monthSchema.optional(),
   status: feeStatusSchema.optional(),
-  feeType: z.enum(['all', 'monthly', 'admission', 'dress', 'credit_adjustment']).optional(),
+  feeType: z.enum(['all', 'monthly', 'admission', 'dress', 'credit_adjustment', 'belt_exam', 'tournament', 'event', 'other']).optional(),
   city: z.string().trim().max(120).optional(),
   branch: z.string().trim().max(160).optional(),
   search: z.string().trim().max(160).optional(),
@@ -102,6 +111,7 @@ export const feeConsoleLedgerActionSchema = z.discriminatedUnion('action', [
     month: monthSchema,
     year: yearSchema,
     feeType: feeTypeSchema,
+    feeRecordId: z.string().uuid().optional(),
     amount: z.coerce.number().min(0).max(1000000).optional(),
     paymentMethod: feeConsolePaymentMethodSchema,
     paymentReference: z.string().trim().max(160).optional(),
@@ -113,6 +123,7 @@ export const feeConsoleLedgerActionSchema = z.discriminatedUnion('action', [
     month: monthSchema,
     year: yearSchema,
     feeType: feeTypeSchema,
+    feeRecordId: z.string().uuid().optional(),
     reason: z.string().trim().max(500).optional(),
   }),
   z.object({
@@ -121,6 +132,7 @@ export const feeConsoleLedgerActionSchema = z.discriminatedUnion('action', [
     month: monthSchema,
     year: yearSchema,
     feeType: feeTypeSchema,
+    feeRecordId: z.string().uuid().optional(),
     reason: z.string().trim().min(1).max(500),
   }),
   z.object({
@@ -129,6 +141,7 @@ export const feeConsoleLedgerActionSchema = z.discriminatedUnion('action', [
     month: monthSchema,
     year: yearSchema,
     feeType: feeTypeSchema,
+    feeRecordId: z.string().uuid().optional(),
     reason: z.string().trim().min(1).max(500),
   }),
   z.object({
@@ -230,6 +243,71 @@ export const feeExtraIncomeSchema = z.object({
   amount: z.coerce.number().min(1).max(1000000),
 })
 
+const eventFeeCategorySchema = z.enum(['belt_exam', 'tournament', 'event', 'other'])
+const eventFeeTargetingModeSchema = z.enum(['branch_and_eligibility', 'participants_only', 'manual_selection'])
+const eventFeePricingModeSchema = z.enum(['fixed', 'branch', 'belt', 'branch_belt', 'student'])
+
+const branchPriceSchema = z.record(z.string().trim().min(1).max(160), z.coerce.number().min(0).max(1000000))
+
+const studentOverrideSchema = z.object({
+  skfId: skfIdSchema,
+  amount: z.coerce.number().min(0).max(1000000).optional(),
+  excluded: z.boolean().optional(),
+  waived: z.boolean().optional(),
+  reason: z.string().trim().max(300).optional(),
+})
+
+export const eventFeeConfigSchema = z.object({
+  eventId: z.string().trim().min(1).max(120),
+  feeCategory: eventFeeCategorySchema.default('event'),
+  targetingMode: eventFeeTargetingModeSchema.default('branch_and_eligibility'),
+  pricingMode: eventFeePricingModeSchema.default('fixed'),
+  defaultAmount: z.coerce.number().min(0).max(1000000).default(0),
+  dueDate: z.string().trim().max(40).optional(),
+  branchScope: z.array(z.string().trim().min(1).max(160)).max(20).default([]),
+  beltScope: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+  branchPrices: branchPriceSchema.default({}),
+  beltPrices: branchPriceSchema.default({}),
+  branchBeltPrices: z.record(z.string().trim().min(1).max(220), z.coerce.number().min(0).max(1000000)).default({}),
+  studentOverrides: z.array(studentOverrideSchema).max(500).default([]),
+  notes: z.string().trim().max(1000).optional(),
+})
+
+export const eventFeePreviewSchema = z.object({
+  eventId: z.string().trim().min(1).max(120),
+  config: eventFeeConfigSchema.partial().optional(),
+})
+
+export const eventFeeGenerateSchema = z.object({
+  eventId: z.string().trim().min(1).max(120),
+  overrides: z.array(studentOverrideSchema).max(500).default([]),
+})
+
+export const eventFeeExpenseSchema = z.object({
+  eventId: z.string().trim().min(1).max(120),
+  title: z.string().trim().min(1).max(160),
+  category: z.string().trim().max(80).default('event_expense'),
+  amount: z.coerce.number().min(1).max(1000000),
+  expenseDate: z.string().trim().max(40).optional(),
+  branchScope: z.string().trim().min(1).max(160).default('Both'),
+  allocationMethod: z.enum(['single_branch', 'student_branch', 'custom', 'overall']).default('student_branch'),
+  allocations: z.record(z.string().trim().min(1).max(160), z.coerce.number().min(0).max(1000000)).default({}),
+  paymentMethod: z.string().trim().max(80).optional(),
+  vendor: z.string().trim().max(120).optional(),
+  notes: z.string().trim().max(500).optional(),
+  proofUrl: z.string().trim().max(500).optional(),
+})
+
+export const eventFeeDepositSchema = z.object({
+  eventId: z.string().trim().min(1).max(120),
+  amount: z.coerce.number().min(1).max(1000000),
+  depositDate: z.string().trim().max(40).optional(),
+  branchScope: z.string().trim().min(1).max(160).default('Both'),
+  method: z.string().trim().min(1).max(80).default('bank_deposit'),
+  reference: z.string().trim().max(160).optional(),
+  notes: z.string().trim().max(500).optional(),
+})
+
 const feeReminderTargetSchema = z.object({
   skfId: skfIdSchema,
   feeRecordId: z.string().uuid().optional(),
@@ -256,4 +334,9 @@ export type PortalFeeProofInput = z.infer<typeof portalFeeProofSchema>
 export type FeeCreditCreateInput = z.infer<typeof feeCreditCreateSchema>
 export type DevelopmentFundExpenseInput = z.infer<typeof developmentFundExpenseSchema>
 export type FeeExtraIncomeInput = z.infer<typeof feeExtraIncomeSchema>
+export type EventFeeConfigInput = z.infer<typeof eventFeeConfigSchema>
+export type EventFeePreviewInput = z.infer<typeof eventFeePreviewSchema>
+export type EventFeeGenerateInput = z.infer<typeof eventFeeGenerateSchema>
+export type EventFeeExpenseInput = z.infer<typeof eventFeeExpenseSchema>
+export type EventFeeDepositInput = z.infer<typeof eventFeeDepositSchema>
 export type FeeReminderSendInput = z.infer<typeof feeReminderSendSchema>

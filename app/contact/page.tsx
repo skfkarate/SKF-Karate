@@ -121,8 +121,6 @@ export default function ContactPage() {
             setFormData({ ...INITIAL_CONTACT_FORM_STATE })
         } catch (err) {
             const error = err as RetryableContactError
-            console.error('Submission error:', err)
-            
             if (error.retryable !== false) {
                 queueSubmission(payload)
             }

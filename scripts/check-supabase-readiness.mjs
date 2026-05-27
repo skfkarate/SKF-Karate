@@ -81,6 +81,10 @@ const requiredTables = [
   ['fee_payment_intents', 'id'],
   ['fee_reminder_logs', 'id'],
   ['fee_extra_incomes', 'id'],
+  ['admission_branch_settings', 'branch_slug'],
+  ['admission_promo_codes', 'id'],
+  ['admission_applications', 'id'],
+  ['admission_promo_redemptions', 'id'],
 ]
 
 const requiredColumns = [
@@ -159,6 +163,16 @@ const requiredColumns = [
     'deleted_at',
     'Run database/migrations/020_extra_incomes.sql.',
   ],
+  [
+    'admission_applications',
+    'parent_photo_drive_url',
+    'Run database/migrations/022_admissions_and_promos.sql.',
+  ],
+  [
+    'admission_branch_settings',
+    'show_public_cta',
+    'Run database/migrations/022_admissions_and_promos.sql.',
+  ],
 ]
 
 const sensitiveAnonTables = [
@@ -182,6 +196,9 @@ const sensitiveAnonTables = [
   ['fee_payment_intents', 'id'],
   ['fee_reminder_logs', 'id'],
   ['fee_extra_incomes', 'id'],
+  ['admission_applications', 'id'],
+  ['admission_promo_codes', 'id'],
+  ['admission_promo_redemptions', 'id'],
 ]
 
 let failures = 0
@@ -247,7 +264,7 @@ async function checkAnonExposure(table, column) {
   mark('WARN', `${table}: anon direct read returned rows; verify this is intentional RLS exposure`)
 }
 
-async function checkPrivateBucket(bucketName) {
+async function checkBucket(bucketName, expectedPublic) {
   const { data, error } = await admin.storage.listBuckets()
 
   if (error) {
@@ -263,13 +280,16 @@ async function checkPrivateBucket(bucketName) {
     return
   }
 
-  if (bucket.public) {
+  if (bucket.public !== expectedPublic) {
     failures += 1
-    mark('FAIL', `${bucketName} bucket: exists but is public`)
+    mark(
+      'FAIL',
+      `${bucketName} bucket: exists but is ${bucket.public ? 'public' : 'private'}; expected ${expectedPublic ? 'public' : 'private'}`
+    )
     return
   }
 
-  mark('PASS', `${bucketName} bucket: exists and is private`)
+  mark('PASS', `${bucketName} bucket: exists and is ${expectedPublic ? 'public' : 'private'}`)
 }
 
 console.log('Supabase readiness check: read-only')
@@ -287,8 +307,10 @@ for (const [table, column] of sensitiveAnonTables) {
   await checkAnonExposure(table, column)
 }
 
-await checkPrivateBucket('training-videos')
-await checkPrivateBucket('fee-payment-proofs')
+await checkBucket('training-videos', false)
+await checkBucket('admission-photos', false)
+await checkBucket('fee-payment-proofs', false)
+await checkBucket('athlete-profile-photos', true)
 
 if (failures > 0) {
   console.error(`Supabase readiness failed: ${failures} failures, ${warnings} warnings.`)

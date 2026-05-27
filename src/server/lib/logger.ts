@@ -40,9 +40,20 @@ function shouldRedactKey(key: string) {
 
 function serialize(value: unknown): unknown {
   if (value instanceof Error) {
+    const errorWithMeta = value as Error & {
+      code?: unknown
+      statusCode?: unknown
+      details?: unknown
+      expose?: unknown
+    }
+
     return {
       name: value.name,
       message: value.message,
+      code: errorWithMeta.code,
+      statusCode: errorWithMeta.statusCode,
+      details: errorWithMeta.details === undefined ? undefined : serialize(errorWithMeta.details),
+      expose: errorWithMeta.expose,
       stack: env.NODE_ENV === 'development' ? value.stack : undefined,
     }
   }

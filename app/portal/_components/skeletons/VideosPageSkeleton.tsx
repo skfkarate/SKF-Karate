@@ -1,7 +1,13 @@
+'use client'
+
 import React from 'react';
 import { SkeletonLine, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
+import { useNonce } from '@/components/NonceProvider';
 
-export const VideosPageSkeleton = () => (
+export const VideosPageSkeleton = () => {
+  const nonce = useNonce();
+
+  return (
   <div style={{ background: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }} aria-label="Loading videos" aria-busy="true">
 
     {/* ── CINEMATIC HERO SKELETON ── */}
@@ -71,7 +77,7 @@ export const VideosPageSkeleton = () => (
       ))}
     </div>
 
-    <style dangerouslySetInnerHTML={{__html: `
+    <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
       .skel-video-card {
         width: clamp(200px, 18vw, 300px);
         aspect-ratio: 16/9;
@@ -90,4 +96,5 @@ export const VideosPageSkeleton = () => (
       }
     `}} />
   </div>
-);
+  );
+};

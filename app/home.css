@@ -96,7 +96,7 @@
   object-position: center;
   opacity: 0.58;
   filter: contrast(1.08) brightness(0.84);
-  background: #000 url('/videos/home-hero-poster.jpg') center / cover no-repeat;
+  background: #000 url('/videos/august-4th-poster.jpg') center / cover no-repeat;
   pointer-events: none;
   transform: translateZ(0);
   backface-visibility: hidden;

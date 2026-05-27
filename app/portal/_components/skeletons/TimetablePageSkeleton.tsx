@@ -1,7 +1,13 @@
+'use client'
+
 import React from 'react';
 import { SkeletonLine, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
+import { useNonce } from '@/components/NonceProvider';
 
-export const TimetablePageSkeleton = () => (
+export const TimetablePageSkeleton = () => {
+  const nonce = useNonce();
+
+  return (
   <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative' }} aria-label="Loading timetable" aria-busy="true">
     <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
       
@@ -44,7 +50,7 @@ export const TimetablePageSkeleton = () => (
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
         @media (max-width: 768px) {
           .timetable-viewer-skeleton {
             border-radius: 0 !important;
@@ -55,4 +61,5 @@ export const TimetablePageSkeleton = () => (
       `}} />
     </div>
   </div>
-);
+  );
+};

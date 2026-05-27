@@ -8,6 +8,7 @@ import { SHOP_FILTER_TABS } from '@/data/constants/categories'
 import { getProductTotalStock } from '@/lib/shop/logic'
 import { getShopProductImages } from '@/lib/shop/productImages'
 import type { ShopProduct } from '@/lib/shop/types'
+import { useNonce } from '@/components/NonceProvider'
 
 const CATEGORIES = SHOP_FILTER_TABS
 
@@ -16,6 +17,7 @@ type ShopListingClientProps = {
 }
 
 export default function ShopListingClient({ products }: ShopListingClientProps) {
+  const nonce = useNonce()
   const [activeTab, setActiveTab] = useState('all')
   const filtered = products.filter((product) => activeTab === 'all' || product.category === activeTab)
 
@@ -122,7 +124,7 @@ export default function ShopListingClient({ products }: ShopListingClientProps) 
           </div>
         )}
 
-        <style dangerouslySetInnerHTML={{__html: `
+        <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
           .zara-image-hover:hover {
             transform: scale(1.05);
           }

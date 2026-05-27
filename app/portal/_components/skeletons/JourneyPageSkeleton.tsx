@@ -1,7 +1,13 @@
+'use client'
+
 import React from 'react';
 import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives';
+import { useNonce } from '@/components/NonceProvider';
 
-export const JourneyPageSkeleton = () => (
+export const JourneyPageSkeleton = () => {
+  const nonce = useNonce();
+
+  return (
   <div style={{ padding: '2rem 1rem 6rem 1rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }} aria-label="Loading journey" aria-busy="true">
     
     {/* Header Skeleton */}
@@ -61,7 +67,7 @@ export const JourneyPageSkeleton = () => (
       })}
     </div>
 
-    <style dangerouslySetInnerHTML={{__html: `
+    <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
       .timeline-node-container { display: flex; align-items: center; }
       .timeline-node-container.node-left { justify-content: flex-start; }
       .timeline-node-container.node-right { justify-content: flex-end; }
@@ -79,4 +85,5 @@ export const JourneyPageSkeleton = () => (
       }
     `}} />
   </div>
-);
+  );
+};

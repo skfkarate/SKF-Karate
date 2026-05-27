@@ -109,10 +109,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   return (
     <main className="blog-page blog-page--article">
       <JsonLdScript data={breadcrumbJsonLd} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLdScript data={jsonLd} />
 
       {/* Ambient Orbs */}
       <div className="blog-amb-orb blog-amb-orb--1" aria-hidden="true" />

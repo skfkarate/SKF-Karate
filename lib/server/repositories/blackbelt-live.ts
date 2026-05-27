@@ -193,6 +193,21 @@ export async function getBBCandidateBySkfId(
 }
 
 /**
+ * True only when the athlete is assigned to the currently active Black Belt program.
+ * Used by both the portal navigation and the route guard so visibility matches access.
+ */
+export async function isActiveBBCandidate(skfId?: string | null): Promise<boolean> {
+  const normalizedSkfId = String(skfId || '').trim()
+  if (!normalizedSkfId) return false
+
+  const program = await getActiveBBProgram()
+  if (!program) return false
+
+  const candidate = await getBBCandidateBySkfId(program.id, normalizedSkfId)
+  return Boolean(candidate)
+}
+
+/**
  * Get progress entries for a candidate (public entries only).
  */
 export async function getBBCandidateProgress(

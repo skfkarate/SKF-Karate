@@ -3,7 +3,7 @@ import { withRoute } from '@/src/server/lib/route'
 
 export const POST = withRoute(
   {
-    rateLimit: { tier: 'public' },
+    rateLimit: { tier: 'portalSession' },
     cacheControl: 'private, no-store',
   },
   async () => {

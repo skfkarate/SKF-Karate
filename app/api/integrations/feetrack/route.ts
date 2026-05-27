@@ -1,10 +1,27 @@
 import type { Session } from 'next-auth'
+import { ZodError } from 'zod'
 
 import { authorizeStaffCredentials, type AuthUser } from '@/lib/server/auth/options'
 import { normaliseSkfId } from '@/lib/utils/registration'
-import { AppError, AuthenticationError, AuthorizationError, ValidationError } from '@/src/server/lib/errors'
+import {
+  admissionBranchSettingsSchema,
+  admissionListQuerySchema,
+  admissionPromoCodeSchema,
+  admissionRejectSchema,
+} from '@/src/server/api/validators/admission.validator'
+import {
+  eventFeeConfigSchema,
+  eventFeeDepositSchema,
+  eventFeeExpenseSchema,
+  eventFeeGenerateSchema,
+  eventFeePreviewSchema,
+} from '@/src/server/api/validators/fees.validator'
+import { AppError, AuthenticationError, AuthorizationError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
+import { applyRateLimit } from '@/src/server/lib/rate-limit'
 import { timingSafeStringEqual } from '@/src/server/lib/security'
+import { AdmissionService } from '@/src/server/services/admission.service'
+import { EventFeesService } from '@/src/server/services/event-fees.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 
 export const runtime = 'nodejs'
@@ -26,6 +43,7 @@ const MONTHS = [
 ] as const
 
 const FEE_TRACK_ROLES = new Set(FeeOperationsService.roles)
+const MAX_INTEGRATION_BODY_BYTES = 256 * 1024
 
 type ActionBody = Record<string, unknown> & {
   action?: string
@@ -42,23 +60,82 @@ type FeeTrackSession = Session & {
 }
 
 type LedgerEntry = {
+  id?: string
   skfId: string
   feeType: string
   amount: number
   status: string
   receiptId?: string | null
   paidDate?: string | null
+  sourceId?: string | null
+  sourceLabel?: string | null
+  dueDate?: string | null
   metadata?: Record<string, unknown>
 }
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, headers: HeadersInit = {}) {
+  const responseHeaders = new Headers(headers)
+  responseHeaders.set('Cache-Control', 'private, no-store')
+  responseHeaders.set('X-Content-Type-Options', 'nosniff')
+
   return Response.json(data, {
     status,
-    headers: {
-      'Cache-Control': 'private, no-store',
-      'X-Content-Type-Options': 'nosniff',
-    },
+    headers: responseHeaders,
   })
+}
+
+async function applyIntegrationRateLimit(request: Request) {
+  const rateLimit = await applyRateLimit(request, 'authed', 'feetrack-integration')
+  if (!rateLimit.allowed) {
+    throw new RateLimitError(rateLimit.headers)
+  }
+  return rateLimit.headers
+}
+
+async function readActionBody(request: Request): Promise<ActionBody> {
+  const contentLength = request.headers.get('content-length')
+  if (contentLength) {
+    const parsedLength = Number(contentLength)
+    if (Number.isFinite(parsedLength) && parsedLength > MAX_INTEGRATION_BODY_BYTES) {
+      throw new ValidationError({
+        body: [`Request body exceeds ${MAX_INTEGRATION_BODY_BYTES} bytes.`],
+      })
+    }
+  }
+
+  let text: string
+  try {
+    text = await request.text()
+  } catch {
+    throw new ValidationError({ body: ['Invalid request body.'] })
+  }
+
+  const byteLength = new TextEncoder().encode(text).byteLength
+  if (byteLength > MAX_INTEGRATION_BODY_BYTES) {
+    throw new ValidationError({
+      body: [`Request body exceeds ${MAX_INTEGRATION_BODY_BYTES} bytes.`],
+    })
+  }
+
+  try {
+    const parsed = JSON.parse(text)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Expected JSON object.')
+    }
+    return parsed as ActionBody
+  } catch {
+    throw new ValidationError({ body: ['Invalid JSON body.'] })
+  }
+}
+
+function integrationContext(body: ActionBody | null) {
+  return {
+    action: body?.action || 'unknown',
+    branch: body?.branch,
+    status: body?.status,
+    month: body?.month,
+    year: body?.year,
+  }
 }
 
 function assertApiKey(request: Request) {
@@ -161,6 +238,15 @@ function monthName(input: unknown) {
   return match || MONTHS[new Date().getMonth()]
 }
 
+function monthNameFromDateValue(input: unknown) {
+  const raw = String(input || '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const parsed = new Date(`${raw.slice(0, 10)}T00:00:00.000Z`)
+    if (Number.isFinite(parsed.getTime())) return MONTHS[parsed.getUTCMonth()]
+  }
+  return monthName(input)
+}
+
 function monthIndex(input: unknown) {
   const normalized = monthName(input)
   return MONTHS.findIndex((month) => month === normalized)
@@ -211,20 +297,21 @@ async function getNonRecurringRows(session: FeeTrackSession, year: number, branc
     branch,
     feeType: 'all',
   })
-  const bySkfId = new Map<string, { admission?: LedgerEntry; dress?: LedgerEntry }>()
+  const bySkfId = new Map<string, { admission?: LedgerEntry; dress?: LedgerEntry; eventDues: LedgerEntry[] }>()
 
   for (const entry of ledger.entries as LedgerEntry[]) {
-    if (entry.feeType !== 'admission' && entry.feeType !== 'dress') continue
-    const current = bySkfId.get(entry.skfId) || {}
+    if (!['admission', 'dress', 'belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType)) continue
+    const current = bySkfId.get(entry.skfId) || { eventDues: [] }
     if (entry.feeType === 'admission' && !current.admission) current.admission = entry
     if (entry.feeType === 'dress' && !current.dress) current.dress = entry
+    if (['belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType)) current.eventDues.push(entry)
     bySkfId.set(entry.skfId, current)
   }
 
   return bySkfId
 }
 
-function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerEntry; dress?: LedgerEntry }) {
+function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerEntry; dress?: LedgerEntry; eventDues?: LedgerEntry[] }) {
   const rawStatus = String(row.status || 'due')
   const billingStatus = normalizeKey(row.billingStatus)
   const status = billingStatus === 'discontinued' && rawStatus === 'waived'
@@ -234,6 +321,16 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
   const joined = joinDate ? new Date(joinDate) : null
   const admission = extras?.admission
   const dress = extras?.dress
+  const eventDues = (extras?.eventDues || []).map((due) => ({
+    id: String(due.id || ''),
+    eventId: String(due.sourceId || ''),
+    label: String(due.sourceLabel || ledgerCategoryLabel(due.feeType)),
+    feeType: String(due.feeType || 'event'),
+    amount: readAmount(due.amount),
+    status: String(due.status || 'due'),
+    receiptId: due.receiptId || null,
+    dueDate: String(due.dueDate || ''),
+  }))
   const monthStatus = statusToMonthStatus(status)
 
   return {
@@ -266,6 +363,7 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
     dressCost: dress ? readAmount(dress.metadata?.dressCost) : undefined,
     dressStatus: dress?.status === 'paid' ? 'Paid' : dress ? 'Pending' : undefined,
     dressReceiptId: dress?.receiptId || null,
+    eventDues,
   }
 }
 
@@ -315,6 +413,7 @@ function mapPaymentProof(row: Record<string, unknown>) {
     proofUrl: String(row.signedUrl || ''),
     proofFilename: String(row.proof_filename || ''),
     feeType: String(metadata.feeType || 'monthly'),
+    sourceLabel: String(metadata.sourceLabel || ''),
     month: optionalMonthIndex(proofMonth),
     monthName: proofMonth ? monthName(proofMonth) : '',
     year: proofYear ? targetYear(proofYear) : new Date().getFullYear(),
@@ -676,10 +775,10 @@ function financeFormulae() {
     expected: 'Active monthly fee students only. Break and discontinued students are excluded.',
     collected: 'Verified monthly fees marked paid for the selected month.',
     monthlyFeeCash: 'Monthly fees collected minus referral credits applied.',
-    grossIncome: 'Monthly fee cash + admission collected + dress profit + extra income.',
-    developmentFundContribution: '30% of gross income.',
+    grossIncome: 'Monthly fee cash + admission collected + dress profit + extra income + event income.',
+    developmentFundContribution: '30% of monthly/admission/dress/extra income. Event income is tracked separately.',
     developmentFundBalance: 'Total development fund contributions minus development expenses.',
-    availableBalance: 'Opening reserve + gross income - development expenses through the selected month.',
+    availableBalance: 'Opening reserve + gross income - development expenses - event expenses through the selected month.',
     pending: 'Monthly fees still due or rejected. Submitted proofs awaiting verification stay in the action inbox until approved.',
   }
 }
@@ -688,6 +787,10 @@ function ledgerCategoryLabel(feeType: string) {
   if (feeType === 'monthly') return 'Monthly Fee'
   if (feeType === 'admission') return 'Admission'
   if (feeType === 'dress') return 'Dress'
+  if (feeType === 'belt_exam') return 'Belt Exam'
+  if (feeType === 'tournament') return 'Tournament'
+  if (feeType === 'event') return 'Event'
+  if (feeType === 'other') return 'Other Due'
   if (feeType === 'credit_adjustment') return 'Referral Credit'
   return 'Fee'
 }
@@ -696,6 +799,7 @@ function ledgerFormulaKey(feeType: string) {
   if (feeType === 'monthly') return 'monthlyFeeCash'
   if (feeType === 'admission') return 'admissionCollected'
   if (feeType === 'dress') return 'dressProfit'
+  if (['belt_exam', 'tournament', 'event', 'other'].includes(feeType)) return 'eventIncome'
   if (feeType === 'credit_adjustment') return 'creditsApplied'
   return 'grossIncome'
 }
@@ -735,9 +839,13 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
   const admissionCollected = readAmount(monthRow.admissionCollected)
   const dressProfit = readSignedAmount(monthRow.dressProfit)
   const extraIncome = readAmount(monthRow.extraIncome)
+  const eventIncome = readAmount(monthRow.eventIncome)
+  const eventExpenses = readAmount(monthRow.eventExpenses)
+  const eventSurplus = readSignedAmount(monthRow.eventSurplus)
+  const eventDeposits = readAmount(monthRow.eventDeposits)
   const grossIncome = hasAmount(monthRow.grossIncome)
     ? readSignedAmount(monthRow.grossIncome)
-    : monthlyFeeCash + admissionCollected + dressProfit + extraIncome
+    : monthlyFeeCash + admissionCollected + dressProfit + extraIncome + eventIncome
   const developmentExpenses = readAmount(monthRow.developmentExpenses)
   const developmentFundContribution = readAmount(monthRow.developmentAllocation)
   const developmentFundBalance = readSignedAmount(bankPosition.developmentFundBalance)
@@ -762,10 +870,10 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
     })
   }
 
-  if (Math.abs(grossIncome - (monthlyFeeCash + admissionCollected + dressProfit + extraIncome)) > 1) {
+  if (Math.abs(grossIncome - (monthlyFeeCash + admissionCollected + dressProfit + extraIncome + eventIncome)) > 1) {
     warnings.push({
       level: 'warning',
-      message: 'Income formula mismatch detected. Review monthly fee, admission, dress, and extra income ledger rows.',
+      message: 'Income formula mismatch detected. Review monthly fee, admission, dress, extra income, and event ledger rows.',
     })
   }
 
@@ -782,7 +890,7 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
       branch: feeTrackScope(entry.branch),
       label: isCredit
         ? `Credit applied - ${entry.athleteName || 'SKF Athlete'}`
-        : `${ledgerCategoryLabel(feeType)} - ${entry.athleteName || 'SKF Athlete'}`,
+        : `${entry.sourceLabel || ledgerCategoryLabel(feeType)} - ${entry.athleteName || 'SKF Athlete'}`,
       category: feeType,
       type: isCredit ? 'credit' : paid ? 'income' : 'pending',
       amount: isCredit ? -amount : amount,
@@ -832,6 +940,44 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
       formulaKey: 'extraIncome',
     })))
 
+  const eventExpenseLedgerRows = (((finance.eventExpenses as Record<string, unknown>[]) || [])
+    .filter((expense) => monthNameFromDateValue(expense.expense_date) === month)
+    .map((expense) => ({
+      id: String(expense.id || ''),
+      date: compactDate(expense.expense_date || expense.created_at),
+      month: selectedMonth,
+      year,
+      branch: feeTrackScope(expense.branch_scope),
+      label: String(expense.title || 'Event expense'),
+      category: 'event_expense',
+      type: 'expense',
+      amount: -readAmount(expense.amount),
+      studentId: '',
+      studentName: '',
+      receiptId: '',
+      status: 'recorded',
+      formulaKey: 'eventExpenses',
+    })))
+
+  const eventDepositLedgerRows = (((finance.eventDeposits as Record<string, unknown>[]) || [])
+    .filter((deposit) => monthNameFromDateValue(deposit.deposit_date) === month)
+    .map((deposit) => ({
+      id: String(deposit.id || ''),
+      date: compactDate(deposit.deposit_date || deposit.created_at),
+      month: selectedMonth,
+      year,
+      branch: feeTrackScope(deposit.branch_scope),
+      label: String(deposit.reference || deposit.notes || 'Event bank deposit'),
+      category: 'event_deposit',
+      type: 'income',
+      amount: readAmount(deposit.amount),
+      studentId: '',
+      studentName: '',
+      receiptId: '',
+      status: 'deposited',
+      formulaKey: 'eventDeposits',
+    })))
+
   return {
     success: true,
     data: {
@@ -851,9 +997,13 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
         admissionCollected,
         dressProfit,
         extraIncome,
+        eventIncome,
         grossIncome,
         developmentFundContribution,
         developmentExpenses,
+        eventExpenses,
+        eventSurplus,
+        eventDeposits,
         developmentFundBalance,
         availableBalance,
         collectionRate: readAmount(dashboard.summary.collectionRate),
@@ -883,6 +1033,12 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
           amount: extraIncome,
           formula: 'Additional revenue like summer camps, events, etc.',
         },
+        {
+          key: 'eventIncome',
+          label: 'Event income',
+          amount: eventIncome,
+          formula: 'Belt exam, tournament, and event fee rows marked paid.',
+        },
       ],
       expenseBreakdown: [
         {
@@ -891,23 +1047,29 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
           amount: developmentExpenses,
           formula: 'Recorded development fund expenses for the selected month.',
         },
+        {
+          key: 'eventExpenses',
+          label: 'Event expenses',
+          amount: eventExpenses,
+          formula: 'Recorded expenses linked to paid events.',
+        },
       ],
       cashFlowByMonth: financeRows.map((row) => {
         const income = hasAmount(row.grossIncome)
           ? readSignedAmount(row.grossIncome)
-          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit)
+          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.eventIncome)
         return {
           month: monthIndex(row.month),
           year: readAmount(row.year) || year,
           income,
           developmentFundContribution: readAmount(row.developmentAllocation),
-          expenses: readAmount(row.developmentExpenses),
+          expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses),
           net: readSignedAmount(row.bankMovement),
           balance: readSignedAmount(row.cumulativeBank),
           developmentFundBalance: readSignedAmount(row.cumulativeDevelopmentFund),
         }
       }),
-      ledgerRows: [...feeLedgerRows, ...expenseLedgerRows, ...extraIncomeLedgerRows].sort((a, b) =>
+      ledgerRows: [...feeLedgerRows, ...expenseLedgerRows, ...extraIncomeLedgerRows, ...eventExpenseLedgerRows, ...eventDepositLedgerRows].sort((a, b) =>
         b.date.localeCompare(a.date) || a.label.localeCompare(b.label)
       ),
       warnings,
@@ -981,9 +1143,9 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
         month: String(row.month || '').slice(0, 3),
         revenue: hasAmount(row.grossIncome)
           ? readSignedAmount(row.grossIncome)
-          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit),
+          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.eventIncome),
         devFund: readAmount(row.developmentAllocation),
-        expenses: readAmount(row.developmentExpenses),
+        expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses),
         net: readSignedAmount(row.bankMovement),
         cumulativeRevenue: readSignedAmount(row.cumulativeBank),
         cumulativeBank: readSignedAmount(row.cumulativeBank),
@@ -992,10 +1154,127 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
       dressProfit: readSignedAmount(monthRow.dressProfit),
       grossIncome: hasAmount(monthRow.grossIncome)
         ? readSignedAmount(monthRow.grossIncome)
-        : readAmount(monthRow.monthlyCash) + readAmount(monthRow.admissionCollected) + readSignedAmount(monthRow.dressProfit),
+        : readAmount(monthRow.monthlyCash) + readAmount(monthRow.admissionCollected) + readSignedAmount(monthRow.dressProfit) + readAmount(monthRow.eventIncome),
+      eventIncome: readAmount(monthRow.eventIncome),
+      eventExpenses: readAmount(monthRow.eventExpenses),
+      eventSurplus: readSignedAmount(monthRow.eventSurplus),
+      eventDeposits: readAmount(monthRow.eventDeposits),
       reserveUsed: reserveAmount,
     },
   }
+}
+
+async function getAdmissionDashboard(_session: FeeTrackSession, body: ActionBody) {
+  const query = admissionListQuerySchema.parse({
+    status: body.status || 'pending',
+    branchSlug: body.branchSlug || '',
+    search: body.search || '',
+    limit: body.limit || 100,
+  })
+  const [applications, promoCodes, branchSettings] = await Promise.all([
+    AdmissionService.listApplications(query),
+    AdmissionService.listPromos(),
+    AdmissionService.listBranchSettings(),
+  ])
+
+  return {
+    success: true,
+    data: {
+      applications,
+      promoCodes,
+      branchSettings,
+    },
+  }
+}
+
+async function getAdmissionApplications(_session: FeeTrackSession, body: ActionBody) {
+  const query = admissionListQuerySchema.parse({
+    status: body.status || 'pending',
+    branchSlug: body.branchSlug || '',
+    search: body.search || '',
+    limit: body.limit || 100,
+  })
+  const applications = await AdmissionService.listApplications(query)
+  return { success: true, data: { applications } }
+}
+
+async function getAdmissionApplication(_session: FeeTrackSession, body: ActionBody) {
+  const applicationId = String(body.applicationId || body.id || '').trim()
+  if (!applicationId) throw new ValidationError({ applicationId: ['Admission application ID is required.'] })
+  const application = await AdmissionService.getApplication(applicationId)
+  return { success: true, data: { application } }
+}
+
+async function rejectAdmissionApplication(session: FeeTrackSession, body: ActionBody) {
+  const parsed = admissionRejectSchema.parse({
+    applicationId: body.applicationId || body.id,
+    reason: body.reason,
+  })
+  const application = await AdmissionService.rejectApplication(session, parsed.applicationId, parsed.reason)
+  return { success: true, data: { application } }
+}
+
+async function upsertAdmissionPromoCode(session: FeeTrackSession, body: ActionBody) {
+  const source = (body.promoCode && typeof body.promoCode === 'object')
+    ? body.promoCode as Record<string, unknown>
+    : body
+  const promoCode = await AdmissionService.upsertPromo(session, admissionPromoCodeSchema.parse(source))
+  return { success: true, data: { promoCode } }
+}
+
+async function updateAdmissionBranchSettings(session: FeeTrackSession, body: ActionBody) {
+  const source = (body.settings && typeof body.settings === 'object')
+    ? body.settings as Record<string, unknown>
+    : body
+  const settings = await AdmissionService.updateBranchSettings(
+    session,
+    admissionBranchSettingsSchema.parse(source)
+  )
+  return { success: true, data: { settings } }
+}
+
+async function getEventCollections(session: FeeTrackSession, body: ActionBody) {
+  const branch = normalizeBranch(body.branch, { allowOverall: true })
+  const data = await EventFeesService.list(session, {
+    year: targetYear(body.year),
+    branch,
+  })
+  return { success: true, data }
+}
+
+async function upsertEventFeeConfig(session: FeeTrackSession, body: ActionBody) {
+  const source = (body.config && typeof body.config === 'object')
+    ? body.config as Record<string, unknown>
+    : body
+  const result = await EventFeesService.upsertConfig(session, eventFeeConfigSchema.parse(source))
+  return { success: true, data: result }
+}
+
+async function previewEventFees(session: FeeTrackSession, body: ActionBody) {
+  const source = {
+    eventId: body.eventId,
+    config: body.config,
+  }
+  const result = await EventFeesService.preview(session, eventFeePreviewSchema.parse(source))
+  return { success: true, data: result }
+}
+
+async function generateEventFees(session: FeeTrackSession, body: ActionBody) {
+  const result = await EventFeesService.generate(session, eventFeeGenerateSchema.parse({
+    eventId: body.eventId,
+    overrides: body.overrides || [],
+  }))
+  return { success: true, data: result }
+}
+
+async function addEventExpense(session: FeeTrackSession, body: ActionBody) {
+  const result = await EventFeesService.createExpense(session, eventFeeExpenseSchema.parse(body))
+  return { success: true, data: result }
+}
+
+async function addEventDeposit(session: FeeTrackSession, body: ActionBody) {
+  const result = await EventFeesService.createDeposit(session, eventFeeDepositSchema.parse(body))
+  return { success: true, data: result }
 }
 
 async function handleAction(body: ActionBody) {
@@ -1050,31 +1329,96 @@ async function handleAction(body: ActionBody) {
       return getFinanceCommandCenter(session, body)
     case 'get_financial_summary':
       return getFinancialSummary(session, body)
+    case 'get_admission_dashboard':
+      return getAdmissionDashboard(session, body)
+    case 'get_admission_applications':
+      return getAdmissionApplications(session, body)
+    case 'get_admission_application':
+      return getAdmissionApplication(session, body)
+    case 'reject_admission_application':
+      return rejectAdmissionApplication(session, body)
+    case 'upsert_admission_promo_code':
+      return upsertAdmissionPromoCode(session, body)
+    case 'update_admission_branch_settings':
+      return updateAdmissionBranchSettings(session, body)
+    case 'get_event_collections':
+      return getEventCollections(session, body)
+    case 'upsert_event_fee_config':
+      return upsertEventFeeConfig(session, body)
+    case 'preview_event_fees':
+      return previewEventFees(session, body)
+    case 'generate_event_fees':
+      return generateEventFees(session, body)
+    case 'add_event_expense':
+      return addEventExpense(session, body)
+    case 'add_event_deposit':
+      return addEventDeposit(session, body)
     default:
       throw new ValidationError({ action: ['Unsupported FeeTrack action.'] })
   }
 }
 
 export async function POST(request: Request) {
+  let body: ActionBody | null = null
+  let rateLimitHeaders: HeadersInit = {}
+
   try {
     assertApiKey(request)
-    const body = await request.json() as ActionBody
-    return json(await handleAction(body))
+    rateLimitHeaders = await applyIntegrationRateLimit(request)
+    body = await readActionBody(request)
+    return json(await handleAction(body), 200, rateLimitHeaders)
   } catch (error) {
-    logger.error('feetrack.integration_failed', { error })
     if (error instanceof AppError) {
+      const payload = {
+        ...integrationContext(body),
+        code: error.code,
+        status: error.statusCode,
+        details: error.expose ? error.details : undefined,
+        error,
+      }
+
+      if (error.statusCode >= 500) {
+        logger.error('feetrack.integration_failed', payload)
+      } else {
+        logger.info('feetrack.integration_rejected', { ...payload, systemAlert: false })
+      }
+
       return json({
         success: false,
         error: error.message,
         code: error.code,
         details: error.expose ? error.details : undefined,
-      }, error.statusCode)
+      }, error.statusCode, error instanceof RateLimitError ? error.headers : rateLimitHeaders)
     }
+
+    if (error instanceof ZodError) {
+      const details = error.flatten().fieldErrors
+      logger.info('feetrack.integration_rejected', {
+        ...integrationContext(body),
+        code: 'VALIDATION_ERROR',
+        status: 400,
+        details,
+        error,
+        systemAlert: false,
+      })
+
+      return json({
+        success: false,
+        error: 'Invalid input data',
+        code: 'VALIDATION_ERROR',
+        details,
+      }, 400, rateLimitHeaders)
+    }
+
+    logger.error('feetrack.integration_failed', {
+      ...integrationContext(body),
+      error,
+    })
 
     return json({
       success: false,
       error: 'FeeTrack integration failed.',
-    }, 500)
+    }, 500, rateLimitHeaders)
   }
 }
 
@@ -1083,5 +1427,11 @@ export async function GET() {
     success: true,
     service: 'SKF-Karate FeeTrack integration',
     configured: Boolean(process.env.FEETRACK_API_KEY),
+    features: {
+      admissions: true,
+      fees: true,
+      finance: true,
+      events: true,
+    },
   })
 }

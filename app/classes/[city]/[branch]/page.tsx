@@ -9,6 +9,7 @@ import {
 } from '@/lib/server/repositories/classes-live'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import { AdmissionService } from '@/src/server/services/admission.service'
 import BranchDetailClient from './BranchDetailClient'
 // FIX: was importing ../../classes.css but BranchDetailClient uses obs-* classes
 // that are defined in obsidian.css — corrected import below.
@@ -81,6 +82,16 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
     }).filter(Boolean)
 
     const isDirectSkipBranch = city.branches.length === 1 && city.schools.length === 0;
+    let admissionFormHref: string | null = null
+    try {
+      const admissionConfig = await AdmissionService.getPublicBranchConfig(branch.slug)
+      if (admissionConfig.settings.isEnabled && admissionConfig.settings.showPublicCta) {
+        admissionFormHref = `/admission/${branch.slug}`
+      }
+    } catch {
+      admissionFormHref = null
+    }
+
     const breadcrumbJsonLd = buildBreadcrumbJsonLd(
       `${branch.name} Branch`,
       `/classes/${city.slug}/${branch.slug}`
@@ -95,6 +106,7 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
                 citySlug={city.slug}
                 topPerformers={topPerformers}
                 isDirectSkipBranch={isDirectSkipBranch}
+                admissionFormHref={admissionFormHref}
             />
         </>
     )

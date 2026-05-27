@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bot, Check, X, RefreshCw, Database, CreditCard, Mail, FileSpreadsheet, ReceiptText } from 'lucide-react'
+import { useNonce } from '@/components/NonceProvider'
 
 type ReceiptTheme = {
   id: string
@@ -17,6 +18,7 @@ type ReceiptSettings = {
 }
 
 export default function AdminSettingsPage() {
+  const nonce = useNonce()
   const [status, setStatus] = useState<Record<string, boolean>>({})
   const [receiptSettings, setReceiptSettings] = useState<ReceiptSettings | null>(null)
   const [receiptSaving, setReceiptSaving] = useState(false)
@@ -283,7 +285,7 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx nonce={nonce}>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }

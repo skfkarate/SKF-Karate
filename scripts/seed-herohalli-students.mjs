@@ -86,11 +86,10 @@ const RAW_STUDENTS = [
   ['SKF23HE004', 'MANOGNA B N',        '03/06/2014', 'F', 'Narayana B N',    '9113549736', '9113549736', 'prithviraj219bescom@gmail.com',    '',           'Active'],
   ['SKF23HE005', 'PRITHVI RAJ B N',    '21/09/2012', 'M', 'Narayana B N',    '9113549736', '9113549736', 'prithviraj219bescom@gmail.com',    '',           'Active'],
   ['SKF23HE006', 'KUSHAL GOWDA K',     '28/11/2015', 'M', 'Kumar M S',       '9008099968', '9008099968', 'kumarradhakushsl@gmail.com',       '',           'Active'],
-  ['SKF24HE001', 'KUSHIL V',           '21/01/2017', 'M', 'Venkatesh S',     '9620512480', '9620512480', 'kushivenki7527@gmail.com',         '',           'Active'],
+  ['SKF24HE001', 'KUSHIL V',           '21/07/2017', 'M', 'Venkatesh S',     '9620512480', '9620512480', 'kushivenki7527@gmail.com',         '',           'Active'],
   ['SKF25HE001', 'LIKHITH GOWDA U R',  '01/02/2020', 'M', 'Rajesh U N',      '9880952278', '9880952278', 'rajeshun1984@gmail.com',           '',           'Active'],
   ['SKF25HE002', 'MANAV',              '',           'M', '',                 '9686244845', '9686244845', '',                                 '',           'NOT ACTIVE'],
   ['SKF26HE001', 'M MONISHPRASAD',     '24/07/2020', 'M', 'Murthy G K',      '6366669065', '6366669065', '',                                 '',           'Active'],
-  ['SKF26HE002', 'FAKE DATA',          '01/01/2000', 'M', 'Fake Parent',     '',           '',           '',                                 '22/05/2026', 'Active'],
 ]
 
 // SKF IDs for Black Belt program enrollment
@@ -186,7 +185,7 @@ async function main() {
       batch: null,
       monthly_fee: skfId === 'SKF17BL000'
         ? 1000
-        : skfId === 'SKF21HE003' || skfId === 'SKF26HE002'
+        : skfId === 'SKF21HE003'
           ? 500
           : (skfId === 'SKF21HE002' || skfId === 'SKF23HE003')
             ? 0

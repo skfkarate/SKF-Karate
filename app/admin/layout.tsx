@@ -1,7 +1,6 @@
 import AdminSidebar from "@/app/_components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/utils/auth";
 import { buildNoIndexMetadata } from "@/data/constants/seo";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const ADMIN_ROLES = new Set(['admin', 'instructor'])

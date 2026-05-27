@@ -12,7 +12,7 @@ export default function GalleryLightbox({
   if (!currentPhoto) return null
 
   return (
-    <div className="gal-lightbox" onClick={closeLightbox}>
+    <div className="gal-lightbox" onClick={closeLightbox} role="dialog" aria-modal="true" aria-label={currentPhoto.title}>
       <div className="gal-lightbox__inner" onClick={(event) => event.stopPropagation()}>
         <button className="gal-lightbox__close" onClick={closeLightbox} aria-label="Close">
           <FaTimes />
@@ -26,7 +26,7 @@ export default function GalleryLightbox({
         </button>
 
         <div className="gal-lightbox__img-wrap">
-          <Image src={currentPhoto.src} alt={currentPhoto.title} className="gal-lightbox__img" fill style={{ objectFit: 'contain' }} />
+          <Image src={currentPhoto.src} alt={currentPhoto.title} className="gal-lightbox__img" fill sizes="100vw" style={{ objectFit: 'contain' }} priority />
         </div>
 
         <div className="gal-lightbox__caption">

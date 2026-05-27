@@ -218,8 +218,8 @@ export default function ResultsManager({
         const data = await res.json().catch(() => null)
         alert(getApiErrorMessage(data, 'Failed to save the draft'))
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
+      // Save failures keep the editor open with the current draft.
     } finally {
       setSaving(false)
     }
@@ -255,8 +255,8 @@ export default function ResultsManager({
         const data = await res.json().catch(() => null)
         alert(getApiErrorMessage(data, 'Failed to publish to athlete profiles'))
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
+      // Publish failures keep the current published state unchanged.
     } finally {
       setPublishing(false)
     }
