@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Users, Loader2, ChevronDown } from 'lucide-react'
+import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Loader2, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
 
@@ -122,7 +122,6 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   
   const [siblings, setSiblings] = useState<PortalSiblingView[]>([])
   const [isSwitching, setIsSwitching] = useState<string | null>(null)
-  const [showSiblingMenu, setShowSiblingMenu] = useState(false)
   const [topSwitcherOpen, setTopSwitcherOpen] = useState(false)
 
   const [backHovered, setBackHovered] = useState(false)

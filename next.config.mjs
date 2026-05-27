@@ -22,8 +22,11 @@ function parseRemoteFromOrigin(originLike) {
 }
 
 const mediaCdnRemote = parseRemoteFromOrigin(process.env.NEXT_PUBLIC_MEDIA_CDN_ORIGIN)
-const canonicalUrl = new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org')
-const canonicalHost = canonicalUrl.host.replace(/^www\./, '')
+const canonicalUrl = new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org')
+const canonicalHost = canonicalUrl.host.toLowerCase()
+const alternateCanonicalHost = canonicalHost.startsWith('www.')
+  ? canonicalHost.slice(4)
+  : `www.${canonicalHost}`
 const immutableAssetHeaders = [
   {
     key: 'Cache-Control',
@@ -80,7 +83,7 @@ const nextConfig = {
       ? [
           {
             source: '/:path*',
-            has: [{ type: 'host', value: `www.${canonicalHost}` }],
+            has: [{ type: 'host', value: alternateCanonicalHost }],
             destination: `https://${canonicalHost}/:path*`,
             permanent: true,
           },

@@ -77,7 +77,7 @@ export class CertificateRenderer {
       templateImageUrl: `/api/certificates/template-image?url=${encodeURIComponent(template.template_image_url)}`,
       fields: processedFields,
       useQrCode: template.use_qr_code,
-      verifyUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'}/verify/${enrollment.skf_id}/${enrollmentId}`
+      verifyUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org'}/verify/${enrollment.skf_id}/${enrollmentId}`
     }
   }
 }

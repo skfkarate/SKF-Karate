@@ -12,7 +12,7 @@ export const SITE_CONFIG = Object.freeze({
   TAGLINE: 'Sports Karate-do Fitness & Self Defence Association®',
   FOUNDED_YEAR: 2011,
   SPORT: 'Karate',
-  URL: process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org',
+  URL: process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org',
   LOGO_PATH: '/logo/SKF logo.png',
   CITY: 'Bangalore',
   STATE: 'Karnataka',
@@ -33,7 +33,6 @@ export function absoluteSiteUrl(path = '/') {
 export function getCanonicalOrigin() {
   const url = new URL(SITE_CONFIG.URL)
   url.protocol = 'https:'
-  url.hostname = url.hostname.replace(/^www\./, '')
   url.pathname = ''
   url.search = ''
   url.hash = ''
@@ -44,7 +43,6 @@ export function generateCanonicalUrl(path = '/') {
   if (/^https?:\/\//i.test(path)) {
     const url = new URL(path)
     url.protocol = 'https:'
-    url.hostname = url.hostname.replace(/^www\./, '')
     url.hash = ''
     url.search = ''
     return url.toString()

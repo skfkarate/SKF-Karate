@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { MetricType } from 'web-vitals'
+import { getCookieConsent } from '@/lib/cookies/consent'
 
 const VITALS_ENDPOINT = '/api/vitals'
 
 function sendMetric(metric: MetricType) {
+  if (!hasAnalyticsConsent()) return
+
   const body = JSON.stringify({
     id: metric.id,
     name: metric.name,
@@ -16,12 +19,6 @@ function sendMetric(metric: MetricType) {
     path: window.location.pathname,
   })
 
-  if (navigator.sendBeacon) {
-    const blob = new Blob([body], { type: 'application/json' })
-    navigator.sendBeacon(VITALS_ENDPOINT, blob)
-    return
-  }
-
   void fetch(VITALS_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -30,9 +27,26 @@ function sendMetric(metric: MetricType) {
   }).catch(() => null)
 }
 
+function hasAnalyticsConsent() {
+  return Boolean(getCookieConsent()?.analytics)
+}
+
 export default function WebVitals() {
+  const [consented, setConsented] = useState(false)
+
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') return
+    const syncConsent = () => setConsented(hasAnalyticsConsent())
+
+    syncConsent()
+    window.addEventListener('skf_consent_updated', syncConsent)
+
+    return () => {
+      window.removeEventListener('skf_consent_updated', syncConsent)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' || !consented) return
 
     let cancelled = false
 
@@ -50,7 +64,7 @@ export default function WebVitals() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [consented])
 
   return null
 }

@@ -102,7 +102,7 @@ export const GET = withRoute(
     }
 
     const body = await readLimitedImage(response)
-    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org'
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org'
 
     return new Response(body, {
       headers: {
