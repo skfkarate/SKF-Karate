@@ -23,7 +23,8 @@ export default function ClientLayoutWrapper({
   const isPrivateRoute =
     pathname?.startsWith('/admin') ||
     pathname?.startsWith('/fee') ||
-    pathname?.startsWith('/portal')
+    pathname?.startsWith('/portal') ||
+    pathname?.startsWith('/admission')
   const isPublicRoute = !isPrivateRoute
   const showHeaderFooter = isPublicRoute
   // Shop screens have fixed cart/product controls, so the floating WhatsApp button stays hidden there only.
@@ -42,7 +43,7 @@ export default function ClientLayoutWrapper({
       <RouteTransitionClickCapture />
 
       {showHeaderFooter && navbar}
-      <main id="main-content" style={{ minHeight: isPublicRoute ? 'auto' : '100dvh', background: isPublicRoute ? 'transparent' : '#0a0a0a' }}>
+      <main id="main-content" style={{ minHeight: isPublicRoute ? 'auto' : '100dvh', background: isPublicRoute ? 'transparent' : '#020408' }}>
         {children}
       </main>
       {showHeaderFooter && (

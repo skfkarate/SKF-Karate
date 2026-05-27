@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft } from 'lucide-react'
+import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Users, Loader2, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
 
@@ -68,13 +68,62 @@ function useScrollDirection() {
   return hidden
 }
 
-export default function AthleteHubNav() {
+type AthleteHubNavProps = {
+  isBlackBeltCandidate?: boolean
+  currentSession?: PortalSessionView | null
+  currentAthlete?: PortalAthleteView | null
+}
+
+type PortalSessionView = {
+  skfId?: string | null
+  name?: string | null
+  parentPhone?: string | null
+}
+
+type PortalAthleteView = {
+  photoUrl?: string | null
+}
+
+type PortalSiblingView = {
+  skfId: string
+  name?: string | null
+  firstName?: string | null
+  photoUrl?: string | null
+}
+
+function PortalAvatar({
+  photoUrl,
+  alt,
+}: {
+  photoUrl?: string | null
+  alt: string
+}) {
+  if (photoUrl) {
+    return (
+      <Image
+        src={photoUrl}
+        alt={alt}
+        width={32}
+        height={32}
+        unoptimized
+      />
+    )
+  }
+
+  return <UserCircle size={20} />
+}
+
+export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSession, currentAthlete }: AthleteHubNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)     // Desktop dock hover
   const [menuOpen, setMenuOpen] = useState(false)        // Mobile overlay
-  const [isBBCandidate, setIsBBCandidate] = useState(false)
   const scrollHidden = useScrollDirection()
+  
+  const [siblings, setSiblings] = useState<PortalSiblingView[]>([])
+  const [isSwitching, setIsSwitching] = useState<string | null>(null)
+  const [showSiblingMenu, setShowSiblingMenu] = useState(false)
+  const [topSwitcherOpen, setTopSwitcherOpen] = useState(false)
 
   const [backHovered, setBackHovered] = useState(false)
   const [backHintActive, setBackHintActive] = useState(false)
@@ -101,25 +150,52 @@ export default function AthleteHubNav() {
   }, [])
 
 
-  useEffect(() => {
-    if (isLoginPage) return
-    fetch('/api/auth/portal/session')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.isBlackBeltCandidate) {
-          setIsBBCandidate(true)
-        }
-      })
-      .catch(() => {})
-  }, [isLoginPage])
-
-  // Filter links: only show Black Belt link to Black Belt candidates
+  // Filter links: only show Black Belt link to assigned Black Belt candidates.
   const visibleNavLinks = navLinks.filter(link => {
     if (link.href === '/portal/blackbelt') {
-      return isBBCandidate
+      return isBlackBeltCandidate
     }
     return true
   })
+
+  useEffect(() => {
+    if (isLoginPage || !currentSession?.skfId) return
+
+    const controller = new AbortController()
+    fetch('/api/auth/portal/siblings', { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setSiblings(data.data)
+        }
+      })
+      .catch(error => {
+        if (error?.name !== 'AbortError') {
+          console.error(error)
+        }
+      })
+
+    return () => controller.abort()
+  }, [currentSession?.skfId, isLoginPage])
+
+  async function handleSwitchProfile(skfId: string) {
+    if (isSwitching) return
+    setIsSwitching(skfId)
+    try {
+      const res = await fetch('/api/auth/portal/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetSkfId: skfId })
+      })
+      if (res.ok) {
+        window.location.reload()
+      } else {
+        setIsSwitching(null)
+      }
+    } catch {
+      setIsSwitching(null)
+    }
+  }
 
   async function handleLogout() {
     setMenuOpen(false)
@@ -210,7 +286,7 @@ export default function AthleteHubNav() {
                 >
                   <div className="kuroobi-dock__icon-wrapper">
                     <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
-                    {isActive && <motion.div layoutId="activeDot" className="kuroobi-dock__active-dot" />}
+                    {isActive && <motion.div layoutId="portalNavActiveDot" className="kuroobi-dock__active-dot" />}
                   </div>
                   
                   <AnimatePresence>
@@ -232,6 +308,7 @@ export default function AthleteHubNav() {
           </div>
 
           <div className="kuroobi-dock__footer">
+
             <button onClick={handleLogout} className="kuroobi-dock__logout" title="Sign Out">
               <LogOut size={18} strokeWidth={1.5} />
               <AnimatePresence>
@@ -268,6 +345,96 @@ export default function AthleteHubNav() {
           <span className="kuroobi-back-text">{backText}</span>
         </div>
       </motion.button>
+
+      {/* ══════════ TOP RIGHT: FAMILY PROFILE SWITCHER ══════════ */}
+      {!isLoginPage && currentSession && (
+        <div className={`kuroobi-top-switcher ${scrollHidden && !menuOpen ? 'hidden' : ''}`}>
+          <button 
+            className="kuroobi-top-switcher-button"
+            onClick={() => siblings.length > 0 && setTopSwitcherOpen(!topSwitcherOpen)}
+            style={{ cursor: siblings.length > 0 ? 'pointer' : 'default' }}
+          >
+            <div className="kuroobi-top-switcher-avatar">
+              <PortalAvatar
+                photoUrl={currentAthlete?.photoUrl}
+                alt={`${currentSession?.name || 'Active athlete'} profile photo`}
+              />
+            </div>
+            <div className="kuroobi-top-switcher-info">
+              <span className="kuroobi-top-switcher-name">{currentSession?.name || 'You'}</span>
+              <span className="kuroobi-top-switcher-role">{currentSession?.skfId}</span>
+            </div>
+            {siblings.length > 0 && (
+              <ChevronDown 
+                size={16} 
+                strokeWidth={2} 
+                className="kuroobi-top-switcher-caret"
+                style={{ transform: topSwitcherOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {topSwitcherOpen && (
+              <>
+                <div 
+                  className="kuroobi-top-switcher-overlay" 
+                  onClick={() => setTopSwitcherOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: -1 }}
+                />
+                <motion.div 
+                  className="kuroobi-dock__sibling-menu top-right-mode"
+                  initial={{ opacity: 0, y: -15, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <div className="sibling-menu-header">Family Accounts</div>
+                  <div className="sibling-list">
+                    <div className="sibling-item active">
+                      <div className="sibling-avatar">
+                        <PortalAvatar
+                          photoUrl={currentAthlete?.photoUrl}
+                          alt={`${currentSession?.name || 'Active athlete'} profile photo`}
+                        />
+                      </div>
+                      <div className="sibling-info">
+                        <span className="sibling-name">{currentSession?.name || 'You'}</span>
+                        <span className="sibling-id">{currentSession?.skfId}</span>
+                      </div>
+                      <div className="sibling-current-badge">Active</div>
+                    </div>
+                    {siblings.map(sibling => (
+                      <button 
+                        key={sibling.skfId}
+                        className="sibling-item glass-item"
+                        onClick={() => {
+                          handleSwitchProfile(sibling.skfId)
+                        }}
+                        disabled={!!isSwitching}
+                      >
+                        <div className="sibling-avatar">
+                          <PortalAvatar
+                            photoUrl={sibling.photoUrl}
+                            alt={`${sibling.name || sibling.firstName || sibling.skfId} profile photo`}
+                          />
+                        </div>
+                        <div className="sibling-info">
+                          <span className="sibling-name">{sibling.name || sibling.firstName}</span>
+                          <span className="sibling-id">{sibling.skfId}</span>
+                        </div>
+                        {isSwitching === sibling.skfId && (
+                          <Loader2 size={16} className="spinner" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* ══════════ MOBILE: FAB BUTTON ══════════ */}
       {!isLoginPage && (
@@ -377,8 +544,56 @@ export default function AthleteHubNav() {
               })}
             </div>
 
-            {/* Divider + Sign Out */}
+            {/* Divider + Switcher + Sign Out */}
             <div className="kuroobi-overlay__divider" />
+
+            {siblings.length > 0 && (
+              <motion.div 
+                className="kuroobi-overlay__switcher"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <div className="sibling-menu-header">Family Accounts</div>
+                <div className="sibling-list">
+                  <div className="sibling-item active">
+                    <div className="sibling-avatar">
+                      <PortalAvatar
+                        photoUrl={currentAthlete?.photoUrl}
+                        alt={`${currentSession?.name || 'Active athlete'} profile photo`}
+                      />
+                    </div>
+                    <div className="sibling-info">
+                      <span className="sibling-name">{currentSession?.name || 'You'}</span>
+                      <span className="sibling-id">{currentSession?.skfId}</span>
+                    </div>
+                    <div className="sibling-current-badge">Active</div>
+                  </div>
+                  {siblings.map(sibling => (
+                    <button 
+                      key={sibling.skfId}
+                      className="sibling-item"
+                      onClick={() => handleSwitchProfile(sibling.skfId)}
+                      disabled={!!isSwitching}
+                    >
+                      <div className="sibling-avatar">
+                        <PortalAvatar
+                          photoUrl={sibling.photoUrl}
+                          alt={`${sibling.name || sibling.firstName || sibling.skfId} profile photo`}
+                        />
+                      </div>
+                      <div className="sibling-info">
+                        <span className="sibling-name">{sibling.name || sibling.firstName}</span>
+                        <span className="sibling-id">{sibling.skfId}</span>
+                      </div>
+                      {isSwitching === sibling.skfId && (
+                        <Loader2 size={16} className="spinner" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             <motion.button
               className="kuroobi-overlay__signout"

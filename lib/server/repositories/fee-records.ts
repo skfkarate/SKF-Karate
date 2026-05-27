@@ -41,6 +41,12 @@ type FeeRecordRow = {
   rejected_reason?: string | null
   notes?: string | null
   metadata?: Record<string, unknown> | null
+  source_key?: string | null
+  source_type?: string | null
+  source_id?: string | null
+  source_label?: string | null
+  due_date?: string | null
+  branch_snapshot?: string | null
 }
 
 function requireFeeDatabase() {
@@ -96,6 +102,12 @@ function mapFeeRecord(row: FeeRecordRow): FeeRow {
     rejectedReason: row.rejected_reason || '',
     notes: row.notes || '',
     metadata: row.metadata || {},
+    sourceKey: row.source_key || '',
+    sourceType: row.source_type || '',
+    sourceId: row.source_id || '',
+    sourceLabel: row.source_label || '',
+    dueDate: row.due_date || '',
+    branchSnapshot: row.branch_snapshot || '',
   }
 }
 
@@ -114,7 +126,7 @@ export async function getFeesBySkfIdLive(skfId: string, year?: number): Promise<
 
   let query = supabaseAdmin
     .from('fee_records')
-    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot')
     .eq('skf_id', normalizedSkfId)
 
   if (year) {
@@ -133,7 +145,7 @@ export async function getAllFeesLive(year?: number): Promise<FeeRow[]> {
 
   let query = supabaseAdmin
     .from('fee_records')
-    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot')
 
   if (year) {
     query = query.eq('year', year)
@@ -154,7 +166,7 @@ export async function findFeeByReceiptIdLive(receiptId: string): Promise<FeeRow 
 
   const { data, error } = await supabaseAdmin
     .from('fee_records')
-    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot')
     .eq('receipt_id', normalizedReceiptId)
     .maybeSingle()
 
@@ -208,6 +220,7 @@ export async function ensureFeeRowsForStudent(
         year,
         amount: Number(options.monthlyFee || 0),
         status: 'due',
+        source_key: '',
         updated_at: now,
       })
       continue
@@ -222,7 +235,7 @@ export async function ensureFeeRowsForStudent(
     const { error } = await supabaseAdmin
       .from('fee_records')
       .upsert(rowsToInsert, {
-        onConflict: 'skf_id,fee_type,month,year',
+        onConflict: 'skf_id,fee_type,month,year,source_key',
         ignoreDuplicates: true,
       })
     if (error) throwFeeRepositoryError(error)

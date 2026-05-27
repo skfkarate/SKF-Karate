@@ -45,8 +45,8 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
         return
       }
       setResults(data?.athletes || [])
-    } catch(e) {
-      console.error(e)
+    } catch {
+      // Empty search results are shown when athlete lookup fails.
     } finally {
       setLoading(false)
     }
@@ -84,8 +84,8 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
         const data = await res.json().catch(() => null)
         alert(getApiErrorMessage(data, 'Failed to assign athlete'))
       }
-    } catch(e) {
-      console.error(e)
+    } catch {
+      // Save failures leave the current selection unchanged.
     } finally {
       setSaving(false)
     }
@@ -107,8 +107,8 @@ export default function AthleteAssigner({ eventId, participants = [] }: { eventI
         const data = await res.json().catch(() => null)
         alert(getApiErrorMessage(data, 'Failed to remove athlete'))
       }
-    } catch(e) {
-      console.error(e)
+    } catch {
+      // Removal failures leave the current assignment unchanged.
     } finally {
       setSaving(false)
     }

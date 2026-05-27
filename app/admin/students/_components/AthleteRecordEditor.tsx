@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useRef, useState, useEffect, type CSSProperties, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type SubmitHandler, useForm } from 'react-hook-form'
@@ -159,6 +159,7 @@ export default function AthleteRecordEditor({
   const [successMsg, setSuccessMsg] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
   const [createResult, setCreateResult] = useState<CreateResult | null>(null)
+  const copyTimerRef = useRef<number | null>(null)
 
   const branchOptions = flattenClassBranches(initialCities)
   const currentBranchValue = String(initialValues.branch || '').trim()
@@ -217,6 +218,12 @@ export default function AthleteRecordEditor({
     }
   }, [selectedBranchValue, mode, currentFee, setValue])
 
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current)
+    }
+  }, [])
+
   const currentPublicProfileHref = useMemo(() => {
     if (createResult?.skfId) {
       return `/athlete/${createResult.skfId}`
@@ -274,7 +281,8 @@ export default function AthleteRecordEditor({
       buildPortalWelcomeMessage(skfId, createResult?.dob || initialValues.dob)
     )
     setCopySuccess(true)
-    window.setTimeout(() => setCopySuccess(false), 2500)
+    if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = window.setTimeout(() => setCopySuccess(false), 2500)
   }
 
   if (mode === 'create' && createResult) {

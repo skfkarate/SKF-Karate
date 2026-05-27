@@ -8,6 +8,7 @@ import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
 import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 import { VideosPageSkeleton } from '../_components/skeletons/VideosPageSkeleton'
+import { useNonce } from '@/components/NonceProvider'
 
 function normalizeVideo(video) {
   return {
@@ -212,6 +213,8 @@ export default function VideosClient() {
 }
 
 function VideoRow({ title, videos, progressByVideoId, onPlay }) {
+  const nonce = useNonce()
+
   if (!videos.length) return null
 
   return (
@@ -268,7 +271,7 @@ function VideoRow({ title, videos, progressByVideoId, onPlay }) {
           )
         })}
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style nonce={nonce} dangerouslySetInnerHTML={{ __html: `
         .kuroobi-scrollbar-hide::-webkit-scrollbar { display: none; }
         .kuroobi-scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       ` }} />

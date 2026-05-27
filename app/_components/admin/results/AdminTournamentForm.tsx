@@ -203,9 +203,7 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
         if (!isMounted || !Array.isArray(data?.cities)) return
         setClassCities(data.cities)
       })
-      .catch((error) => {
-        console.error('Failed to load classes for tournament form:', error)
-      })
+      .catch(() => undefined)
 
     return () => {
       isMounted = false
@@ -354,15 +352,6 @@ export default function AdminTournamentForm({ tournament, isEdit = false }: Admi
       }, 100)
       return
     }
-
-    // TODO: Call this after saving a winner when the points system is ready
-    // await awardPointsForAchievement({
-    //   athleteSkfId: winner.skfId,
-    //   achievementType: 'tournament_medal',
-    //   medalType: winner.medal,
-    //   tournamentLevel: tournament.level,
-    //   tournamentId: tournament.id
-    // })
 
     setIsSaving(true)
 

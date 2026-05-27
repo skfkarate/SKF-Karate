@@ -176,7 +176,7 @@ export default function CartPage() {
                             {cart.map(item => (
                                 <div key={item.variantId} className="shop-cart-item">
                                     <div className="shop-cart-item-image">
-                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill style={{ objectFit: 'cover' }} />
+	                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill sizes="96px" style={{ objectFit: 'cover' }} />
                                     </div>
 
                                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

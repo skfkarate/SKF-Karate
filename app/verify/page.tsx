@@ -45,7 +45,6 @@ export default function CertificateSearchPage() {
                 throw new Error('Invalid certificate data from server')
             }
         } catch (err) {
-            console.error(err)
             setError(err instanceof Error ? err.message : 'Could not complete search. Please try again.')
             setIsLoading(false)
         }

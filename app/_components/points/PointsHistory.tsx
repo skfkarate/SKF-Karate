@@ -45,8 +45,8 @@ export default function PointsHistory() {
                 
                 if (nextTransactions.length < 10) setHasMore(false)
             }
-        } catch (e) {
-            console.error(e)
+        } catch {
+            // The empty history state covers transient load failures.
         } finally {
             setLoading(false)
         }

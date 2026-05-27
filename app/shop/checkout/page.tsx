@@ -21,6 +21,7 @@ import {
 } from '@/lib/shop/phone'
 import { ArrowLeft, MapPin, UserCheck, Check, UploadCloud, ShoppingBag, ArrowRight } from 'lucide-react'
 import { flushCheckoutQueue, queueCheckoutSubmission } from './checkoutQueue'
+import { useNonce } from '@/components/NonceProvider'
 import '../shop.css'
 
 const guestCheckoutSchema = z.object({
@@ -58,6 +59,7 @@ type AthleteProfile = {
 type CheckoutStep = 'DELIVERY' | 'PAYMENT' | 'SUCCESS'
 
 export default function CheckoutPage() {
+    const nonce = useNonce()
     const { cart, cartTotalPrice, clearCart } = useCart()
 
     const [step, setStep] = useState<CheckoutStep>('DELIVERY')
@@ -187,6 +189,7 @@ export default function CheckoutPage() {
         try {
             const verifyRes = await fetch('/api/shop/orders', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     paymentProofBase64,
@@ -218,8 +221,7 @@ export default function CheckoutPage() {
             setSuccessOrderId(verifyData.orderId)
             window.scrollTo({ top: 0, behavior: 'smooth' })
             setStep('SUCCESS')
-        } catch (e) {
-            console.error('Submission error:', e)
+        } catch {
             queueCheckoutSubmission({
                 paymentProofBase64,
                 paymentProofName: paymentProofName || undefined,
@@ -356,7 +358,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
                 </div>
-                <style jsx>{`
+                <style jsx nonce={nonce}>{`
                     @keyframes ping {
                         75%, 100% { transform: scale(2); opacity: 0; }
                     }
@@ -570,7 +572,7 @@ export default function CheckoutPage() {
                             {cart.map(item => (
                                 <div key={item.variantId} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                                     <div style={{ width: '48px', height: '60px', background: '#111', borderRadius: '8px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill style={{ objectFit: 'cover', opacity: 0.8 }} />
+	                                        <Image src={item.image || SHOP_IMAGE_FALLBACK} alt={item.name} fill sizes="48px" style={{ objectFit: 'cover', opacity: 0.8 }} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem', lineHeight: 1.3 }}>{item.name}</div>

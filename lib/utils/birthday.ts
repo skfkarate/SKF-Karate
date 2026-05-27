@@ -33,11 +33,3 @@ export function buildBirthdayAchievement(athlete) {
     pointsAwarded: DEFAULT_POINTS['birthday-bonus'],
   };
 }
-
-// TODO: In production, this function is called inside a Firebase Cloud Function
-// that runs daily. It should:
-// 1. Call getAthletesWithBirthdayToday(allAthletes)
-// 2. For each: check hasReceivedBirthdayBonusThisYear()
-// 3. If not yet received: save buildBirthdayAchievement() to the athlete record
-// 4. Update pointsBalance and pointsLifetime
-// 5. Send a WhatsApp/Telegram message to the athlete (notifications task)

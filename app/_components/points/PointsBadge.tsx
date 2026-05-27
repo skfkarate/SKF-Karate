@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { FaCoins } from 'react-icons/fa'
 import { supabaseClient, isSupabaseClientReady } from '@/lib/supabase/client'
+import { useNonce } from '@/components/NonceProvider'
 
 export default function PointsBadge({ skfId }: { skfId: string }) {
+    const nonce = useNonce()
     const [balance, setBalance] = useState<number | null>(null)
     const [toastMsg, setToastMsg] = useState('')
+    const toastTimerRef = useRef<number | null>(null)
 
     useEffect(() => {
         const fetchBalance = async () => {
@@ -17,8 +20,8 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
                     const data = await res.json()
                     setBalance(data.balance)
                 }
-            } catch (e) {
-                console.error(e)
+            } catch {
+                // The compact badge simply stays hidden if points cannot load.
             }
         }
         
@@ -35,16 +38,18 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
                 }, payload => {
                     const tx = payload.new
                     if (tx.type === 'EARN') {
-                        setToastMsg(`+${tx.points} points for ${tx.reason.replace('_', ' ')}!`)
-                        setBalance(tx.balance_after)
-                        setTimeout(() => setToastMsg(''), 5000)
-                    }
-                })
-                .subscribe()
+	                        setToastMsg(`+${tx.points} points for ${tx.reason.replace('_', ' ')}!`)
+	                        setBalance(tx.balance_after)
+	                        if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
+	                        toastTimerRef.current = window.setTimeout(() => setToastMsg(''), 5000)
+	                    }
+	                })
+	                .subscribe()
 
-            return () => {
-              supabaseClient.removeChannel(subscription)
-            }
+	            return () => {
+	              if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
+	              supabaseClient.removeChannel(subscription)
+	            }
         }
     }, [skfId])
 
@@ -99,7 +104,7 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
                 <FaCoins style={{ color: 'var(--gold, #ffb703)' }} />
                 <span>{balance}</span>
             </Link>
-            <style>{`
+            <style nonce={nonce}>{`
                 @keyframes slideDown {
                     from { transform: translateY(-10px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }

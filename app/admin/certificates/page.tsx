@@ -27,8 +27,8 @@ export default function AdminCertificatesPage() {
       const res = await fetch('/api/admin/certificates/programs')
       const data = await res.json()
       setPrograms(data.programs || [])
-    } catch (error) {
-      console.error(error)
+    } catch {
+      // Empty state handles transient certificate program load failures.
     } finally {
       setLoading(false)
     }

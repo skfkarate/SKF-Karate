@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { CONTACT, SOCIAL_LINKS } from './contact'
-import { absoluteMediaUrl, absoluteSiteUrl, DEFAULT_OG_IMAGE, SITE_CONFIG } from './siteConfig'
+import { absoluteMediaUrl, absoluteSiteUrl, DEFAULT_OG_IMAGE, generateCanonicalUrl, SITE_CONFIG } from './siteConfig'
 
 export const SEO_TITLE = 'SKF Karate'
 export const SEO_KEYWORDS =
@@ -33,7 +33,7 @@ export function buildSeoMetadata(
   description: string,
   options: SeoMetadataOptions = {}
 ): Metadata {
-  const canonicalUrl = absoluteSiteUrl(path)
+  const canonicalUrl = generateCanonicalUrl(path)
   const imageUrl = options.image ? absoluteMediaUrl(options.image) : absoluteMediaUrl(DEFAULT_OG_IMAGE)
   const imageAlt = options.imageAlt || SEO_IMAGE_ALT
   const metaDescription = normalizeMetaDescription(description)

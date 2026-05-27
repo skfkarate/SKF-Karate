@@ -17,7 +17,7 @@ type SitemapRoute = {
   changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']
 }
 
-const LAST_MODIFIED = '2026-05-03'
+const LAST_MODIFIED = new Date()
 
 const staticRoutes: SitemapRoute[] = [
   { path: '/', priority: 1.0, changeFrequency: 'weekly' },

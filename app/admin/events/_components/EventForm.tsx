@@ -144,9 +144,7 @@ export default function EventForm({
         if (!isMounted || !Array.isArray(data?.cities)) return
         setAvailableCities(data.cities)
       })
-      .catch((error) => {
-        console.error('Failed to load classes for event form:', error)
-      })
+      .catch(() => undefined)
 
     return () => {
       isMounted = false
@@ -162,9 +160,7 @@ export default function EventForm({
           data.categories.filter((category: string) => category !== 'tournament')
         )
       })
-      .catch((error) => {
-        console.error('Failed to load event categories:', error)
-      })
+      .catch(() => undefined)
   }, [])
 
   useEffect(() => {
@@ -289,8 +285,7 @@ export default function EventForm({
         type: slugify(newCategoryStr),
       }))
       setNewCategoryStr('')
-    } catch (error) {
-      console.error(error)
+    } catch {
       alert('Failed to create category')
     } finally {
       setIsAddingCategory(false)
@@ -358,7 +353,6 @@ export default function EventForm({
       router.push(`/admin/events/${savedEvent.id}?tab=${redirectTab}`)
       router.refresh()
     } catch (error) {
-      console.error(error)
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save event')
     } finally {
       setLoadingMode(null)

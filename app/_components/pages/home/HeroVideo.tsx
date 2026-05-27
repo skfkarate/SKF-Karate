@@ -34,6 +34,8 @@ export default function HeroVideo() {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 playVideo()
+            } else {
+                video.pause()
             }
         }
 
@@ -53,7 +55,6 @@ export default function HeroVideo() {
         <video
             ref={videoRef}
             className="hero__video"
-            style={{ pointerEvents: 'none' }}
             autoPlay
             muted
             loop
@@ -61,18 +62,17 @@ export default function HeroVideo() {
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            preload="auto"
-            poster="/videos/home-hero-poster.jpg"
+            preload="metadata"
+            poster="/videos/august-4th-poster.jpg"
             tabIndex={-1}
             aria-hidden="true"
         >
             <source
-                src="/videos/home-hero-mobile.mp4"
-                type="video/mp4"
-                media="(max-width: 767px)"
+                src="/videos/august-4th.webm"
+                type="video/webm"
             />
             <source
-                src="/videos/home-hero-desktop.mp4"
+                src="/videos/august-4th.mp4"
                 type="video/mp4"
             />
         </video>

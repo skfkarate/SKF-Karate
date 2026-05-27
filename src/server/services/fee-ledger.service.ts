@@ -31,7 +31,15 @@ const MONTHS = [
 ] as const
 
 type LedgerStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
-type LedgerFeeType = 'monthly' | 'admission' | 'dress' | 'credit_adjustment'
+type LedgerFeeType =
+  | 'monthly'
+  | 'admission'
+  | 'dress'
+  | 'credit_adjustment'
+  | 'belt_exam'
+  | 'tournament'
+  | 'event'
+  | 'other'
 
 type AthleteLike = {
   skfId?: string | null
@@ -66,6 +74,13 @@ export interface FeeLedgerEntry {
   receiptId: string | null
   paymentMethod: string | null
   rejectedReason?: string | null
+  sourceKey?: string
+  sourceType?: string
+  sourceId?: string
+  sourceLabel?: string
+  dueDate?: string
+  branchSnapshot?: string
+  metadata?: Record<string, unknown>
 }
 
 function toMonthName(input: string): string {
@@ -226,7 +241,7 @@ export class FeeLedgerService {
         const monthIndex = getMonthIndex(month)
         return {
           id: row.id || null,
-          key: `${row.skfId}:${row.feeType || 'monthly'}:${month}:${row.year}`,
+          key: row.id || `${row.skfId}:${row.feeType || 'monthly'}:${month}:${row.year}:${row.sourceKey || ''}`,
           skfId: row.skfId,
           athleteName,
           branch,
@@ -240,9 +255,16 @@ export class FeeLedgerService {
           receiptId: row.receiptId || null,
           paymentMethod: row.paymentMethod || null,
           rejectedReason: row.rejectedReason || null,
+          sourceKey: row.sourceKey || '',
+          sourceType: row.sourceType || '',
+          sourceId: row.sourceId || '',
+          sourceLabel: row.sourceLabel || '',
+          dueDate: row.dueDate || '',
+          branchSnapshot: row.branchSnapshot || '',
+          metadata: row.metadata || {},
         }
       })
-      .filter((entry) => (targetYear === currentYear ? entry.monthIndex <= currentMonth : true))
+      .filter((entry) => (targetYear === currentYear && entry.feeType === 'monthly' ? entry.monthIndex <= currentMonth : true))
       .filter((entry) => !shouldHideFromPortalFees(entry, billingProfile))
       .sort((a, b) => (b.year - a.year) || (b.monthIndex - a.monthIndex))
 

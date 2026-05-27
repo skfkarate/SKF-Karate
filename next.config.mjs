@@ -22,6 +22,8 @@ function parseRemoteFromOrigin(originLike) {
 }
 
 const mediaCdnRemote = parseRemoteFromOrigin(process.env.NEXT_PUBLIC_MEDIA_CDN_ORIGIN)
+const canonicalUrl = new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://skfkarate.org')
+const canonicalHost = canonicalUrl.host.replace(/^www\./, '')
 const immutableAssetHeaders = [
   {
     key: 'Cache-Control',
@@ -35,11 +37,18 @@ const legacyAssetAliases = [
   { source: '/gallery/In dojo1.HEIC', destination: '/gallery/In dojo1.jpeg' },
   { source: '/gallery/In dojo starred.HEIC', destination: '/gallery/In dojo starred.jpeg' },
 ]
+const isProduction = process.env.NODE_ENV === 'production'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // CSP is generated per request in proxy.ts so scripts and style elements can use nonces.
+  // TODO(framer-motion/react-inline-styles): remove the proxy style-src-attr fallback after runtime style attributes are eliminated.
   devIndicators: false,
   poweredByHeader: false,
+  env: {
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN || '',
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development',
+  },
   typescript: { ignoreBuildErrors: false },
   turbopack: {
     root: projectRoot,
@@ -67,7 +76,25 @@ const nextConfig = {
     return legacyAssetAliases
   },
   async redirects() {
+    const productionRedirects = isProduction
+      ? [
+          {
+            source: '/:path*',
+            has: [{ type: 'host', value: `www.${canonicalHost}` }],
+            destination: `https://${canonicalHost}/:path*`,
+            permanent: true,
+          },
+          {
+            source: '/:path*',
+            has: [{ type: 'header', key: 'x-forwarded-proto', value: 'http' }],
+            destination: `https://${canonicalHost}/:path*`,
+            permanent: true,
+          },
+        ]
+      : []
+
     return [
+      ...productionRedirects,
       {
         source: '/senseis',
         destination: '/about',
@@ -126,10 +153,6 @@ const nextConfig = {
             value: 'max-age=63072000; includeSubDomains; preload'
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block'
-          },
-          {
             key: 'X-Frame-Options',
             value: 'DENY'
           },
@@ -141,21 +164,33 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
-          }
-        ]
-      }
-    ]
-  }
-};
+	          {
+	            key: 'Permissions-Policy',
+	            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=()'
+	          },
+	          {
+	            key: 'Origin-Agent-Cluster',
+	            value: '?1'
+	          }
+	        ]
+	      }
+	    ]
+	  }
+	};
 
 export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: "skf-karate",
-  project: "skf-website",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+  org: process.env.SENTRY_ORG || "skf-karate",
+  project: process.env.SENTRY_PROJECT || "skf-website",
   widenClientFileUpload: true,
-  hideSourceMaps: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });
-// Trigger restart

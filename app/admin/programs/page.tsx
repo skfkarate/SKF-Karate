@@ -25,8 +25,8 @@ export default function AdminProgramsPage() {
       const res = await fetch('/api/admin/programs')
       const data = await res.json()
       setPrograms(data.programs || [])
-    } catch (e) {
-      console.error(e)
+    } catch {
+      // The empty state covers temporary program load failures.
     } finally {
       setLoading(false)
     }
@@ -56,8 +56,8 @@ export default function AdminProgramsPage() {
         setTimeout(() => setNotification(''), 3000)
         fetchPrograms()
       }
-    } catch (e) {
-      console.error(e)
+    } catch {
+      setNotification('Could not create the template. Please retry.')
     } finally {
       setLoading(false)
     }

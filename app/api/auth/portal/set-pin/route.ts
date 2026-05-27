@@ -5,7 +5,6 @@ const DISABLED_RESPONSE = {
   message: 'Re-enable only after OTP verification is implemented as a prerequisite.',
 }
 
-// TODO: Re-enable only after OTP verification is implemented as a prerequisite.
 const disabled = withRoute({}, async () => Response.json(DISABLED_RESPONSE, { status: 503 }))
 
 export const GET = disabled

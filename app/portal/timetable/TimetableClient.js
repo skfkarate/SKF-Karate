@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar, MapPin, ZoomIn, ZoomOut, AlertCircle } from 'lucide-react'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
+import { useNonce } from '@/components/NonceProvider'
 
 export default function TimetableClient({ branchName, timetableData }) {
+  const nonce = useNonce()
   const imageUrl = timetableData?.imageUrl || timetableData?.driveUrl || ''
   const hasTimetableImage = Boolean(imageUrl)
   const monthLabel = timetableData?.monthLabel || 'Current Term'
@@ -132,10 +134,12 @@ export default function TimetableClient({ branchName, timetableData }) {
                 boxShadow: isZoomed ? 'none' : '0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- Timetable URLs can be branch-configured external assets. */}
-                <img
-                  src={imageUrl}
-                  alt="Timetable Schedule"
-                  style={{ 
+	                <img
+	                  src={imageUrl}
+	                  alt="Timetable Schedule"
+	                  loading="lazy"
+	                  decoding="async"
+	                  style={{ 
                     width: '100%', height: 'auto', display: 'block', 
                     background: 'rgba(5,5,5,0.5)', pointerEvents: 'none' 
                   }}
@@ -173,7 +177,7 @@ export default function TimetableClient({ branchName, timetableData }) {
 
         </div>
 
-        <style dangerouslySetInnerHTML={{__html: `
+        <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
           .timetable-viewer-wrapper {
             margin: 0;
             border-radius: 24px;

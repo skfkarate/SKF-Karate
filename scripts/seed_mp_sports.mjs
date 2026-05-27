@@ -123,18 +123,6 @@ const STUDENTS = [
     email: 'keerthanarasna@gmail.com',
     statuses: ['Paid', 'Paid', 'Paid', 'Break', ''],
   },
-  {
-    skfId: 'SKF26MP001',
-    name: 'Fake Data',
-    monthlyFee: 2500,
-    dateOfBirth: '2000-01-01',
-    gender: 'male',
-    joinDate: '2026-05-22',
-    parentName: 'Fake Parent',
-    phone: '',
-    email: '',
-    statuses: ['', '', '', '', ''],
-  },
 ]
 
 const CREDITS = [

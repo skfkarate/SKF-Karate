@@ -25,9 +25,36 @@ export const MAP_URL = `https://www.google.com/maps/search/?api=1&query=${encode
 export function absoluteSiteUrl(path = '/') {
   if (/^https?:\/\//i.test(path)) return path
 
-  const base = SITE_CONFIG.URL.replace(/\/+$/, '')
+  const base = getCanonicalOrigin()
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
   return `${base}${normalizedPath}`
+}
+
+export function getCanonicalOrigin() {
+  const url = new URL(SITE_CONFIG.URL)
+  url.protocol = 'https:'
+  url.hostname = url.hostname.replace(/^www\./, '')
+  url.pathname = ''
+  url.search = ''
+  url.hash = ''
+  return url.toString().replace(/\/$/, '')
+}
+
+export function generateCanonicalUrl(path = '/') {
+  if (/^https?:\/\//i.test(path)) {
+    const url = new URL(path)
+    url.protocol = 'https:'
+    url.hostname = url.hostname.replace(/^www\./, '')
+    url.hash = ''
+    url.search = ''
+    return url.toString()
+  }
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const url = new URL(normalizedPath, `${getCanonicalOrigin()}/`)
+  url.hash = ''
+  url.search = ''
+  return url.toString()
 }
 
 export function absoluteMediaUrl(path = DEFAULT_OG_IMAGE) {

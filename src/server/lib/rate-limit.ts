@@ -12,11 +12,17 @@ type RateLimitTier = {
 
 const RATE_LIMITS = {
   public: { name: 'public', limit: 60, window: '1m' },
+  vitals: { name: 'vitals', limit: 30, window: '1m' },
+  portalSession: { name: 'portalSession', limit: 1200, window: '1m' },
   authed: { name: 'authed', limit: 300, window: '1m' },
   write: { name: 'write', limit: 30, window: '1m' },
   contact: { name: 'contact', limit: 3, window: '15m' },
   lookup: { name: 'lookup', limit: 5, window: '1m' },
   certificateLookup: { name: 'certificateLookup', limit: 20, window: '5m' },
+  // Portal login has two guards: a generous shared-network cap for class/dojo bursts,
+  // plus a stricter per-SKF-ID cap to slow credential guessing.
+  portalAuthIp: { name: 'portalAuthIp', limit: 300, window: '1m' },
+  portalAuthStudent: { name: 'portalAuthStudent', limit: 12, window: '15m' },
   auth: { name: 'auth', limit: 5, window: '15m' },
   sensitive: { name: 'sensitive', limit: 3, window: '1h' },
   upload: { name: 'upload', limit: 10, window: '1h' },
@@ -46,8 +52,15 @@ export async function applyRateLimit(
   tier: keyof typeof RATE_LIMITS,
   keySuffix?: string
 ) {
-  const config = RATE_LIMITS[tier]
   const key = `${getClientIp(request)}${keySuffix ? `:${keySuffix}` : ''}`
+  return applyRateLimitForKey(tier, key)
+}
+
+export async function applyRateLimitForKey(
+  tier: keyof typeof RATE_LIMITS,
+  key: string
+) {
+  const config = RATE_LIMITS[tier]
   const params = {
     limit: config.limit,
     windowMs: windowToMs(config.window),

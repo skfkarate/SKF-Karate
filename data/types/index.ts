@@ -33,7 +33,15 @@ export type FeeStatus =
   | 'waived'
   | 'rejected'
 
-export type FeeType = 'monthly' | 'admission' | 'dress' | 'credit_adjustment'
+export type FeeType =
+  | 'monthly'
+  | 'admission'
+  | 'dress'
+  | 'credit_adjustment'
+  | 'belt_exam'
+  | 'tournament'
+  | 'event'
+  | 'other'
 export type AttendanceStatus = 'Present' | 'Absent' | 'Leave'
 export type StudentStatus = 'Active' | 'Inactive'
 export type PointTransactionType = 'EARN' | 'REDEEM'
@@ -313,6 +321,12 @@ export interface FeeRow {
   rejectedReason?: string
   notes?: string
   metadata?: Record<string, unknown>
+  sourceKey?: string
+  sourceType?: string
+  sourceId?: string
+  sourceLabel?: string
+  dueDate?: string
+  branchSnapshot?: string
 }
 
 export interface VideoRow {

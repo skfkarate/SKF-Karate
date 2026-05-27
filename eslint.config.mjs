@@ -9,6 +9,8 @@ const eslintConfig = [
       'public/**',
       'coverage/**',
       'scratch/**',
+      'scripts/scratch/**',
+      'test-auth.js',
     ],
   },
   ...nextCoreWebVitals,

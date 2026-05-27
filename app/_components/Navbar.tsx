@@ -202,7 +202,8 @@ export default function Navbar() {
                         <button
                             className="nav__hamburger"
                             onClick={() => setDrawerOpen(!drawerOpen)}
-                            aria-label="Menu"
+                            aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
+                            aria-controls="public-site-menu"
                             aria-expanded={drawerOpen}
                         >
                             {drawerOpen ? <FaTimes /> : <FaBars />}
@@ -219,7 +220,13 @@ export default function Navbar() {
             />
 
             {/* ── WKF-style right-side drawer ── */}
-            <aside className={`drawer ${drawerOpen ? 'drawer--open' : ''}`} aria-label="Navigation menu">
+            <aside
+                id="public-site-menu"
+                className={`drawer ${drawerOpen ? 'drawer--open' : ''}`}
+                aria-label="Navigation menu"
+                aria-hidden={!drawerOpen}
+                inert={!drawerOpen ? true : undefined}
+            >
                 <div className="drawer__header">
                     <button
                         className="drawer__close"
@@ -231,68 +238,81 @@ export default function Navbar() {
                 </div>
 
                 <nav className="drawer__nav">
-                    {menuItems.map((item) => (
-                        <div key={item.label} className="wkf-menu-item">
-                            {item.children ? (
-                                <>
-                                    <button
-                                        className={`wkf-menu-link ${expandedMenus.has(item.label) ? 'wkf-menu-link--expanded' : ''}`}
-                                        onClick={() => toggleSubmenu(item.label)}
-                                    >
-                                        <span>{item.label}</span>
-                                        <span className="wkf-menu-arrow">▸</span>
-                                    </button>
-                                    <div className={`wkf-submenu ${expandedMenus.has(item.label) ? 'wkf-submenu--open' : ''}`}>
-                                        <div>
-                                            {item.children.map(child => (
-                                                child.disabled ? (
-                                                    <button
-                                                        key={child.label}
-                                                        type="button"
-                                                        disabled
-                                                        className="wkf-submenu-link wkf-submenu-link--disabled"
-                                                        aria-disabled="true"
-                                                    >
-                                                        {child.label}
-                                                    </button>
-                                                ) : (
-                                                    <Link
-                                                        key={child.href}
-                                                        href={child.href!}
-                                                        className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
-                                                        onClick={() => setDrawerOpen(false)}
-                                                    >
-                                                        {child.label}
-                                                        <LinkPendingIndicator className="nav__pending-indicator" />
-                                                    </Link>
-                                                )
-                                            ))}
+                    {menuItems.map((item) => {
+                        const isExpanded = expandedMenus.has(item.label)
+                        const submenuId = `drawer-submenu-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+
+                        return (
+                            <div key={item.label} className="wkf-menu-item">
+                                {item.children ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className={`wkf-menu-link ${isExpanded ? 'wkf-menu-link--expanded' : ''}`}
+                                            onClick={() => toggleSubmenu(item.label)}
+                                            aria-expanded={isExpanded}
+                                            aria-controls={submenuId}
+                                        >
+                                            <span>{item.label}</span>
+                                            <span className="wkf-menu-arrow" aria-hidden="true">▸</span>
+                                        </button>
+                                        <div
+                                            id={submenuId}
+                                            className={`wkf-submenu ${isExpanded ? 'wkf-submenu--open' : ''}`}
+                                            aria-hidden={!isExpanded}
+                                            inert={!isExpanded ? true : undefined}
+                                        >
+                                            <div>
+                                                {item.children.map(child => (
+                                                    child.disabled ? (
+                                                        <button
+                                                            key={child.label}
+                                                            type="button"
+                                                            disabled
+                                                            className="wkf-submenu-link wkf-submenu-link--disabled"
+                                                            aria-disabled="true"
+                                                        >
+                                                            {child.label}
+                                                        </button>
+                                                    ) : (
+                                                        <Link
+                                                            key={child.href}
+                                                            href={child.href!}
+                                                            className={`wkf-submenu-link ${pathname === child.href ? 'wkf-submenu-link--active' : ''}`}
+                                                            onClick={() => setDrawerOpen(false)}
+                                                        >
+                                                            {child.label}
+                                                            <LinkPendingIndicator className="nav__pending-indicator" />
+                                                        </Link>
+                                                    )
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                </>
-                            ) : (
-                                item.disabled ? (
-                                    <button
-                                        type="button"
-                                        disabled
-                                        className="wkf-menu-link wkf-menu-link--disabled"
-                                        aria-disabled="true"
-                                    >
-                                        <span>{item.label}</span>
-                                    </button>
+                                    </>
                                 ) : (
-                                    <Link
-                                        href={item.href!}
-                                        className={`wkf-menu-link ${pathname === item.href || pathname?.startsWith(item.href + '/') ? 'wkf-menu-link--active' : ''}`}
-                                        onClick={() => setDrawerOpen(false)}
-                                    >
-                                        <span>{item.label}</span>
-                                        <LinkPendingIndicator className="nav__pending-indicator" />
-                                    </Link>
-                                )
-                            )}
-                        </div>
-                    ))}
+                                    item.disabled ? (
+                                        <button
+                                            type="button"
+                                            disabled
+                                            className="wkf-menu-link wkf-menu-link--disabled"
+                                            aria-disabled="true"
+                                        >
+                                            <span>{item.label}</span>
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            href={item.href!}
+                                            className={`wkf-menu-link ${pathname === item.href || pathname?.startsWith(item.href + '/') ? 'wkf-menu-link--active' : ''}`}
+                                            onClick={() => setDrawerOpen(false)}
+                                        >
+                                            <span>{item.label}</span>
+                                            <LinkPendingIndicator className="nav__pending-indicator" />
+                                        </Link>
+                                    )
+                                )}
+                            </div>
+                        )
+                    })}
                 </nav>
 
                 <div className="drawer__footer">

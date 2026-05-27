@@ -1,10 +1,10 @@
 import { withRoute } from '@/src/server/lib/route'
-import { getActiveBBProgram, getBBCandidateBySkfId } from '@/lib/server/repositories/blackbelt-live'
+import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
 export const GET = withRoute(
   {
     auth: { type: 'portal', roles: ['student'] },
-    rateLimit: { tier: 'authed' },
+    rateLimit: { tier: 'portalSession' },
     cacheControl: 'private, no-store',
   },
   async ({ portalSession }) => {
@@ -12,13 +12,7 @@ export const GET = withRoute(
     
     let isBlackBeltCandidate = false
     try {
-      const activeProgram = await getActiveBBProgram()
-      if (activeProgram && session.skfId) {
-        const candidate = await getBBCandidateBySkfId(activeProgram.id, session.skfId)
-        if (candidate) {
-          isBlackBeltCandidate = true
-        }
-      }
+      isBlackBeltCandidate = await isActiveBBCandidate(session.skfId)
     } catch {
       // Ignore error
     }

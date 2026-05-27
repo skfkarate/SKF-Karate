@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, ArrowLeft, CheckCircle } from 'lucide-react'
 import '../error-pages.css'
@@ -9,12 +9,20 @@ export default function ComingSoonPage() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const submitTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (submitTimerRef.current) window.clearTimeout(submitTimerRef.current)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
     setLoading(true)
-    setTimeout(() => {
+    if (submitTimerRef.current) window.clearTimeout(submitTimerRef.current)
+    submitTimerRef.current = window.setTimeout(() => {
       setSubmitted(true)
       setLoading(false)
     }, 800)

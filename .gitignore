@@ -69,6 +69,7 @@ public/news/*.png
 
 # Local test artifacts
 test-results/
+.lighthouseci/
 
 # Vercel
 .vercel

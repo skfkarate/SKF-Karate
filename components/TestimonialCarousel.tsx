@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { testimonials } from '@/data/seed/testimonials'
 import { FaStar } from 'react-icons/fa'
+import { useNonce } from '@/components/NonceProvider'
 
 export default function TestimonialCarousel() {
+    const nonce = useNonce()
     const [isHovered, setIsHovered] = useState(false)
     
     // Duplicate testimonials to ensure enough content for smooth infinite scrolling
@@ -21,7 +23,7 @@ export default function TestimonialCarousel() {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <style>{`
+            <style nonce={nonce}>{`
                 .t-marquee-container {
                     display: flex;
                     width: max-content;

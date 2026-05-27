@@ -44,7 +44,15 @@ const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024
 const BANGALORE_OPENING_RESERVE = 30000
 
 type FeeStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
-type FeeType = 'monthly' | 'admission' | 'dress' | 'credit_adjustment'
+type FeeType =
+  | 'monthly'
+  | 'admission'
+  | 'dress'
+  | 'credit_adjustment'
+  | 'belt_exam'
+  | 'tournament'
+  | 'event'
+  | 'other'
 
 type AthleteRecord = {
   skfId?: string | null
@@ -76,6 +84,12 @@ type FeeRecord = {
   rejected_reason: string | null
   notes: string | null
   metadata: Record<string, unknown>
+  source_key: string
+  source_type: string | null
+  source_id: string | null
+  source_label: string | null
+  due_date: string | null
+  branch_snapshot: string | null
   created_at?: string
   updated_at?: string
 }
@@ -95,6 +109,25 @@ type PaymentProofRow = {
   reviewed_at: string | null
   review_note: string | null
   metadata?: Record<string, unknown> | null
+}
+
+type SourcePaymentInput = {
+  skfId: string
+  feeType?: FeeType
+  month?: string
+  year?: number
+  amount: number
+  paymentMethod?: string
+  paymentReference?: string
+  notes?: string
+  metadata?: Record<string, unknown>
+  sourceKey: string
+  sourceType: string
+  sourceId?: string | null
+  sourceLabel?: string | null
+  branchSnapshot?: string | null
+  verifiedBy?: string
+  paidAt?: string
 }
 
 type FeeCitySlug = 'bangalore' | 'kunigal' | 'tumkur' | 'udupi'
@@ -275,9 +308,12 @@ function isOptionalWorkflowSchemaError(error: unknown) {
   return (
     ['42p01', '42703', 'pgrst200', 'pgrst202', 'pgrst204', 'pgrst205'].includes(code) &&
     (
-      combined.includes('fee_payment_intents') ||
-      combined.includes('fee_reminder_logs') ||
-      combined.includes('payment_intent_id') ||
+    combined.includes('fee_payment_intents') ||
+    combined.includes('fee_reminder_logs') ||
+    combined.includes('event_fee_expenses') ||
+    combined.includes('event_fee_deposits') ||
+    combined.includes('event_fee_configs') ||
+    combined.includes('payment_intent_id') ||
       combined.includes('payment_reference') ||
       combined.includes('metadata')
     )
@@ -296,6 +332,12 @@ function normalizeMonth(input?: string | null) {
 
 function monthIndex(month: string) {
   return MONTHS.findIndex((candidate) => candidate === normalizeMonth(month))
+}
+
+function monthFromDateValue(value?: string | null) {
+  const parsed = value ? new Date(`${String(value).split('T')[0]}T00:00:00.000Z`) : null
+  if (!parsed || !Number.isFinite(parsed.getTime())) return currentPeriod().month
+  return MONTHS[parsed.getUTCMonth()]
 }
 
 function currentPeriod() {
@@ -376,6 +418,12 @@ function normalizeFeeRecord(row: Record<string, unknown>): FeeRecord {
     rejected_reason: (row.rejected_reason as string | null) || null,
     notes: (row.notes as string | null) || null,
     metadata: (row.metadata as Record<string, unknown>) || {},
+    source_key: String(row.source_key || ''),
+    source_type: (row.source_type as string | null) || null,
+    source_id: (row.source_id as string | null) || null,
+    source_label: (row.source_label as string | null) || null,
+    due_date: (row.due_date as string | null) || null,
+    branch_snapshot: (row.branch_snapshot as string | null) || null,
     created_at: row.created_at as string | undefined,
     updated_at: row.updated_at as string | undefined,
   }
@@ -387,17 +435,23 @@ async function getFeeRows(filters: {
   skfId?: string
   status?: string
   feeType?: string
+  feeRecordId?: string
+  sourceType?: string
+  sourceId?: string
 }) {
   requireFeeDatabase()
   let query = supabaseAdmin
     .from('fee_records')
-    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, created_at, updated_at')
+    .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot, created_at, updated_at')
 
   if (filters.year) query = query.eq('year', filters.year)
   if (filters.month) query = query.eq('month', normalizeMonth(filters.month))
   if (filters.skfId) query = query.eq('skf_id', normaliseSkfId(filters.skfId))
   if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status)
   if (filters.feeType && filters.feeType !== 'all') query = query.eq('fee_type', filters.feeType)
+  if (filters.feeRecordId) query = query.eq('id', filters.feeRecordId)
+  if (filters.sourceType) query = query.eq('source_type', filters.sourceType)
+  if (filters.sourceId) query = query.eq('source_id', filters.sourceId)
 
   const { data, error } = await query.order('year', { ascending: false }).order('month', { ascending: true })
   if (error) throwFeeDatabaseError(error)
@@ -483,6 +537,12 @@ async function ensureFeeRecord(input: {
   year: number
   amount: number
   metadata?: Record<string, unknown>
+  sourceKey?: string
+  sourceType?: string
+  sourceId?: string
+  sourceLabel?: string
+  dueDate?: string | null
+  branchSnapshot?: string
 }) {
   requireFeeDatabase()
   const feeType = input.feeType || 'monthly'
@@ -496,6 +556,12 @@ async function ensureFeeRecord(input: {
     p_year: input.year,
     p_amount: normalizeAmount(input.amount),
     p_metadata: input.metadata || {},
+    p_source_key: input.sourceKey || '',
+    p_source_type: input.sourceType || null,
+    p_source_id: input.sourceId || null,
+    p_source_label: input.sourceLabel || null,
+    p_due_date: input.dueDate || null,
+    p_branch_snapshot: input.branchSnapshot || null,
   })
   if (error) throwFeeDatabaseError(error)
 
@@ -503,8 +569,18 @@ async function ensureFeeRecord(input: {
   return normalizeFeeRecord(row as Record<string, unknown>)
 }
 
-function buildReceiptId(skfId: string, feeType: FeeType, month: string, year: number) {
-  return `SKF-FEE-${year}-${receiptMonthNumber(month)}-${receiptTypeCode(feeType)}-${normaliseSkfId(skfId)}`
+function receiptSourceToken(sourceKey?: string | null, rowId?: string | null) {
+  const normalized = String(sourceKey || '').trim()
+  if (!normalized) return ''
+  const token = normalized
+    .replace(/[^a-z0-9]+/gi, '')
+    .toUpperCase()
+    .slice(-8) || String(rowId || '').replace(/[^a-z0-9]+/gi, '').toUpperCase().slice(0, 8)
+  return token ? `-${token}` : ''
+}
+
+function buildReceiptId(skfId: string, feeType: FeeType, month: string, year: number, sourceKey?: string | null, rowId?: string | null) {
+  return `SKF-FEE-${year}-${receiptMonthNumber(month)}-${receiptTypeCode(feeType)}-${normaliseSkfId(skfId)}${receiptSourceToken(sourceKey, rowId)}`
 }
 
 async function ensureReceiptForPaidRow(input: {
@@ -517,7 +593,7 @@ async function ensureReceiptForPaidRow(input: {
   let row = input.row
   let receiptId = String(row.receipt_id || '').trim()
   if (!receiptId) {
-    receiptId = buildReceiptId(row.skf_id, row.fee_type, row.month, row.year)
+    receiptId = buildReceiptId(row.skf_id, row.fee_type, row.month, row.year, row.source_key, row.id)
     const { data, error } = await supabaseAdmin
       .from('fee_records')
       .update({ receipt_id: receiptId, updated_at: new Date().toISOString() })
@@ -614,6 +690,34 @@ async function markPaymentIntentStatus(input: {
   return data
 }
 
+async function cleanupReviewedProofStorage(proof: PaymentProofRow, action: 'approved' | 'rejected') {
+  const proofPath = String(proof.proof_path || '').trim()
+  if (!proofPath) return
+
+  try {
+    const { error } = await supabaseAdmin.storage.from(PROOF_BUCKET).remove([proofPath])
+    if (error) {
+      logger.warn('fee.payment_proof_storage_cleanup_failed', {
+        action,
+        proofId: proof.id,
+        skfId: proof.skf_id,
+        feeRecordId: proof.fee_record_id,
+        proofPath,
+        error,
+      })
+    }
+  } catch (error) {
+    logger.warn('fee.payment_proof_storage_cleanup_failed', {
+      action,
+      proofId: proof.id,
+      skfId: proof.skf_id,
+      feeRecordId: proof.fee_record_id,
+      proofPath,
+      error,
+    })
+  }
+}
+
 function outstandingStatus(status: FeeStatus) {
   return status === 'due' || status === 'overdue' || status === 'rejected'
 }
@@ -626,6 +730,10 @@ function receiptTypeCode(feeType: FeeType) {
   if (feeType === 'admission') return 'ADM'
   if (feeType === 'dress') return 'DRS'
   if (feeType === 'credit_adjustment') return 'CRD'
+  if (feeType === 'belt_exam') return 'BEX'
+  if (feeType === 'tournament') return 'TRN'
+  if (feeType === 'event') return 'EVT'
+  if (feeType === 'other') return 'OTH'
   return 'MON'
 }
 
@@ -770,14 +878,14 @@ function buildCitySummary<T extends { branch?: string; amount?: number; status?:
 }
 
 function rowToEntry(row: FeeRecord, athlete?: AthleteRecord | null) {
-  const branch = String(athlete?.branchName || '').trim() || 'Unknown'
+  const branch = String(row.branch_snapshot || athlete?.branchName || '').trim() || 'Unknown'
   const city = cityLabelForBranch(branch)
   return {
     id: row.id,
-    key: `${row.skf_id}:${row.fee_type}:${row.month}:${row.year}`,
+    key: `${row.skf_id}:${row.fee_type}:${row.month}:${row.year}:${row.source_key || ''}`,
     skfId: row.skf_id,
     athleteName: athleteName(athlete),
-    branch,
+    branch: row.branch_snapshot || branch,
     city: city.city,
     citySlug: city.citySlug,
     feeType: row.fee_type,
@@ -792,6 +900,12 @@ function rowToEntry(row: FeeRecord, athlete?: AthleteRecord | null) {
     rejectedReason: row.rejected_reason,
     notes: row.notes,
     metadata: row.metadata || {},
+    sourceKey: row.source_key || '',
+    sourceType: row.source_type,
+    sourceId: row.source_id,
+    sourceLabel: row.source_label,
+    dueDate: row.due_date,
+    branchSnapshot: row.branch_snapshot,
   }
 }
 
@@ -1109,6 +1223,96 @@ async function notifyPaymentProofSubmitted(input: {
 export class FeeOperationsService {
   static roles = FEE_ACCESS_ROLES
 
+  static async recordPaidSourcePayment(input: SourcePaymentInput) {
+    requireFeeDatabase()
+
+    const skfId = normaliseSkfId(input.skfId)
+    const sourceKey = String(input.sourceKey || '').trim()
+    const sourceType = String(input.sourceType || '').trim()
+    const amount = normalizeAmount(input.amount)
+
+    if (!skfId) {
+      throw new ValidationError({ skfId: ['SKF ID is required.'] })
+    }
+
+    if (!sourceKey || !sourceType) {
+      throw new ValidationError({ source: ['Source key and source type are required.'] })
+    }
+
+    if (amount <= 0) {
+      return { success: true, skipped: true, reason: 'zero_amount' as const }
+    }
+
+    const athlete = await getAthleteBySkfIdLive(skfId)
+    if (!athlete) throw new NotFoundError('Student')
+
+    const paidAt = input.paidAt || new Date().toISOString()
+    const paidDate = new Date(paidAt)
+    const month = normalizeMonth(input.month || MONTHS[paidDate.getMonth()])
+    const year = Number(input.year || paidDate.getFullYear() || new Date().getFullYear())
+    const feeType = input.feeType || 'other'
+    const metadata = input.metadata || {}
+    const sourceLabel = String(input.sourceLabel || '').trim() || null
+    const sourceId = String(input.sourceId || '').trim() || null
+    const branchSnapshot = String(input.branchSnapshot || athlete.branchName || '').trim() || null
+
+    const row = await ensureFeeRecord({
+      skfId,
+      feeType,
+      month,
+      year,
+      amount,
+      metadata,
+      sourceKey,
+      sourceType,
+      sourceId,
+      sourceLabel: sourceLabel || undefined,
+      branchSnapshot: branchSnapshot || undefined,
+    })
+    const before = row
+    const receiptId = row.receipt_id || buildReceiptId(skfId, feeType, month, year, row.source_key, row.id)
+    const paymentMethod = [input.paymentMethod || 'source_payment', input.paymentReference || '']
+      .filter(Boolean)
+      .join(' - ')
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_records')
+      .update({
+        status: 'paid',
+        amount,
+        paid_date: paidAt,
+        receipt_id: receiptId,
+        payment_method: paymentMethod,
+        verified_by: input.verifiedBy || 'System',
+        verified_at: paidAt,
+        rejected_reason: null,
+        notes: input.notes || null,
+        metadata: { ...(row.metadata || {}), ...metadata },
+        source_type: sourceType,
+        source_id: sourceId,
+        source_label: sourceLabel,
+        branch_snapshot: branchSnapshot,
+        updated_at: paidAt,
+      })
+      .eq('id', row.id)
+      .select('*')
+      .single()
+    if (error) throwFeeDatabaseError(error)
+
+    const after = normalizeFeeRecord(data)
+    const receipt = await ensureReceiptForPaidRow({ row: after, athlete, issuedAt: paidAt })
+    await logAudit(null, {
+      action: 'fee_source_payment_recorded',
+      skfId,
+      feeRecordId: after.id,
+      before,
+      after,
+      metadata: { sourceType, sourceId, sourceKey },
+    })
+
+    return { success: true, skipped: false as const, entry: rowToEntry(after, athlete), receipt }
+  }
+
   static async getStudents(session: Session, query: FeeConsoleQueryInput) {
     const period = currentPeriod()
     const targetMonth = query.month ? normalizeMonth(query.month) : period.month
@@ -1362,7 +1566,12 @@ export class FeeOperationsService {
       search: query.search,
     })
 
-    const [{ data: expenseRows, error: expenseError }, { data: incomeRows, error: incomeError }] = await Promise.all([
+    const [
+      { data: expenseRows, error: expenseError },
+      { data: incomeRows, error: incomeError },
+      eventExpenseRows,
+      eventDepositRows,
+    ] = await Promise.all([
       supabaseAdmin
         .from('development_fund_expenses')
         .select('*')
@@ -1374,10 +1583,26 @@ export class FeeOperationsService {
         .select('*')
         .eq('year', targetYear)
         .is('deleted_at', null)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }),
+      supabaseAdmin
+        .from('event_fee_expenses')
+        .select('*')
+        .gte('expense_date', `${targetYear}-01-01`)
+        .lte('expense_date', `${targetYear}-12-31`)
+        .is('deleted_at', null)
+        .order('expense_date', { ascending: false }),
+      supabaseAdmin
+        .from('event_fee_deposits')
+        .select('*')
+        .gte('deposit_date', `${targetYear}-01-01`)
+        .lte('deposit_date', `${targetYear}-12-31`)
+        .is('deleted_at', null)
+        .order('deposit_date', { ascending: false }),
     ])
     if (expenseError) throwFeeDatabaseError(expenseError)
     if (incomeError && !isOptionalWorkflowSchemaError(incomeError)) throwFeeDatabaseError(incomeError)
+    if (eventExpenseRows.error && !isOptionalWorkflowSchemaError(eventExpenseRows.error)) throwFeeDatabaseError(eventExpenseRows.error)
+    if (eventDepositRows.error && !isOptionalWorkflowSchemaError(eventDepositRows.error)) throwFeeDatabaseError(eventDepositRows.error)
 
     const relevantExpenses = (expenseRows || [])
       .filter((expense) => expenseMatchesLocation(expense.scope, 'bangalore', query.branch))
@@ -1387,11 +1612,21 @@ export class FeeOperationsService {
       .filter((income) => expenseMatchesLocation(income.scope, 'bangalore', query.branch))
       .filter((income) => withinMonthLimit(normalizeMonth(income.month), monthLimit))
 
+    const relevantEventExpenses = (eventExpenseRows.data || [])
+      .filter((expense) => expenseMatchesLocation(expense.branch_scope, 'bangalore', query.branch))
+      .filter((expense) => withinMonthLimit(monthFromDateValue(expense.expense_date), monthLimit))
+
+    const relevantEventDeposits = (eventDepositRows.data || [])
+      .filter((deposit) => expenseMatchesLocation(deposit.branch_scope, 'bangalore', query.branch))
+      .filter((deposit) => withinMonthLimit(monthFromDateValue(deposit.deposit_date), monthLimit))
+
     const buildFinanceBreakdown = (
       year: number,
       sourceEntries: typeof ledger.entries,
       sourceExpenses: typeof relevantExpenses,
-      sourceIncomes: typeof relevantIncomes
+      sourceIncomes: typeof relevantIncomes,
+      sourceEventExpenses: typeof relevantEventExpenses,
+      sourceEventDeposits: typeof relevantEventDeposits
     ) => {
       const entries = sourceEntries.filter((entry) => withinMonthLimit(entry.month, monthLimit))
       const paidEntries = entries.filter((entry) => entry.status === 'paid')
@@ -1417,12 +1652,23 @@ export class FeeOperationsService {
         const extraIncome = sourceIncomes
           .filter((income) => normalizeMonth(income.month) === month)
           .reduce((sum, income) => sum + normalizeAmount(income.amount), 0)
-        const grossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome
-        const developmentAllocation = Math.round(Math.max(0, grossIncome) * 0.3)
+        const eventIncome = monthEntries
+          .filter((entry) => ['belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType))
+          .reduce((sum, entry) => sum + normalizeAmount(entry.amount), 0)
+        const coreGrossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome
+        const grossIncome = coreGrossIncome + eventIncome
+        const developmentAllocation = Math.round(Math.max(0, coreGrossIncome) * 0.3)
         const developmentExpenses = sourceExpenses
           .filter((expense) => normalizeMonth(expense.month) === month)
           .reduce((sum, expense) => sum + normalizeAmount(expense.amount), 0)
-        const bankMovement = grossIncome - developmentExpenses
+        const eventExpenses = sourceEventExpenses
+          .filter((expense) => monthFromDateValue(expense.expense_date) === month)
+          .reduce((sum, expense) => sum + normalizeAmount(expense.amount), 0)
+        const eventDeposits = sourceEventDeposits
+          .filter((deposit) => monthFromDateValue(deposit.deposit_date) === month)
+          .reduce((sum, deposit) => sum + normalizeAmount(deposit.amount), 0)
+        const eventSurplus = eventIncome - eventExpenses
+        const bankMovement = grossIncome - developmentExpenses - eventExpenses
 
         return {
           month,
@@ -1435,9 +1681,13 @@ export class FeeOperationsService {
           dressCost,
           dressProfit,
           extraIncome,
+          eventIncome,
           grossIncome,
           developmentAllocation,
           developmentExpenses,
+          eventExpenses,
+          eventSurplus,
+          eventDeposits,
           bankMovement,
           cumulativeBank: 0,
           cumulativeDevelopmentFund: 0,
@@ -1456,7 +1706,14 @@ export class FeeOperationsService {
       return breakdown
     }
 
-    const monthlyBreakdown = buildFinanceBreakdown(targetYear, ledger.entries, relevantExpenses, relevantIncomes)
+    const monthlyBreakdown = buildFinanceBreakdown(
+      targetYear,
+      ledger.entries,
+      relevantExpenses,
+      relevantIncomes,
+      relevantEventExpenses,
+      relevantEventDeposits
+    )
 
     const visibleBreakdown = monthlyBreakdown.filter((row) => withinMonthLimit(row.month, monthLimit))
     const totals = visibleBreakdown.reduce(
@@ -1469,9 +1726,13 @@ export class FeeOperationsService {
         dressCost: sum.dressCost + row.dressCost,
         dressProfit: sum.dressProfit + row.dressProfit,
         extraIncome: sum.extraIncome + row.extraIncome,
+        eventIncome: sum.eventIncome + row.eventIncome,
         grossIncome: sum.grossIncome + row.grossIncome,
         developmentAllocation: sum.developmentAllocation + row.developmentAllocation,
         developmentExpenses: sum.developmentExpenses + row.developmentExpenses,
+        eventExpenses: sum.eventExpenses + row.eventExpenses,
+        eventSurplus: sum.eventSurplus + row.eventSurplus,
+        eventDeposits: sum.eventDeposits + row.eventDeposits,
         calculatedBankPosition: sum.calculatedBankPosition + row.bankMovement,
       }),
       {
@@ -1483,9 +1744,13 @@ export class FeeOperationsService {
         dressCost: 0,
         dressProfit: 0,
         extraIncome: 0,
+        eventIncome: 0,
         grossIncome: 0,
         developmentAllocation: 0,
         developmentExpenses: 0,
+        eventExpenses: 0,
+        eventSurplus: 0,
+        eventDeposits: 0,
         calculatedBankPosition: 0,
       }
     )
@@ -1500,7 +1765,13 @@ export class FeeOperationsService {
 
     if (query.comparePrevious) {
       const previousYear = targetYear - 1
-      const [previousLedger, previousExpenseRows, previousIncomeRows] = await Promise.all([
+      const [
+        previousLedger,
+        previousExpenseRows,
+        previousIncomeRows,
+        previousEventExpenseRows,
+        previousEventDepositRows,
+      ] = await Promise.all([
         this.getLedger(session, {
           year: previousYear,
           city: 'bangalore',
@@ -1520,16 +1791,45 @@ export class FeeOperationsService {
           .eq('year', previousYear)
           .is('deleted_at', null)
           .order('created_at', { ascending: false }),
+        supabaseAdmin
+          .from('event_fee_expenses')
+          .select('*')
+          .gte('expense_date', `${previousYear}-01-01`)
+          .lte('expense_date', `${previousYear}-12-31`)
+          .is('deleted_at', null)
+          .order('expense_date', { ascending: false }),
+        supabaseAdmin
+          .from('event_fee_deposits')
+          .select('*')
+          .gte('deposit_date', `${previousYear}-01-01`)
+          .lte('deposit_date', `${previousYear}-12-31`)
+          .is('deleted_at', null)
+          .order('deposit_date', { ascending: false }),
       ])
       if (previousExpenseRows.error) throwFeeDatabaseError(previousExpenseRows.error)
       if (previousIncomeRows.error && !isOptionalWorkflowSchemaError(previousIncomeRows.error)) throwFeeDatabaseError(previousIncomeRows.error)
+      if (previousEventExpenseRows.error && !isOptionalWorkflowSchemaError(previousEventExpenseRows.error)) throwFeeDatabaseError(previousEventExpenseRows.error)
+      if (previousEventDepositRows.error && !isOptionalWorkflowSchemaError(previousEventDepositRows.error)) throwFeeDatabaseError(previousEventDepositRows.error)
       const previousExpenses = (previousExpenseRows.data || [])
         .filter((expense) => expenseMatchesLocation(expense.scope, 'bangalore', query.branch))
         .filter((expense) => withinMonthLimit(normalizeMonth(expense.month), monthLimit))
       const previousIncomes = (previousIncomeRows.data || [])
         .filter((income) => expenseMatchesLocation(income.scope, 'bangalore', query.branch))
         .filter((income) => withinMonthLimit(normalizeMonth(income.month), monthLimit))
-      previousYearBreakdown = buildFinanceBreakdown(previousYear, previousLedger.entries, previousExpenses, previousIncomes)
+      const previousEventExpenses = (previousEventExpenseRows.data || [])
+        .filter((expense) => expenseMatchesLocation(expense.branch_scope, 'bangalore', query.branch))
+        .filter((expense) => withinMonthLimit(monthFromDateValue(expense.expense_date), monthLimit))
+      const previousEventDeposits = (previousEventDepositRows.data || [])
+        .filter((deposit) => expenseMatchesLocation(deposit.branch_scope, 'bangalore', query.branch))
+        .filter((deposit) => withinMonthLimit(monthFromDateValue(deposit.deposit_date), monthLimit))
+      previousYearBreakdown = buildFinanceBreakdown(
+        previousYear,
+        previousLedger.entries,
+        previousExpenses,
+        previousIncomes,
+        previousEventExpenses,
+        previousEventDeposits
+      )
         .filter((row) => withinMonthLimit(row.month, monthLimit))
 
       const previousTotals = previousYearBreakdown.reduce(
@@ -1571,13 +1871,15 @@ export class FeeOperationsService {
         developmentFundBalance:
           totals.developmentAllocation - totals.developmentExpenses,
         formula:
-          'Opening reserve + monthly fee cash after credits + admission collected + dress profit - development expenses',
+          'Opening reserve + monthly fee cash after credits + admission collected + dress profit + extra income + event income - development expenses - event expenses',
       },
       monthlyBreakdown: visibleBreakdown,
       previousYearBreakdown,
       yearComparison,
       expenses: relevantExpenses,
       extraIncomes: relevantIncomes,
+      eventExpenses: relevantEventExpenses,
+      eventDeposits: relevantEventDeposits,
       dataQuality: await this.getDataQuality(session, { ...query, city: 'bangalore', year: targetYear, month: targetMonth || query.month }),
     }
   }
@@ -2245,7 +2547,7 @@ export class FeeOperationsService {
       })
       let updatedTarget = targetRow
       if (existingCreditAmount >= normalizeAmount(targetRow.amount)) {
-        const receiptId = targetRow.receipt_id || buildReceiptId(skfId, feeType, month, targetYear)
+        const receiptId = targetRow.receipt_id || buildReceiptId(skfId, feeType, month, targetYear, targetRow.source_key, targetRow.id)
         const { data, error } = await supabaseAdmin
           .from('fee_records')
           .update({
@@ -2293,7 +2595,12 @@ export class FeeOperationsService {
     const month = 'month' in input ? normalizeMonth(input.month) : currentPeriod().month
     const explicitAmount = 'amount' in input ? input.amount : undefined
     const hasExplicitAmount = explicitAmount !== undefined
-    const existingRows = hasExplicitAmount ? [] : await getFeeRows({ skfId, feeType, month, year: targetYear })
+    const feeRecordId = 'feeRecordId' in input ? input.feeRecordId : undefined
+    const existingRows = feeRecordId
+      ? await getFeeRows({ skfId, feeRecordId })
+      : hasExplicitAmount
+        ? []
+        : await getFeeRows({ skfId, feeType, month, year: targetYear })
     const existingRow = existingRows[0] || null
     const billingProfile = existingRow ? null : await getBillingProfile(skfId)
     const amount = hasExplicitAmount
@@ -2313,7 +2620,7 @@ export class FeeOperationsService {
 
     if (input.action === 'mark_paid') {
       const paymentMethod = [input.paymentMethod || 'manual', input.paymentReference || ''].filter(Boolean).join(' - ')
-      const receiptId = row.receipt_id || buildReceiptId(skfId, feeType, month, targetYear)
+      const receiptId = row.receipt_id || buildReceiptId(skfId, feeType, month, targetYear, row.source_key, row.id)
       const now = new Date().toISOString()
       const { data, error } = await supabaseAdmin
         .from('fee_records')
@@ -2730,13 +3037,20 @@ export class FeeOperationsService {
 
     const feeType = input.feeType || 'monthly'
     const month = normalizeMonth(input.month)
-    const existingRows = await getFeeRows({
-      skfId: normalizedSkfId,
-      feeType,
-      month,
-      year: input.year,
-    })
-    const existingRow = existingRows[0] || null
+    const selectedFeeRecordIds = (input.feeRecordIds || []).filter(Boolean)
+    const existingRows = selectedFeeRecordIds.length
+      ? await getFeeRows({ skfId: normalizedSkfId }).then((rows) =>
+        rows.filter((candidate) => selectedFeeRecordIds.includes(candidate.id))
+      )
+      : await getFeeRows({
+        skfId: normalizedSkfId,
+        feeType,
+        month,
+        year: input.year,
+      })
+    const existingRow = selectedFeeRecordIds.length
+      ? existingRows.find((candidate) => candidate.fee_type === feeType && candidate.month === month && candidate.year === input.year) || existingRows[0] || null
+      : existingRows[0] || null
 
     if (existingRow?.status === 'paid') {
       throw new ValidationError({ fee: ['This fee is already marked paid.'] })
@@ -2756,12 +3070,11 @@ export class FeeOperationsService {
       .eq('status', 'submitted')
     if (replacedProofsError) throwFeeDatabaseError(replacedProofsError)
 
-    const paymentReference = String(input.paymentReference || '').trim()
-    const selectedFeeRecordIds = (input.feeRecordIds || []).filter(Boolean)
     if (selectedFeeRecordIds.length && !selectedFeeRecordIds.includes(row.id)) {
       throw new ValidationError({ feeRecordIds: ['Selected fee record does not match the proof target.'] })
     }
 
+    const paymentReference = String(input.paymentReference || '').trim()
     const paymentIntent = await createManualPaymentIntent({
       skfId: normalizedSkfId,
       row,
@@ -2795,6 +3108,9 @@ export class FeeOperationsService {
         feeType,
         month,
         year: input.year,
+        sourceType: row.source_type,
+        sourceId: row.source_id,
+        sourceLabel: row.source_label,
       },
     }
 
@@ -3033,7 +3349,7 @@ export class FeeOperationsService {
       })
     }
 
-    const receiptId = row.receipt_id || buildReceiptId(row.skf_id, row.fee_type, row.month, row.year)
+    const receiptId = row.receipt_id || buildReceiptId(row.skf_id, row.fee_type, row.month, row.year, row.source_key, row.id)
     const now = new Date().toISOString()
     const { data: updatedRow, error: rowError } = await supabaseAdmin
       .from('fee_records')
@@ -3084,6 +3400,8 @@ export class FeeOperationsService {
         reviewedAt: now,
       },
     })
+
+    await cleanupReviewedProofStorage(proof, 'approved')
 
     await logAudit(session, {
       action: 'payment_proof_approved',
@@ -3165,6 +3483,8 @@ export class FeeOperationsService {
       if (error) throwFeeDatabaseError(error)
       updatedRow = data
     }
+
+    await cleanupReviewedProofStorage(proof, 'rejected')
 
     await logAudit(session, {
       action: 'payment_proof_rejected',
@@ -3433,7 +3753,7 @@ export class FeeOperationsService {
 
     const { data, error } = await supabaseAdmin
       .from('fee_records')
-      .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, created_at, updated_at')
+      .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot, created_at, updated_at')
       .eq('receipt_id', normalizedReceiptId)
       .maybeSingle()
     if (error) throwFeeDatabaseError(error)

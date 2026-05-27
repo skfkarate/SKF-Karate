@@ -57,6 +57,8 @@ const envSchema = z.object({
   GOOGLE_SERVICE_ACCOUNT_EMAIL: optionalString(z.string().email()),
   GOOGLE_PRIVATE_KEY: optionalString(z.string().min(1)),
   GOOGLE_SHEET_ID: optionalString(z.string().min(1)),
+  ADMISSION_DRIVE_ROOT_FOLDER_ID: optionalString(z.string().min(1)),
+  ADMISSION_PHOTO_DRIVE_FOLDER_ID: optionalString(z.string().min(1)),
   GOOGLE_SHEET_ID_SUMMER_CAMP: optionalString(z.string().min(1)),
   GOOGLE_SHEET_ID_SHOP: optionalString(z.string().min(1)),
   FEETRACK_GOOGLE_SHEET_ID: optionalString(z.string().min(1)),
@@ -66,6 +68,9 @@ const envSchema = z.object({
   CRON_SECRET: optionalString(z.string().min(1)),
   SENTRY_DSN: optionalString(z.string().url()),
   SENTRY_AUTH_TOKEN: optionalString(z.string().min(1)),
+  SENTRY_ORG: optionalString(z.string().min(1)),
+  SENTRY_PROJECT: optionalString(z.string().min(1)),
+  SENTRY_ENVIRONMENT: optionalString(z.string().min(1)),
 })
 
 const parsedEnv = envSchema.safeParse(process.env)

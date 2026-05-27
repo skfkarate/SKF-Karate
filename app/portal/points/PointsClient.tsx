@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Crown, Loader2, Medal, TrendingUp, Trophy } from 'lucide-react'
+import { Crown, Medal, TrendingUp, Trophy } from 'lucide-react'
 
 import PointsHistory from '@/app/_components/points/PointsHistory'
 import TierProgressBar from '@/app/_components/points/TierProgressBar'

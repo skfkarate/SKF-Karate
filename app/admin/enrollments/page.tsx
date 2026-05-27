@@ -88,8 +88,8 @@ export default function AdminEnrollmentsPage() {
       const res = await fetch('/api/admin/enrollments')
       const data = await res.json()
       setEnrollments(data.enrollments || [])
-    } catch (e) {
-      console.error(e)
+    } catch {
+      // Empty state handles transient enrollment load failures.
     } finally {
       setLoading(false)
       setSelectedIds([])

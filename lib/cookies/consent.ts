@@ -13,8 +13,8 @@ export function getCookieConsent(): CookieConsentData | null {
     if (data) {
       return JSON.parse(data) as CookieConsentData
     }
-  } catch (error) {
-    console.error('Error parsing cookie consent:', error)
+  } catch {
+    // Invalid local consent data is treated as no saved preference.
   }
   return null
 }

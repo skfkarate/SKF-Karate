@@ -220,11 +220,23 @@
   width: 40px;
   height: 22px;
   background: rgba(255, 255, 255, 0.1);
+  border: 0;
   border-radius: 20px;
+  padding: 0;
   position: relative;
   cursor: pointer;
   transition: background 0.3s;
   flex-shrink: 0;
+}
+
+.cookie-toggle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .cookie-toggle--active {
