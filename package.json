@@ -63,6 +63,7 @@
     "resend": "^6.9.4",
     "tailwindcss": "^4.2.1",
     "web-vitals": "^3.5.2",
+    "ws": "^8.21.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -73,6 +74,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.14",
+    "@types/ws": "^8.18.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.6",
     "heic-convert": "^2.1.0",
