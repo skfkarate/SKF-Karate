@@ -138,7 +138,7 @@ export default function VideosClient() {
       {isLoading ? (
         <VideosPageSkeleton />
       ) : (
-      <div style={{ background: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden', paddingBottom: '6rem' }}>
+      <div style={{ background: '#000', minHeight: '100dvh', width: '100%', overflowX: 'hidden', paddingBottom: '6rem' }}>
         <header style={{ padding: '5rem 4% 2rem' }}>
           <h1 style={{ margin: 0, color: '#fff', fontFamily: 'var(--font-heading, "Outfit")', fontSize: 'clamp(2.6rem, 6vw, 4.8rem)', fontWeight: 900, letterSpacing: '-0.03em' }}>
             Home Practice

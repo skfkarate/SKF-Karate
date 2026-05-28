@@ -8,7 +8,7 @@ export const VideosPageSkeleton = () => {
   const nonce = useNonce();
 
   return (
-  <div style={{ background: '#000', minHeight: '100vh', width: '100%', overflowX: 'hidden' }} aria-label="Loading videos" aria-busy="true">
+  <div style={{ background: '#000', minHeight: '100dvh', width: '100%', overflowX: 'hidden' }} aria-label="Loading videos" aria-busy="true">
 
     {/* ── CINEMATIC HERO SKELETON ── */}
     <div className="skel-video-hero" style={{

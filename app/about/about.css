@@ -75,7 +75,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: "Noto Sans JP", var(--font-heading), system-ui;
-  font-size: 28vw;
+  font-size: clamp(10rem, 30vw, 40rem);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.015);
   pointer-events: none;
@@ -83,6 +83,7 @@
   line-height: 1;
   white-space: nowrap;
   user-select: none;
+  letter-spacing: 0.05em;
 }
 
 /* ── HERO SECTION ── */
@@ -711,8 +712,8 @@
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
     transform-origin: left center;
-    font-size: 65vw;
-    color: rgba(255, 255, 255, 0.05);
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   .abt-hero { padding: 6rem 1.5rem 3rem; }

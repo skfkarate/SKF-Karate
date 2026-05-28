@@ -1,7 +1,7 @@
 import './portal.css'
 import AthleteHubNav from '@/app/_components/portal/AthleteHubNav'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
-import PortalPageTransition from './_components/PortalPageTransition'
+
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
 import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
@@ -31,9 +31,7 @@ export default async function PortalLayout({ children }) {
         currentAthlete={portal?.athlete}
       />
       <main className="hub-main">
-        <PortalPageTransition>
-          {children}
-        </PortalPageTransition>
+        {children}
       </main>
     </div>
   )

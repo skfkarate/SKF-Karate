@@ -3,19 +3,17 @@ import { notFound, redirect } from "next/navigation"
 import {
   FaCalendarAlt,
   FaMapMarkerAlt,
-  FaCity,
   FaUsers,
   FaArrowRight,
   FaArrowLeft,
   FaMedal,
-  FaTrophy,
-  FaChevronUp,
 } from "react-icons/fa"
 import { getEventBySlugLive } from "@/lib/server/repositories/events-live"
 import { getEventLabel } from "@/data/constants/categories"
 import { absoluteMediaUrl, absoluteSiteUrl } from "@/data/constants/siteConfig"
 import JsonLdScript from "@/components/JsonLdScript"
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from "@/data/constants/seo"
+import { getBeltOrder } from "@/data/constants/belts"
 import "./event-detail.css"
 
 export const revalidate = 300
@@ -57,6 +55,10 @@ type EventDetail = {
   results?: EventResult[]
 }
 
+type RosterEntry = EventParticipant & {
+  result: EventResult | null
+}
+
 type EventPageProps = {
   params: Promise<{ slug: string }>
 }
@@ -68,16 +70,6 @@ function formatDate(date: string) {
     month: "long",
     year: "numeric",
   })
-}
-
-function formatDateShort(date: string) {
-  if (!date) return { day: "", month: "", year: "" }
-  const d = new Date(date)
-  return {
-    day: d.getDate().toString(),
-    month: d.toLocaleDateString("en-IN", { month: "short" }).toUpperCase(),
-    year: d.getFullYear().toString(),
-  }
 }
 
 function getResultLabel(result: EventResult) {
@@ -106,18 +98,9 @@ function getMedalClass(result: EventResult) {
   return 'evd-badge--default'
 }
 
-function getResultMeta(result: EventResult) {
-  const parts: string[] = []
-
-  if (result.category) parts.push(result.category.replace(/-/g, ' '))
-  if (result.ageGroup) parts.push(result.ageGroup.replace(/-/g, ' '))
-  if (result.weightCategory) parts.push(result.weightCategory)
-  if (result.grade) parts.push(`Grade ${result.grade}`)
-  if (result.score === 0 || result.score) parts.push(`Score ${result.score}`)
-  if (result.doublePromotion) parts.push('Double promotion')
-  if (result.notes) parts.push(result.notes)
-
-  return parts.join(' · ')
+function isGradingEvent(type: string) {
+  const t = (type || '').toLowerCase()
+  return t.includes('grading') || t.includes('exam') || t.includes('kyu') || t.includes('belt') || t.includes('progressive')
 }
 
 export async function generateMetadata({ params }: EventPageProps) {
@@ -173,18 +156,42 @@ export default async function EventDetailPage({ params }: EventPageProps) {
   const results = Array.isArray(event.results) ? event.results : []
   const hasParticipants = participants.length > 0
   const hasResults = results.length > 0
-  const dateInfo = event.date ? formatDateShort(event.date) : null
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(event.name, `/events/${event.slug}`)
 
-  // Count results by type
-  const resultsSummary = hasResults ? {
-    total: results.length,
-    gold: results.filter((r) => r.medal === 'gold').length,
-    silver: results.filter((r) => r.medal === 'silver').length,
-    bronze: results.filter((r) => r.medal === 'bronze').length,
-    passed: results.filter((r) => r.result === 'pass' || r.result === 'completed').length,
-    promotions: results.filter((r) => r.beltAwarded || r.promotion).length,
-  } : null
+  // Merge participants and results into a single list
+  const unifiedRosterMap = new Map<string, RosterEntry>()
+  participants.forEach(p => {
+    unifiedRosterMap.set(p.skfId, { ...p, result: null })
+  })
+  results.forEach(r => {
+    const existing = unifiedRosterMap.get(r.skfId)
+    if (existing) {
+      unifiedRosterMap.set(r.skfId, { ...existing, result: r })
+    } else {
+      unifiedRosterMap.set(r.skfId, {
+        skfId: r.skfId,
+        athleteName: r.athleteName,
+        branchName: r.branchName,
+        result: r
+      })
+    }
+  })
+  const unifiedRosterUnsorted = Array.from(unifiedRosterMap.values())
+
+  // Sort: for grading events, sort by belt rank (highest belt first)
+  const isGrading = isGradingEvent(event.type)
+  const unifiedRoster = isGrading
+    ? unifiedRosterUnsorted.sort((a, b) => {
+        const beltA = a.result?.beltAwarded || a.result?.promotion || ''
+        const beltB = b.result?.beltAwarded || b.result?.promotion || ''
+        const orderA = getBeltOrder(beltA)
+        const orderB = getBeltOrder(beltB)
+        if (orderB !== orderA) return orderB - orderA // highest belt first
+        if (a.result?.doublePromotion && !b.result?.doublePromotion) return -1
+        if (!a.result?.doublePromotion && b.result?.doublePromotion) return 1
+        return 0
+      })
+    : unifiedRosterUnsorted
 
   return (
     <div className="evd-page">
@@ -243,203 +250,74 @@ export default async function EventDetailPage({ params }: EventPageProps) {
         </div>
       </section>
 
-      {/* ═══════ STAT CARDS ═══════ */}
-      <div className="container">
-        <div className="evd-stats">
-          {dateInfo && (
-            <div className="evd-stat-card">
-              <div className="evd-stat-card__icon">
-                <FaCalendarAlt />
-              </div>
-              <div className="evd-stat-card__content">
-                <span className="evd-stat-card__label">Date</span>
-                <span className="evd-stat-card__value">{formatDate(event.date)}</span>
-              </div>
-            </div>
-          )}
-          {event.venue && (
-            <div className="evd-stat-card">
-              <div className="evd-stat-card__icon evd-stat-card__icon--crimson">
-                <FaMapMarkerAlt />
-              </div>
-              <div className="evd-stat-card__content">
-                <span className="evd-stat-card__label">Venue</span>
-                <span className="evd-stat-card__value">{event.venue}</span>
-              </div>
-            </div>
-          )}
-          {event.city && (
-            <div className="evd-stat-card">
-              <div className="evd-stat-card__icon evd-stat-card__icon--blue">
-                <FaCity />
-              </div>
-              <div className="evd-stat-card__content">
-                <span className="evd-stat-card__label">City</span>
-                <span className="evd-stat-card__value">{event.city}</span>
-              </div>
-            </div>
-          )}
-          {event.isResultsPublished && hasParticipants && (
-            <div className="evd-stat-card">
-              <div className="evd-stat-card__icon evd-stat-card__icon--green">
-                <FaUsers />
-              </div>
-              <div className="evd-stat-card__content">
-                <span className="evd-stat-card__label">Athletes</span>
-                <span className="evd-stat-card__value">{participants.length}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* ═══════ DASHBOARD ═══════ */}
+      {/* ═══════ RESULTS TABLE ═══════ */}
       {event.isResultsPublished && (hasParticipants || hasResults) && (
-        <div className="container">
-          <div className="evd-dashboard">
-            <div className="evd-dashboard__glow" />
-
-            {/* ── Results Summary Strip ── */}
-            {resultsSummary && (resultsSummary.gold > 0 || resultsSummary.silver > 0 || resultsSummary.bronze > 0) && (
-              <div className="evd-medal-strip">
-                {resultsSummary.gold > 0 && (
-                  <div className="evd-medal-stat">
-                    <span className="evd-medal-stat__dot evd-medal-stat__dot--gold" />
-                    <span className="evd-medal-stat__count evd-medal-stat__count--gold">{resultsSummary.gold}</span>
-                    <span className="evd-medal-stat__label">Gold</span>
-                  </div>
-                )}
-                {resultsSummary.silver > 0 && (
-                  <>
-                    <div className="evd-medal-strip__divider" />
-                    <div className="evd-medal-stat">
-                      <span className="evd-medal-stat__dot evd-medal-stat__dot--silver" />
-                      <span className="evd-medal-stat__count evd-medal-stat__count--silver">{resultsSummary.silver}</span>
-                      <span className="evd-medal-stat__label">Silver</span>
-                    </div>
-                  </>
-                )}
-                {resultsSummary.bronze > 0 && (
-                  <>
-                    <div className="evd-medal-strip__divider" />
-                    <div className="evd-medal-stat">
-                      <span className="evd-medal-stat__dot evd-medal-stat__dot--bronze" />
-                      <span className="evd-medal-stat__count evd-medal-stat__count--bronze">{resultsSummary.bronze}</span>
-                      <span className="evd-medal-stat__label">Bronze</span>
-                    </div>
-                  </>
-                )}
-                {resultsSummary.promotions > 0 && (
-                  <>
-                    <div className="evd-medal-strip__divider" />
-                    <div className="evd-medal-stat">
-                      <FaChevronUp className="evd-medal-stat__icon evd-medal-stat__icon--green" />
-                      <span className="evd-medal-stat__count evd-medal-stat__count--green">{resultsSummary.promotions}</span>
-                      <span className="evd-medal-stat__label">Promotions</span>
-                    </div>
-                  </>
-                )}
+        <div className="evd-board-section">
+          <div className="evd-card">
+            <div className="evd-table-container">
+              {/* ── Table Header ── */}
+              <div className="evd-lb-thead">
+                <div className="evd-lb-th evd-lb-th--rank">#</div>
+                <div className="evd-lb-th evd-lb-th--name">Athlete</div>
+                <div className="evd-lb-th evd-lb-th--id">SKF ID</div>
+                <div className="evd-lb-th evd-lb-th--branch">Branch</div>
+                <div className="evd-lb-th evd-lb-th--result">Result</div>
+                <div className="evd-lb-th evd-lb-th--belt">Belt Awarded</div>
+                <div className="evd-lb-th evd-lb-th--action"></div>
               </div>
-            )}
 
-            {/* ── Content Grid ── */}
-            <div className={`evd-dashboard__grid ${hasParticipants && hasResults ? 'evd-dashboard__grid--split' : ''}`}>
-
-              {/* ── Roster Panel ── */}
-              {hasParticipants && (
-                <section className="evd-panel">
-                  <div className="evd-panel__header">
-                    <div className="evd-panel__header-left">
-                      <FaUsers className="evd-panel__header-icon" />
-                      <div>
-                        <span className="evd-panel__tag">Roster</span>
-                        <h2 className="evd-panel__title">Assigned Athletes</h2>
+              {/* ── Rows ── */}
+              <div className="evd-lb-rows">
+                {unifiedRoster.map((item, idx) => {
+                  const r = item.result
+                  const beltLabel = r ? (r.beltAwarded || r.promotion || '').replace(/-/g, ' ') : ''
+                  return (
+                    <Link key={item.skfId} href={`/athlete/${item.skfId}`} className="evd-lb-row">
+                      <div className="evd-lb-cell evd-lb-cell--rank">
+                        <span className="evd-lb-rank">{idx + 1}</span>
                       </div>
-                    </div>
-                    <span className="evd-panel__count">{participants.length}</span>
-                  </div>
-
-                  <div className="evd-panel__divider" />
-
-                  <div className="evd-roster">
-                    {participants.map((participant, idx) => (
-                      <Link
-                        key={participant.skfId}
-                        href={`/athlete/${participant.skfId}`}
-                        className="evd-roster__row"
-                      >
-                        <span className="evd-roster__index">{String(idx + 1).padStart(2, '0')}</span>
-                        <div className="evd-roster__avatar">
-                          {participant.athleteName?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        <div className="evd-roster__info">
-                          <h3 className="evd-roster__name">{participant.athleteName}</h3>
-                          <span className="evd-roster__meta">
-                            {participant.skfId}
-                            {participant.branchName && <> · {participant.branchName}</>}
-                          </span>
-                        </div>
-                        <div className="evd-roster__arrow">
-                          <FaArrowRight />
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* ── Results Panel ── */}
-              {hasResults && (
-                <section className="evd-panel evd-panel--results">
-                  <div className="evd-panel__header">
-                    <div className="evd-panel__header-left">
-                      <FaTrophy className="evd-panel__header-icon evd-panel__header-icon--gold" />
-                      <div>
-                        <span className="evd-panel__tag evd-panel__tag--gold">Results</span>
-                        <h2 className="evd-panel__title">Outcomes & Awards</h2>
+                      
+                      <div className="evd-lb-cell evd-lb-cell--name">
+                        <span className="evd-lb-name">{item.athleteName}</span>
                       </div>
-                    </div>
-                    <span className="evd-panel__count">{results.length}</span>
-                  </div>
-
-                  <div className="evd-panel__divider" />
-
-                  <div className="evd-results-list">
-                    {results.map((result, idx) => (
-                      <div
-                        key={`${result.skfId}-${result.id || result.award || result.medal || idx}`}
-                        className="evd-result-row"
-                      >
-                        <span className="evd-result-row__index">{String(idx + 1).padStart(2, '0')}</span>
-                        <div className="evd-result-row__avatar">
-                          {result.athleteName?.charAt(0)?.toUpperCase() || '?'}
-                        </div>
-                        <div className="evd-result-row__info">
-                          <Link href={`/athlete/${result.skfId}`} className="evd-result-row__name">
-                            {result.athleteName}
-                          </Link>
-                          <span className="evd-result-row__meta">
-                            {result.skfId}
-                            {getResultMeta(result) && <> · {getResultMeta(result)}</>}
-                          </span>
-                        </div>
-                        <div className="evd-result-row__badges">
-                          <span className={`evd-badge ${getMedalClass(result)}`}>
+                      
+                      <div className="evd-lb-cell evd-lb-cell--id">
+                        <span className="evd-lb-text">{item.skfId}</span>
+                      </div>
+                      
+                      <div className="evd-lb-cell evd-lb-cell--branch">
+                        <span className="evd-lb-text">{item.branchName || '\u2014'}</span>
+                      </div>
+                      
+                      <div className="evd-lb-cell evd-lb-cell--result">
+                        {r ? (
+                          <span className={`evd-badge ${getMedalClass(r)}`}>
                             <FaMedal className="evd-badge__icon" />
-                            {getResultLabel(result)}
+                            {getResultLabel(r)}
                           </span>
-                          {(result.beltAwarded || result.promotion) && (
-                            <span className="evd-badge evd-badge--promotion">
-                              <FaChevronUp className="evd-badge__icon" />
-                              {(result.beltAwarded || result.promotion).replace(/-/g, ' ')}
-                            </span>
-                          )}
-                        </div>
+                        ) : (
+                          <span className="evd-badge evd-badge--muted">
+                            —
+                          </span>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+
+                      <div className="evd-lb-cell evd-lb-cell--belt">
+                        {beltLabel ? (
+                          <span className="evd-lb-belt-text">{beltLabel}</span>
+                        ) : (
+                          <span className="evd-lb-text">—</span>
+                        )}
+                      </div>
+
+                      <div className="evd-lb-cell evd-lb-cell--action">
+                        <FaArrowRight className="evd-lb-arrow" />
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>

@@ -98,15 +98,34 @@ function PortalAvatar({
   photoUrl?: string | null
   alt: string
 }) {
+  const [loaded, setLoaded] = useState(false)
+
   if (photoUrl) {
     return (
-      <Image
-        src={photoUrl}
-        alt={alt}
-        width={32}
-        height={32}
-        unoptimized
-      />
+      <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', borderRadius: '50%' }}>
+        {!loaded && (
+          <div 
+            style={{ 
+              position: 'absolute', inset: 0, 
+              background: 'rgba(255, 255, 255, 0.15)', 
+              animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' 
+            }} 
+          />
+        )}
+        <Image
+          src={photoUrl}
+          alt={alt}
+          fill
+          sizes="40px"
+          priority
+          style={{ 
+            objectFit: 'cover', 
+            opacity: loaded ? 1 : 0, 
+            transition: 'opacity 0.3s ease' 
+          }}
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
     )
   }
 
@@ -117,8 +136,10 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   const pathname = usePathname()
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)     // Desktop dock hover
-  const [menuOpen, setMenuOpen] = useState(false)        // Mobile overlay
+  const [rawMenuOpen, setRawMenuOpen] = useState(false)  // Mobile overlay
+  const [menuPathname, setMenuPathname] = useState(pathname)
   const scrollHidden = useScrollDirection()
+  const menuOpen = rawMenuOpen && menuPathname === pathname
   
   const [siblings, setSiblings] = useState<PortalSiblingView[]>([])
   const [isSwitching, setIsSwitching] = useState<string | null>(null)
@@ -130,6 +151,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   const isLoginPage = pathname === '/portal/login'
   const isBackToHome = true
   const backText = 'Home Page'
+
+  function setMenuOpen(value: boolean | ((current: boolean) => boolean)) {
+    const nextOpen = typeof value === 'function' ? value(menuOpen) : value
+    setMenuPathname(pathname)
+    setRawMenuOpen(nextOpen)
+  }
 
   useEffect(() => {
     const triggerHint = () => {
@@ -206,8 +233,10 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     router.push('/')
   }
 
-  function handleNavClick() {
-    setMenuOpen(false)
+  function handleNavClick(targetHref: string) {
+    if (pathname === targetHref) {
+      setMenuOpen(false)
+    }
   }
 
   // Lock body scroll when overlay is open
@@ -346,12 +375,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
       </motion.button>
 
       {/* ══════════ TOP RIGHT: FAMILY PROFILE SWITCHER ══════════ */}
-      {!isLoginPage && currentSession && (
+      {!isLoginPage && currentSession && siblings.length > 0 && (
         <div className={`kuroobi-top-switcher ${scrollHidden && !menuOpen ? 'hidden' : ''}`}>
           <button 
             className="kuroobi-top-switcher-button"
-            onClick={() => siblings.length > 0 && setTopSwitcherOpen(!topSwitcherOpen)}
-            style={{ cursor: siblings.length > 0 ? 'pointer' : 'default' }}
+            onClick={() => setTopSwitcherOpen(!topSwitcherOpen)}
+            style={{ cursor: 'pointer' }}
           >
             <div className="kuroobi-top-switcher-avatar">
               <PortalAvatar
@@ -363,14 +392,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
               <span className="kuroobi-top-switcher-name">{currentSession?.name || 'You'}</span>
               <span className="kuroobi-top-switcher-role">{currentSession?.skfId}</span>
             </div>
-            {siblings.length > 0 && (
-              <ChevronDown 
-                size={16} 
-                strokeWidth={2} 
-                className="kuroobi-top-switcher-caret"
-                style={{ transform: topSwitcherOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-              />
-            )}
+            <ChevronDown 
+              size={16} 
+              strokeWidth={2} 
+              className="kuroobi-top-switcher-caret"
+              style={{ transform: topSwitcherOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            />
           </button>
 
           <AnimatePresence>
@@ -531,7 +558,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                     <Link
                       href={link.href}
                       className={`kuroobi-overlay__link ${isActive ? 'kuroobi-overlay__link--active' : ''}`}
-                      onClick={handleNavClick}
+                      onClick={() => handleNavClick(link.href)}
                     >
                       <div className="kuroobi-overlay__link-icon">
                         <Icon size={18} strokeWidth={isActive ? 2.5 : 1.5} />

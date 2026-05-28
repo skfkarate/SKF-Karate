@@ -98,7 +98,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: "Noto Sans JP", var(--font-heading), system-ui;
-  font-size: 28vw;
+  font-size: clamp(10rem, 30vw, 40rem);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.015);
   pointer-events: none;
@@ -106,6 +106,7 @@
   line-height: 1;
   user-select: none;
   white-space: nowrap;
+  letter-spacing: 0.05em;
 }
 
 /* ═══════════════════════════════════════════
@@ -944,8 +945,11 @@
   }
 
   .hon-watermark {
-    font-size: 65vw;
-    left: -6vw;
+    font-size: 80vw;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    color: rgba(255, 255, 255, 0.02);
   }
 }
 
@@ -1178,8 +1182,8 @@
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
     transform-origin: left center;
-    font-size: 75vw;
-    color: rgba(255, 255, 255, 0.05);
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 }
 
@@ -1254,8 +1258,11 @@
   }
 
   .hon-watermark {
-    font-size: 88vw;
-    left: -10vw;
+    font-size: 80vw;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   /* Carousel nav dots indicator */
@@ -1384,8 +1391,11 @@
   }
 
   .hon-watermark {
-    font-size: 95vw;
-    left: -12vw;
+    font-size: 80vw;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    color: rgba(255, 255, 255, 0.02);
   }
 }
 

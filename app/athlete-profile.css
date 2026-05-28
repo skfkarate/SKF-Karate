@@ -933,10 +933,10 @@
 
   .ap-tbl-wrap { padding: 0 0.75rem 1.25rem; }
   .ap-tbl-wrap::after { display: block; }
-  .ap-tbl { table-layout: auto; min-width: 700px; }
+  .ap-tbl { table-layout: auto; min-width: 850px; }
   .ap-tbl td, .ap-tbl th { white-space: nowrap; }
-  .ap-tbl td { padding: 0.85rem 0.5rem; font-size: 0.78rem; }
-  .ap-tbl th { padding: 0.75rem 0.5rem; font-size: 0.56rem; }
+  .ap-tbl td { padding: 0.85rem 1.1rem; font-size: 0.78rem; }
+  .ap-tbl th { padding: 0.75rem 1.1rem; font-size: 0.56rem; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1016,9 +1016,9 @@
   .ap-filter__icon { left: 1.7rem; }
 
   .ap-tbl-wrap { padding: 0 0.5rem 1rem; }
-  .ap-tbl { min-width: 600px; }
-  .ap-tbl td { padding: 0.75rem 0.4rem; font-size: 0.72rem; }
-  .ap-tbl th { padding: 0.65rem 0.4rem; font-size: 0.52rem; }
+  .ap-tbl { min-width: 750px; }
+  .ap-tbl td { padding: 0.75rem 0.8rem; font-size: 0.72rem; }
+  .ap-tbl th { padding: 0.65rem 0.8rem; font-size: 0.52rem; }
   .ap-tbl__fl { width: 20px; height: 14px; }
   .ap-rank-circle { width: 26px; height: 26px; font-size: 0.72rem; }
   .ap-belt-sw { width: 30px; height: 12px; }

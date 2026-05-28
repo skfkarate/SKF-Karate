@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, UploadCloud, Clock, Download, Copy, AtSign, Phone, Tag, User } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, UploadCloud, Clock, Download, Copy, AtSign, Phone, Tag, User, Loader2 } from 'lucide-react'
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -400,12 +400,12 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
 
               <div className="adm-field">
                 <label className="adm-field__label" htmlFor="studentName">Full Name *</label>
-                <input id="studentName" name="studentName" className="adm-field__input" type="text" required value={fd.studentName} onChange={handleChange} placeholder="Enter full name" />
+                <input id="studentName" name="studentName" className="adm-field__input" type="text" required autoComplete="name" value={fd.studentName} onChange={handleChange} placeholder="Enter full name" />
               </div>
               <div className="adm-grid">
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="studentDob">Date of Birth (DD/MM/YYYY) *</label>
-                  <input id="studentDob" name="studentDob" className="adm-field__input" type="text" placeholder="DD/MM/YYYY" required value={fd.studentDob} onChange={handleChange} />
+                  <input id="studentDob" name="studentDob" className="adm-field__input" type="text" inputMode="numeric" placeholder="DD/MM/YYYY" required autoComplete="bday" value={fd.studentDob} onChange={handleChange} />
                 </div>
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="studentGender">Gender *</label>
@@ -421,7 +421,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                 </div>
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="expectedJoinDate">Expected Join Date (DD/MM/YYYY)</label>
-                  <input id="expectedJoinDate" name="expectedJoinDate" className="adm-field__input" type="text" placeholder="DD/MM/YYYY" value={fd.expectedJoinDate} onChange={handleChange} />
+                  <input id="expectedJoinDate" name="expectedJoinDate" className="adm-field__input" type="text" inputMode="numeric" placeholder="DD/MM/YYYY" value={fd.expectedJoinDate} onChange={handleChange} />
                 </div>
               </div>
               <div className="adm-field">
@@ -486,7 +486,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
               <div className="adm-grid">
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="guardianName">Guardian Name *</label>
-                  <input id="guardianName" name="guardianName" className="adm-field__input" type="text" required value={fd.guardianName} onChange={handleChange} />
+                  <input id="guardianName" name="guardianName" className="adm-field__input" type="text" required autoComplete="name" value={fd.guardianName} onChange={handleChange} />
                 </div>
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="guardianRelationship">Relationship *</label>
@@ -499,17 +499,17 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
               <div className="adm-grid">
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="guardianPhone">Mobile Number *</label>
-                  <input id="guardianPhone" name="guardianPhone" className="adm-field__input" type="tel" required value={fd.guardianPhone} onChange={handleChange} placeholder="10 digits" />
+                  <input id="guardianPhone" name="guardianPhone" className="adm-field__input" type="tel" required autoComplete="tel" value={fd.guardianPhone} onChange={handleChange} placeholder="10 digits" />
                 </div>
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="guardianWhatsapp">WhatsApp Number *</label>
-                  <input id="guardianWhatsapp" name="guardianWhatsapp" className="adm-field__input" type="tel" required value={fd.guardianWhatsapp} onChange={handleChange} disabled={syncWhatsapp} />
+                  <input id="guardianWhatsapp" name="guardianWhatsapp" className="adm-field__input" type="tel" required autoComplete="tel" value={fd.guardianWhatsapp} onChange={handleChange} disabled={syncWhatsapp} />
                   <label className="adm-check"><input type="checkbox" checked={syncWhatsapp} onChange={handleSyncWa} /><span>Same as mobile</span></label>
                 </div>
               </div>
               <div className="adm-field">
                 <label className="adm-field__label" htmlFor="guardianEmail">Email (Optional)</label>
-                <input id="guardianEmail" name="guardianEmail" className="adm-field__input" type="email" value={fd.guardianEmail} onChange={handleChange} />
+                <input id="guardianEmail" name="guardianEmail" className="adm-field__input" type="email" autoComplete="email" value={fd.guardianEmail} onChange={handleChange} />
               </div>
 
               <div className="adm-divider" />
@@ -521,7 +521,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
               <div className="adm-grid">
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="emergencyName">Name *</label>
-                  <input id="emergencyName" name="emergencyName" className="adm-field__input" type="text" required value={fd.emergencyName} onChange={handleChange} readOnly={syncEmergency} />
+                  <input id="emergencyName" name="emergencyName" className="adm-field__input" type="text" required autoComplete="name" value={fd.emergencyName} onChange={handleChange} readOnly={syncEmergency} />
                 </div>
                 <div className="adm-field">
                   <label className="adm-field__label" htmlFor="emergencyRelationship">Relationship *</label>
@@ -530,7 +530,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
               </div>
               <div className="adm-field">
                 <label className="adm-field__label" htmlFor="emergencyPhone">Phone *</label>
-                <input id="emergencyPhone" name="emergencyPhone" className="adm-field__input" type="tel" required value={fd.emergencyPhone} onChange={handleChange} readOnly={syncEmergency} />
+                <input id="emergencyPhone" name="emergencyPhone" className="adm-field__input" type="tel" required autoComplete="tel" value={fd.emergencyPhone} onChange={handleChange} readOnly={syncEmergency} />
               </div>
             </div>
           )}
@@ -634,7 +634,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                 <div className="adm-promo__content">
                   <label htmlFor="promoCode">Have a Promo Code? (Optional)</label>
                   <input id="promoCode" name="promoCode" type="text" value={fd.promoCode} onChange={handleChange} placeholder="Enter code here" />
-                  {quoteState === 'loading' && <p className="adm-promo__hint">Checking promo code...</p>}
+                  {quoteState === 'loading' && <p className="adm-promo__hint" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Loader2 size={14} className="adm-spinner" /> Checking promo code...</p>}
                   {quoteError && <p className="adm-promo__error">{quoteError}</p>}
                 </div>
               </div>
@@ -737,10 +737,11 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
               <ArrowLeft size={16} /> Back
             </button>
             {step < 5 ? (
-              <button type="button" className="adm-btn-next" onClick={next}>Continue <ArrowRight size={16} /></button>
+              <button type="submit" className="adm-btn-next">Continue <ArrowRight size={16} /></button>
             ) : (
               <button type="submit" className="adm-btn-next" disabled={submitState === 'submitting'}>
-                {submitState === 'submitting' ? 'Submitting...' : 'Submit Application'} <ArrowRight size={16} />
+                {submitState === 'submitting' ? 'Submitting...' : 'Submit Application'} 
+                {submitState === 'submitting' ? <Loader2 size={16} className="adm-spinner" /> : <ArrowRight size={16} />}
               </button>
             )}
           </div>

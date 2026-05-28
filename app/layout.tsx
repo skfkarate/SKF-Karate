@@ -6,7 +6,7 @@ import './_components/Footer.css'
 import './_components/Navbar.css'
 
 import './_components/pages/home/HomeBookTrialCTA.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { headers } from 'next/headers'
 import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
@@ -38,6 +38,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(getCanonicalOrigin()),
   manifest: '/manifest.json',
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || '' },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // User zoom is intentionally NOT disabled (no maximum-scale=1.0) to ensure accessibility
 }
 
 

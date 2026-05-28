@@ -93,17 +93,22 @@ export default async function JourneyPage() {
     const isWinner = (event.winners || []).some((w) => normaliseSkfId(String(w.skfId || '')) === athleteSkfId)
 
     if (isParticipant || hasResult || isWinner) {
-      timelineNodes.push({
-        id: event.id || `event-${event.date}`,
-        type: 'event',
-        date: event.date,
-        title: event.name,
-        description: event.type === 'tournament' ? 'Tournament Participation' : 'Special Event',
-        isCurrent: false,
-        isUpcoming: event.date ? new Date(event.date).getTime() > currentTimeMs : false,
-        eventType: event.type,
-        timestamp: new Date(event.date).getTime(),
-      })
+      const isUpcoming = event.date ? new Date(event.date).getTime() > currentTimeMs : false
+      const isPastGrading = !isUpcoming && (event.type?.toLowerCase() === 'grading' || event.name?.toLowerCase().includes('progressive examination') || event.name?.toLowerCase().includes('belt'))
+      
+      if (!isPastGrading) {
+        timelineNodes.push({
+          id: event.id || `event-${event.date}`,
+          type: 'event',
+          date: event.date,
+          title: event.name,
+          description: event.type === 'tournament' ? 'Tournament Participation' : 'Special Event',
+          isCurrent: false,
+          isUpcoming,
+          eventType: event.type,
+          timestamp: new Date(event.date).getTime(),
+        })
+      }
     }
   })
 

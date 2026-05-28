@@ -119,14 +119,14 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: "Noto Sans JP", var(--font-heading), system-ui;
-  font-size: clamp(8rem, 28vw, 30rem);
+  font-size: clamp(10rem, 30vw, 40rem);
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.012);
+  color: rgba(255, 255, 255, 0.015);
   pointer-events: none;
   user-select: none;
   z-index: 0;
   line-height: 1;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
@@ -804,8 +804,8 @@
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
     transform-origin: left center;
-    font-size: 75vw;
-    color: rgba(255, 255, 255, 0.05);
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   /* ── Page base ── */

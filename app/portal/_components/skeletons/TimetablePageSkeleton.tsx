@@ -8,7 +8,7 @@ export const TimetablePageSkeleton = () => {
   const nonce = useNonce();
 
   return (
-  <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative' }} aria-label="Loading timetable" aria-busy="true">
+  <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative' }} aria-label="Loading timetable" aria-busy="true">
     <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
       
       {/* ── HEADER ── */}

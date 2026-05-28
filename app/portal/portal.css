@@ -181,7 +181,7 @@
 .kuroobi-fab {
   display: none;
   position: fixed;
-  bottom: 2rem;
+  bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
   right: 1.5rem;
   width: 56px;
   height: 56px;
@@ -331,7 +331,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  margin: 0 1.5rem 3rem;
+  margin: 0 1.5rem calc(3rem + env(safe-area-inset-bottom, 0px));
   background: none;
   border: 1px solid rgba(214, 40, 40, 0.15);
   border-radius: 16px;
