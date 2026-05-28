@@ -41,18 +41,31 @@
     z-index: 0;
     opacity: 0.2;
 }
-.ev-orb--1 { top: -200px; left: -100px; background: rgba(214,40,40,0.15); animation: systemFloat 20s infinite alternate; }
-.ev-orb--2 { bottom: -200px; right: -100px; background: rgba(255,183,3,0.1); animation: systemFloat 25s infinite alternate-reverse; }
+
+.ev-orb--1 {
+    top: -200px;
+    left: -100px;
+    background: rgba(214, 40, 40, 0.15);
+    animation: systemFloat 20s infinite alternate;
+}
+
+.ev-orb--2 {
+    bottom: -200px;
+    right: -100px;
+    background: rgba(255, 183, 3, 0.1);
+    animation: systemFloat 25s infinite alternate-reverse;
+}
 
 /* ── WATERMARK ── */
 .ev-watermark {
     position: fixed;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     font-family: "Noto Sans JP", var(--font-heading);
     font-size: clamp(10rem, 30vw, 40rem);
     font-weight: 900;
-    color: rgba(255,255,255,0.015);
+    color: rgba(255, 255, 255, 0.015);
     pointer-events: none;
     z-index: 0;
     white-space: nowrap;
@@ -110,7 +123,7 @@
     margin: 0 0 1rem;
     text-transform: uppercase;
     letter-spacing: -3px;
-    background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.3) 100%);
+    background: linear-gradient(180deg, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     opacity: 0;
@@ -164,8 +177,16 @@
 }
 
 @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; transform: scale(1.1); }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
 }
 
 .ev-countdown__timer {
@@ -194,7 +215,7 @@
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;
-    background: linear-gradient(180deg, #fff 20%, rgba(255,255,255,0.3) 100%);
+    background: linear-gradient(180deg, #fff 20%, rgba(255, 255, 255, 0.3) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -245,7 +266,8 @@
     position: sticky;
     top: 70px;
     z-index: 20;
-    background: rgba(3, 5, 8, 0.85); /* Deep obsidian blur */
+    background: rgba(3, 5, 8, 0.85);
+    /* Deep obsidian blur */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -509,7 +531,7 @@
     font-weight: 800;
     line-height: 1;
     margin-top: 0.15rem;
-    background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.3) 100%);
+    background: linear-gradient(180deg, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -555,8 +577,15 @@
 }
 
 @keyframes dotPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(214, 40, 40, 0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(214, 40, 40, 0); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(214, 40, 40, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(214, 40, 40, 0);
+    }
 }
 
 /* Card Body */
@@ -587,7 +616,7 @@
     border-color: rgba(255, 183, 3, 0.2);
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
     transform: translateX(10px) translateY(-5px);
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .ev-card:hover .ev-card__body::before {
@@ -712,26 +741,60 @@
     letter-spacing: 1.5px;
 }
 
-.tag-camp { background: rgba(255, 183, 3, 0.1); color: var(--gold); border: 1px solid rgba(255, 183, 3, 0.2); }
-.tag-grading { background: rgba(76, 175, 80, 0.1); color: #66bb6a; border: 1px solid rgba(76, 175, 80, 0.2); }
-.tag-tournament { background: rgba(220, 38, 38, 0.1); color: var(--crimson-light); border: 1px solid rgba(220, 38, 38, 0.2); }
-.tag-seminar { background: rgba(100, 149, 237, 0.1); color: #6495ed; border: 1px solid rgba(100, 149, 237, 0.2); }
-.tag-fun { background: rgba(156, 39, 176, 0.1); color: #ce93d8; border: 1px solid rgba(156, 39, 176, 0.2); }
+.tag-camp {
+    background: rgba(255, 183, 3, 0.1);
+    color: var(--gold);
+    border: 1px solid rgba(255, 183, 3, 0.2);
+}
+
+.tag-grading {
+    background: rgba(76, 175, 80, 0.1);
+    color: #66bb6a;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.tag-tournament {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--crimson-light);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.tag-seminar {
+    background: rgba(100, 149, 237, 0.1);
+    color: #6495ed;
+    border: 1px solid rgba(100, 149, 237, 0.2);
+}
+
+.tag-fun {
+    background: rgba(156, 39, 176, 0.1);
+    color: #ce93d8;
+    border: 1px solid rgba(156, 39, 176, 0.2);
+}
 
 /* ══════════════════════════════════════════════ */
 /* ── Responsive ── */
 /* ══════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-    .ev-orb--1, .ev-orb--2 { display: none; }
-    .ev-hero__glow-1, .ev-hero__glow-2 { display: none; }
-    .ev-watermark {
-      left: -8vw;
-      transform: translateY(-50%) rotate(-12deg);
-      transform-origin: left center;
-      font-size: 80vw;
-      color: rgba(255, 255, 255, 0.02);
+
+    .ev-orb--1,
+    .ev-orb--2 {
+        display: none;
     }
+
+    .ev-hero__glow-1,
+    .ev-hero__glow-2 {
+        display: none;
+    }
+
+    .ev-watermark {
+        left: -8vw;
+        transform: translateY(-50%) rotate(-12deg);
+        transform-origin: left center;
+        font-size: 80vw;
+        color: rgba(255, 255, 255, 0.02);
+    }
+
     .ev-hero {
         min-height: 45vh;
         padding-bottom: 3rem;
@@ -930,7 +993,7 @@
     margin: 0 0 1.5rem;
     text-transform: uppercase;
     letter-spacing: -3px;
-    background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.3) 100%);
+    background: linear-gradient(180deg, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: fadeInUp 0.8s var(--ease-out) forwards;
@@ -982,7 +1045,9 @@
     background: rgba(255, 255, 255, 0.04);
 }
 
-.ev-meta-card:hover::before { opacity: 1; }
+.ev-meta-card:hover::before {
+    opacity: 1;
+}
 
 .ev-meta-card__icon {
     width: 60px;
@@ -1202,7 +1267,7 @@ a.ev-list-item:hover .ev-list-item__name {
     .ev-detail-hero {
         padding: 6rem 0 4rem;
     }
-    
+
     .ev-detail-meta {
         grid-template-columns: 1fr;
         margin-top: -2rem;

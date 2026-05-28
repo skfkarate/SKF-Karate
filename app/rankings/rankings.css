@@ -401,7 +401,7 @@
   overflow: hidden;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 30px 60px -15px rgba(0,0,0,0.6);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 /* ── Dropdown rows ── */
@@ -880,7 +880,10 @@
 
 /* ─── 768px: Tablet portrait ─── */
 @media (max-width: 768px) {
-  .rk-orb--1 { display: none; }
+  .rk-orb--1 {
+    display: none;
+  }
+
   .rk-watermark {
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
