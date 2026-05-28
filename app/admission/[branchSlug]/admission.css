@@ -205,6 +205,15 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.adm-spinner {
+  animation: spin 1s linear infinite;
+}
+
 
 /* ═══════════ MAIN FORM LAYOUT ═══════════ */
 .adm-main {
@@ -396,14 +405,14 @@
   background: var(--gold);
   box-shadow: 0 0 10px var(--gold-glow), 0 0 20px var(--gold-glow);
   z-index: 5;
-  animation: photoLaser 2.5s ease-in-out infinite;
+  animation: photoLaser 2.5s ease-in-out infinite !important;
 }
 
 @keyframes photoLaser {
-  0% { top: 10%; opacity: 0; }
+  0% { transform: translateY(16px); opacity: 0; }
   15% { opacity: 1; }
   85% { opacity: 1; }
-  100% { top: 90%; opacity: 0; }
+  100% { transform: translateY(144px); opacity: 0; }
 }
 
 .adm-photo-upload-info {
@@ -823,14 +832,14 @@ textarea.adm-field__input {
   background: #ff0000;
   box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
   z-index: 5;
-  animation: scanLaser 3s ease-in-out infinite;
+  animation: scanLaser 3s ease-in-out infinite !important;
 }
 
 @keyframes scanLaser {
-  0% { top: 5%; opacity: 0; }
+  0% { transform: translateY(12px); opacity: 0; }
   10% { opacity: 1; }
   90% { opacity: 1; }
-  100% { top: 95%; opacity: 0; }
+  100% { transform: translateY(240px); opacity: 0; }
 }
 
 /* Corner brackets */
@@ -1226,6 +1235,8 @@ textarea.adm-field__input {
   gap: 0.5rem;
   background: transparent;
   border: none;
+  padding: 0.5rem;
+  margin-left: -0.5rem; /* Offset padding to align text */
   color: var(--text-muted);
   font-family: var(--font-body);
   font-size: 0.85rem;
@@ -1287,7 +1298,7 @@ textarea.adm-field__input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 2rem;
   text-align: center;
   position: relative;
@@ -1367,7 +1378,7 @@ textarea.adm-field__input {
 @media (max-width: 768px) {
   /* Layout */
   .adm-main {
-    padding: 1.5rem 1.25rem 3rem;
+    padding: 1.5rem 1.25rem calc(3rem + env(safe-area-inset-bottom));
     max-width: 100%;
   }
 
@@ -1430,7 +1441,7 @@ textarea.adm-field__input {
 
   .adm-field__input {
     padding: 0.75rem 0.85rem;
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
   /* Toggle cards */
@@ -1525,8 +1536,8 @@ textarea.adm-field__input {
   }
 
   .adm-btn-next {
-    padding: 0.85rem 1.75rem;
-    font-size: 0.8rem;
+    padding: 1rem 1.75rem;
+    font-size: 0.85rem;
   }
 
   .adm-btn-back {
@@ -1562,7 +1573,7 @@ textarea.adm-field__input {
 /* ── Small phones (≤ 480px) ── */
 @media (max-width: 480px) {
   .adm-main {
-    padding: 1rem 1rem 2.5rem;
+    padding: 1rem 1rem calc(2.5rem + env(safe-area-inset-bottom));
   }
 
   /* Intro */
@@ -1680,7 +1691,7 @@ textarea.adm-field__input {
   }
 
   .adm-promo__content input {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
   /* Controls */
@@ -1689,8 +1700,8 @@ textarea.adm-field__input {
   }
 
   .adm-btn-next {
-    padding: 0.8rem 1.5rem;
-    font-size: 0.75rem;
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
     letter-spacing: 1px;
   }
 

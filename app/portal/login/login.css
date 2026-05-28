@@ -36,13 +36,14 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: 'Outfit', sans-serif;
-  font-size: 30vw;
+  font-size: clamp(10rem, 30vw, 40rem);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.015);
   white-space: nowrap;
   pointer-events: none;
   z-index: 0;
   user-select: none;
+  letter-spacing: 0.05em;
 }
 
 /* ── Content Container ── */
@@ -225,8 +226,8 @@
     left: -8vw;
     transform: translateY(-50%) rotate(-12deg);
     transform-origin: left center;
-    font-size: 75vw;
-    color: rgba(255, 255, 255, 0.03);
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   .dojo-login__content {
@@ -292,8 +293,11 @@
   }
 
   .dojo-login__watermark {
-    font-size: 90vw;
+    font-size: 80vw;
     color: rgba(255, 255, 255, 0.02);
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
   }
 }
 
@@ -361,5 +365,10 @@
 
   .dojo-login__watermark {
     display: none;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 }

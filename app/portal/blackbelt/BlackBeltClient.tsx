@@ -317,7 +317,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
   if (!program) return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
         <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
           <div className="bb-empty">
@@ -332,7 +332,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
   if (!me) return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
         <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
           <div className="bb-banner"><span className="bb-banner__kanji">黒帯</span>
@@ -360,7 +360,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
   return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
 
         {/* ── BACKGROUND GLOWS ── */}
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />

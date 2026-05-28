@@ -109,13 +109,14 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: "Noto Sans JP", var(--font-heading, 'Outfit', sans-serif);
-  font-size: 35vw;
+  font-size: clamp(10rem, 30vw, 40rem);
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.012);
+  color: rgba(255, 255, 255, 0.015);
   z-index: 0;
   pointer-events: none;
   white-space: nowrap;
   user-select: none;
+  letter-spacing: 0.05em;
 }
 
 /* ── CONTENT CARD ── */
@@ -507,8 +508,11 @@
   }
 
   .system-watermark {
-    font-size: 55vw;
-    color: rgba(255, 255, 255, 0.008);
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
   }
 
   .system-orb {
@@ -616,7 +620,11 @@
   }
 
   .system-watermark {
-    font-size: 65vw;
+    font-size: 80vw;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   .system-orb {
@@ -711,6 +719,10 @@
 
   .system-watermark {
     font-size: 80vw;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    color: rgba(255, 255, 255, 0.02);
   }
 
   .system-orb {
@@ -790,6 +802,11 @@
 
   .system-watermark {
     display: none;
+    left: -8vw;
+    transform: translateY(-50%) rotate(-12deg);
+    transform-origin: left center;
+    font-size: 80vw;
+    color: rgba(255, 255, 255, 0.02);
   }
 }
 

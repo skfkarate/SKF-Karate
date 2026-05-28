@@ -18,6 +18,10 @@ import {
 const ATHLETE_GENDERS = new Set(['male', 'female', 'other'])
 const ATHLETE_STATUSES = new Set(['active', 'inactive', 'alumni'])
 const BELT_VALUES = new Set(BELTS.map((belt) => belt.colour))
+const ATHLETE_BELT_ALIASES = new Map([
+  ['green', 'green-i'],
+  ['brown', 'brown-i'],
+])
 const TOURNAMENT_LEVEL_VALUES = new Set(TOURNAMENT_LEVELS)
 const EXTENDED_TOURNAMENT_LEVEL_VALUES = new Set([
   ...TOURNAMENT_LEVELS,
@@ -218,6 +222,21 @@ function enumValue(value, label, allowedValues) {
   }
 
   return normalized
+}
+
+function athleteBeltValue(value, label) {
+  const normalized = String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/-belt$/, '')
+  const canonical = ATHLETE_BELT_ALIASES.get(normalized) || normalized
+
+  if (!BELT_VALUES.has(canonical)) {
+    throw new ApiError(400, `${label} is invalid.`)
+  }
+
+  return canonical
 }
 
 function optionalUrl(value, label) {
@@ -697,7 +716,7 @@ export function validateAthletePayload(payload) {
     gender: enumValue(value.gender || 'male', 'Gender', ATHLETE_GENDERS),
     photoUrl: optionalUrl(value.photoUrl, 'Photo URL'),
     branchName: requiredString(value.branchName || 'SKF Karate', 'Branch', { max: 120 }),
-    currentBelt: enumValue(value.currentBelt || 'white', 'Current belt', BELT_VALUES),
+    currentBelt: athleteBeltValue(value.currentBelt || 'white', 'Current belt'),
     joinDate,
     status: enumValue(value.status || 'active', 'Status', ATHLETE_STATUSES),
     parentName: optionalString(value.parentName, 'Parent name', { max: 120 }),

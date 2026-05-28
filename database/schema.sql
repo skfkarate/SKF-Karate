@@ -248,6 +248,8 @@ CREATE TABLE IF NOT EXISTS athletes (
   achievements JSONB DEFAULT '[]',
   points_history JSONB DEFAULT '[]',
   points_balance NUMERIC DEFAULT 0,
+  needs_review BOOLEAN DEFAULT false,
+  city TEXT,
   points_lifetime NUMERIC DEFAULT 0,
   attendance_rate NUMERIC,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -1426,3 +1428,38 @@ FOR ALL
 TO service_role
 USING (bucket_id = 'admission-photos')
 WITH CHECK (bucket_id = 'admission-photos');
+
+-- ══════════════════════════════════════
+-- SECTION 10: Athlete Gradings
+-- Belt examination history, supporting double promotions and historic migrations
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS athlete_gradings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  skf_id TEXT NOT NULL REFERENCES athletes(skf_id) ON DELETE CASCADE,
+  event_id TEXT REFERENCES events(id) ON DELETE SET NULL,
+  event_name TEXT NOT NULL,
+  exam_date DATE NOT NULL,
+  venue TEXT,
+  city TEXT,
+  current_belt TEXT NOT NULL,
+  attempted_belt TEXT NOT NULL,
+  belt_rank_order INTEGER,
+  result_status TEXT NOT NULL DEFAULT 'pass' CHECK (result_status IN ('pass', 'fail', 'provisional', 'pending')),
+  score TEXT DEFAULT 'A',
+  examiner_name TEXT DEFAULT 'Dr. Renshi Channegowda UC',
+  is_double_promotion BOOLEAN DEFAULT false,
+  needs_review BOOLEAN DEFAULT false,
+  remarks TEXT,
+  certificate_number TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(skf_id, attempted_belt)
+);
+
+CREATE INDEX IF NOT EXISTS idx_athlete_gradings_skf_id ON athlete_gradings(skf_id, exam_date DESC);
+CREATE INDEX IF NOT EXISTS idx_athlete_gradings_event ON athlete_gradings(event_name);
+
+ALTER TABLE athlete_gradings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_athlete_gradings" ON athlete_gradings
+  FOR ALL USING (auth.role() = 'service_role');

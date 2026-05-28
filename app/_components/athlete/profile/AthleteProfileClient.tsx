@@ -7,7 +7,7 @@ import html2canvas from 'html2canvas'
 import { RankingCard } from '@/components/RankingCard'
 import {
   Search, ChevronRight, Eye, Share2,
-  Calendar, MapPin, Trophy, Shield, Star, Download
+  Calendar, MapPin, Trophy, Shield, Star
 } from 'lucide-react'
 import '@/app/athlete-profile.css'
 import '@/app/athlete-hero.css'
@@ -106,12 +106,15 @@ function SectionHeader({ icon, label }) {
 /* ═══════════════════════════════════════════════════════════════════════
    HERO — Championship Card — One unified premium card
    ═══════════════════════════════════════════════════════════════════════ */
-function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDashboardContext = false }) {
+function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDashboardContext = false, beltColors = {} }) {
   const primary = categories.find((c) => c.isPrimary) || categories[0]
   const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
   const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
   const totalB = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.bronze, 0), 0)
   const totalMedals = totalG + totalS + totalB
+
+  const beltLabel = athleteInfo.currentBelt || 'White Belt'
+  const beltColor = beltColors[beltLabel] || '#ffffff'
 
   return (
     <section className="ap-hero ap-animate-in">
@@ -126,6 +129,13 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
             <span className="aph-header__pre">Official SKF Athlete</span>
             <h1 className="aph-header__name">{athleteInfo.name}</h1>
             <div className="aph-header__tags">
+              <div 
+                className="ap-belt-chip"
+                style={{ '--chip-color': beltColor, background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' } as React.CSSProperties}
+              >
+                <span className="ap-belt-chip__swatch" style={{ background: beltColor, boxShadow: `0 0 10px ${beltColor}` }} />
+                <span className="ap-belt-chip__label" style={{ color: '#fff', fontWeight: 800 }}>{beltLabel}</span>
+              </div>
               {athleteInfo.branchName && (
                 <Link href={athleteInfo.branchHref || '/classes'} className="aph-tag aph-tag--accent">
                   Trains at SKF {athleteInfo.branchName}
@@ -413,7 +423,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
 /* ═══════════════════════════════════════════════════════════════════════
    BELT JOURNEY — table with View column (portal only), sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function BeltJourney({ beltExaminations, beltColors, onOpenCertificate, isDashboardContext = false }) {
+function BeltJourney({ beltExaminations, beltColors }) {
   if (!beltExaminations || beltExaminations.length === 0) return null
   const sorted = [...beltExaminations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -423,14 +433,21 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate, isDashbo
       <div className="ap-panel">
         <div className="ap-tbl-wrap">
           <table className="ap-tbl">
+            <colgroup>
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '32%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '10%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Belt</th>
-                <th>Grade</th>
+                <th className="ctr">Grade</th>
                 <th>Examiner</th>
                 <th>Dojo</th>
-                {isDashboardContext && <th className="ctr">View</th>}
                 <th className="ctr">Result</th>
               </tr>
             </thead>
@@ -449,35 +466,9 @@ function BeltJourney({ beltExaminations, beltColors, onOpenCertificate, isDashbo
                           <span className="ap-belt-chip__label">{ex.belt}</span>
                       </div>
                     </td>
-                    <td style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
+                    <td className="ctr" style={{ color: 'var(--gold)', fontWeight: 700 }}>{ex.grade}</td>
                     <td>{ex.examiner}</td>
                     <td>{ex.dojo}</td>
-                    {isDashboardContext && (
-                      <td className="ctr">
-                        {ex.result === 'Pass' ? (
-                          <button 
-                            onClick={() => onOpenCertificate(ex)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: 'var(--gold)',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%',
-                              padding: '0.25rem'
-                            }}
-                            aria-label="View Certificate"
-                            title="View Digital Certificate"
-                          >
-                            <Download size={16} />
-                          </button>
-                        ) : (
-                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>
-                        )}
-                      </td>
-                    )}
                     <td className="ctr">
                       <span className={`ap-pill ${ex.result === 'Pass' ? 'ap-pill--pass' : 'ap-pill--fail'}`}>{ex.result}</span>
                     </td>
@@ -604,12 +595,13 @@ export default function AthleteProfileClient({
           onShareCard={!isDashboardContext ? handleShareCard : undefined}
           isExporting={isExporting}
           isDashboardContext={isDashboardContext}
+          beltColors={beltColors}
         />
 
         <NextEventsSection nextEvents={nextEvents} />
         <TabbedCompetitions categories={categories} isDashboardContext={isDashboardContext} />
         {isDashboardContext && <PublicCertificates skfId={athleteInfo.id} onOpenCertificate={handleOpenCertificate} />}
-        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} isDashboardContext={isDashboardContext} onOpenCertificate={() => alert('Legacy certificates are handled directly via the Digital Certificates tab above.')} />
+        <BeltJourney beltExaminations={beltExaminations} beltColors={beltColors} />
         <SpecialEventsSection specialEvents={specialEvents} isDashboardContext={isDashboardContext} />
       </div>
 

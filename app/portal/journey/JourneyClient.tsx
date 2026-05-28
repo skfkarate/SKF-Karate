@@ -66,15 +66,17 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
       {/* ── THE WINDING PATH TIMELINE ── */}
       <div className="journey-timeline" style={{ position: 'relative', width: '100%', padding: '2rem 0' }}>
         
+
+
         {/* The central winding dashed line SVG (Desktop Only) */}
         <div className="timeline-line-desktop" style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '2px', zIndex: 0 }}>
           <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: '-50px', width: '100px', height: '100%', overflow: 'visible' }}>
-             <path 
+              <path 
                 d={`M 50 0 Q 150 150 50 300 T 50 600 T 50 900 T 50 1200 T 50 1500 T 50 1800 T 50 2100 T 50 2400 T 50 2700 T 50 3000 T 50 3300 T 50 3600`}
                 fill="transparent" 
-                stroke="rgba(255,183,3,0.2)" 
-                strokeWidth="4" 
-                strokeDasharray="10 10" 
+                stroke="rgba(255, 255, 255, 0.15)" 
+                strokeWidth="5" 
+                strokeDasharray="12 12" 
              />
           </svg>
         </div>
@@ -85,9 +87,9 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
              <path 
                 d={`M 20 0 Q 40 150 20 300 T 20 600 T 20 900 T 20 1200 T 20 1500 T 20 1800 T 20 2100 T 20 2400 T 20 2700 T 20 3000 T 20 3300 T 20 3600`}
                 fill="transparent" 
-                stroke="rgba(255,183,3,0.3)" 
-                strokeWidth="4" 
-                strokeDasharray="8 8" 
+                stroke="rgba(255, 255, 255, 0.15)" 
+                strokeWidth="5" 
+                strokeDasharray="10 10" 
              />
           </svg>
         </div>
@@ -145,11 +147,11 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                   className="timeline-node-card"
                   onClick={() => setSelectedNode(node)}
                   style={{
-                    background: isCurrent ? 'linear-gradient(135deg, rgba(255,183,3,0.15), rgba(255,183,3,0.02))' : isUpcoming ? 'rgba(255,255,255,0.01)' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
-                    border: isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.1)',
-                    borderTop: isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.25)',
-                    borderLeft: isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: isCurrent ? '0 15px 35px rgba(255,183,3,0.15), inset 0 0 20px rgba(255,183,3,0.05)' : '0 15px 35px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.03)',
+                    background: isBelt ? `linear-gradient(135deg, ${nodeColor}15, rgba(255,255,255,0.02))` : isCurrent ? 'linear-gradient(135deg, rgba(255,183,3,0.15), rgba(255,183,3,0.02))' : isUpcoming ? 'rgba(255,255,255,0.01)' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+                    border: isBelt ? `1px solid ${nodeColor}30` : isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.1)',
+                    borderTop: isBelt ? `1px solid ${nodeColor}60` : isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.25)',
+                    borderLeft: isBelt ? `1px solid ${nodeColor}40` : isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: isCurrent ? '0 15px 35px rgba(255,183,3,0.15), inset 0 0 20px rgba(255,183,3,0.05)' : isBelt ? `0 15px 35px rgba(0,0,0,0.4), inset 0 0 20px ${nodeColor}20` : '0 15px 35px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.03)',
                     cursor: 'pointer', backdropFilter: 'blur(20px) saturate(150%)', WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                     transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
                   }}
@@ -195,20 +197,27 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
       {/* ── DETAILS MODAL ── */}
       <AnimatePresence>
         {selectedNode && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setSelectedNode(null)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 99999 }}
-            />
+          <motion.div 
+            key="backdrop"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setSelectedNode(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 99999 }}
+          />
+        )}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {selectedNode && (
+          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000, pointerEvents: 'none' }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20, x: '-50%', top: '50%' }}
-              animate={{ opacity: 1, scale: 1, y: '-50%', x: '-50%', top: '50%' }}
+              key="modal"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="journey-modal"
               style={{
-                position: 'fixed', left: '50%', width: '90%', maxWidth: '500px', zIndex: 100000,
+                width: '90%', maxWidth: '500px', pointerEvents: 'auto',
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.02))',
                 border: '1px solid rgba(255,255,255,0.1)', borderTop: '1px solid rgba(255,255,255,0.3)', borderLeft: '1px solid rgba(255,255,255,0.2)',
                 borderRadius: '32px',
@@ -265,7 +274,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                 </div>
               )}
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
