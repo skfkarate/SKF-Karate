@@ -1,6 +1,6 @@
-import { supabaseAdmin } from '@/lib/server/supabase'
 import { pointHistoryQuerySchema } from '@/src/server/api/validators/points.validator'
 import { withRoute } from '@/src/server/lib/route'
+import { getPortalPointsHistory } from '@/src/server/services/portal-points.service'
 
 export const GET = withRoute(
   {
@@ -10,22 +10,10 @@ export const GET = withRoute(
     cacheControl: 'private, no-store',
   },
   async ({ portalSession, query }) => {
-    const offset = (query.page - 1) * query.limit
-
-    const { data: transactions, count, error } = await supabaseAdmin
-      .from('point_transactions')
-      .select('*', { count: 'exact' })
-      .eq('skf_id', portalSession!.skfId!)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + query.limit - 1)
-
-    if (error) throw error
-
-    return Response.json({
-      transactions: transactions || [],
-      total: count || 0,
-      page: query.page,
-      limit: query.limit,
-    })
+    return Response.json(await getPortalPointsHistory(
+      portalSession!.skfId!,
+      query.page,
+      query.limit
+    ))
   }
 )

@@ -1,8 +1,7 @@
 'use client'
 import { submitBBEnrollmentPayment } from './actions'
 import { useState, useMemo } from 'react'
-import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle, AlertCircle } from 'lucide-react'
-import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
+import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle, AlertCircle, Phone, Users } from 'lucide-react'
 import type { BBProgram, BBCandidate, BBProgressEntry } from '@/lib/server/repositories/blackbelt-live'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import { motion } from 'framer-motion'
@@ -24,6 +23,31 @@ const DRIVE_MAP: Record<string, string> = {
 function getDriveLink(skfId: string | undefined): string {
   if (!skfId) return 'https://drive.google.com'
   return DRIVE_MAP[skfId] || 'https://drive.google.com'
+}
+
+type Mentee = { name: string; phone: string }
+const MENTEE_MAP: Record<string, Mentee[]> = {
+  'SKF17BL000': [{ name: 'Likhith Gowda U R', phone: '+919880952278' }],                          // SHRIROSHAN P
+  'SKF20HE001': [{ name: 'Mruthika', phone: '+919108699585' }],                                    // SANJANA S
+  'SKF20HE002': [{ name: 'M Monishprasad', phone: '+916366669065' }, { name: 'Kushil V', phone: '+919620512480' }], // TEJASHREE S
+  'SKF20HE003': [{ name: 'Vedank', phone: '+919845315354' }, { name: 'Jnanaviram', phone: '+919538539541' }],       // AYUSH KASHYAP G
+  'SKF21HE001': [{ name: 'Lochana', phone: '+919845315354' }, { name: 'Deeksharam', phone: '+919538539541' }],      // ISHAAN GOWDA B S
+  'SKF21HE003': [{ name: 'Krunal', phone: '+918197416646' }, { name: 'Kushal K', phone: '+919902267855' }],         // SHASHANK
+}
+
+function getMentees(skfId: string | undefined): Mentee[] {
+  if (!skfId) return []
+  return MENTEE_MAP[skfId] || []
+}
+
+function formatPhone(raw: string): string {
+  // +919880952278 → +91 98809 52278
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length === 12 && digits.startsWith('91')) {
+    const n = digits.slice(2)
+    return `+91 ${n.slice(0, 5)} ${n.slice(5)}`
+  }
+  return raw
 }
 
 const RULEBOOK = [
@@ -200,8 +224,16 @@ const CONTINUOUS_GOALS: (c: BBCandidate) => Task[] = (c) => [
 
 function getCurrentMonth(start: string | null): number {
   if (!start) return 1
-  const s = new Date(start), now = new Date()
-  return Math.max(1, Math.min(5, (now.getFullYear() - s.getFullYear()) * 12 + now.getMonth() - s.getMonth() + 1))
+  // Month 1 = June (the first month with tasks), regardless of when program_start is.
+  // MONTHS array: June=1, July=2, August=3, September=4, October=5
+  const s = new Date(start)
+  const now = new Date()
+  // Calculate the first June on or after program_start
+  // If program started in May 2026, first task month (June) is month index 5 of 2026
+  const firstJuneYear = s.getMonth() <= 5 ? s.getFullYear() : s.getFullYear() + 1
+  const monthsSinceJune = (now.getFullYear() - firstJuneYear) * 12 + (now.getMonth() - 5)
+  // monthsSinceJune: 0 = June, 1 = July, etc.
+  return Math.max(1, Math.min(5, monthsSinceJune + 1))
 }
 function getDaysUntil(d: string | null): number { return d ? Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)) : 0 }
 
@@ -286,8 +318,7 @@ function ReminderList({ title, tasks, icon: Icon }: { title: string, tasks: Task
 /* ═══ MAIN ═══ */
 interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string }
 
-export default function BlackBeltClient({ program, candidates, currentSkfId }: Props) {
-  usePortalAuth()
+export default function BlackBeltClient({ program, candidates, progressMap, currentSkfId }: Props) {
   const curMonth = useMemo(() => getCurrentMonth(program?.program_start ?? null), [program])
   
   const [me, setMe] = useState(candidates.find(c => c.skf_id === currentSkfId))
@@ -317,7 +348,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
   if (!program) return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflowX: 'clip' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
         <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
           <div className="bb-empty">
@@ -332,7 +363,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
   if (!me) return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflowX: 'clip' }}>
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
         <div className="bb" style={{ position: 'relative', zIndex: 10 }}>
           <div className="bb-banner"><span className="bb-banner__kanji">黒帯</span>
@@ -356,11 +387,12 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
   const allTasksCount = MONTHS.reduce((s, m) => s + m.tasks(me).length, 0) + contTasks.length
   const allDoneCount = MONTHS.reduce((s, m) => s + m.tasks(me).filter(t => t.status === 'done').length, 0) + contTasks.filter(t => t.status === 'done').length
   const pct = allTasksCount > 0 ? Math.round(allDoneCount / allTasksCount * 100) : 0
-  const monthDone = activeMonth < curMonth
+  // A month is "done" ONLY when ALL its tasks are completed — not just by time passing
+  const monthDone = tasks.length > 0 && tasks.every(t => t.status === 'done')
 
   return (
     <SecureContentWrapper>
-      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ paddingBottom: '6rem', width: '100%', minHeight: '100dvh', position: 'relative', overflowX: 'clip' }}>
 
         {/* ── BACKGROUND GLOWS ── */}
         <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80%', height: '500px', background: 'radial-gradient(ellipse at top, rgba(214,40,40,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
@@ -580,15 +612,19 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
           <div className="bb-tab-content bb-in" key="journey">
             {/* MONTH SELECTOR */}
             <div className="bb-nav">
-              {MONTHS.map(m => (
-                <button key={m.num}
-                  className={`bb-nav__btn ${m.num === activeMonth ? 'bb-nav__btn--active' : ''} ${m.num < curMonth ? 'bb-nav__btn--done' : ''}`}
-                  onClick={() => setActiveMonth(m.num)}>
-                  <span className="bb-nav__num">Level {m.num}</span>
-                  <span className="bb-nav__theme">{m.monthName}</span>
-                  {(m.num <= curMonth) && <span className="bb-nav__pip" />}
-                </button>
-              ))}
+              {MONTHS.map(m => {
+                const mTasks = m.tasks(me)
+                const mAllDone = mTasks.length > 0 && mTasks.every(t => t.status === 'done')
+                return (
+                  <button key={m.num}
+                    className={`bb-nav__btn ${m.num === activeMonth ? 'bb-nav__btn--active' : ''} ${mAllDone ? 'bb-nav__btn--done' : ''}`}
+                    onClick={() => setActiveMonth(m.num)}>
+                    <span className="bb-nav__num">Level {m.num}</span>
+                    <span className="bb-nav__theme">{m.monthName}</span>
+                    {(m.num <= curMonth) && <span className="bb-nav__pip" />}
+                  </button>
+                )
+              })}
             </div>
 
             <div className="bb-grid">
@@ -628,6 +664,60 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
 
                 {/* CONTINUOUS GOALS */}
                 <ReminderList title="5-Month Continuous Goals" tasks={contTasks} icon={Target} />
+
+                {/* YOUR MENTEES — contact card */}
+                {getMentees(me.skf_id).length > 0 && (
+                  <div className="bb-card" style={{ padding: 0, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(96,165,250,0.06), rgba(96,165,250,0.01))', border: '1px solid rgba(96,165,250,0.15)' }}>
+                    <div style={{ padding: '1.25rem 1.25rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Users size={15} color="#60a5fa" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>Your Mentees</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Juniors assigned to you</div>
+                      </div>
+                    </div>
+                    <div style={{ padding: '0.5rem 1rem 1rem' }}>
+                      {getMentees(me.skf_id).map((mentee, i) => (
+                        <a
+                          key={i}
+                          href={`tel:${mentee.phone}`}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.85rem',
+                            padding: '0.85rem 0.75rem', borderRadius: 14,
+                            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+                            textDecoration: 'none', color: '#fff',
+                            transition: 'all 0.2s ease',
+                            marginBottom: i < getMentees(me.skf_id).length - 1 ? '0.5rem' : 0,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(96,165,250,0.08)'; e.currentTarget.style.borderColor = 'rgba(96,165,250,0.2)' }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)' }}
+                        >
+                          <div style={{
+                            width: 38, height: 38, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, rgba(96,165,250,0.2), rgba(96,165,250,0.05))',
+                            border: '1px solid rgba(96,165,250,0.25)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.85rem', fontWeight: 800, color: '#60a5fa', flexShrink: 0,
+                          }}>
+                            {mentee.name.charAt(0)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mentee.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', letterSpacing: '0.03em' }}>{formatPhone(mentee.phone)}</div>
+                          </div>
+                          <div style={{
+                            width: 30, height: 30, borderRadius: '50%',
+                            background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          }}>
+                            <Phone size={13} color="#60a5fa" />
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

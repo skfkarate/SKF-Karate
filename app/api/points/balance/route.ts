@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '@/lib/server/supabase'
 import { withRoute } from '@/src/server/lib/route'
+import { getPortalPointsBalance } from '@/src/server/services/portal-points.service'
 
 export const GET = withRoute(
   {
@@ -8,18 +8,6 @@ export const GET = withRoute(
     cacheControl: 'private, no-store',
   },
   async ({ portalSession }) => {
-    const { data: points, error } = await supabaseAdmin
-      .from('student_points')
-      .select('current_balance, tier, total_earned')
-      .eq('skf_id', portalSession!.skfId!)
-      .maybeSingle()
-
-    if (error) throw error
-
-    return Response.json({
-      balance: points?.current_balance ?? 0,
-      tier: points?.tier ?? 'white',
-      totalEarned: points?.total_earned ?? 0,
-    })
+    return Response.json(await getPortalPointsBalance(portalSession!.skfId!))
   }
 )

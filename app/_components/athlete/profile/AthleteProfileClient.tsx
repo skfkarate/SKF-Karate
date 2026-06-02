@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo, useState, useRef, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import html2canvas from 'html2canvas'
 import { RankingCard } from '@/components/RankingCard'
 import {
   Search, ChevronRight, Eye, Share2,
@@ -12,7 +12,6 @@ import {
 import '@/app/athlete-profile.css'
 import '@/app/athlete-hero.css'
 import '@/app/rankings/rankings.css'
-import { CertificateModal } from '@/components/CertificateModal'
 import { CertificateCard } from '@/components/CertificateCard'
 import type { CertificateConfig } from '@/components/CertificateCard'
 
@@ -44,6 +43,11 @@ type CompetitionCategory = {
     bronze: number
   }>
 }
+
+const CertificateModal = dynamic(
+  () => import('@/components/CertificateModal').then((mod) => mod.CertificateModal),
+  { ssr: false }
+)
 
 function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpenCertificate: (id: string) => void }) {
   const [certs, setCerts] = useState<PublicCertificate[]>([])
@@ -559,6 +563,7 @@ export default function AthleteProfileClient({
     if (!cardRef.current) return
     setIsExporting(true)
     try {
+      const { default: html2canvas } = await import('html2canvas')
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
@@ -605,12 +610,14 @@ export default function AthleteProfileClient({
         <SpecialEventsSection specialEvents={specialEvents} isDashboardContext={isDashboardContext} />
       </div>
 
-      <CertificateModal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        enrollmentId={selectedEnrollmentId || ''}
-        skfId={athleteInfo.id}
-      />
+      {modalOpen && (
+        <CertificateModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          enrollmentId={selectedEnrollmentId || ''}
+          skfId={athleteInfo.id}
+        />
+      )}
       
       <RankingCard 
         ref={cardRef} 
