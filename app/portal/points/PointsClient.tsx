@@ -1,13 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { motion } from 'framer-motion'
 import { Crown, Medal, TrendingUp, Trophy } from 'lucide-react'
 
-import PointsHistory from '@/app/_components/points/PointsHistory'
+import PointsHistory, { type PointsTransaction } from '@/app/_components/points/PointsHistory'
 import TierProgressBar from '@/app/_components/points/TierProgressBar'
-import { PointsPageSkeleton } from '../_components/skeletons/PointsPageSkeleton'
 
 type BalanceState = {
   balance: number
@@ -22,66 +19,28 @@ type LeaderboardEntry = {
   points: number
 }
 
-export default function PointsClient() {
-  const [balance, setBalance] = useState<BalanceState | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadPoints() {
-      setLoading(true)
-      setError('')
-
-      try {
-        const [balanceRes, leaderboardRes] = await Promise.all([
-          fetch('/api/points/balance', { cache: 'no-store' }),
-          fetch('/api/points/leaderboard', { cache: 'no-store' }),
-        ])
-
-        if (balanceRes.status === 401 || leaderboardRes.status === 401) {
-          window.location.href = '/portal/login'
-          return
-        }
-
-        if (!balanceRes.ok) throw new Error('Unable to load points balance.')
-        if (!leaderboardRes.ok) throw new Error('Unable to load leaderboard.')
-
-        const balanceData = await balanceRes.json()
-        const leaderboardData = await leaderboardRes.json()
-
-        if (!cancelled) {
-          setBalance({
-            balance: Number(balanceData.balance || 0),
-            tier: String(balanceData.tier || 'white'),
-            totalEarned: Number(balanceData.totalEarned || 0),
-          })
-          setLeaderboard(leaderboardData.leaderboard || [])
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : 'Unable to load points.')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    void loadPoints()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  if (loading) {
-    return <PointsPageSkeleton />
+export default function PointsClient({
+  initialBalance,
+  initialLeaderboard,
+  initialTransactions,
+  initialHasMore,
+}: {
+  initialBalance: BalanceState
+  initialLeaderboard: LeaderboardEntry[]
+  initialTransactions: PointsTransaction[]
+  initialHasMore: boolean
+}) {
+  const balance = {
+    balance: Number(initialBalance?.balance || 0),
+    tier: String(initialBalance?.tier || 'white'),
+    totalEarned: Number(initialBalance?.totalEarned || 0),
   }
+  const leaderboard = initialLeaderboard || []
+  const error = ''
 
   return (
     <div style={{ padding: '2rem 1rem 6rem', maxWidth: '1100px', margin: '0 auto', width: '100%', minHeight: '70vh' }}>
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: '5rem', marginBottom: '3rem', textAlign: 'center' }}>
+      <div style={{ paddingTop: '5rem', marginBottom: '3rem', textAlign: 'center' }}>
         <h1 style={{
           fontFamily: 'var(--font-heading, "Outfit")',
           fontSize: 'clamp(2.5rem, 6vw, 4rem)',
@@ -99,7 +58,7 @@ export default function PointsClient() {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1.1rem', margin: '0 auto', maxWidth: '620px', fontWeight: 500, lineHeight: 1.6 }}>
           Track earned points, tier progress, and monthly leaderboard activity.
         </p>
-      </motion.div>
+      </div>
 
       {error ? (
         <div style={{ padding: '3rem 2rem', borderRadius: 24, border: '1px solid rgba(214,40,40,0.25)', background: 'rgba(214,40,40,0.08)', color: '#ffb4b4', textAlign: 'center', fontWeight: 700 }}>
@@ -117,7 +76,10 @@ export default function PointsClient() {
 
           <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2rem' }}>
             <Leaderboard entries={leaderboard} />
-            <PointsHistory />
+            <PointsHistory
+              initialTransactions={initialTransactions}
+              initialHasMore={initialHasMore}
+            />
           </section>
         </div>
       ) : null}

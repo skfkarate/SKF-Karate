@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -8,7 +9,7 @@ import {
 } from '@/lib/server/auth/portal-athlete'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 
-export async function getPortalAthleteFromCookies() {
+export const getPortalAthleteFromCookies = cache(async function getPortalAthleteFromCookies() {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
   const session = verifyJWT(token)
@@ -26,7 +27,7 @@ export async function getPortalAthleteFromCookies() {
     session: buildCanonicalPortalSession(session, athlete),
     athlete,
   }
-}
+})
 
 export async function requirePortalAthlete(options: { redirectTo?: string } = {}) {
   const result = await getPortalAthleteFromCookies()

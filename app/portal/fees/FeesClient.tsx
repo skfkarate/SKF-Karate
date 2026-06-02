@@ -5,7 +5,6 @@ import type { FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wallet, CreditCard, ShieldCheck, CheckCircle2, History, AlertCircle, QrCode, Upload, Info, Clock, Download, Loader2 } from 'lucide-react'
-import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import { submitManualFeePayment } from './actions'
 import { useNonce } from '@/components/NonceProvider'
@@ -38,7 +37,6 @@ function feeCategoryLabel(fee: FeeLedgerEntry) {
 
 export default function FeesClient({ feeRecords }: { feeRecords: FeeLedgerEntry[] }) {
   const nonce = useNonce()
-  usePortalAuth()
   const router = useRouter()
 
   const [isPaying, setIsPaying] = useState(false)
