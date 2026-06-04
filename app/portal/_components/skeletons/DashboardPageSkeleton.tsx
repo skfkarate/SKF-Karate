@@ -3,6 +3,7 @@
 import React from 'react';
 import { SkeletonLine, SkeletonCircle, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
 import { useNonce } from '@/components/NonceProvider';
+import '@/app/athlete-profile.css';
 
 /**
  * DashboardPageSkeleton — matches AthleteProfileClient layout
@@ -50,7 +51,7 @@ export const DashboardPageSkeleton = () => {
                   <SkeletonLine width="160px" height={24} style={{ marginBottom: '8px' }} />
                   <SkeletonLine width="100px" height={14} />
                 </div>
-                <SkeletonLine width="72px" height={72px} style={{ borderRadius: '12px' }} />
+                <SkeletonLine width="72px" height={72} style={{ borderRadius: '12px' }} />
               </div>
 
               {/* Stats Box */}
