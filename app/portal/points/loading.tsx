@@ -1,5 +1,6 @@
 import { PointsPageSkeleton } from '../_components/skeletons/PointsPageSkeleton';
+import { SkeletonLoadingWrapper } from '@/components/navigation/SkeletonLoadingWrapper'
 
 export default function Loading() {
-  return <PointsPageSkeleton />;
+  return <SkeletonLoadingWrapper><PointsPageSkeleton /></SkeletonLoadingWrapper>;
 }

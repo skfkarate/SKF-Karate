@@ -1,5 +1,6 @@
 import HonoursPageSkeleton from '@/components/skeletons/HonoursPageSkeleton'
+import { SkeletonLoadingWrapper } from '@/components/navigation/SkeletonLoadingWrapper'
 
 export default function Loading() {
-  return <HonoursPageSkeleton />
+  return <SkeletonLoadingWrapper><HonoursPageSkeleton /></SkeletonLoadingWrapper>
 }

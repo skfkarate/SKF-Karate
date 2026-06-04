@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { Target } from 'lucide-react'
 import { TIERS } from '@/lib/points/pointsService'
 
@@ -72,22 +73,25 @@ export default function TierProgressBar({ currentTier, totalEarned }: { currentT
 
                 {/* Progress Bar Track */}
                 <div style={{ position: 'relative', height: '16px', background: '#0a0e16', borderRadius: '50px', marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.8)' }}>
-                    <div
+                    <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
                         style={{ 
                             position: 'absolute', 
                             top: 0, left: 0, bottom: 0, 
-                            width: `${progress}%`,
                             background: `linear-gradient(90deg, ${currentTierObj.color}80, ${currentTierObj.color})`,
                             boxShadow: `0 0 20px ${currentTierObj.color}60`,
                             borderRadius: '50px',
-                            transition: 'width 1.2s ease-out',
                         }} 
                     >
                         {/* Shimmer effect inside progress bar */}
-                        <div
-                            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)', borderRadius: '50px', opacity: 0.6 }}
+                        <motion.div 
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+                            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', borderRadius: '50px' }}
                         />
-                    </div>
+                    </motion.div>
                 </div>
 
                 {/* Tier Markers */}

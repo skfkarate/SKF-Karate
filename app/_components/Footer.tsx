@@ -65,8 +65,6 @@ export default async function Footer() {
                     </div>
                     <div className="ft__socials">
                         <a href={SOCIAL_LINKS.INSTAGRAM} className="ft__soc ft__soc--ig" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-                        <a href={SOCIAL_LINKS.YOUTUBE} className="ft__soc ft__soc--yt" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
-                        <a href={SOCIAL_LINKS.FACEBOOK} className="ft__soc ft__soc--fb" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><FaFacebookF /></a>
                         <a href={`https://wa.me/${CONTACT.PHONE_RAW}`} className="ft__soc ft__soc--wa" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><FaWhatsapp /></a>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 import HomePageSkeleton from '@/components/skeletons/HomePageSkeleton'
+import { SkeletonLoadingWrapper } from '@/components/navigation/SkeletonLoadingWrapper'
 
 export default function Loading() {
-  return <HomePageSkeleton />
+  return <SkeletonLoadingWrapper><HomePageSkeleton /></SkeletonLoadingWrapper>
 }

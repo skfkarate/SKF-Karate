@@ -1,55 +1,54 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { AlertCircle } from 'lucide-react'
+import { FaSpinner } from 'react-icons/fa'
+import './login.css'
 
 function getPortalLoginErrorMessage(payload) {
   if (typeof payload?.error === 'string') {
     return payload.error
   }
-
   if (typeof payload?.error?.message === 'string') {
     return payload.error.message
   }
-
   if (typeof payload?.message === 'string') {
     return payload.message
   }
-
   return 'Authentication failed'
 }
 
-export default function PortalLoginForm({ callbackUrl }) {
+function DojoLoginInner({ fallbackCallbackUrl }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || fallbackCallbackUrl || '/portal/dashboard'
   const [skfId, setSkfId] = useState('')
   const [dob, setDob] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleDobChange = (event) => {
-    const input = event.target.value
-
+  const handleDobChange = (e) => {
+    const input = e.target.value
     if (input.length < dob.length) {
       setDob(input)
       return
     }
-
-    const digits = input.replace(/\D/g, '').slice(0, 8)
-
-    let formatted = digits
-    if (digits.length > 4) {
-      formatted = `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`
-    } else if (digits.length > 2) {
-      formatted = `${digits.slice(0, 2)}-${digits.slice(2)}`
+    const digits = input.replace(/\D/g, '')
+    const truncated = digits.slice(0, 8)
+    let formatted = truncated
+    if (truncated.length > 4) {
+      formatted = `${truncated.slice(0, 2)}-${truncated.slice(2, 4)}-${truncated.slice(4)}`
+    } else if (truncated.length > 2) {
+      formatted = `${truncated.slice(0, 2)}-${truncated.slice(2)}`
     }
-
     setDob(formatted)
   }
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async (e) => {
+    e.preventDefault()
     setError('')
     setLoading(true)
 
@@ -62,7 +61,7 @@ export default function PortalLoginForm({ callbackUrl }) {
       const data = await res.json().catch(() => null)
 
       if (res.ok) {
-        router.replace(callbackUrl)
+        router.push(callbackUrl)
         router.refresh()
       } else {
         setError(getPortalLoginErrorMessage(data))
@@ -76,12 +75,23 @@ export default function PortalLoginForm({ callbackUrl }) {
 
   return (
     <div className="dojo-login">
+      {/* Background Visuals */}
       <div className="dojo-login__bg-glow" />
       <div className="dojo-login__watermark">空手道</div>
 
-      <div className="dojo-login__content">
+      <motion.div
+        className="dojo-login__content"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="dojo-login__header">
-          <div className="dojo-login__brand">
+          <motion.div
+            className="dojo-login__brand"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             <Image
               src="/logo/SKF logo.png"
               alt="SKF Logo"
@@ -90,27 +100,51 @@ export default function PortalLoginForm({ callbackUrl }) {
               className="dojo-login__logo"
             />
             <span className="dojo-login__brand-text">SKF Karate</span>
-          </div>
+          </motion.div>
 
-          <h1 className="dojo-login__title">ATHLETE<br />PORTAL.</h1>
-          <p className="dojo-login__subtitle">Authenticate your identity to continue.</p>
+          <motion.h1
+            className="dojo-login__title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            ATHLETE<br />PORTAL.
+          </motion.h1>
+          <motion.p
+            className="dojo-login__subtitle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            Authenticate your identity to continue.
+          </motion.p>
         </div>
 
         <form onSubmit={handleLogin} className="dojo-login__form">
-          <div className="dojo-input-group dojo-login__stagger dojo-login__stagger--1">
+          <motion.div
+            className="dojo-input-group"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
             <input
               type="text"
               id="skfId"
               className="dojo-input"
               placeholder="SKFXXXXXXX"
               value={skfId}
-              onChange={(event) => setSkfId(event.target.value)}
+              onChange={(e) => setSkfId(e.target.value)}
               required
             />
             <label htmlFor="skfId">SKF ID</label>
-          </div>
+          </motion.div>
 
-          <div className="dojo-input-group dojo-login__stagger dojo-login__stagger--2">
+          <motion.div
+            className="dojo-input-group"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+          >
             <input
               type="text"
               id="dob"
@@ -121,32 +155,47 @@ export default function PortalLoginForm({ callbackUrl }) {
               required
             />
             <label htmlFor="dob">Date of Birth</label>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             type="submit"
             disabled={loading || !skfId || !dob}
-            className="dojo-login__submit dojo-login__stagger dojo-login__stagger--3"
+            className="dojo-login__submit"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.5 }}
           >
             {loading ? (
-              <span className="dojo-login__submit-label">
-                <Loader2 className="spin" size={17} /> Authenticating...
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <FaSpinner className="spin" /> Authenticating...
               </span>
             ) : 'Access Portal'}
-          </button>
+          </motion.button>
         </form>
 
-        {error ? (
-          <div className="dojo-login__error" role="alert">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertCircle size={16} />
-              <span>{error}</span>
-            </div>
-          </div>
-        ) : null}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              className="dojo-login__error"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="dojo-login__test-bypass">
+          <motion.div
+            className="dojo-login__test-bypass"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
             <button
               type="button"
               className="dojo-login__test-btn"
@@ -157,9 +206,17 @@ export default function PortalLoginForm({ callbackUrl }) {
             >
               Dev Fill (Reference Athlete)
             </button>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
+  )
+}
+
+export default function PortalLoginForm({ callbackUrl }) {
+  return (
+    <Suspense fallback={<div className="dojo-login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaSpinner className="spin" style={{ fontSize: '2rem', color: '#fff' }} /></div>}>
+      <DojoLoginInner fallbackCallbackUrl={callbackUrl} />
+    </Suspense>
   )
 }

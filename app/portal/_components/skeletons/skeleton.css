@@ -56,3 +56,9 @@
     max-width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .skeleton-shimmer {
+    max-width: 100%;
+  }
+}

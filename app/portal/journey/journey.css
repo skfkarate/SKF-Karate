@@ -1,0 +1,151 @@
+/* Desktop Default Layout */
+.timeline-node-container {
+  display: flex;
+  align-items: center;
+}
+.timeline-node-container.node-left {
+  justify-content: flex-start;
+}
+.timeline-node-container.node-right {
+  justify-content: flex-end;
+}
+
+.timeline-node-wrapper {
+  width: 50%;
+  display: flex;
+  position: relative;
+}
+.node-left .timeline-node-wrapper {
+  justify-content: flex-end;
+  padding-right: 3rem;
+}
+.node-right .timeline-node-wrapper {
+  justify-content: flex-start;
+  padding-left: 3rem;
+}
+
+.timeline-node-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.node-left .timeline-node-icon {
+  right: -24px;
+}
+.node-right .timeline-node-icon {
+  left: -24px;
+}
+
+.timeline-node-card {
+  border-radius: 24px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Desktop Default Modal Styles */
+.journey-modal {
+  padding: 2.5rem;
+}
+.journey-modal-close {
+  top: 1.5rem; right: 1.5rem; width: 40px; height: 40px;
+}
+.journey-modal-icon {
+  width: 72px; height: 72px;
+}
+.journey-modal-icon-svg {
+  width: 32px; height: 32px;
+}
+.journey-modal-title {
+  font-size: 1.85rem;
+}
+.journey-modal-desc {
+  padding: 1.75rem;
+}
+.journey-modal-desc-p {
+  font-size: 1.05rem;
+}
+.journey-modal-current {
+  padding: 1.25rem;
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+  .timeline-line-desktop {
+    display: none !important;
+  }
+  .timeline-line-mobile {
+    display: block !important;
+  }
+  .timeline-node-container {
+    margin-bottom: 2rem !important;
+  }
+  .timeline-node-container.node-left,
+  .timeline-node-container.node-right {
+    justify-content: flex-end;
+  }
+  .timeline-node-wrapper,
+  .node-left .timeline-node-wrapper,
+  .node-right .timeline-node-wrapper {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 60px; /* Space for the 40px wide waving line */
+    padding-right: 0;
+  }
+  .timeline-node-icon,
+  .node-left .timeline-node-icon,
+  .node-right .timeline-node-icon {
+    left: 0;
+    right: auto;
+    width: 40px;
+    height: 40px;
+    margin-left: 0; /* Icon is 40px wide, centered on X=20 exactly aligning with the SVG path's central axis */
+  }
+  .timeline-node-card {
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+  .node-description {
+    display: none !important;
+  }
+  .node-footer {
+    margin-top: 0.75rem !important;
+  }
+  
+  /* Modal Mobile Overrides */
+  .journey-modal {
+    padding: 1.5rem !important;
+    border-radius: 24px !important;
+  }
+  .journey-modal-close {
+    top: 1rem !important; right: 1rem !important; width: 32px !important; height: 32px !important;
+  }
+  .journey-modal-icon {
+    width: 56px !important; height: 56px !important; border-radius: 16px !important;
+  }
+  .journey-modal-icon-svg {
+    width: 24px !important; height: 24px !important;
+  }
+  .journey-modal-header {
+    margin-bottom: 1.25rem !important;
+    gap: 1rem !important;
+  }
+  .journey-modal-title {
+    font-size: 1.4rem !important;
+  }
+  .journey-modal-desc {
+    padding: 1.25rem !important;
+    border-radius: 16px !important;
+  }
+  .journey-modal-desc-p {
+    font-size: 0.95rem !important;
+  }
+  .journey-modal-current {
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+  }
+}
