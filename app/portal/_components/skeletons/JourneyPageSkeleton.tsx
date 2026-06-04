@@ -3,6 +3,7 @@
 import React from 'react';
 import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives';
 import { useNonce } from '@/components/NonceProvider';
+import '@/app/portal/journey/journey.css';
 
 export const JourneyPageSkeleton = () => {
   const nonce = useNonce();
