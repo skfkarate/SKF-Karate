@@ -144,7 +144,6 @@ export const EventsPageSkeleton = () => {
         .skel-pe-sub { width: 280px !important; }
 
         .skel-pe-grid {
-          grid-template-columns: 1fr !important;
           gap: 1rem;
         }
         .skel-pe-card {

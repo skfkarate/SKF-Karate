@@ -35,15 +35,15 @@ export const JourneyPageSkeleton = () => {
 
         return (
           <div key={idx} className={`timeline-node-container ${directionClass}`} style={{ width: '100%', marginBottom: '4rem', position: 'relative', zIndex: 10 }}>
-            <div className="timeline-node-wrapper" style={{ width: '50%', display: 'flex', position: 'relative', justifyContent: isLeft ? 'flex-end' : 'flex-start', paddingRight: isLeft ? '3rem' : '0', paddingLeft: isLeft ? '0' : '3rem' }}>
+            <div className="timeline-node-wrapper">
               
               {/* Node Circle */}
-              <div className="timeline-node-icon" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [isLeft ? 'right' : 'left']: '-24px', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(20,20,20,0.8)', border: '4px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
+              <div className="timeline-node-icon" style={{ background: 'rgba(20,20,20,0.8)', border: '4px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
                 <SkeletonCircle size={20} />
               </div>
 
               {/* Node Card */}
-              <div className="timeline-node-card" style={{ background: 'rgba(20,20,20,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '1.5rem', width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column' }}>
+              <div className="timeline-node-card" style={{ background: 'rgba(20,20,20,0.4)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                   <SkeletonLine width="80px" height={12} style={{ borderRadius: '4px' }} />
                   {idx === 0 && <SkeletonButton width={60} height={20} style={{ borderRadius: '100px' }} />}
@@ -56,7 +56,7 @@ export const JourneyPageSkeleton = () => {
                   <SkeletonLine width="85%" height={14} style={{ borderRadius: '4px' }} />
                 </div>
 
-                <div className="node-footer" style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="node-footer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <SkeletonCircle size={14} />
                   <SkeletonLine width="100px" height={12} style={{ borderRadius: '4px' }} />
                 </div>
@@ -66,24 +66,6 @@ export const JourneyPageSkeleton = () => {
         );
       })}
     </div>
-
-    <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
-      .timeline-node-container { display: flex; align-items: center; }
-      .timeline-node-container.node-left { justify-content: flex-start; }
-      .timeline-node-container.node-right { justify-content: flex-end; }
-      
-      @media (max-width: 768px) {
-        .timeline-line-desktop { display: none !important; }
-        .timeline-line-mobile { display: block !important; }
-        .timeline-node-container { margin-bottom: 2rem !important; }
-        .timeline-node-container.node-left, .timeline-node-container.node-right { justify-content: flex-end; }
-        .timeline-node-wrapper { width: 100% !important; justify-content: flex-start !important; padding-left: 60px !important; padding-right: 0 !important; }
-        .timeline-node-icon { left: 0 !important; right: auto !important; width: 40px !important; height: 40px !important; margin-left: 0 !important; }
-        .timeline-node-card { max-width: 100% !important; padding: 1.25rem 1rem !important; border-radius: 16px !important; }
-        .node-description { display: none !important; }
-        .node-footer { margin-top: 0.75rem !important; }
-      }
-    `}} />
   </div>
   );
 };

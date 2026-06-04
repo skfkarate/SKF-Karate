@@ -231,12 +231,14 @@ export const DashboardPageSkeleton = () => {
 
       /* Events row */
       .skel-dash-events-row {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
+        gap: 1rem;
       }
       .skel-dash-event-card {
-        padding: 1.25rem;
-        background: rgba(255,255,255,0.02);
-        border-radius: 12px;
+        padding: 1.35rem 1.5rem;
+        background: rgba(255,255,255,0.025);
+        border-radius: 18px;
         border: 1px solid rgba(255,255,255,0.06);
       }
 
@@ -267,20 +269,24 @@ export const DashboardPageSkeleton = () => {
         .skel-dash-content {
           grid-template-columns: 220px 1fr;
         }
+      }
+
+      /* ═══ MOBILE GRID COLLAPSE (≤900px) matches real ap-hero-bento__grid ═══ */
+      @media (max-width: 900px) {
+        .skel-dash-content {
+          grid-template-columns: 1fr;
+        }
         .skel-dash-events-row {
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: 1fr;
         }
       }
 
-      /* ═══ MOBILE (≤768px) ═══ */
+      /* ═══ MOBILE DETAILS (≤768px) ═══ */
       @media (max-width: 768px) {
         .skel-dash-header { padding: 1.25rem 1.25rem 0; }
         .skel-dash-header .skeleton-shimmer:nth-child(2) {
           width: 200px !important;
           height: 28px !important;
-        }
-        .skel-dash-content {
-          grid-template-columns: 1fr;
         }
         .skel-dash-photo {
           aspect-ratio: 16/9;
@@ -305,7 +311,6 @@ export const DashboardPageSkeleton = () => {
           width: 24px !important; height: 24px !important;
         }
         .skel-dash-events-row {
-          grid-template-columns: 1fr;
           gap: 0.75rem;
         }
         .skel-dash-event-card { padding: 1rem; border-radius: 10px; }
