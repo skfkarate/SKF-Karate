@@ -123,7 +123,6 @@ export default function BlackBeltLoading() {
             padding: 0.75rem;
           }
           .skel-bb-grid {
-            grid-template-columns: 1fr;
             gap: 1rem;
           }
           .skel-bb-card {

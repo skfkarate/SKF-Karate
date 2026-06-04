@@ -17,73 +17,69 @@ export const DashboardPageSkeleton = () => {
   <div className="ap-page kuroobi-dashboard skel-dash" style={{ background: 'transparent', minHeight: 'auto' }} aria-label="Loading dashboard" aria-busy="true">
     <div className="ap-container">
 
-      {/* ════ 1. AthleteHero — Championship Card ════ */}
-      <section className="skel-dash-hero">
-        <div className="skel-dash-card">
-          {/* Ambient glow placeholders */}
-          <div className="skel-dash-card__ambient" />
-
-          {/* Header Band */}
-          <div className="skel-dash-header">
-            <div>
-              <SkeletonLine width="120px" height={12} style={{ marginBottom: '8px' }} />
-              <SkeletonLine width="280px" height={36} style={{ marginBottom: '12px' }} />
-              <div className="skel-dash-header__tags">
-                <SkeletonButton width={100} height={28} style={{ borderRadius: '100px' }} />
-                <SkeletonLine width="160px" height={14} />
-              </div>
+      {/* ════ 1. AthleteHero — Bento Grid ════ */}
+      <section className="ap-hero">
+        <div className="ap-hero-bento">
+          
+          {/* Header */}
+          <div className="ap-bento-header" style={{ marginBottom: '1.25rem' }}>
+            <SkeletonLine width="100px" height={12} style={{ marginBottom: '8px' }} />
+            <SkeletonLine width="280px" height={48} style={{ marginBottom: '16px', borderRadius: '4px' }} />
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <SkeletonButton width={120} height={34} style={{ borderRadius: '8px' }} />
+              <SkeletonButton width={100} height={34} style={{ borderRadius: '8px' }} />
             </div>
           </div>
 
-          {/* Content: Photo + Detail */}
-          <div className="skel-dash-content">
-            {/* Photo */}
-            <div className="skel-dash-photo">
-              <SkeletonBlock width="100%" height="100%" radius={0} />
-              <div className="skel-dash-photo__id">
-                <SkeletonLine width="50px" height={10} style={{ marginBottom: '4px' }} />
-                <SkeletonLine width="80px" height={18} />
+          <div className="ap-hero-bento__grid">
+            {/* Portrait Card */}
+            <div className="ap-bento-card ap-bento-portrait" style={{ position: 'relative' }}>
+              <SkeletonBlock width="100%" height="100%" radius={20} />
+              <div style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}>
+                <SkeletonBlock width="120px" height="32px" radius={12} />
               </div>
             </div>
 
-            {/* Detail Panel */}
-            <div className="skel-dash-detail">
-              {/* Ranking */}
-              <div className="skel-dash-rank">
-                <div style={{ flex: 1 }}>
-                  <SkeletonLine width="100px" height={12} style={{ marginBottom: '6px' }} />
-                  <SkeletonLine width="140px" height={16} style={{ marginBottom: '4px' }} />
-                  <SkeletonLine width="80px" height={14} />
+            {/* Data Column */}
+            <div className="ap-bento-data">
+              
+              {/* Rank Box */}
+              <div className="ap-bento-card ap-bento-rank" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <SkeletonLine width="80px" height={12} style={{ marginBottom: '12px' }} />
+                  <SkeletonLine width="160px" height={24} style={{ marginBottom: '8px' }} />
+                  <SkeletonLine width="100px" height={14} />
                 </div>
-                <SkeletonLine width="60px" height={48} style={{ borderRadius: '12px' }} />
+                <SkeletonLine width="72px" height={72px} style={{ borderRadius: '12px' }} />
               </div>
 
-              {/* Stats */}
-              <div className="skel-dash-stats">
+              {/* Stats Box */}
+              <div className="ap-bento-card ap-bento-stats">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="skel-dash-stat-item">
-                    <SkeletonLine width="40px" height={24} />
-                    <SkeletonLine width="50px" height={12} />
+                  <div key={i} className="ap-bento-stat" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <SkeletonLine width="48px" height={28} style={{ marginBottom: '8px', borderRadius: '4px' }} />
+                    <SkeletonLine width="60px" height={12} style={{ borderRadius: '2px' }} />
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
 
-          {/* Footer: Medals + Share */}
-          <div className="skel-dash-footer">
-            <div className="skel-dash-medals">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="skel-dash-medal">
-                  <SkeletonCircle size={28} />
-                  <SkeletonLine width="32px" height={12} />
+              {/* Medals Box */}
+              <div className="ap-bento-card ap-bento-medals">
+                <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <SkeletonCircle size={44} />
+                      <SkeletonLine width="32px" height={14} />
+                    </div>
+                  ))}
+                  <div style={{ width: '1px', height: '32px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <SkeletonLine width="40px" height={24} />
+                    <SkeletonLine width="32px" height={14} />
+                  </div>
                 </div>
-              ))}
-              <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.25rem' }} />
-              <div className="skel-dash-medal">
-                <SkeletonLine width="28px" height={20} />
-                <SkeletonLine width="32px" height={12} />
               </div>
+
             </div>
           </div>
         </div>
