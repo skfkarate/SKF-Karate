@@ -107,8 +107,10 @@
 }
 
 .kuroobi-dock__link.active {
-  background: linear-gradient(135deg, rgba(214, 40, 40, 0.1), transparent);
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(214, 40, 40, 0.02));
   color: #fff;
+  border: 1px solid rgba(214, 40, 40, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 15px rgba(214, 40, 40, 0.1);
 }
 
 .kuroobi-dock__icon-wrapper {
@@ -123,18 +125,19 @@
 
 .kuroobi-dock__active-dot {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   width: 8px;
   height: 8px;
   background: var(--crimson, #d62828);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--crimson, #d62828);
+  box-shadow: 0 0 12px var(--crimson, #d62828);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .kuroobi-dock__link-label {
   margin-left: 1rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -172,10 +175,10 @@
 
 /* ══════════ MOBILE FAB SYSTEM ══════════ */
 
-/* FAB — "Liquid Glass" */
+/* FAB — "Premium Brand Core" */
 @keyframes fab-breathe {
-  0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05); }
-  50%      { box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.15), 0 0 20px rgba(255,255,255,0.1); }
+  0%, 100% { box-shadow: 0 8px 32px rgba(214, 40, 40, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+  50%      { box-shadow: 0 12px 40px rgba(214, 40, 40, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 0 20px rgba(214, 40, 40, 0.3); }
 }
 
 .kuroobi-fab {
@@ -183,26 +186,25 @@
   position: fixed;
   bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
   right: 1.5rem;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #d62828, #9b1515);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   cursor: pointer;
   z-index: 99998;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, background 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, background 0.2s ease, box-shadow 0.2s ease;
   animation: fab-breathe 4s ease-in-out infinite;
   -webkit-tap-highlight-color: transparent;
 }
 
 .kuroobi-fab:active {
   transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #9b1515, #d62828);
+  box-shadow: 0 4px 16px rgba(214, 40, 40, 0.6);
 }
 
 .kuroobi-fab.fab-hidden {
@@ -222,9 +224,9 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 15, 0.97);
-  backdrop-filter: blur(40px) saturate(150%);
-  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  background: rgba(3, 5, 8, 0.98);
+  backdrop-filter: blur(50px) saturate(200%);
+  -webkit-backdrop-filter: blur(50px) saturate(200%);
   z-index: 99997;
   flex-direction: column;
   overflow-y: auto;
@@ -241,27 +243,30 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 3rem 2rem 2rem;
+  padding: 4rem 2rem 2rem;
 }
 
 .kuroobi-overlay__brand-logo {
-  filter: drop-shadow(0 0 10px rgba(255, 183, 3, 0.3));
+  filter: drop-shadow(0 0 15px rgba(255, 183, 3, 0.4));
 }
 
 .kuroobi-overlay__brand-text {
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 0.85rem;
-  letter-spacing: 0.2em;
+  font-size: 1rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: #fff;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.5));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .kuroobi-overlay__links {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
   padding: 1rem 1.5rem;
 }
 
@@ -271,23 +276,27 @@
   gap: 1rem;
   padding: 1rem 1.25rem;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
   border-radius: 16px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
   position: relative;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
+  background: transparent;
 }
 
 .kuroobi-overlay__link:active {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
+  transform: scale(0.98);
 }
 
 .kuroobi-overlay__link--active {
   color: #fff;
-  background: linear-gradient(135deg, rgba(214, 40, 40, 0.12), transparent);
+  background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(214, 40, 40, 0.02));
+  border: 1px solid rgba(214, 40, 40, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .kuroobi-overlay__link--active::before {
@@ -304,47 +313,51 @@
 }
 
 .kuroobi-overlay__link-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
 .kuroobi-overlay__link--active .kuroobi-overlay__link-icon {
-  background: rgba(214, 40, 40, 0.15);
-  border-color: rgba(214, 40, 40, 0.3);
+  background: rgba(214, 40, 40, 0.2);
+  border-color: rgba(214, 40, 40, 0.4);
+  color: #ffb4b4;
 }
 
 .kuroobi-overlay__divider {
   height: 1px;
-  background: rgba(255,255,255,0.06);
-  margin: 0.5rem 1.5rem;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  margin: 1rem 1.5rem;
 }
 
 .kuroobi-overlay__signout {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   margin: 0 1.5rem calc(3rem + env(safe-area-inset-bottom, 0px));
-  background: none;
+  background: rgba(214, 40, 40, 0.05);
   border: 1px solid rgba(214, 40, 40, 0.15);
   border-radius: 16px;
   color: #ff6b6b;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
 .kuroobi-overlay__signout:active {
-  background: rgba(214, 40, 40, 0.1);
+  background: rgba(214, 40, 40, 0.15);
+  transform: scale(0.98);
 }
 
 /* Back Button — "The Return Path" */
@@ -525,30 +538,31 @@
   bottom: 0;
   min-width: 260px;
   max-width: 320px;
-  background: rgba(10, 14, 22, 0.95);
+  background: rgba(3, 5, 8, 0.95);
   backdrop-filter: blur(40px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 1rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   z-index: 100;
 }
 
 .kuroobi-overlay__switcher {
   margin: 0 1.5rem 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 1.25rem;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.01);
 }
 
 .sibling-menu-header {
   font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 1rem;
 }
 
@@ -573,29 +587,34 @@
 }
 
 .sibling-item:not(.active):hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .sibling-item.active {
   background: linear-gradient(135deg, rgba(214, 40, 40, 0.15), rgba(214, 40, 40, 0.05));
   border-color: rgba(214, 40, 40, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 15px rgba(214, 40, 40, 0.1);
   cursor: default;
 }
 
 .sibling-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sibling-item.active .sibling-avatar {
+  border-color: rgba(214, 40, 40, 0.5);
 }
 
 .sibling-avatar img {
@@ -613,8 +632,8 @@
 }
 
 .sibling-name {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -633,12 +652,14 @@
   font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--crimson, #d62828);
-  background: rgba(214, 40, 40, 0.15);
+  letter-spacing: 0.1em;
+  color: #ffb4b4;
+  background: rgba(214, 40, 40, 0.2);
   padding: 4px 8px;
   border-radius: 20px;
   flex-shrink: 0;
   white-space: nowrap;
+  border: 1px solid rgba(214, 40, 40, 0.3);
 }
 
 .spinner {
@@ -669,28 +690,28 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(20, 24, 32, 0.4);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(3, 5, 8, 0.6);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 6px 16px 6px 6px;
   border-radius: 40px;
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .kuroobi-top-switcher-button:hover {
-  background: rgba(30, 35, 45, 0.5);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
 .kuroobi-top-switcher-button:active {
   transform: translateY(0);
-  background: rgba(20, 24, 32, 0.6);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .kuroobi-top-switcher-avatar {
@@ -698,16 +719,16 @@
   height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255,255,255,0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   transition: border-color 0.3s ease;
 }
 
 .kuroobi-top-switcher-button:hover .kuroobi-top-switcher-avatar {
-  border-color: rgba(255,255,255,0.3);
+  border-color: rgba(214, 40, 40, 0.4);
 }
 
 .kuroobi-top-switcher-avatar img { 
@@ -731,7 +752,7 @@
 
 .kuroobi-top-switcher-role {
   font-size: 0.65rem;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-family: 'Outfit', sans-serif;
   letter-spacing: 0.05em;
   margin-top: 2px;
@@ -739,7 +760,7 @@
 
 .kuroobi-top-switcher-caret {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   margin-left: 0.25rem;
 }
 
@@ -758,11 +779,11 @@
   padding: 1rem;
   min-width: 280px;
   max-width: calc(100vw - 3rem);
-  background: rgba(15, 20, 28, 0.7);
+  background: rgba(3, 5, 8, 0.85);
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 899px) {
