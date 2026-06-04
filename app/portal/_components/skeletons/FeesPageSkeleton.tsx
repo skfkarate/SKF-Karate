@@ -192,7 +192,6 @@ export const FeesPageSkeleton = () => {
         .skel-fees-sub { width: 260px !important; }
 
         .skel-fees-grid {
-          grid-template-columns: 1fr !important;
           gap: 1.25rem;
         }
         .skel-fees-card {

@@ -163,9 +163,6 @@ export const PointsPageSkeleton = () => {
         .skel-points-title { width: 280px !important; height: 42px !important; }
         .skel-points-sub { width: 260px !important; }
 
-        .skel-points-metrics {
-          grid-template-columns: 1fr;
-        }
         .skel-points-metric {
           padding: 1.2rem;
           border-radius: 16px;
