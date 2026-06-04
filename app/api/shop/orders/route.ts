@@ -1,6 +1,5 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
-import { google } from 'googleapis'
 
 import { redeemPoints } from '@/lib/points/pointsService'
 import { getPortalSession } from '@/lib/server/auth/portal'
@@ -108,7 +107,7 @@ export const POST = withRoute(
     })
 
     if (!sheetResult.saved) {
-      logger.warn('shop.order.sheet_save_failed', {
+      logger.info('shop.order.sheet_save_skipped', {
         orderId,
         reason: sheetResult.reason,
       })
@@ -338,89 +337,12 @@ async function appendShopOrderToSheet(input: AppendShopOrderToSheetInput): Promi
   saved: boolean
   reason?: string
 }> {
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-  // Prefer a dedicated shop sheet, but keep existing deployments working with the main or summer-camp sheet IDs.
-  const sheetIds = [
-    process.env.GOOGLE_SHEET_ID_SHOP,
-    process.env.GOOGLE_SHEET_ID,
-    process.env.GOOGLE_SHEET_ID_SUMMER_CAMP,
-  ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index)
-
-  if (!clientEmail || !privateKey || sheetIds.length === 0) {
-    return { saved: false, reason: 'Google Sheets credentials or sheet ID missing.' }
-  }
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: clientEmail,
-      private_key: privateKey,
-    },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  logger.info('shop.order.sheet_save_skipped', {
+    orderId: input.orderId,
+    reason: 'Google Sheets writes are limited to contact form and book free trial submissions.',
   })
-  const sheets = google.sheets({ version: 'v4', auth })
-  const itemsText = input.items.map((item) => `${item.quantity}x ${item.name} (${item.size})`).join(', ')
-  const now = new Date().toISOString()
-  const studentText = input.address.studentName
-    ? `${input.address.studentName} (Age: ${input.address.age || 'N/A'})`
-    : 'N/A'
-
-  const shopOrdersRow = [
-    now,
-    input.orderId,
-    input.actor.authenticated ? 'Athlete' : 'Guest',
-    input.actor.skfId || 'N/A',
-    input.address.fullName,
-    input.address.phone || 'N/A',
-    studentText,
-    itemsText,
-    input.subtotal,
-    input.discount,
-    input.total,
-    'Paid via UPI (Pending Verification)',
-    input.paymentProofUploaded ? 'Screenshot Uploaded' : 'No Screenshot',
-    input.telegramNotified,
-  ]
-
-  const legacyOrdersRow = [
-    input.orderId,
-    input.actor.authenticated ? input.actor.skfId || 'ATHLETE' : 'GUEST',
-    JSON.stringify(input.items),
-    input.total,
-    input.discount,
-    input.pointsUsed,
-    now,
-    input.status,
-    JSON.stringify(input.address),
-  ]
-
-  const attempts = [
-    { range: "'Shop Orders'!A:N", values: shopOrdersRow },
-    // Fallback for older spreadsheets that only have the original Orders tab.
-    { range: 'Orders!A:I', values: legacyOrdersRow },
-  ]
-
-  let lastError = ''
-  for (const spreadsheetId of sheetIds) {
-    for (const attempt of attempts) {
-      try {
-        await sheets.spreadsheets.values.append({
-          spreadsheetId,
-          range: attempt.range,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: {
-            values: [attempt.values],
-          },
-        })
-        return { saved: true }
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error)
-      }
-    }
-  }
-
   return {
     saved: false,
-    reason: lastError || 'All configured sheet append attempts failed.',
+    reason: 'Google Sheets writes are limited to contact form and book free trial submissions.',
   }
 }
