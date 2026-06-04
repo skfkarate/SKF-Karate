@@ -1,85 +1,109 @@
 import React from 'react'
 import { SkeletonLine, SkeletonBlock, SkeletonButton, SkeletonCircle } from './SkeletonPrimitives'
-import './skeleton.css'
+import '@/app/events/events.css'
 
 /**
  * EventsPageSkeleton — mirrors events-page layout:
  * Hero (badge + title + subtitle + countdown) → Toolbar (tabs + filters) → Timeline with event cards
- * Event rows stack on mobile; toolbar wraps gracefully.
  */
 export default function EventsPageSkeleton() {
   return (
-    <div className="skel-page" aria-label="Loading events" aria-busy="true" aria-hidden="true">
-      {/* ── Hero ── */}
-      <section className="skel-hero">
-        <SkeletonLine width="150px" height={28} style={{ borderRadius: 50, marginBottom: 20 }} />
-        <SkeletonLine width="min(70%, 260px)" height={48} style={{ marginBottom: 12 }} />
-        <SkeletonLine width="min(80%, 400px)" height={16} style={{ marginBottom: 32 }} />
+    <div className="events-page" aria-label="Loading events" aria-busy="true" aria-hidden="true">
+      <div className="ev-orb ev-orb--1" />
+      <div className="ev-orb ev-orb--2" />
+      <div className="ev-watermark">行事</div>
 
-        {/* Countdown block */}
-        <div className="skel-row skel-row--center" style={{ gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-          {[...Array(4)].map((_, i) => (
-            <div key={i} style={{ textAlign: 'center' }}>
-              <SkeletonBlock width={60} height={60} radius={12} style={{ marginBottom: 4 }} />
-              <SkeletonLine width="40px" height={10} style={{ margin: '0 auto' }} />
+      {/* ── Hero ── */}
+      <section className="ev-hero">
+        <div className="ev-hero__bg" />
+        <div className="container ev-hero__content">
+          <SkeletonLine width="150px" height={28} style={{ borderRadius: 50, marginBottom: 20 }} />
+          <div className="ev-hero__title" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: 12 }}>
+             <SkeletonLine width="300px" height={60} />
+          </div>
+          <SkeletonLine width="min(80%, 400px)" height={16} style={{ marginBottom: 32 }} />
+
+          {/* Countdown block */}
+          <div className="ev-countdown" style={{ width: '100%', maxWidth: 600 }}>
+            <div className="ev-countdown__label">
+              <SkeletonLine width="100px" height={16} />
             </div>
-          ))}
+            <div className="ev-countdown__timer" style={{ gap: 16 }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="ev-countdown__unit">
+                  <SkeletonLine width="50px" height={40} style={{ margin: '0 auto 8px' }} />
+                  <SkeletonLine width="40px" height={10} style={{ margin: '0 auto' }} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <SkeletonLine width="200px" height={16} style={{ marginBottom: 6 }} />
-        <SkeletonLine width="160px" height={13} />
       </section>
 
       {/* ── Toolbar ── */}
-      <div className="skel-toolbar">
-        <div className="skel-toolbar__inner">
-          <div className="skel-row" style={{ gap: 8 }}>
-            <SkeletonButton width={100} height={36} />
-            <SkeletonButton width={80} height={36} />
+      <div className="ev-toolbar">
+        <div className="container ev-toolbar__inner">
+          <div className="ev-toolbar__tabs">
+            <SkeletonButton width={100} height={42} style={{ borderRadius: '8px' }} />
+            <SkeletonButton width={80} height={42} style={{ borderRadius: '8px' }} />
           </div>
-          <div className="skel-row skel-row--wrap" style={{ gap: 8 }}>
+          <div className="ev-toolbar__filters">
+             <SkeletonCircle size={16} />
             {[...Array(4)].map((_, i) => (
-              <SkeletonButton key={i} width={80} height={30} />
+              <SkeletonButton key={i} width={80} height={32} style={{ borderRadius: '6px' }} />
             ))}
           </div>
         </div>
       </div>
 
       {/* ── Event Timeline ── */}
-      <section className="skel-section skel-section--wide">
-        {/* Month header */}
-        <div className="skel-row skel-mb-lg" style={{ gap: 12 }}>
-          <SkeletonCircle size={12} />
-          <SkeletonLine width="150px" height={18} />
-          <SkeletonLine width="60px" height={14} />
-        </div>
-
-        {/* Event cards */}
-        {[...Array(5)].map((_, i) => (
-          <div className="skel-event-row" key={i}>
-            {/* Date */}
-            <div style={{ textAlign: 'center', minWidth: 50, flexShrink: 0 }}>
-              <SkeletonLine width="40px" height={12} style={{ margin: '0 auto 4px' }} />
-              <SkeletonLine width="30px" height={28} style={{ margin: '0 auto' }} />
-            </div>
-            {/* Content */}
-            <div className="skel-flex-1">
-              <div className="skel-row skel-mb-sm" style={{ gap: 8 }}>
-                <SkeletonLine width="80px" height={22} style={{ borderRadius: 50 }} />
-              </div>
-              <SkeletonLine width="75%" height={20} style={{ marginBottom: 8 }} />
-              <SkeletonLine width="100%" height={13} style={{ marginBottom: 4 }} />
-              <SkeletonLine width="60%" height={13} style={{ marginBottom: 16 }} />
-              <div className="skel-row skel-row--between skel-row--wrap" style={{ gap: 8 }}>
-                <div className="skel-row" style={{ gap: 16 }}>
-                  <SkeletonLine width="120px" height={13} />
-                  <SkeletonLine width="80px" height={13} />
+      <section className="ev-content">
+        <div className="container">
+          <div className="ev-timeline">
+             <div className="ev-timeline__group">
+                <div className="ev-timeline__month-header">
+                  <div className="ev-timeline__month-dot" />
+                  <SkeletonLine width="150px" height={24} />
+                  <SkeletonLine width="60px" height={14} style={{ marginLeft: '1rem' }} />
                 </div>
-                <SkeletonButton width={110} height={32} />
-              </div>
-            </div>
+
+                <div className="ev-timeline__events">
+                  {[...Array(3)].map((_, i) => (
+                    <div className="ev-card" key={i}>
+                      {/* Left: Date */}
+                      <div className="ev-card__date" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                         <SkeletonLine width="40px" height={16} style={{ marginBottom: 4 }} />
+                         <SkeletonLine width="50px" height={36} />
+                      </div>
+
+                      {/* Timeline Connector */}
+                      <div className="ev-card__connector">
+                        <div className="ev-card__dot" />
+                      </div>
+
+                      {/* Right: Content */}
+                      <div className="ev-card__body">
+                        <div className="ev-card__top">
+                          <SkeletonLine width="80px" height={24} style={{ borderRadius: '6px' }} />
+                        </div>
+                        <SkeletonLine width="80%" height={24} style={{ margin: '1rem 0' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: '1.5rem' }}>
+                           <SkeletonLine width="100%" height={14} />
+                           <SkeletonLine width="85%" height={14} />
+                        </div>
+                        <div className="ev-card__footer">
+                           <SkeletonLine width="180px" height={14} />
+                           <SkeletonButton width={140} height={36} style={{ borderRadius: '6px' }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
           </div>
-        ))}
+        </div>
       </section>
     </div>
   )
 }
+
