@@ -48,8 +48,116 @@ async function getSheets() {
   return google.sheets({ version: 'v4', auth })
 }
 
+type SheetsClient = Awaited<ReturnType<typeof getSheets>>
+
+const LEADS_SHEET_TITLE = 'Leads'
+const LEADS_SHEET_RANGE = `${LEADS_SHEET_TITLE}!A:H`
+const LEADS_HEADER_RANGE = `${LEADS_SHEET_TITLE}!A1:H1`
+const LEADS_HEADERS = [
+  'Student Name',
+  'Parent Phone',
+  'Child Age',
+  'Branch',
+  'Preferred Batch',
+  'Hear About Us',
+  'Submitted At',
+  'Status',
+]
+const CONTACT_FORM_SHEET_TITLE = 'ContactForm'
+const CONTACT_FORM_SHEET_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A:G`
+const CONTACT_FORM_HEADER_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A1:G1`
+const CONTACT_FORM_HEADERS = [
+  'Submitted At',
+  'Name',
+  'Phone',
+  'Email',
+  'Preferred Time',
+  'Interest',
+  'Message',
+]
+const RESTRICTED_SHEETS_WRITE_REASON =
+  'Google Sheets writes are limited to contact form and book free trial submissions.'
+
 function cellText(value: unknown): string {
   return value === null || value === undefined ? '' : String(value)
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+function isRangeParseError(error: unknown): boolean {
+  return /unable to parse range/i.test(errorMessage(error))
+}
+
+function isDuplicateSheetError(error: unknown): boolean {
+  return /already exists/i.test(errorMessage(error))
+}
+
+function skipRestrictedSheetWrite(operation: string, payload: Record<string, unknown> = {}) {
+  logger.info('sheets.write_skipped', {
+    operation,
+    reason: RESTRICTED_SHEETS_WRITE_REASON,
+    ...payload,
+  })
+}
+
+async function ensureSheetTab(
+  sheets: SheetsClient,
+  spreadsheetId: string,
+  title: string,
+  headerRange: string,
+  headers: SheetRow
+) {
+  const spreadsheet = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: 'sheets.properties.title',
+  })
+
+  const exists = spreadsheet.data.sheets?.some((sheet) => sheet.properties?.title === title)
+
+  if (!exists) {
+    try {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [
+            {
+              addSheet: {
+                properties: { title },
+              },
+            },
+          ],
+        },
+      })
+      logger.info('sheets.sheet_tab_created', { title })
+    } catch (error) {
+      if (!isDuplicateSheetError(error)) {
+        throw error
+      }
+    }
+  }
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: headerRange,
+    valueInputOption: 'RAW',
+    requestBody: { values: [headers] },
+  })
+}
+
+async function appendSheetRow(
+  sheets: SheetsClient,
+  spreadsheetId: string,
+  range: string,
+  row: SheetRow
+) {
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [row] },
+  })
 }
 
 function normalizeSheetDob(value: unknown): string | undefined {
@@ -391,98 +499,16 @@ export async function ensureFeeRowsForStudent(
     overwriteAmount?: boolean
   }
 ): Promise<{ created: number; updated: number }> {
-  try {
-    const normalizedSkfId = String(skfId || '').trim().toUpperCase()
-    const year = Number(options.year || new Date().getFullYear())
-    if (!normalizedSkfId || !year) return { created: 0, updated: 0 }
-
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
-    const enrolledAt = options.enrolledDate ? new Date(options.enrolledDate) : null
-    const startMonth =
-      enrolledAt && Number.isFinite(enrolledAt.getTime()) && enrolledAt.getFullYear() === year
-        ? enrolledAt.getMonth()
-        : 0
-    const existingRows = await getFeeRowsWithSheetIndex()
-    const existingByMonth = new Map(
-      existingRows
-        .filter((entry) => entry.fee.skfId === normalizedSkfId && entry.fee.year === year)
-        .map((entry) => [entry.fee.month, entry])
-    )
-
-    let created = 0
-    let updated = 0
-    const sheets = await getSheets()
-
-    for (let index = startMonth; index < months.length; index++) {
-      const month = months[index]
-      const existing = existingByMonth.get(month)
-
-      if (!existing) {
-        await sheets.spreadsheets.values.append({
-          spreadsheetId: SPREADSHEET_ID,
-          range: 'Fees!A:I',
-          valueInputOption: 'USER_ENTERED',
-          requestBody: {
-            values: [[normalizedSkfId, month, year, options.monthlyFee || 0, 'due', '', '', '', new Date().toISOString()]]
-          }
-        })
-        created++
-        continue
-      }
-
-      if (options.overwriteAmount && Number(existing.fee.amount || 0) !== Number(options.monthlyFee || 0)) {
-        const nextRow = [...existing.row]
-        nextRow[3] = options.monthlyFee || 0
-        await sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `Fees!A${existing.sheetRow}:I${existing.sheetRow}`,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: { values: [nextRow] }
-        })
-        updated++
-      }
-    }
-
-    return { created, updated }
-  } catch (error) {
-    logger.error('sheets.ensure_fee_rows_for_student_failed', { skfId, year: options.year, error })
-    return { created: 0, updated: 0 }
-  }
+  skipRestrictedSheetWrite('ensureFeeRowsForStudent', { skfId, year: options.year })
+  return { created: 0, updated: 0 }
 }
 
 /**
  * Writes to Fees tab — finds row by SKF_ID + Month, updates Status to 'paid'.
  */
 export async function markFeeAsPaid(skfId: string, month: string, receiptId: string, paymentId: string, year?: number): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Fees!A:I' })
-    const rows = res.data.values || []
-    const rowIndex = rows.findIndex(r => r[0] === skfId && r[1] === month && (!year || Number(r[2]) === Number(year)))
-    if (rowIndex === -1) return false
-    
-    // Row index for updates is 1-based, rowIndex is 0-based.
-    const range = `Fees!A${rowIndex + 1}:H${rowIndex + 1}`
-    const updatedRow = [...rows[rowIndex]]
-    updatedRow[4] = 'paid'
-    updatedRow[5] = new Date().toISOString()
-    updatedRow[6] = receiptId
-    updatedRow[7] = paymentId
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [updatedRow] }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.mark_fee_as_paid_failed', { skfId, month, receiptId, error })
-    return false
-  }
+  skipRestrictedSheetWrite('markFeeAsPaid', { skfId, month, receiptId, year, paymentId })
+  return false
 }
 
 export async function markFeeStatus(
@@ -491,34 +517,8 @@ export async function markFeeStatus(
   year: number,
   updates: Partial<Pick<FeeRow, 'status' | 'paidDate' | 'receiptId' | 'paymentMethod'>>
 ): Promise<boolean> {
-  try {
-    const rows = await getFeeRowsWithSheetIndex()
-    const entry = rows.find((candidate) =>
-      candidate.fee.skfId === skfId &&
-      candidate.fee.month === month &&
-      candidate.fee.year === Number(year)
-    )
-    if (!entry) return false
-
-    const nextRow = [...entry.row]
-    if (updates.status !== undefined) nextRow[4] = updates.status
-    if (updates.paidDate !== undefined) nextRow[5] = updates.paidDate
-    if (updates.receiptId !== undefined) nextRow[6] = updates.receiptId
-    if (updates.paymentMethod !== undefined) nextRow[7] = updates.paymentMethod
-
-    const sheets = await getSheets()
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `Fees!A${entry.sheetRow}:I${entry.sheetRow}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [nextRow] }
-    })
-
-    return true
-  } catch (error) {
-    logger.error('sheets.mark_fee_status_failed', { skfId, month, status, error })
-    return false
-  }
+  skipRestrictedSheetWrite('markFeeStatus', { skfId, month, year, status: updates.status })
+  return false
 }
 
 // ── VIDEOS ──
@@ -659,78 +659,19 @@ export const getAttendanceBySkfId = cacheRead(async (skfId: string, month: strin
 }, ['getAttendanceBySkfId'], 60)
 
 export async function markAttendance(rows: AttendanceRow[]): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const values = rows.map(r => [r.skfId, r.date, r.status, r.markedBy || 'System'])
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'Attendance!A:D',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.mark_attendance_failed', { count: rows.length, error })
-    return false
-  }
+  skipRestrictedSheetWrite('markAttendance', { count: rows.length })
+  return false
 }
 
 // ── ADMIN WRITES ──
 export async function createStudent(student: Omit<Student, 'skfId'> & { skfId: string }): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const values = [[
-      student.skfId, student.name, student.branch, student.batch, student.belt,
-      student.parentName, student.phone, student.status, student.enrolledDate,
-      student.monthlyFee, student.photoConsent ? 'Yes' : 'No', student.dob || ''
-    ]]
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'Students!A:L',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.create_student_failed', { skfId: student.skfId, error })
-    return false
-  }
+  skipRestrictedSheetWrite('createStudent', { skfId: student.skfId })
+  return false
 }
 
 export async function updateStudent(skfId: string, updates: Partial<Student>): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Students!A:L' })
-    const rows = res.data.values || []
-    const rowIndex = rows.findIndex(r => r[0] === skfId)
-    if (rowIndex === -1) return false
-    
-    const row = rows[rowIndex]
-    while (row.length < 12) row.push('')
-    // apply updates manually based on index
-    if (updates.name !== undefined) row[1] = updates.name
-    if (updates.branch !== undefined) row[2] = updates.branch
-    if (updates.batch !== undefined) row[3] = updates.batch
-    if (updates.belt !== undefined) row[4] = updates.belt
-    if (updates.parentName !== undefined) row[5] = updates.parentName
-    if (updates.phone !== undefined) row[6] = updates.phone
-    if (updates.status !== undefined) row[7] = updates.status
-    if (updates.enrolledDate !== undefined) row[8] = updates.enrolledDate
-    if (updates.monthlyFee !== undefined) row[9] = updates.monthlyFee.toString()
-    if (updates.photoConsent !== undefined) row[10] = updates.photoConsent ? 'Yes' : 'No'
-    if (updates.dob !== undefined) row[11] = updates.dob
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `Students!A${rowIndex + 1}:L${rowIndex + 1}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.update_student_failed', { skfId, error })
-    return false
-  }
+  skipRestrictedSheetWrite('updateStudent', { skfId, fields: Object.keys(updates) })
+  return false
 }
 
 export async function deactivateStudent(skfId: string): Promise<boolean> {
@@ -764,41 +705,8 @@ export async function getVideosByBranch(branch: string): Promise<AdminVideoRow[]
 
 // ── TIMETABLES (ADMIN) ──
 export async function upsertTimetable(branch: string, imageUrl: string): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Timetables!A:F' })
-    const rows = res.data.values || []
-    
-    const d = new Date()
-    const currentMonth = d.toLocaleString('en-US', { month: 'long' })
-    const currentYear = d.getFullYear().toString()
-    
-    const rowIndex = rows.findIndex(r => r[0] === branch && r[1] === currentMonth && r[2] === currentYear)
-    
-    const newRow = [branch, currentMonth, currentYear, imageUrl, 'Admin', d.toISOString()]
-
-    if (rowIndex === -1) {
-      // append
-      await sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: 'Timetables!A:F',
-        valueInputOption: 'USER_ENTERED',
-        requestBody: { values: [newRow] }
-      })
-    } else {
-      // replace
-      await sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `Timetables!A${rowIndex + 1}:F${rowIndex + 1}`,
-        valueInputOption: 'USER_ENTERED',
-        requestBody: { values: [newRow] }
-      })
-    }
-    return true
-  } catch (error) {
-    logger.error('sheets.upsert_timetable_failed', { branch, error })
-    return false
-  }
+  skipRestrictedSheetWrite('upsertTimetable', { branch, imageUrl })
+  return false
 }
 
 // ── ANNOUNCEMENTS ──
@@ -892,16 +800,26 @@ export const getTechniqueVideos = cacheRead(async (beltLevel?: string, category?
 export async function submitContactForm(row: SheetRow): Promise<boolean> {
   try {
     const sheets = await getSheets()
-    const sheetId = process.env.GOOGLE_SHEET_ID || SPREADSHEET_ID
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: 'A:G',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] }
-    })
+    const sheetId = process.env.GOOGLE_SHEET_ID!
+    try {
+      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, row)
+    } catch (error) {
+      if (!isRangeParseError(error)) {
+        throw error
+      }
+
+      await ensureSheetTab(
+        sheets,
+        sheetId,
+        CONTACT_FORM_SHEET_TITLE,
+        CONTACT_FORM_HEADER_RANGE,
+        CONTACT_FORM_HEADERS
+      )
+      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, row)
+    }
     return true
   } catch (error) {
-    logger.error('sheets.submit_contact_form_failed', { error })
+    logger.error('sheets.submit_contact_form_failed', { error, systemAlert: false })
     return false
   }
 }
@@ -940,34 +858,26 @@ export async function submitLead(row: string[]): Promise<boolean> {
   try {
     const sheets = await getSheets()
     const sheetId = process.env.GOOGLE_SHEET_ID!
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: 'Leads!A:H',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] }
-    })
+    try {
+      await appendSheetRow(sheets, sheetId, LEADS_SHEET_RANGE, row)
+    } catch (error) {
+      if (!isRangeParseError(error)) {
+        throw error
+      }
+
+      await ensureSheetTab(sheets, sheetId, LEADS_SHEET_TITLE, LEADS_HEADER_RANGE, LEADS_HEADERS)
+      await appendSheetRow(sheets, sheetId, LEADS_SHEET_RANGE, row)
+    }
     return true
   } catch (error) {
-    logger.error('sheets.submit_lead_failed', { error })
+    logger.error('sheets.submit_lead_failed', { error, systemAlert: false })
     return false
   }
 }
 
 export async function submitSummerCampEnrollment(row: SheetRow): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const sheetId = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP || SPREADSHEET_ID
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: 'Summer Camp Enrollments!A:K',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.submit_summer_camp_enrollment_failed', { error })
-    return false
-  }
+  skipRestrictedSheetWrite('submitSummerCampEnrollment', { columns: row.length })
+  return false
 }
 
 // ── SUMMER CAMP DATA ──
@@ -1013,31 +923,8 @@ export const getSummerCampByBranch = cacheRead(async (branch: string) => {
 }, ['getSummerCampByBranch'], 60)
 
 export async function decrementSummerCampSlots(branch: string): Promise<boolean> {
-  try {
-    const sheets = await getSheets()
-    const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'SummerCamp!A:F' })
-    const rows = res.data.values || []
-    const rowIndex = rows.findIndex(r => r[0] === branch)
-    if (rowIndex === -1) return false
-    
-    const row = rows[rowIndex]
-    const currentSlots = Number(row[5])
-    if (currentSlots <= 0) return false
-    
-    // decrement slots
-    row[5] = String(currentSlots - 1)
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `SummerCamp!A${rowIndex + 1}:F${rowIndex + 1}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] }
-    })
-    return true
-  } catch (error) {
-    logger.error('sheets.decrement_summer_camp_slots_failed', { branch, error })
-    return false
-  }
+  skipRestrictedSheetWrite('decrementSummerCampSlots', { branch })
+  return false
 }
 
 // ----------------------------------------------------------------------
@@ -1057,31 +944,8 @@ export interface ShopOrder {
 }
 
 export async function createShopOrder(order: ShopOrder): Promise<boolean> {
-    try {
-        const sheets = await getSheets()
-        await sheets.spreadsheets.values.append({
-            spreadsheetId: SPREADSHEET_ID,
-            range: 'Orders!A:I',
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-                values: [[
-                    order.orderId,
-                    order.skfId,
-                    order.itemsJson,
-                    order.total,
-                    order.discount,
-                    order.pointsUsed,
-                    order.date,
-                    order.status,
-                    order.addressJson
-                ]]
-            }
-        })
-        return true
-  } catch (error) {
-    logger.error('sheets.shop_order_create_failed', { orderId: order.orderId, error })
-    return false
-  }
+  skipRestrictedSheetWrite('createShopOrder', { orderId: order.orderId })
+  return false
 }
 
 export const getShopOrdersBySkfId = cacheRead(async (skfId: string): Promise<ShopOrder[]> => {
@@ -1133,24 +997,6 @@ export const getAllShopOrders = cacheRead(async (): Promise<ShopOrder[]> => {
 }, ['allShopOrders'], 15)
 
 export async function updateShopOrderStatus(orderId: string, status: string): Promise<boolean> {
-    try {
-        const sheets = await getSheets()
-        const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Orders!A:I' })
-        const rows = res.data.values || []
-        
-        const rowIndex = rows.findIndex(row => row[0] === orderId)
-        if (rowIndex === -1) return false
-        
-        // Status is Column H (index 7 => H${rowIndex + 1})
-        await sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `Orders!H${rowIndex + 1}`,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: { values: [[status]] }
-        })
-        return true
-    } catch (e) {
-        logger.error('sheets.shop_order_status_update_failed', { orderId, status, error: e })
-        return false
-    }
+  skipRestrictedSheetWrite('updateShopOrderStatus', { orderId, status })
+  return false
 }

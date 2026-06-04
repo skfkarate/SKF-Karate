@@ -1,4 +1,3 @@
-import { google } from 'googleapis';
 import { z } from 'zod';
 
 import { ValidationError, ExternalServiceError } from '@/src/server/lib/errors';
@@ -82,11 +81,6 @@ const summerCampRegistrationSchema = z.object({
   }
 });
 
-function safeSheetCell(value: unknown) {
-  const text = String(value ?? '').trim();
-  return /^[=+\-@]/.test(text) ? `'${text}` : text;
-}
-
 function getPaymentProof(data: SummerCampRegistrationPayload) {
   if (!data.paymentProofBase64 || data.registrationType === 'existing') return null;
 
@@ -114,11 +108,6 @@ export const POST = withRoute(
     maxBodyBytes: MAX_REQUEST_BODY_BYTES,
   },
   async ({ body: data, requestId }) => {
-    // Environment variables
-    const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-    const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID_SUMMER_CAMP;
-    
     const isExisting = data.registrationType === 'existing';
 
     let telegramNotified = 'No';
@@ -157,68 +146,13 @@ export const POST = withRoute(
       logger.error('summer_camp.telegram_failed', { requestId, error: e });
     }
 
-    // 2. Save to Google Sheets
-    if (GOOGLE_CLIENT_EMAIL && GOOGLE_PRIVATE_KEY && GOOGLE_SHEET_ID) {
-      try {
-        const auth = new google.auth.GoogleAuth({
-          credentials: {
-            client_email: GOOGLE_CLIENT_EMAIL,
-            private_key: GOOGLE_PRIVATE_KEY,
-          },
-          scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-        });
+    logger.info('summer_camp.sheets_skipped', {
+      requestId,
+      reason: 'Google Sheets writes are limited to contact form and book free trial submissions.',
+    });
 
-        const sheets = google.sheets({ version: 'v4', auth });
-
-        const row = [
-          new Date().toISOString(),
-          safeSheetCell(data.registrationType),
-          safeSheetCell(data.skfId || ''),
-          safeSheetCell(data.studentName),
-          safeSheetCell(data.dob),
-          safeSheetCell(data.age || ''),
-          safeSheetCell(data.gender || ''),
-          safeSheetCell(data.parentName),
-          safeSheetCell(data.contactNumber),
-          safeSheetCell(data.whatsappNumber || ''),
-          safeSheetCell(data.area),
-          safeSheetCell(data.schoolName),
-          safeSheetCell(data.schoolKarate),
-          safeSheetCell(data.karateExperience || ''),
-          safeSheetCell(data.previouslyTrained || ''),
-          safeSheetCell(data.emergencyContact),
-          safeSheetCell(data.medicalConditions || ''),
-          isExisting ? '0' : '300', // Deposit Amount
-          isExisting ? 'N/A' : 'Paid',
-          proof ? 'Sent via Telegram' : '',
-          data.parentConsent ? 'Yes' : 'No',
-          data.photoPermission ? 'Yes' : 'No',
-          data.campRules ? 'Yes' : 'No',
-          telegramNotified, // Telegram Notified
-          isExisting ? 'N/A' : 'No', // Payment Verified (Admin updates this later)
-          isExisting ? 'N/A' : 'No', // Refund Eligible
-          isExisting ? 'N/A' : 'No', // Refund Paid
-          '0', // Attendance %
-          '' // Notes
-        ];
-
-        await sheets.spreadsheets.values.append({
-          spreadsheetId: GOOGLE_SHEET_ID,
-          range: `'Summer Camp Enrollments'!A1`,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: {
-            values: [row],
-          },
-        });
-      } catch (e: unknown) {
-        logger.error('summer_camp.sheets_failed', { requestId, error: e });
-        throw new ExternalServiceError('Failed to save registration. Please try again shortly.');
-      }
-    } else {
-      logger.warn('summer_camp.sheets_missing_credentials', { requestId });
-      if (telegramNotified !== 'Yes') {
-        throw new ExternalServiceError('Registration service is not configured.');
-      }
+    if (telegramNotified !== 'Yes') {
+      throw new ExternalServiceError('Registration service is not configured.');
     }
 
     return Response.json({ success: true, telegramNotified });

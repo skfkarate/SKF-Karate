@@ -1,4 +1,5 @@
 import type { Session } from 'next-auth'
+import { createHash } from 'node:crypto'
 
 import { getAllAthletesLive, getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { ensureFeeRowsForStudent } from '@/lib/server/repositories/fee-records'
@@ -1049,6 +1050,36 @@ function escapeTelegramMarkdown(value: string) {
   return value.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
 }
 
+const MISSING_MONTHLY_ROWS_TELEGRAM_LIMIT = 25
+
+function locationDisplayLabel(value?: string | null) {
+  const city = resolveCity(value)
+  if (city) return city.name
+  return String(value || '').trim()
+}
+
+function branchSummaryForMissingRows(students: Array<{ branch?: string | null }>) {
+  const counts = new Map<string, number>()
+  for (const student of students) {
+    const branch = String(student.branch || '').trim() || 'Unknown branch'
+    counts.set(branch, (counts.get(branch) || 0) + 1)
+  }
+
+  return Array.from(counts.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([branch, count]) => `${escapeTelegramMarkdown(branch)}: ${count}`)
+    .join(', ')
+}
+
+function affectedStudentsKey(students: Array<{ skfId?: string | null; name: string }>) {
+  const keys = students.map((student) => {
+    const skfId = normaliseSkfId(String(student.skfId || ''))
+    return skfId || normalizeLocationKey(student.name)
+  })
+
+  return createHash('sha256').update(keys.filter(Boolean).sort().join(',')).digest('hex').slice(0, 24)
+}
+
 async function notifyMissingMonthlyRows(input: {
   month: string
   year: number
@@ -1059,12 +1090,21 @@ async function notifyMissingMonthlyRows(input: {
 }) {
   if (!hasTelegramChannel('fees')) return
 
+  const students = input.examples.map((student) => ({
+    skfId: normaliseSkfId(String(student.skfId || '')),
+    name: String(student.name || 'SKF Athlete').trim() || 'SKF Athlete',
+    branch: String(student.branch || '').trim() || 'Unknown branch',
+  }))
+  const affectedBranches = Array.from(new Set(students.map((student) => student.branch))).sort((left, right) =>
+    left.localeCompare(right)
+  )
+  const affectedKey = affectedStudentsKey(students)
   const alertKey = [
     'missing_monthly_rows',
     input.year,
     input.month,
-    normalizeLocationKey(input.city || 'all') || 'all',
-    normalizeLocationKey(input.branch || 'all') || 'all',
+    affectedKey || `count_${input.count}`,
+    affectedBranches.map((branch) => normalizeLocationKey(branch)).join(',') || 'all_branches',
     new Date().toISOString().slice(0, 10),
   ].join(':')
 
@@ -1080,19 +1120,35 @@ async function notifyMissingMonthlyRows(input: {
   }
   if ((existing || []).length) return
 
-  const examples = input.examples
-    .slice(0, 5)
-    .map((student) => `• ${escapeTelegramMarkdown(student.name)} ${escapeTelegramMarkdown(String(student.skfId || ''))}`)
+  const listedStudents = students.slice(0, MISSING_MONTHLY_ROWS_TELEGRAM_LIMIT)
+  const hiddenCount = Math.max(0, input.count - listedStudents.length)
+  const studentList = listedStudents
+    .map((student) => {
+      const skfId = student.skfId ? ` (${escapeTelegramMarkdown(student.skfId)})` : ''
+      return `• ${escapeTelegramMarkdown(student.name)}${skfId} - ${escapeTelegramMarkdown(student.branch)}`
+    })
     .join('\n')
+  const branchLine = branchSummaryForMissingRows(students)
+  const cityLabel = locationDisplayLabel(input.city)
+  const scopeLabel =
+    input.branch
+      ? locationDisplayLabel(input.branch)
+      : affectedBranches.length === 1
+        ? affectedBranches[0]
+        : 'All branches'
   const text = [
     '*SKF FeeTrack Data Check*',
     '',
     `Missing monthly rows: *${input.count}*`,
     `Period: ${escapeTelegramMarkdown(input.month)} ${input.year}`,
-    input.city ? `City: ${escapeTelegramMarkdown(input.city)}` : '',
-    input.branch ? `Branch: ${escapeTelegramMarkdown(input.branch)}` : '',
-    examples ? '' : '',
-    examples,
+    cityLabel ? `City: ${escapeTelegramMarkdown(cityLabel)}` : '',
+    `Scope: ${escapeTelegramMarkdown(scopeLabel)}`,
+    branchLine ? `Branches: ${branchLine}` : '',
+    studentList ? '' : '',
+    studentList,
+    hiddenCount > 0 ? `• +${hiddenCount} more in FeeTrack Data Quality` : '',
+    '',
+    'Action: FeeTrack > Data Quality > Sync Missing Monthly Rows',
   ].filter(Boolean).join('\n')
 
   try {
@@ -1113,6 +1169,8 @@ async function notifyMissingMonthlyRows(input: {
         count: input.count,
         city: input.city || '',
         branch: input.branch || '',
+        affectedBranches,
+        affectedStudents: students.map((student) => student.skfId || student.name),
       },
     })
   } catch (error) {
@@ -2078,7 +2136,7 @@ export class FeeOperationsService {
         count: missingMonthlyRows.length,
         city: query.city,
         branch: query.branch,
-        examples: missingMonthlyRows.slice(0, 5).map((athlete) => ({
+        examples: missingMonthlyRows.map((athlete) => ({
           skfId: athlete.skfId,
           name: athleteName(athlete),
           branch: athlete.branchName,
