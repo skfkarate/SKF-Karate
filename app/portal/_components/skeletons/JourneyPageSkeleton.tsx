@@ -2,12 +2,9 @@
 
 import React from 'react';
 import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives';
-import { useNonce } from '@/components/NonceProvider';
 import '@/app/portal/journey/journey.css';
 
 export const JourneyPageSkeleton = () => {
-  const nonce = useNonce();
-
   return (
   <div style={{ padding: '2rem 1rem 6rem 1rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }} aria-label="Loading journey" aria-busy="true">
     

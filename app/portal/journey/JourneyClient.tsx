@@ -6,7 +6,6 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Medal, Award, Star, X, Info } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
-import { useNonce } from '@/components/NonceProvider'
 
 // Local helper to map the belt colour strings to actual hexes
 const getHexColor = (beltStr: string) => {
@@ -37,7 +36,6 @@ export type TimelineNode = {
 }
 
 export default function JourneyClient({ timelineNodes }: { timelineNodes: TimelineNode[] }) {
-  const nonce = useNonce()
   usePortalAuth()
   const [selectedNode, setSelectedNode] = useState<TimelineNode | null>(null)
   const currentNodeRef = useRef<HTMLDivElement>(null)
@@ -45,7 +43,9 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const mountFrame = requestAnimationFrame(() => {
+      setMounted(true)
+    })
     
     // Abort the auto-scroll if the user starts interacting, to prevent sudden jumps
     let hasInteracted = false
@@ -69,6 +69,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
     }, 400) // Reduced delay so it acts as an immediate intro
 
     return () => {
+      cancelAnimationFrame(mountFrame)
       clearTimeout(timer)
       window.removeEventListener('touchstart', abortScroll)
       window.removeEventListener('wheel', abortScroll)

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { SkeletonLine, SkeletonCircle, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
+import { SkeletonLine, SkeletonCircle, SkeletonBlock } from './SkeletonPrimitives';
 import { useNonce } from '@/components/NonceProvider';
 
 /**

@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonBlock, SkeletonButton, SkeletonCircle } from './SkeletonPrimitives'
+import { SkeletonLine, SkeletonButton, SkeletonCircle } from './SkeletonPrimitives'
 import '@/app/events/events.css'
 
 /**
@@ -106,4 +106,3 @@ export default function EventsPageSkeleton() {
     </div>
   )
 }
-

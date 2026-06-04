@@ -1,5 +1,5 @@
 import React from 'react';
-import { SkeletonLine, SkeletonBlock, SkeletonButton } from './SkeletonPrimitives';
+import { SkeletonLine, SkeletonCircle, SkeletonButton } from './SkeletonPrimitives';
 import '../../login/login.css';
 
 export const LoginPageSkeleton = () => (
