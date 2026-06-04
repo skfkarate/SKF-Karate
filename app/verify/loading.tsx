@@ -1,6 +1,6 @@
-import RouteLoadingShell from '@/components/skeletons/RouteLoadingShell'
+import VerifyPageSkeleton from '@/components/skeletons/VerifyPageSkeleton'
 import { SkeletonLoadingWrapper } from '@/components/navigation/SkeletonLoadingWrapper'
 
 export default function Loading() {
-  return <SkeletonLoadingWrapper><RouteLoadingShell variant="form" /></SkeletonLoadingWrapper>
+  return <SkeletonLoadingWrapper><VerifyPageSkeleton /></SkeletonLoadingWrapper>
 }
