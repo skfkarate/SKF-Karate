@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { SkeletonLine, SkeletonCircle, SkeletonBlock } from '../_components/skeletons/SkeletonPrimitives';
 import { useNonce } from '@/components/NonceProvider';
 import { markRouteLoadingVisible } from '@/components/navigation/routeTransitionTelemetry';
+import './blackbelt.css';
 
 /**
  * BlackBeltLoading — matches Black Belt Program page layout
