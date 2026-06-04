@@ -318,7 +318,7 @@ function ReminderList({ title, tasks, icon: Icon }: { title: string, tasks: Task
 /* ═══ MAIN ═══ */
 interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string }
 
-export default function BlackBeltClient({ program, candidates, progressMap, currentSkfId }: Props) {
+export default function BlackBeltClient({ program, candidates, currentSkfId }: Props) {
   const curMonth = useMemo(() => getCurrentMonth(program?.program_start ?? null), [program])
   
   const [me, setMe] = useState(candidates.find(c => c.skf_id === currentSkfId))

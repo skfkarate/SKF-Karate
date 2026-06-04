@@ -1,5 +1,5 @@
 import React from 'react'
-import { SkeletonLine, SkeletonCircle } from './SkeletonPrimitives'
+import { SkeletonLine } from './SkeletonPrimitives'
 import '@/app/grading/grading.css'
 
 /**

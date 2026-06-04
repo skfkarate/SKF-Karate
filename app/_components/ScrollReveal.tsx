@@ -12,20 +12,16 @@ import { usePathname } from 'next/navigation'
  */
 export default function ScrollReveal({ children, delay = 0, className = '', threshold = 0.15 }: { children: ReactNode; delay?: number; className?: string; threshold?: number }) {
     const ref = useRef<HTMLDivElement>(null)
-    const [isVisible, setIsVisible] = useState(false)
+    const [visiblePathname, setVisiblePathname] = useState<string | null>(null)
     const pathname = usePathname()
-
-    // Reset visibility when the route changes so re-entering this page re-triggers the animation
-    useEffect(() => {
-        setIsVisible(false)
-    }, [pathname])
+    const isVisible = visiblePathname === pathname
 
     useEffect(() => {
         const el = ref.current
         if (!el) return
 
         const reveal = () => {
-            setIsVisible(true)
+            setVisiblePathname(pathname)
         }
 
         const observer = new IntersectionObserver(

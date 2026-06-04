@@ -1,4 +1,4 @@
-import { FaInstagram, FaYoutube, FaWhatsapp, FaFacebookF } from 'react-icons/fa'
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa'
 import { CONTACT, SOCIAL_LINKS } from '@/data/constants/contact'
 import { flattenClassBranches } from '@/lib/classes/catalog'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
