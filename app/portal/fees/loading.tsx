@@ -1,5 +1,6 @@
 import { FeesPageSkeleton } from '../_components/skeletons/FeesPageSkeleton';
+import { SkeletonLoadingWrapper } from '@/components/navigation/SkeletonLoadingWrapper'
 
 export default function Loading() {
-  return <FeesPageSkeleton />;
+  return <SkeletonLoadingWrapper><FeesPageSkeleton /></SkeletonLoadingWrapper>;
 }

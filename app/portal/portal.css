@@ -39,7 +39,6 @@
   top: 50%;
   left: 1.5rem;
   transform: translateY(-50%);
-  width: 72px;
   height: calc(100dvh - 3rem);
   max-height: 800px;
   background: rgba(10, 14, 22, 0.75);
@@ -51,17 +50,12 @@
   z-index: 50;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02);
-  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 900px) {
   .kuroobi-dock-desktop {
     display: flex;
   }
-}
-
-.kuroobi-dock-desktop.is-hovered {
-  width: 240px;
 }
 
 .kuroobi-dock__brand {
@@ -143,15 +137,6 @@
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  pointer-events: none;
-}
-
-.kuroobi-dock-desktop.is-hovered .kuroobi-dock__link-label {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 .kuroobi-dock__footer {
@@ -183,14 +168,6 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.kuroobi-dock-desktop.is-hovered .kuroobi-dock__logout span {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 /* ══════════ MOBILE FAB SYSTEM ══════════ */
@@ -234,13 +211,6 @@
   pointer-events: none;
 }
 
-.kuroobi-fab__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
 @media (max-width: 899px) {
   .kuroobi-fab {
     display: flex;
@@ -259,23 +229,12 @@
   flex-direction: column;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  opacity: 0;
-  transform: translate3d(0, 100%, 0);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
 }
 
 @media (max-width: 899px) {
   .kuroobi-overlay {
     display: flex;
   }
-}
-
-.kuroobi-overlay.is-open {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  pointer-events: auto;
 }
 
 .kuroobi-overlay__brand {
@@ -410,7 +369,6 @@
     opacity 0.3s ease, 
     background 0.2s ease, 
     border-color 0.2s ease,
-    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
@@ -438,22 +396,10 @@
   transform: scale(0.95);
 }
 
-.kuroobi-back.dock-shifted {
-  transform: translateX(180px);
-}
-
-.kuroobi-back.dock-shifted:active {
-  transform: translateX(180px) scale(0.95);
-}
-
 .kuroobi-back.back-hidden {
   transform: translateY(-80px);
   opacity: 0;
   pointer-events: none;
-}
-
-.kuroobi-back.dock-shifted.back-hidden {
-  transform: translate(180px, -80px);
 }
 
 .kuroobi-back-inner {
@@ -817,43 +763,11 @@
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-  animation: switcher-menu-arrive 0.18s ease-out both;
 }
 
 @media (max-width: 899px) {
   .kuroobi-top-switcher {
     top: 1.25rem;
     right: 1.25rem;
-  }
-}
-
-@keyframes switcher-menu-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hub-main__page,
-  .kuroobi-dock-desktop,
-  .kuroobi-dock__link,
-  .kuroobi-dock__link-label,
-  .kuroobi-dock__logout,
-  .kuroobi-dock__logout span,
-  .kuroobi-fab,
-  .kuroobi-fab__icon,
-  .kuroobi-overlay,
-  .kuroobi-back,
-  .kuroobi-back-text,
-  .kuroobi-top-switcher,
-  .kuroobi-top-switcher-button,
-  .kuroobi-dock__sibling-menu.top-right-mode {
-    animation: none !important;
-    transition: none !important;
   }
 }

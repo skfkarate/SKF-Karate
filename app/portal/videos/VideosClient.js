@@ -29,14 +29,57 @@ function formatCategoryLabel(value) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-export default function VideosClient({ initialVideos = [], initialProgressData = [] }) {
-  const [videos] = useState(() =>
-    initialVideos.map(normalizeVideo).filter((video) => video.id && video.youtubeId)
-  )
-  const [progressData, setProgressData] = useState(initialProgressData)
-  const [isLoading] = useState(false)
-  const [error] = useState('')
+export default function VideosClient() {
+  const [videos, setVideos] = useState([])
+  const [progressData, setProgressData] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [playingVideo, setPlayingVideo] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchPortalVideos() {
+      setIsLoading(true)
+      setError('')
+
+      try {
+        const [videosRes, progressRes] = await Promise.all([
+          fetch('/api/portal/videos', { cache: 'no-store' }),
+          fetch('/api/portal/videos/progress', { cache: 'no-store' }),
+        ])
+
+        if (videosRes.status === 401 || progressRes.status === 401) {
+          window.location.href = '/portal/login'
+          return
+        }
+
+        if (!videosRes.ok) throw new Error('Unable to load training videos.')
+        if (!progressRes.ok) throw new Error('Unable to load watch progress.')
+
+        const [videosPayload, progressPayload] = await Promise.all([
+          videosRes.json(),
+          progressRes.json(),
+        ])
+
+        if (!cancelled) {
+          setVideos((videosPayload.videos || []).map(normalizeVideo).filter((video) => video.id && video.youtubeId))
+          setProgressData(progressPayload.data?.progressData || progressPayload.progressData || [])
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : 'Unable to load training videos.')
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+
+    void fetchPortalVideos()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (playingVideo) document.body.style.overflow = 'hidden'

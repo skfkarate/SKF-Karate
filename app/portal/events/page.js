@@ -70,9 +70,9 @@ function EventCard({ event, index }) {
         }}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem', position: 'relative', zIndex: 1 }}>
+      <div className="events-grid-new__card-header" style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem', position: 'relative', zIndex: 1 }}>
         <div>
-          <div style={{ color: '#fff', fontSize: '2.1rem', fontWeight: 900, lineHeight: 1 }}>
+          <div className="events-grid-new__card-date" style={{ color: '#fff', fontSize: '2.1rem', fontWeight: 900, lineHeight: 1 }}>
             {formatDate(event.date)}
           </div>
           {event.endDate ? (
@@ -82,6 +82,7 @@ function EventCard({ event, index }) {
           ) : null}
         </div>
         <span
+          className="events-grid-new__card-badge"
           style={{
             alignSelf: 'flex-start',
             fontSize: '0.72rem',
@@ -100,7 +101,7 @@ function EventCard({ event, index }) {
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ margin: '0 0 0.9rem', fontSize: '1.55rem', fontWeight: 850, color: '#fff', lineHeight: 1.2 }}>
+        <h3 className="events-grid-new__card-title" style={{ margin: '0 0 0.9rem', fontSize: '1.55rem', fontWeight: 850, color: '#fff', lineHeight: 1.2 }}>
           {event.name}
         </h3>
 
@@ -180,7 +181,7 @@ export default async function PortalEventsPage() {
       </div>
 
       {assignedEvents.length === 0 ? (
-        <div style={{
+        <div className="events-grid-new__empty" style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -213,9 +214,40 @@ export default async function PortalEventsPage() {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        .events-grid-new__card {
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
         .events-grid-new__card:hover {
           transform: translateY(-6px);
           border-color: rgba(255,255,255,0.16) !important;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+        }
+
+        @media (max-width: 768px) {
+          .events-grid-new {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+          }
+          .events-grid-new__card {
+            padding: 1.5rem !important;
+            min-height: auto !important;
+            border-radius: 20px !important;
+          }
+          .events-grid-new__card-date {
+            font-size: 1.7rem !important;
+          }
+          .events-grid-new__card-title {
+            font-size: 1.35rem !important;
+          }
+          .events-grid-new__card-header {
+            margin-bottom: 1.25rem !important;
+            flex-direction: column-reverse !important;
+            align-items: flex-start !important;
+            gap: 0.75rem !important;
+          }
+          .events-grid-new__empty {
+            padding: 3rem 1.5rem !important;
+          }
         }
       ` }} />
     </div>

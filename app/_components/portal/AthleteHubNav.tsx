@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Loader2, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
@@ -135,8 +136,10 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   const pathname = usePathname()
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)     // Desktop dock hover
-  const [menuOpen, setMenuOpen] = useState(false)  // Mobile overlay
+  const [rawMenuOpen, setRawMenuOpen] = useState(false)  // Mobile overlay
+  const [menuPathname, setMenuPathname] = useState(pathname)
   const scrollHidden = useScrollDirection()
+  const menuOpen = rawMenuOpen && menuPathname === pathname
   
   const [siblings, setSiblings] = useState<PortalSiblingView[]>([])
   const [isSwitching, setIsSwitching] = useState<string | null>(null)
@@ -148,6 +151,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   const isLoginPage = pathname === '/portal/login'
   const isBackToHome = true
   const backText = 'Home Page'
+
+  function setMenuOpen(value: boolean | ((current: boolean) => boolean)) {
+    const nextOpen = typeof value === 'function' ? value(menuOpen) : value
+    setMenuPathname(pathname)
+    setRawMenuOpen(nextOpen)
+  }
 
   useEffect(() => {
     const triggerHint = () => {
@@ -168,32 +177,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
 
 
   // Filter links: only show Black Belt link to assigned Black Belt candidates.
-  const visibleNavLinks = useMemo(() => navLinks.filter(link => {
+  const visibleNavLinks = navLinks.filter(link => {
     if (link.href === '/portal/blackbelt') {
       return isBlackBeltCandidate
     }
     return true
-  }), [isBlackBeltCandidate])
-
-  useEffect(() => {
-    setMenuOpen(false)
-    setTopSwitcherOpen(false)
-  }, [pathname])
-
-  useEffect(() => {
-    if (!menuOpen || isLoginPage) return
-
-    const id = window.setTimeout(() => {
-      for (const link of visibleNavLinks) {
-        const isDisabled = 'disabled' in link ? link.disabled : false
-        if (!isDisabled) {
-          router.prefetch(link.href)
-        }
-      }
-    }, 0)
-
-    return () => window.clearTimeout(id)
-  }, [isLoginPage, menuOpen, router, visibleNavLinks])
+  })
 
   useEffect(() => {
     if (isLoginPage || !currentSession?.skfId) return
@@ -244,8 +233,10 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     router.push('/')
   }
 
-  function handleNavClick() {
-    setMenuOpen(false)
+  function handleNavClick(targetHref: string) {
+    if (pathname === targetHref) {
+      setMenuOpen(false)
+    }
   }
 
   // Lock body scroll when overlay is open
@@ -262,10 +253,12 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     <>
       {/* ══════════ DESKTOP: FLOATING GLASS DOCK (unchanged) ══════════ */}
       {!isLoginPage && (
-        <nav
-          className={`kuroobi-dock-desktop ${isHovered ? 'is-hovered' : ''}`}
+        <motion.nav 
+          className="kuroobi-dock-desktop"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          animate={{ width: isHovered ? 240 : 72 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           <div className="kuroobi-dock__brand">
             <Image
@@ -294,7 +287,20 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                     <div className="kuroobi-dock__icon-wrapper">
                       <Icon size={20} strokeWidth={1.5} />
                     </div>
-                    <span className="kuroobi-dock__link-label">{link.label}</span>
+                    
+                    <AnimatePresence>
+                      {isHovered && (
+                        <motion.span 
+                          className="kuroobi-dock__link-label"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10, transition: { duration: 0.1 } }}
+                          transition={{ duration: 0.15, delay: 0.05 }}
+                        >
+                          {link.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )
               }
@@ -308,9 +314,22 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                 >
                   <div className="kuroobi-dock__icon-wrapper">
                     <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
-                    {isActive && <div className="kuroobi-dock__active-dot" />}
+                    {isActive && <motion.div layoutId="portalNavActiveDot" className="kuroobi-dock__active-dot" />}
                   </div>
-                  <span className="kuroobi-dock__link-label">{link.label}</span>
+                  
+                  <AnimatePresence>
+                    {isHovered && (
+                      <motion.span 
+                        className="kuroobi-dock__link-label"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10, transition: { duration: 0.1 } }}
+                        transition={{ duration: 0.15, delay: 0.05 }}
+                      >
+                        {link.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </Link>
               )
             })}
@@ -320,26 +339,40 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
 
             <button onClick={handleLogout} className="kuroobi-dock__logout" title="Sign Out">
               <LogOut size={18} strokeWidth={1.5} />
-              <span>Sign Out</span>
+              <AnimatePresence>
+                {isHovered && (
+                  <motion.span 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                  >
+                    Sign Out
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
           </div>
-        </nav>
+        </motion.nav>
       )}
 
       {/* ══════════ BACK BUTTON (RESPONSIVE & DYNAMIC POSITIONING) ══════════ */}
-      <button
-        className={`kuroobi-back ${backHovered || backHintActive ? 'expanded' : ''} ${isBackToHome ? 'back-home' : ''} ${(scrollHidden && !menuOpen) ? 'back-hidden' : ''} ${isHovered && !isLoginPage ? 'dock-shifted' : ''}`}
+      <motion.button
+        className={`kuroobi-back ${backHovered || backHintActive ? 'expanded' : ''} ${isBackToHome ? 'back-home' : ''} ${(scrollHidden && !menuOpen) ? 'back-hidden' : ''}`}
         onClick={handleBack}
         onMouseEnter={() => setBackHovered(true)}
         onMouseLeave={() => setBackHovered(false)}
         aria-label={isLoginPage ? 'Back to website' : 'Go back'}
         style={{ display: menuOpen ? 'none' : undefined }}
+        animate={{ 
+          x: isHovered && !isLoginPage ? 180 : 0 
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="kuroobi-back-inner">
           <ChevronLeft size={20} strokeWidth={2.2} className="kuroobi-back-icon" />
           <span className="kuroobi-back-text">{backText}</span>
         </div>
-      </button>
+      </motion.button>
 
       {/* ══════════ TOP RIGHT: FAMILY PROFILE SWITCHER ══════════ */}
       {!isLoginPage && currentSession && siblings.length > 0 && (
@@ -367,57 +400,65 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
             />
           </button>
 
-          {topSwitcherOpen && (
-            <>
-              <div
-                className="kuroobi-top-switcher-overlay"
-                onClick={() => setTopSwitcherOpen(false)}
-                style={{ position: 'fixed', inset: 0, zIndex: -1 }}
-              />
-              <div className="kuroobi-dock__sibling-menu top-right-mode">
-                <div className="sibling-menu-header">Family Accounts</div>
-                <div className="sibling-list">
-                  <div className="sibling-item active">
-                    <div className="sibling-avatar">
-                      <PortalAvatar
-                        photoUrl={currentAthlete?.photoUrl}
-                        alt={`${currentSession?.name || 'Active athlete'} profile photo`}
-                      />
-                    </div>
-                    <div className="sibling-info">
-                      <span className="sibling-name">{currentSession?.name || 'You'}</span>
-                      <span className="sibling-id">{currentSession?.skfId}</span>
-                    </div>
-                    <div className="sibling-current-badge">Active</div>
-                  </div>
-                  {siblings.map(sibling => (
-                    <button
-                      key={sibling.skfId}
-                      className="sibling-item glass-item"
-                      onClick={() => {
-                        handleSwitchProfile(sibling.skfId)
-                      }}
-                      disabled={!!isSwitching}
-                    >
+          <AnimatePresence>
+            {topSwitcherOpen && (
+              <>
+                <div 
+                  className="kuroobi-top-switcher-overlay" 
+                  onClick={() => setTopSwitcherOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: -1 }}
+                />
+                <motion.div 
+                  className="kuroobi-dock__sibling-menu top-right-mode"
+                  initial={{ opacity: 0, y: -15, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <div className="sibling-menu-header">Family Accounts</div>
+                  <div className="sibling-list">
+                    <div className="sibling-item active">
                       <div className="sibling-avatar">
                         <PortalAvatar
-                          photoUrl={sibling.photoUrl}
-                          alt={`${sibling.name || sibling.firstName || sibling.skfId} profile photo`}
+                          photoUrl={currentAthlete?.photoUrl}
+                          alt={`${currentSession?.name || 'Active athlete'} profile photo`}
                         />
                       </div>
                       <div className="sibling-info">
-                        <span className="sibling-name">{sibling.name || sibling.firstName}</span>
-                        <span className="sibling-id">{sibling.skfId}</span>
+                        <span className="sibling-name">{currentSession?.name || 'You'}</span>
+                        <span className="sibling-id">{currentSession?.skfId}</span>
                       </div>
-                      {isSwitching === sibling.skfId && (
-                        <Loader2 size={16} className="spinner" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+                      <div className="sibling-current-badge">Active</div>
+                    </div>
+                    {siblings.map(sibling => (
+                      <button 
+                        key={sibling.skfId}
+                        className="sibling-item glass-item"
+                        onClick={() => {
+                          handleSwitchProfile(sibling.skfId)
+                        }}
+                        disabled={!!isSwitching}
+                      >
+                        <div className="sibling-avatar">
+                          <PortalAvatar
+                            photoUrl={sibling.photoUrl}
+                            alt={`${sibling.name || sibling.firstName || sibling.skfId} profile photo`}
+                          />
+                        </div>
+                        <div className="sibling-info">
+                          <span className="sibling-name">{sibling.name || sibling.firstName}</span>
+                          <span className="sibling-id">{sibling.skfId}</span>
+                        </div>
+                        {isSwitching === sibling.skfId && (
+                          <Loader2 size={16} className="spinner" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -429,20 +470,51 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
           aria-label={menuOpen ? 'Close menu' : 'Open navigation'}
           style={{ animation: menuOpen ? 'none' : undefined }}
         >
-          <span className="kuroobi-fab__icon" aria-hidden="true">
-            {menuOpen ? <X size={24} strokeWidth={2.5} /> : <Menu size={24} strokeWidth={2.5} />}
-          </span>
+          <AnimatePresence mode="wait" initial={false}>
+            {menuOpen ? (
+              <motion.div
+                key="close"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={24} strokeWidth={2.5} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="menu"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Menu size={24} strokeWidth={2.5} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </button>
       )}
 
       {/* ══════════ MOBILE: FULLSCREEN OVERLAY MENU ══════════ */}
-      {!isLoginPage && (
-          <div
-            className={`kuroobi-overlay ${menuOpen ? 'is-open' : ''}`}
-            aria-hidden={!menuOpen}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="kuroobi-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             {/* Brand Header */}
-            <div className="kuroobi-overlay__brand">
+            <motion.div 
+              className="kuroobi-overlay__brand"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
               <Image
                 src="/icons/icon-192.png"
                 alt="SKF"
@@ -450,53 +522,74 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                 height={36}
                 className="kuroobi-overlay__brand-logo"
               />
-              <span className="kuroobi-overlay__brand-text">Athlete Quarter</span>
-            </div>
+              <span className="kuroobi-overlay__brand-text">Athlete Portal</span>
+            </motion.div>
 
             {/* Navigation Links */}
             <div className="kuroobi-overlay__links">
-              {visibleNavLinks.map((link) => {
+              {visibleNavLinks.map((link, idx) => {
                 const Icon = link.icon
                 const isActive = pathname === link.href
                 const isDisabled = 'disabled' in link ? link.disabled : false
 
                 if (isDisabled) {
                   return (
-                    <div
+                    <motion.div
                       key={link.href}
-                      className="kuroobi-overlay__link"
-                      style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 + idx * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <div className="kuroobi-overlay__link-icon">
-                        <Icon size={18} strokeWidth={1.5} />
+                      <div
+                        className="kuroobi-overlay__link"
+                        style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                      >
+                        <div className="kuroobi-overlay__link-icon">
+                          <Icon size={18} strokeWidth={1.5} />
+                        </div>
+                        {link.label}
                       </div>
-                      {link.label}
-                    </div>
+                    </motion.div>
                   )
                 }
 
                 return (
-                  <Link
+                  <motion.div
                     key={link.href}
-                    href={link.href}
-                    className={`kuroobi-overlay__link ${isActive ? 'kuroobi-overlay__link--active' : ''}`}
-                    onClick={handleNavClick}
-                    tabIndex={menuOpen ? undefined : -1}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 + idx * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <div className="kuroobi-overlay__link-icon">
-                      <Icon size={18} strokeWidth={isActive ? 2.5 : 1.5} />
-                    </div>
-                    {link.label}
-                  </Link>
+                    <Link
+                      href={link.href}
+                      className={`kuroobi-overlay__link ${isActive ? 'kuroobi-overlay__link--active' : ''}`}
+                      onClick={() => handleNavClick(link.href)}
+                    >
+                      <div className="kuroobi-overlay__link-icon">
+                        <Icon size={18} strokeWidth={isActive ? 2.5 : 1.5} />
+                      </div>
+                      {link.label}
+                    </Link>
+                  </motion.div>
                 )
               })}
             </div>
 
             {/* Divider + Switcher + Sign Out */}
-            <div className="kuroobi-overlay__divider" />
+            <motion.div 
+              className="kuroobi-overlay__divider" 
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            />
 
             {siblings.length > 0 && (
-              <div className="kuroobi-overlay__switcher">
+              <motion.div 
+                className="kuroobi-overlay__switcher"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <div className="sibling-menu-header">Family Accounts</div>
                 <div className="sibling-list">
                   <div className="sibling-item active">
@@ -518,7 +611,6 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                       className="sibling-item"
                       onClick={() => handleSwitchProfile(sibling.skfId)}
                       disabled={!!isSwitching}
-                      tabIndex={menuOpen ? undefined : -1}
                     >
                       <div className="sibling-avatar">
                         <PortalAvatar
@@ -536,19 +628,22 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                     </button>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
-            <button
+            <motion.button
               className="kuroobi-overlay__signout"
               onClick={handleLogout}
-              tabIndex={menuOpen ? undefined : -1}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
               <LogOut size={18} strokeWidth={1.5} />
               Sign Out
-            </button>
-          </div>
-      )}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

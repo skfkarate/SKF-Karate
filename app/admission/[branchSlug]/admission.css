@@ -409,10 +409,10 @@
 }
 
 @keyframes photoLaser {
-  0% { transform: translateY(16px); opacity: 0; }
+  0% { top: 10%; opacity: 0; transform: none; }
   15% { opacity: 1; }
   85% { opacity: 1; }
-  100% { transform: translateY(144px); opacity: 0; }
+  100% { top: 90%; opacity: 0; transform: none; }
 }
 
 .adm-photo-upload-info {
@@ -836,10 +836,10 @@ textarea.adm-field__input {
 }
 
 @keyframes scanLaser {
-  0% { transform: translateY(12px); opacity: 0; }
+  0% { top: 5%; opacity: 0; transform: none; }
   10% { opacity: 1; }
   90% { opacity: 1; }
-  100% { transform: translateY(240px); opacity: 0; }
+  100% { top: 95%; opacity: 0; transform: none; }
 }
 
 /* Corner brackets */
@@ -1462,6 +1462,18 @@ textarea.adm-field__input {
   .adm-expanded-panel {
     padding: 1rem;
     margin-left: 0;
+  }
+
+  /* Photo Upload */
+  .adm-photo-upload-wrap {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .adm-photo-upload-info {
+    align-items: center;
   }
 
   /* QR Card */

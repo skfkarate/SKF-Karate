@@ -1,66 +1,49 @@
 'use client'
 
-import { useState } from 'react'
-import type { LucideIcon } from 'lucide-react'
-import {
-    Activity,
-    ArrowUpRight,
-    ArrowDownRight,
-    Cake,
-    Coins,
-    GraduationCap,
-    Handshake,
-    Loader2,
-    Medal,
-    ShoppingBag,
-    Trophy,
-    Video,
-} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { IconType } from 'react-icons'
+import { FaGraduationCap, FaVideo, FaBirthdayCake, FaCoins, FaShoppingBag, FaTrophy, FaHandshake, FaMedal } from 'react-icons/fa'
+import { Activity, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react'
 
-export type PointsTransaction = {
-    id?: string | number | null
-    type?: string | null
-    reason?: string | null
-    created_at?: string | null
-    points?: number | null
+type PointsTransaction = {
+    id: string
+    type: string
+    reason: string
+    created_at: string
+    points: number
 }
 
-const IconMap: Record<string, { icon: LucideIcon; color: string }> = {
-    GRADING_PASS: { icon: GraduationCap, color: '#4caf50' },
-    WATCH_VIDEO: { icon: Video, color: '#2196f3' },
-    BIRTHDAY: { icon: Cake, color: '#e91e63' },
-    LOGIN_BONUS: { icon: Coins, color: 'var(--gold, #ffb703)' },
-    REDEEM: { icon: ShoppingBag, color: '#9c27b0' },
-    TOURNAMENT_GOLD: { icon: Trophy, color: '#ffb703' },
-    TOURNAMENT_SILVER: { icon: Trophy, color: '#e0e0e0' },
-    TOURNAMENT_BRONZE: { icon: Trophy, color: '#cd7f32' },
-    REFERRAL: { icon: Handshake, color: '#00bcd4' },
-    DEFAULT: { icon: Medal, color: '#888888' }
+const IconMap: Record<string, { icon: IconType; color: string }> = {
+    GRADING_PASS: { icon: FaGraduationCap, color: '#4caf50' },
+    WATCH_VIDEO: { icon: FaVideo, color: '#2196f3' },
+    BIRTHDAY: { icon: FaBirthdayCake, color: '#e91e63' },
+    LOGIN_BONUS: { icon: FaCoins, color: 'var(--gold, #ffb703)' },
+    REDEEM: { icon: FaShoppingBag, color: '#9c27b0' },
+    TOURNAMENT_GOLD: { icon: FaTrophy, color: '#ffb703' },
+    TOURNAMENT_SILVER: { icon: FaTrophy, color: '#e0e0e0' },
+    TOURNAMENT_BRONZE: { icon: FaTrophy, color: '#cd7f32' },
+    REFERRAL: { icon: FaHandshake, color: '#00bcd4' },
+    DEFAULT: { icon: FaMedal, color: '#888888' }
 }
 
-export default function PointsHistory({
-    initialTransactions = [],
-    initialHasMore = false,
-}: {
-    initialTransactions?: PointsTransaction[]
-    initialHasMore?: boolean
-}) {
-    const [transactions, setTransactions] = useState<PointsTransaction[]>(initialTransactions)
+export default function PointsHistory() {
+    const [transactions, setTransactions] = useState<PointsTransaction[]>([])
     const [page, setPage] = useState(1)
-    const [loading, setLoading] = useState(false)
-    const [hasMore, setHasMore] = useState(initialHasMore)
+    const [loading, setLoading] = useState(true)
+    const [hasMore, setHasMore] = useState(true)
 
     const fetchHistory = async (p: number) => {
         setLoading(true)
         try {
             const res = await fetch(`/api/points/history?page=${p}&limit=10`)
             if (res.ok) {
-                const data = await res.json() as { transactions?: PointsTransaction[]; hasMore?: boolean }
+                const data = await res.json() as { transactions?: PointsTransaction[] }
                 const nextTransactions = data.transactions || []
                 if (p === 1) setTransactions(nextTransactions)
                 else setTransactions(prev => [...prev, ...nextTransactions])
-
-                setHasMore(data.hasMore ?? nextTransactions.length >= 10)
+                
+                if (nextTransactions.length < 10) setHasMore(false)
             }
         } catch {
             // The empty history state covers transient load failures.
@@ -69,10 +52,17 @@ export default function PointsHistory({
         }
     }
 
+    useEffect(() => {
+        const id = window.setTimeout(() => {
+            void fetchHistory(1)
+        }, 0)
+        return () => window.clearTimeout(id)
+    }, [])
+
     const loadMore = () => {
         const next = page + 1
         setPage(next)
-        void fetchHistory(next)
+        fetchHistory(next)
     }
 
     if (transactions.length === 0 && !loading) {
@@ -95,22 +85,20 @@ export default function PointsHistory({
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {transactions.map((tx, idx) => {
-                        const transactionType = String(tx.type || '')
-                        const reason = String(tx.reason || 'POINTS_ACTIVITY')
-                        const match = transactionType === 'REDEEM' ? IconMap['REDEEM'] : (IconMap[reason] || IconMap['DEFAULT'])
+                <AnimatePresence>
+                    {transactions.map((tx, idx) => {
+                        const match = tx.type === 'REDEEM' ? IconMap['REDEEM'] : (IconMap[tx.reason] || IconMap['DEFAULT'])
                         const Icon = match.icon
-                        const isEarn = transactionType === 'EARN'
-                        const points = Number(tx.points || 0)
+                        const isEarn = tx.type === 'EARN'
                         const pointColor = isEarn ? '#2dd4bf' : '#ff6b6b'
-                        const createdAt = tx.created_at ? new Date(tx.created_at) : null
-                        const dateLabel = createdAt && !Number.isNaN(createdAt.getTime())
-                            ? createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                            : 'Recent'
 
                         return (
-                            <div
+                            <motion.div 
                                 key={tx.id || idx}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                                whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.03)' }}
                                 style={{ 
                                     display: 'flex', alignItems: 'center', gap: '1.25rem', 
                                     background: 'rgba(255,255,255,0.01)', padding: '1.5rem', 
@@ -129,10 +117,10 @@ export default function PointsHistory({
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: '0 0 0.25rem', color: '#fff', fontSize: '1.05rem', fontWeight: 700, letterSpacing: '0.02em' }}>
-                                        {reason.replace(/_/g, ' ')}
+                                        {tx.reason.replace(/_/g, ' ')}
                                     </h4>
                                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 500 }}>
-                                        {dateLabel}
+                                        {new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </span>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
@@ -140,7 +128,7 @@ export default function PointsHistory({
                                         fontWeight: 800, color: pointColor, fontSize: '1.25rem', fontFamily: 'var(--font-heading, "Outfit")',
                                         display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end'
                                     }}>
-                                        {isEarn ? '+' : '-'}{points.toLocaleString()}
+                                        {isEarn ? '+' : '-'}{tx.points.toLocaleString()}
                                     </div>
                                     <div style={{ 
                                         display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end',
@@ -151,16 +139,17 @@ export default function PointsHistory({
                                         {isEarn ? 'Earned' : 'Redeemed'}
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )
                     })}
+                </AnimatePresence>
             </div>
 
             {loading && (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-                    <div className="spinner">
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
                         <Loader2 color="var(--gold, #ffb703)" size={24} />
-                    </div>
+                    </motion.div>
                 </div>
             )}
             
