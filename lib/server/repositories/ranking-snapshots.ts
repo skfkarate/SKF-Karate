@@ -18,6 +18,7 @@ export type RankingEntry = {
   athleteName?: string
   branchName?: string
   currentBelt?: string
+  joinDate?: string
   overallRank?: number
   branchRank?: number
   totalPoints?: number

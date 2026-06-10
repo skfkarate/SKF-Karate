@@ -5,8 +5,6 @@ import { buildNoIndexMetadata } from '@/data/constants/seo'
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
 import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata = buildNoIndexMetadata(
   '/portal',
   'Access your SKF Karate athlete profile, home practice videos, certificates, rankings, timetable, and fees through the private athlete portal.'

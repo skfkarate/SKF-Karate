@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
 import PortalLoginForm from './PortalLoginForm'
 
-export const dynamic = 'force-dynamic'
 
 export default async function LoginPage({ searchParams }) {
   const params = await searchParams

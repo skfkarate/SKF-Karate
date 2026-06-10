@@ -1,6 +1,6 @@
 import type { Session } from 'next-auth'
 
-import { buildAthletePayloadFromAdminForm } from '@/lib/admin/athlete-records'
+import { buildAthletePayloadFromForm } from '@/lib/athletes/athlete-records'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import {
   createAthleteLive,
@@ -630,6 +630,38 @@ async function uploadFinalProfilePhoto(skfId: string, photo: PhotoUpload) {
 
   const { data } = supabaseAdmin.storage.from(PROFILE_PHOTO_BUCKET).getPublicUrl(path)
   return data.publicUrl
+}
+
+async function readSubmittedAdmissionPhoto(application: AdmissionApplicationMapped): Promise<PhotoUpload> {
+  const meta = objectValue(application.feeSetup.admissionPhoto)
+  const path = cleanText(application.admissionPhotoPath) || cleanText(meta.path)
+  if (!path) {
+    throw new ValidationError({
+      finalPhoto: ['Submitted admission photo is not available. Upload a corrected profile photo instead.'],
+    })
+  }
+
+  const { data, error } = await supabaseAdmin.storage.from(ADMISSION_PHOTO_BUCKET).download(path)
+  if (error || !data) {
+    throw new ValidationError({
+      finalPhoto: ['Submitted admission photo could not be loaded. Upload a corrected profile photo instead.'],
+    })
+  }
+
+  const arrayBuffer = await data.arrayBuffer()
+  const mimeType = cleanText(application.admissionPhotoMimeType) || cleanText(meta.mimeType) || data.type || 'image/jpeg'
+  if (!IMAGE_MIME_TYPES.has(mimeType)) {
+    throw new ValidationError({
+      finalPhoto: ['Submitted admission photo is not a supported image. Upload a corrected profile photo instead.'],
+    })
+  }
+
+  return {
+    buffer: Buffer.from(arrayBuffer),
+    filename: cleanText(application.admissionPhotoFilename) || cleanText(meta.filename) || 'submitted-admission-photo',
+    mimeType,
+    size: Number(application.admissionPhotoSize || meta.size || data.size || 0),
+  }
 }
 
 export function admissionImageExtension(mimeType: string) {
@@ -1368,7 +1400,7 @@ export class AdmissionService {
 
     const belt = BELTS.has(cleanText(fields.belt).toLowerCase()) ? cleanText(fields.belt).toLowerCase() : 'white'
     const athletePayload = validateAthletePayload(
-      buildAthletePayloadFromAdminForm({
+      buildAthletePayloadFromForm({
         name: application.studentName,
         dob: application.studentDob,
         gender: application.studentGender,
@@ -1389,11 +1421,12 @@ export class AdmissionService {
       })
     )
 
-    const finalPhoto = await readImageFile(finalPhotoFile, {
+    const uploadedFinalPhoto = await readImageFile(finalPhotoFile, {
       field: 'finalPhoto',
       label: 'Final profile photo',
-      required: true,
+      required: fields.photoAction === 'upload_new',
     })
+    const finalPhoto = uploadedFinalPhoto || await readSubmittedAdmissionPhoto(application)
 
     let athlete = await createAthleteLive(athletePayload)
     let finalPhotoUrl = ''
@@ -1460,7 +1493,7 @@ export class AdmissionService {
       belt,
       paymentVerified: fields.paymentVerified,
       joiningPaymentRecorded: true,
-      photoAction: 'upload_new',
+      photoAction: fields.photoAction,
       sourcePhotoDriveFileId: null,
       paymentProof: objectValue(application.feeSetup.paymentProof),
     }

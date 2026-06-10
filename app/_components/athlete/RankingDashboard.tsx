@@ -14,6 +14,7 @@ type RankingBoardItem = {
   athleteName: string
   currentBelt: string
   branchName: string
+  joinDate?: string
   totalPoints?: number
   categoryRank?: number
   overallRank?: number
@@ -51,6 +52,7 @@ type RankingDashboardProps = {
   boards?: RankingBoard[]
   dojos?: string[]
   totalRanked?: number
+  hasAnyTournamentPoints?: boolean
 }
 
 const TOP_N_OPTIONS: TopN[] = [10, 30, 'all']
@@ -65,27 +67,36 @@ function getTrendState(
   selectedCategory: string,
   selectedDojo: string
 ) {
+  let result: { label: string; movement: RankMovement; delta: number | null }
+
   if (activeTab === 'dojo' && selectedDojo) {
-    return {
+    result = {
       label: 'Branch movement',
       movement: entry.branchMovement || 'new',
       delta: entry.branchRankDelta ?? null,
     }
-  }
-
-  if (selectedCategory) {
-    return {
+  } else if (selectedCategory) {
+    result = {
       label: 'Category movement',
       movement: entry.categoryMovement || entry.rankingMovement || 'new',
       delta: entry.categoryRankDelta ?? entry.rankDelta ?? null,
     }
+  } else {
+    result = {
+      label: 'Overall movement',
+      movement: entry.overallMovement || 'new',
+      delta: entry.overallRankDelta ?? null,
+    }
   }
 
-  return {
-    label: 'Overall movement',
-    movement: entry.overallMovement || 'new',
-    delta: entry.overallRankDelta ?? null,
+  if (result.movement === 'new') {
+    const isNew = entry.joinDate
+      ? new Date(entry.joinDate).getTime() > Date.now() - 15 * 24 * 60 * 60 * 1000
+      : false;
+    if (!isNew) result.movement = 'same'
   }
+
+  return result
 }
 
 function trendTitle(label: string, movement: RankMovement, delta: number | null) {
@@ -120,7 +131,7 @@ function TrendIndicator({
   )
 }
 
-export default function RankingDashboard({ boards = [], dojos = [], totalRanked = 0 }: RankingDashboardProps) {
+export default function RankingDashboard({ boards = [], dojos = [], totalRanked = 0, hasAnyTournamentPoints = false }: RankingDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('overall')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [catOpen, setCatOpen] = useState(false)
@@ -201,7 +212,8 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
           </div>
         )}
 
-        {/* Category selector */}
+        {/* Category selector — hide when only 1 category */}
+        {catOptions.length > 1 && (
         <div className="lb-dropdown-row">
           <div className="lb-dropdown">
             <button className="lb-dropdown__btn" onClick={() => setCatOpen(!catOpen)}>
@@ -226,6 +238,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
             )}
           </div>
         </div>
+        )}
 
         {/* Filter + TopN */}
         <div className="lb-controls">
@@ -248,7 +261,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
           <span className="lb-th lb-th--name">Athlete</span>
           <span className="lb-th lb-th--belt">Belt</span>
           <span className="lb-th lb-th--branch">Branch</span>
-          <span className="lb-th lb-th--pts">Points</span>
+          {hasAnyTournamentPoints && <span className="lb-th lb-th--pts">Points</span>}
         </div>
 
         {/* ── Rows ── */}
@@ -284,7 +297,8 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
                   <span className="lb-branch">{e.branchName}</span>
                 </div>
 
-                {/* Points */}
+                {/* Points — only when tournaments exist */}
+                {hasAnyTournamentPoints && (
                 <div className="lb-cell lb-cell--pts">
                   <div className="lb-pts">
                     <span className="lb-pts__val">{Number(e.totalPoints || 0).toFixed(0)}</span>
@@ -296,6 +310,7 @@ export default function RankingDashboard({ boards = [], dojos = [], totalRanked 
                     </div>
                   </div>
                 </div>
+                )}
 
                 <ChevronRight size={14} className="lb-row__arrow" />
               </Link>

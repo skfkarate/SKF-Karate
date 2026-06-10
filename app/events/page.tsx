@@ -5,9 +5,6 @@ import { getEventLabel } from '@/data/constants/categories'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const revalidate = 300
-
-
 function formatDisplayDate(date: string) {
     return new Date(date).toLocaleDateString('en-US', {
         month: 'short',

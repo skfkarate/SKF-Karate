@@ -53,12 +53,12 @@ const MONTHS = [
 
 const STUDENTS = [
   {
-    skfId: 'SKF17BL000',
+    skfId: 'SKF13BL000',
     name: 'SHRIROSHAN P',
     monthlyFee: 1000,
     dateOfBirth: '2007-07-03',
     gender: 'male',
-    joinDate: '2017-01-01',
+    joinDate: '2013-04-01',
     parentName: 'Prasad M',
     phone: '7795840272',
     email: 'shriroshanp@gmail.com',
@@ -246,6 +246,19 @@ const STUDENTS = [
     email: 'rajeshun1984@gmail.com',
     year: TARGET_YEAR,
     statuses: ['Paid', 'Paid', 'Break', 'Break'],
+  },
+  {
+    skfId: 'SKF25HE003',
+    name: 'MRITHIKA P',
+    monthlyFee: 500,
+    dateOfBirth: '2015-02-06',
+    gender: 'female',
+    joinDate: '2025-01-01',
+    parentName: 'Prakash D',
+    phone: '9108699585',
+    email: '',
+    year: TARGET_YEAR,
+    statuses: ['Break', 'Break', 'Break', 'Break'],
   },
   {
     skfId: 'SKF26HE001',

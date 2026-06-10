@@ -16,6 +16,14 @@ import { CertificateModal } from '@/components/CertificateModal'
 import { CertificateCard } from '@/components/CertificateCard'
 import type { CertificateConfig } from '@/components/CertificateCard'
 
+function formatName(name: string) {
+  if (!name) return name
+  // Bind single-character initials to the adjacent word to prevent dangling initials on wrap
+  return name
+    .replace(/\b([A-Za-z])\s+/g, '$1\u00A0')
+    .replace(/\s+([A-Za-z])\b/g, '\u00A0$1')
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    PUBLIC CERTIFICATES
    ═══════════════════════════════════════════════════════════════════════ */
@@ -127,7 +135,7 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
         <div className="aph-header">
           <div className="aph-header__left">
             <span className="aph-header__pre">Official SKF Athlete</span>
-            <h1 className="aph-header__name">{athleteInfo.name}</h1>
+            <h1 className="aph-header__name">{formatName(athleteInfo.name)}</h1>
             <div className="aph-header__tags">
               <div 
                 className="ap-belt-chip"
@@ -176,9 +184,11 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
               <div className="aph-rank__glow" />
               <div className="aph-rank__body">
                 <div className="aph-rank__info">
-                  <span className="aph-rank__label">World Ranking</span>
+                  <span className="aph-rank__label">SKF Ranking</span>
                   <span className="aph-rank__cat">{primary.name}</span>
-                  <span className="aph-rank__pts">{primary.points?.toLocaleString()} pts</span>
+                {primary.points ? (
+                  <span className="aph-rank__pts">{primary.points.toLocaleString()} pts</span>
+                ) : null}
                 </div>
                 <div className="aph-rank__num">
                   {primary.rank ? `#${primary.rank}` : '—'}
@@ -341,7 +351,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
             )}
             <span className="ap-cat-overview__rank-label">RANK</span>
             <span className="ap-cat-overview__rank-pts">
-              {cat.points != null ? `${cat.points.toLocaleString()} points` : 'No points yet'}
+              {cat.points ? `${cat.points.toLocaleString()} points` : ''}
             </span>
           </div>
 
@@ -408,11 +418,13 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
                 </tr>
               )}
             </tbody>
+            {cat.points ? (
             <tfoot>
               <tr className="ap-tbl__foot">
-                <td colSpan={7}>Total Points: <strong className="ap-tbl__accent">{cat.points?.toLocaleString()}</strong></td>
+                <td colSpan={7}>Total Points: <strong className="ap-tbl__accent">{cat.points.toLocaleString()}</strong></td>
               </tr>
             </tfoot>
+            ) : null}
           </table>
         </div>
       </div>

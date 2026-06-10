@@ -12,6 +12,7 @@ import { headers } from 'next/headers'
 import ClientLayoutWrapper from '@/app/_components/ClientLayoutWrapper'
 import Navbar from '@/app/_components/Navbar'
 import Footer from '@/app/_components/Footer'
+import { Suspense } from 'react'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import { getCanonicalOrigin } from '@/data/constants/siteConfig'
 import { buildSeoMetadata } from '@/data/constants/seo'
@@ -54,34 +55,42 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import WebVitals from '@/components/WebVitals'
 import { NonceProvider } from '@/components/NonceProvider'
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+async function RequestScopedBody({ children }: { children: ReactNode }) {
 	const nonce = (await headers()).get('x-nonce') || undefined
 
 	return (
-		<html lang="en" dir="ltr" className={`${bodyFont.variable} ${headingFont.variable}`}>
-			<body>
-				<NonceProvider nonce={nonce}>
-					<ResourceHints />
-					<a href="#main-content" className="skip-to-content">Skip to main content</a>
-					{/* Global Cinematic Orbs */}
-					<div className="amb-orb amb-orb--1" />
-					<div className="amb-orb amb-orb--2" />
-					<div className="amb-orb amb-orb--3" />
+		<body>
+			<NonceProvider nonce={nonce}>
+				<ResourceHints />
+				<a href="#main-content" className="skip-to-content">Skip to main content</a>
+				{/* Global Cinematic Orbs */}
+				<div className="amb-orb amb-orb--1" />
+				<div className="amb-orb amb-orb--2" />
+				<div className="amb-orb amb-orb--3" />
 
 	        <ClientLayoutWrapper
 	          navbar={<Navbar />}
-	          footer={<Footer />}
+	          footer={<Suspense fallback={<footer className="ft" style={{ minHeight: '300px' }} />}><Footer /></Suspense>}
 	          whatsappButton={<WhatsAppButton />}
 	        >
 	          {children}
 	        </ClientLayoutWrapper>
 
-					<CookieConsent />
-					<AnalyticsLoader nonce={nonce} />
-					<ServiceWorkerRegistration />
-					<WebVitals />
-				</NonceProvider>
-			</body>
+				<CookieConsent />
+				<AnalyticsLoader nonce={nonce} />
+				<ServiceWorkerRegistration />
+				<WebVitals />
+			</NonceProvider>
+		</body>
+	)
+}
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+	return (
+		<html lang="en" dir="ltr" className={`${bodyFont.variable} ${headingFont.variable}`}>
+			<Suspense fallback={null}>
+				<RequestScopedBody>{children}</RequestScopedBody>
+			</Suspense>
 		</html>
 	)
 }

@@ -42,7 +42,7 @@ const STUDENTS = [
   {
     skfId: 'SKF25MP001',
     name: 'Neshu Ram',
-    monthlyFee: 2500,
+    monthlyFee: 2000,
     dateOfBirth: '2018-11-09',
     gender: 'female',
     joinDate: '2025-10-17',

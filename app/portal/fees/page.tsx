@@ -3,7 +3,6 @@ import { FeeLedgerService } from '@/src/server/services/fee-ledger.service'
 
 import FeesClient from './FeesClient'
 
-export const dynamic = 'force-dynamic'
 
 export default async function FeesPage() {
   const { session } = await requirePortalAthlete()

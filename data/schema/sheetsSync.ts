@@ -170,13 +170,14 @@ export const SUMMER_CAMP_CONFIG_COLUMN_MAP = {
  *   - Fees (markFeeAsPaid)
  *   - Attendance (markAttendance)
  *   - Timetables (upsertTimetable)
- *   - Orders (createShopOrder, updateShopOrderStatus)
  *   - Summer Camp Enrollments (submitSummerCampEnrollment)
  *   - SummerCamp config (decrementSummerCampSlots)
  *
  * Write-only (app writes, never reads back):
- *   - Leads (submitLead)
- *   - Contact form (submitContactForm — writes to default sheet)
+ *   - Leads / free trial bookings (submitLead)
+ *   - Contact / callback requests (submitContactForm — writes to default sheet)
+ *
+ * Shop orders are stored in Supabase (skf_shop_orders), not Google Sheets.
  *
  * Template pack: templates/google-sheets/athlete-profile/
  * The sheet reader tolerates an optional branded title row:

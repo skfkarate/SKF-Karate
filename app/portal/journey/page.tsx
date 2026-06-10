@@ -6,7 +6,6 @@ import { getBelt } from '@/data/constants/belts'
 import { getAssignedPortalEvents, isAssignedToEvent } from '@/lib/utils/portal-events'
 import { normaliseSkfId } from '@/lib/utils/registration'
 
-export const dynamic = 'force-dynamic'
 
 function getCurrentTimeMs() {
   return Date.now()

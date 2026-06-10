@@ -3,7 +3,7 @@ import {
   getFeaturedAthleteSearchResultsLive,
   searchAthletesByNameLive,
 } from '@/lib/server/repositories/athletes-live'
-import { athleteSearchQuerySchema } from '@/src/server/api/validators/admin-general.validator'
+import { athleteSearchQuerySchema } from '@/src/server/api/validators/public-lookup.validator'
 import { withRoute } from '@/src/server/lib/route'
 
 export const GET = withRoute(

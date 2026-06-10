@@ -7,8 +7,6 @@ import type { SenseiBranchAssignment, SenseiProfile } from '@/lib/types/sensei'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const revalidate = 300
-
 export const metadata: Metadata = buildSeoMetadata(
     '/about',
     'Learn about SKF Karate, a Karnataka karate association training students in traditional karate, self-defense, kata, kumite, and black belt discipline.'

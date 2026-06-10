@@ -4,9 +4,6 @@ import { z } from 'zod'
 import { withRoute } from '@/src/server/lib/route'
 import { AdmissionService } from '@/src/server/services/admission.service'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
 const admissionQuoteQuerySchema = z.object({
   branchSlug: z.string().trim().min(1).max(120),
   promoCode: z.string().trim().max(80).optional(),

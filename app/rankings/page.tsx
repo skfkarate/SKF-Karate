@@ -10,12 +10,14 @@ import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './rankings.css'
 
-export const revalidate = 300
-
 export const metadata = buildSeoMetadata(
   '/rankings',
-  'View official SKF Karate athlete rankings across belts, branches, kata, kumite, tournament results, and karate performance divisions in Karnataka now.'
+  'View official SKF Karate athlete rankings by belt level, branches, tournament results, and performance divisions in Karnataka.'
 )
+
+function beltLabel(v: string) {
+  return String(v || '').replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
+}
 
 export default async function RankingsPage() {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Rankings', '/rankings')
@@ -32,14 +34,26 @@ export default async function RankingsPage() {
     publicActiveAthleteIds.has(String(entry.athleteId))
   )
   const snapshots = await hydrateRankingMovementsLive(visibleSnapshots)
-  const competitiveSnapshots = snapshots.filter((entry) => Number(entry.totalPoints || 0) > 0)
   const boards = buildRankingBoards(snapshots)
   const dojos = [...new Set(snapshots.map((s) => s.branchName).filter(Boolean))].sort()
-  const allSorted = [...competitiveSnapshots].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+
+  // Check if any athletes have tournament points
+  const hasAnyTournamentPoints = snapshots.some((s) => Number(s.totalPoints || 0) > 0)
+  const competitiveSnapshots = hasAnyTournamentPoints
+    ? snapshots.filter((entry) => Number(entry.totalPoints || 0) > 0)
+    : []
+
+  // Podium: top 3 by current ranking (belt-based)
+  const allSorted = [...snapshots].sort((a, b) => {
+    const aBelt = a.beltOrder ?? 0
+    const bBelt = b.beltOrder ?? 0
+    if (bBelt !== aBelt) return bBelt - aBelt
+    return (b.totalPoints || 0) - (a.totalPoints || 0)
+  })
   const podium = allSorted.slice(0, 3)
 
   /* Top points for proportional bar widths in the graph */
-  const topPts = podium[0]?.totalPoints || 1
+  const topPts = competitiveSnapshots[0]?.totalPoints || 1
 
   return (
     <div className="rk-page">
@@ -63,7 +77,7 @@ export default async function RankingsPage() {
         </h1>
         
         <p className="rk-hero__sub">
-          Official standings built from tournament results, belt progression, and ranking points across all divisions.
+          Official standings built from technical rankings{hasAnyTournamentPoints ? ', tournament results, and ranking points' : ' and training achievements'} across all divisions.
         </p>
       </section>
 
@@ -76,7 +90,7 @@ export default async function RankingsPage() {
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <span className="rk-pod__name">{podium[1].athleteName}</span>
-            <span className="rk-pod__pts">{podium[1].totalPoints?.toFixed(0)}</span>
+            <span className="rk-pod__pts">{beltLabel(podium[1].currentBelt)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--silver"><span>2</span></div>
           </Link>
           {/* 1st */}
@@ -86,7 +100,7 @@ export default async function RankingsPage() {
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <span className="rk-pod__name">{podium[0].athleteName}</span>
-            <span className="rk-pod__pts">{podium[0].totalPoints?.toFixed(0)}</span>
+            <span className="rk-pod__pts">{beltLabel(podium[0].currentBelt)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--gold"><span>1</span></div>
           </Link>
           {/* 3rd */}
@@ -95,14 +109,14 @@ export default async function RankingsPage() {
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <span className="rk-pod__name">{podium[2].athleteName}</span>
-            <span className="rk-pod__pts">{podium[2].totalPoints?.toFixed(0)}</span>
+            <span className="rk-pod__pts">{beltLabel(podium[2].currentBelt)}</span>
             <div className="rk-pod__pillar rk-pod__pillar--bronze"><span>3</span></div>
           </Link>
         </section>
       )}
 
-      {/* ═══ TOP 3 POINTS GRAPH ═══ */}
-      {podium.length >= 3 && (
+      {/* ═══ TOP 3 POINTS GRAPH — only show when tournament points exist ═══ */}
+      {hasAnyTournamentPoints && competitiveSnapshots.length >= 3 && (
         <section className="rk-graph">
           <div className="rk-graph__card">
             <div className="rk-graph__header">
@@ -110,7 +124,7 @@ export default async function RankingsPage() {
               <h2 className="rk-graph__title">Points Comparison</h2>
             </div>
 
-            {[podium[0], podium[1], podium[2]].map((athlete, i) => {
+            {[competitiveSnapshots[0], competitiveSnapshots[1], competitiveSnapshots[2]].map((athlete, i) => {
               const rank = i + 1
               const pct = Math.max(8, ((athlete.totalPoints || 0) / topPts) * 100)
               const barClass = rank === 1 ? 'rk-graph__fill--gold' : rank === 2 ? 'rk-graph__fill--silver' : 'rk-graph__fill--bronze'
@@ -144,7 +158,7 @@ export default async function RankingsPage() {
 
       {/* ═══ LEADERBOARD ═══ */}
       <section className="rk-board-section">
-        <RankingDashboard boards={boards} dojos={dojos} totalRanked={snapshots.length} />
+        <RankingDashboard boards={boards} dojos={dojos} totalRanked={snapshots.length} hasAnyTournamentPoints={hasAnyTournamentPoints} />
       </section>
     </div>
   )

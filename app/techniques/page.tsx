@@ -6,8 +6,6 @@ import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const revalidate = 3600
-
 export const metadata: Metadata = buildSeoMetadata(
     '/techniques',
     'Watch SKF Karate technique videos for kata, kumite, kihon, bunkai, belt practice, self-defense drills, and traditional karate training by belt level now.'

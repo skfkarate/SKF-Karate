@@ -53,7 +53,9 @@ const requiredTables = [
   ['staff_accounts', 'id'],
   ['programs', 'id'],
   ['athletes', 'id'],
+  ['site_analytics_events', 'id'],
   ['portal_videos', 'youtube_id'],
+  ['branch_timetables', 'id'],
   ['video_progress', 'id'],
   ['enrollments', 'id'],
   ['certificate_templates', 'id'],
@@ -66,6 +68,7 @@ const requiredTables = [
   ['class_schools', 'id'],
   ['events', 'id'],
   ['event_categories', 'slug'],
+  ['gallery_photos', 'id'],
   ['skf_products', 'id'],
   ['skf_shop_orders', 'order_id'],
   ['student_points', 'skf_id'],
@@ -104,6 +107,21 @@ const requiredColumns = [
     'Run database/schema.sql or the athlete profile migration set.',
   ],
   [
+    'site_analytics_events',
+    'visitor_id',
+    'Run database/schema.sql section 3B to enable website analytics.',
+  ],
+  [
+    'site_analytics_events',
+    'session_id',
+    'Run database/schema.sql section 3B to enable website analytics.',
+  ],
+  [
+    'site_analytics_events',
+    'user_agent',
+    'Run database/schema.sql section 3B to enable website analytics.',
+  ],
+  [
     'ranking_snapshots',
     'skf_id',
     'Run database/migrations/010_ranking_snapshots.sql and database/migrations/011_rename_registration_number_to_skf_id.sql.',
@@ -137,6 +155,36 @@ const requiredColumns = [
     'class_branches',
     'lead_sensei_id',
     'Run database/migrations/014_admin_event_class_linkage.sql.',
+  ],
+  [
+    'branch_timetables',
+    'branch_slug',
+    'Run database/schema.sql and database/migrations/025_branch_timetables_storage.sql.',
+  ],
+  [
+    'branch_timetables',
+    'image_url',
+    'Run database/schema.sql and database/migrations/025_branch_timetables_storage.sql.',
+  ],
+  [
+    'branch_timetables',
+    'is_active',
+    'Run database/schema.sql and database/migrations/025_branch_timetables_storage.sql.',
+  ],
+  [
+    'gallery_photos',
+    'src',
+    'Run database/migrations/026_gallery_photos.sql.',
+  ],
+  [
+    'gallery_photos',
+    'cat',
+    'Run database/migrations/026_gallery_photos.sql.',
+  ],
+  [
+    'gallery_photos',
+    'event_id',
+    'Run database/migrations/027_gallery_event_link.sql.',
   ],
   [
     'fee_records',
@@ -178,7 +226,9 @@ const requiredColumns = [
 const sensitiveAnonTables = [
   ['staff_accounts', 'id'],
   ['athletes', 'id'],
+  ['site_analytics_events', 'id'],
   ['portal_videos', 'youtube_id'],
+  ['branch_timetables', 'id'],
   ['video_progress', 'id'],
   ['certificate_events', 'id'],
   ['certificates', 'enrollment_id'],
@@ -189,6 +239,7 @@ const sensitiveAnonTables = [
   ['student_billing_profiles', 'skf_id'],
   ['fee_receipts', 'receipt_id'],
   ['fee_payment_proofs', 'id'],
+  ['gallery_photos', 'id'],
   ['fee_credits', 'id'],
   ['development_fund_expenses', 'id'],
   ['fee_audit_logs', 'id'],
@@ -311,6 +362,8 @@ await checkBucket('training-videos', false)
 await checkBucket('admission-photos', false)
 await checkBucket('fee-payment-proofs', false)
 await checkBucket('athlete-profile-photos', true)
+await checkBucket('branch-timetables', true)
+await checkBucket('gallery-photos', true)
 
 if (failures > 0) {
   console.error(`Supabase readiness failed: ${failures} failures, ${warnings} warnings.`)

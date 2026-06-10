@@ -53,6 +53,7 @@ const nextConfig = {
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development',
   },
   typescript: { ignoreBuildErrors: false },
+  cacheComponents: true,
   turbopack: {
     root: projectRoot,
   },

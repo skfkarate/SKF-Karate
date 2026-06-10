@@ -1,5 +1,6 @@
 import { calculatePoints, calculateResultPoints, normaliseEventTier, normaliseResult } from "./points"
 import { normaliseSkfId } from "./registration"
+import { getBeltOrder } from "@/data/constants/belts"
 
 type RankingOptions = {
   currentDate?: Date
@@ -114,11 +115,38 @@ export function getAthleteCompetitionResults(athlete, allResults = [], currentDa
     }))
 }
 
+/**
+ * Check if an athlete is white-belt-only (enrollment-only, no grading or tournament achievements).
+ * These athletes are excluded from rankings.
+ */
+export function isWhiteBeltOnly(athlete) {
+  const belt = String(athlete.currentBelt || 'white').toLowerCase()
+  if (belt !== 'white') return false
+
+  const achievements = athlete.achievements || []
+  // Only has enrollment-type achievements (no belt-grading, no tournament results)
+  return achievements.every((a) => {
+    const type = String(a.type || '')
+    return type === 'enrollment' || type === ''
+  })
+}
+
 export function getAthleteRankingCategory(athlete, allResults = [], currentDate = new Date()) {
   const athleteResults = getAthleteCompetitionResults(athlete, allResults, currentDate)
   const latestResult = [...athleteResults].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )[0]
+
+  // If the athlete has no tournament results, use a simple belt-progression category
+  if (!latestResult) {
+    return {
+      ageGroup: getAgeCategory(athlete.dateOfBirth, currentDate),
+      gender: athlete.gender || "male",
+      discipline: "technical-ranking",
+      weightCategory: null,
+      key: "technical-ranking",
+    }
+  }
 
   const ageGroup = latestResult?.ageGroup || getAgeCategory(athlete.dateOfBirth, currentDate)
   const gender = athlete.gender || latestResult?.gender || "male"
@@ -135,6 +163,12 @@ export function getAthleteRankingCategory(athlete, allResults = [], currentDate 
 }
 
 export function compareRankingEntries(a, b) {
+  // Primary: belt level (higher belt = higher rank)
+  const aBeltOrder = a.beltOrder ?? getBeltOrder(a.currentBelt || 'white')
+  const bBeltOrder = b.beltOrder ?? getBeltOrder(b.currentBelt || 'white')
+  if (bBeltOrder !== aBeltOrder) return bBeltOrder - aBeltOrder
+
+  // Secondary: tournament points
   if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
   if (b.goldCount !== a.goldCount) return b.goldCount - a.goldCount
   if (b.silverCount !== a.silverCount) return b.silverCount - a.silverCount
@@ -155,12 +189,16 @@ export function getRankedAthletes(
   options: RankingOptions = {}
 ) {
   const currentDate = options.currentDate || new Date()
-  const activeAthletes = athletes.filter((athlete) => athlete.status === "active")
+  // Filter: active athletes only, exclude white-belt-only students
+  const activeAthletes = athletes.filter(
+    (athlete) => athlete.status === "active" && !isWhiteBeltOnly(athlete)
+  )
 
   const ranked = activeAthletes.map((athlete) => {
     const results = getAthleteCompetitionResults(athlete, allResults, currentDate)
     const totalPoints = calculatePoints(athlete.id, results, currentDate)
     const rankingCategory = getAthleteRankingCategory(athlete, allResults, currentDate)
+    const beltOrder = getBeltOrder(athlete.currentBelt || 'white')
 
     const goldCount = results.filter((result) => normaliseResult(result.result) === "gold").length
     const silverCount = results.filter((result) => normaliseResult(result.result) === "silver").length
@@ -173,6 +211,8 @@ export function getRankedAthletes(
       athleteName: `${athlete.firstName} ${athlete.lastName}`,
       branchName: athlete.branchName,
       currentBelt: athlete.currentBelt,
+      joinDate: athlete.joinDate,
+      beltOrder,
       totalPoints,
       goldCount,
       silverCount,

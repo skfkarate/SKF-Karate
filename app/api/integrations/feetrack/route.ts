@@ -1,7 +1,60 @@
 import type { Session } from 'next-auth'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { ZodError } from 'zod'
 
-import { authorizeStaffCredentials, type AuthUser } from '@/lib/server/auth/options'
+import { ApiError } from '@/lib/server/api'
+import {
+  getPendingWebsiteSheetNotifications,
+  markWebsiteSheetNotificationContacted,
+} from '@/lib/server/sheets'
+import { SHOP_PRODUCTS_CACHE_TAG } from '@/lib/shop/cache'
+import { authorizeStaffCredentials, type AuthUser } from '@/lib/server/auth/staff'
+import { getWebsiteAnalyticsSummary } from '@/lib/server/site-analytics'
+import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import {
+  createEventRecordLive,
+  deleteEventRecordLive,
+  getEventByIdAdminLive,
+  updateEventRecordLive,
+} from '@/lib/server/repositories/events-live'
+import {
+  createPortalVideo,
+  deletePortalVideo,
+  getAllBranchTimetablesAdmin,
+  getAllPortalVideosAdmin,
+  updatePortalVideo,
+} from '@/lib/server/repositories/portal-content-live'
+import {
+  createGalleryPhoto,
+  deleteGalleryPhoto,
+  GALLERY_CATEGORY_OPTIONS,
+  getAllGalleryPhotosAdmin,
+  getEventGalleryPhotosAdmin,
+  updateGalleryPhoto,
+} from '@/lib/server/repositories/gallery-live'
+import {
+  getAllShopOrders,
+  getProducts,
+  updateShopOrderStatus,
+  upsertProduct,
+  type SaveShopProductInput,
+} from '@/lib/server/repositories/shop'
+import {
+  clearSyncedEventArtifactsFromAthletes,
+  syncStandaloneEventResultsToAthletes,
+  syncTournamentResultsToAthletes,
+} from '@/lib/server/event-athlete-sync'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
+import {
+  revalidateAthleteSitePaths,
+  revalidateEventSitePaths,
+  revalidatePortalSitePaths,
+  revalidateTournamentSitePaths,
+} from '@/lib/server/revalidation'
+import {
+  validateEventPayload,
+  validateTournamentPayload,
+} from '@/lib/server/validation'
 import { normaliseSkfId } from '@/lib/utils/registration'
 import {
   admissionBranchSettingsSchema,
@@ -16,16 +69,13 @@ import {
   eventFeeGenerateSchema,
   eventFeePreviewSchema,
 } from '@/src/server/api/validators/fees.validator'
-import { AppError, AuthenticationError, AuthorizationError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
+import { AppError, AuthenticationError, AuthorizationError, NotFoundError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
 import { applyRateLimit } from '@/src/server/lib/rate-limit'
 import { timingSafeStringEqual } from '@/src/server/lib/security'
 import { AdmissionService } from '@/src/server/services/admission.service'
 import { EventFeesService } from '@/src/server/services/event-fees.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 const MONTHS = [
   'January',
@@ -43,7 +93,8 @@ const MONTHS = [
 ] as const
 
 const FEE_TRACK_ROLES = new Set(FeeOperationsService.roles)
-const MAX_INTEGRATION_BODY_BYTES = 256 * 1024
+const FEE_TRACK_EVENT_WRITE_ROLES = new Set(['admin', 'instructor', 'fee_manager'])
+const MAX_INTEGRATION_BODY_BYTES = 1024 * 1024
 
 type ActionBody = Record<string, unknown> & {
   action?: string
@@ -71,6 +122,87 @@ type LedgerEntry = {
   sourceLabel?: string | null
   dueDate?: string | null
   metadata?: Record<string, unknown>
+}
+
+type FeeTrackAthlete = {
+  id?: string | null
+  skfId?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  branchName?: string | null
+  currentBelt?: string | null
+  gender?: string | null
+  photoUrl?: string | null
+  status?: string | null
+}
+
+type FeeTrackEventParticipant = {
+  id?: string | null
+  athleteId?: string | null
+  athleteName?: string | null
+  skfId?: string | null
+  branchName?: string | null
+  belt?: string | null
+  photoUrl?: string | null
+}
+
+type FeeTrackEventResult = Record<string, unknown> & {
+  id?: string
+  participantId?: string
+  athleteId?: string
+  athleteName?: string
+  skfId?: string
+  branchName?: string
+  belt?: string
+  photoUrl?: string
+  medal?: string
+  result?: string
+  position?: number | string
+  category?: string
+  ageGroup?: string
+  weightCategory?: string
+  difficultyLevel?: number | string
+  wins?: number | string
+  beltAwarded?: string
+  promotion?: string
+  promotionType?: string
+  doublePromotion?: boolean
+  examiner?: string
+  grade?: string
+  score?: number | string
+  daysAttended?: number | string
+  specialAward?: string
+  award?: string
+  notes?: string
+}
+
+type FeeTrackEvent = Record<string, unknown> & {
+  id: string
+  slug?: string
+  name: string
+  shortName?: string
+  type?: string
+  level?: string
+  status?: string
+  date?: string
+  endDate?: string
+  venue?: string
+  city?: string
+  state?: string
+  description?: string
+  coverImageUrl?: string
+  affiliatedBody?: string
+  totalParticipants?: number
+  skfParticipants?: number
+  hostingBranch?: string
+  isPublished?: boolean
+  isFeatured?: boolean
+  isResultsPublished?: boolean
+  showInJourney?: boolean
+  participants?: FeeTrackEventParticipant[]
+  results?: FeeTrackEventResult[]
+  winners?: FeeTrackEventResult[]
+  resultsAppliedAt?: string
 }
 
 function json(data: unknown, status = 200, headers: HeadersInit = {}) {
@@ -223,6 +355,146 @@ function feeTrackScope(value: unknown) {
   return String(value || '').trim() || 'Both'
 }
 
+function assertEventWrite(session: FeeTrackSession) {
+  if (!FEE_TRACK_EVENT_WRITE_ROLES.has(session.user.role)) {
+    throw new AuthorizationError('Fee viewer access is read-only.')
+  }
+}
+
+function sessionBranchScope(session: FeeTrackSession) {
+  return String(session.user.branchScope || 'all').trim()
+}
+
+function canAccessBranch(session: FeeTrackSession, branch?: string | null) {
+  const scope = normalizeKey(sessionBranchScope(session))
+  if (!scope || scope === 'all') return true
+  const branchKey = normalizeKey(branch)
+  if (!branchKey) return true
+  return branchKey === scope
+}
+
+function assertBranchAccess(session: FeeTrackSession, branch?: string | null) {
+  if (!canAccessBranch(session, branch)) {
+    throw new AuthorizationError('This event is outside your branch scope.')
+  }
+}
+
+function defaultEventBranch(session: FeeTrackSession) {
+  const scope = normalizeKey(sessionBranchScope(session))
+  if (!scope || scope === 'all') return ''
+  return normalizeBranch(sessionBranchScope(session))
+}
+
+function slugify(value: unknown) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+function nameForAthlete(athlete: FeeTrackAthlete) {
+  return [athlete.firstName, athlete.lastName].filter(Boolean).join(' ').trim() || String(athlete.skfId || 'SKF Athlete')
+}
+
+function resolvedProfilePhoto(source: {
+  skfId?: string | null
+  photoUrl?: string | null
+  gender?: string | null
+}) {
+  return resolveServerAthleteProfilePhoto({
+    skfId: source.skfId || '',
+    photoUrl: source.photoUrl || '',
+    gender: source.gender || '',
+  })
+}
+
+function mapAthleteForFeeTrack(athlete: FeeTrackAthlete) {
+  return {
+    id: String(athlete.id || ''),
+    skfId: String(athlete.skfId || ''),
+    firstName: String(athlete.firstName || ''),
+    lastName: String(athlete.lastName || ''),
+    branchName: String(athlete.branchName || ''),
+    currentBelt: String(athlete.currentBelt || ''),
+    photoUrl: resolvedProfilePhoto(athlete),
+  }
+}
+
+function mapEventParticipant(participant: FeeTrackEventParticipant) {
+  return {
+    id: String(participant.id || ''),
+    athleteId: String(participant.athleteId || ''),
+    athleteName: String(participant.athleteName || participant.skfId || 'SKF Athlete'),
+    skfId: String(participant.skfId || ''),
+    branchName: String(participant.branchName || ''),
+    belt: String(participant.belt || ''),
+    photoUrl: resolvedProfilePhoto(participant),
+  }
+}
+
+function mapEventResult(result: FeeTrackEventResult) {
+  return {
+    ...result,
+    photoUrl: resolvedProfilePhoto({
+      skfId: String(result.skfId || ''),
+      photoUrl: String(result.photoUrl || ''),
+    }),
+  }
+}
+
+function mapEventForFeeTrack(event: FeeTrackEvent) {
+  return {
+    id: event.id,
+    slug: event.slug || '',
+    name: event.name,
+    shortName: event.shortName || event.name,
+    type: event.type || '',
+    level: event.level || '',
+    status: event.status || '',
+    date: event.date || '',
+    endDate: event.endDate || '',
+    venue: event.venue || '',
+    city: event.city || '',
+    state: event.state || '',
+    description: event.description || '',
+    coverImageUrl: event.coverImageUrl || '',
+    affiliatedBody: event.affiliatedBody || '',
+    totalParticipants: Number(event.totalParticipants || 0),
+    skfParticipants: Number(event.skfParticipants || 0),
+    hostingBranch: event.hostingBranch || '',
+    isPublished: Boolean(event.isPublished),
+    isFeatured: Boolean(event.isFeatured),
+    isResultsPublished: Boolean(event.isResultsPublished),
+    showInJourney: Boolean(event.showInJourney),
+    participants: (event.participants || []).map(mapEventParticipant),
+    results: Array.isArray(event.results) ? event.results.map(mapEventResult) : [],
+    resultsAppliedAt: event.resultsAppliedAt || '',
+  }
+}
+
+function collectParticipantSkfIds(event: FeeTrackEvent | null | undefined) {
+  return new Set(
+    (event?.participants || [])
+      .map((participant) => normaliseSkfId(String(participant.skfId || '')))
+      .filter(Boolean)
+  )
+}
+
+async function withLegacyApiError<T>(callback: () => Promise<T> | T) {
+  try {
+    return await callback()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      const status = Number.isFinite(error.status) ? error.status : 400
+      const code = status === 409 ? 'CONFLICT' : status === 404 ? 'NOT_FOUND' : 'VALIDATION_ERROR'
+      throw new AppError(code, error.message, status, error.details)
+    }
+    throw error
+  }
+}
+
 function monthName(input: unknown) {
   if (typeof input === 'number' || /^\d+$/.test(String(input || '').trim())) {
     const index = Number(input)
@@ -345,8 +617,11 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
     fee: readAmount(row.amount),
     phone: row.phone || '',
     whatsapp: row.phone || '',
-    dateOfBirth: '',
+    dateOfBirth: row.dateOfBirth || '',
     email: row.email || '',
+    gender: row.gender || '',
+    photoUrl: row.photoUrl || '',
+    hasProfilePhoto: Boolean(row.hasProfilePhoto),
     paid: status === 'paid',
     monthStatus,
     joinMonth: joined && Number.isFinite(joined.getTime()) ? joined.getMonth() : 0,
@@ -1233,6 +1508,531 @@ async function updateAdmissionBranchSettings(session: FeeTrackSession, body: Act
   return { success: true, data: { settings } }
 }
 
+async function getFeeTrackEvent(session: FeeTrackSession, eventId: unknown) {
+  const id = String(eventId || '').trim()
+  if (!id) throw new ValidationError({ eventId: ['Event ID is required.'] })
+
+  const event = await getEventByIdAdminLive(id) as FeeTrackEvent | null
+  if (!event) throw new NotFoundError('Event')
+  assertBranchAccess(session, event.hostingBranch)
+  return event
+}
+
+async function createEventFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const source = (body.event && typeof body.event === 'object')
+    ? body.event as Record<string, unknown>
+    : body
+  const hostingBranch = source.hostingBranch !== undefined || source.branch !== undefined
+    ? normalizeBranch(source.hostingBranch ?? source.branch, { allowOverall: true })
+    : defaultEventBranch(session)
+
+  assertBranchAccess(session, hostingBranch)
+
+  const eventType = slugify(source.type || 'seminar')
+  const eventName = String(source.name || '').trim()
+  if (!eventName) throw new ValidationError({ name: ['Event name is required.'] })
+  const isPublished = Boolean(source.isPublished)
+  const status = String(source.status || 'upcoming').trim() || 'upcoming'
+
+  const payload = eventType === 'tournament'
+    ? await withLegacyApiError(() => ({
+        ...validateTournamentPayload({
+          name: eventName,
+          shortName: String(source.shortName || eventName).trim(),
+          slug: slugify(source.slug || eventName),
+          level: slugify(source.level || 'district') || 'district',
+          status: isPublished && status === 'draft' ? 'upcoming' : status,
+          date: source.date,
+          endDate: source.endDate,
+          venue: source.venue || hostingBranch || 'SKF Karate',
+          city: source.city || 'Bengaluru',
+          state: source.state || 'Karnataka',
+          description: source.description || `${eventName} tournament`,
+          coverImageUrl: source.coverImageUrl,
+          totalParticipants: Number(source.totalParticipants || 1),
+          skfParticipants: Number(source.skfParticipants || 0),
+          affiliatedBody: source.affiliatedBody,
+          isPublished,
+          isFeatured: Boolean(source.isFeatured),
+          showInJourney: Boolean(source.showInJourney),
+          participants: [],
+          results: [],
+          winners: [],
+        }),
+        type: 'tournament',
+      }))
+    : await withLegacyApiError(() => validateEventPayload({
+        name: eventName,
+        shortName: String(source.shortName || eventName).trim(),
+        slug: slugify(source.slug || eventName),
+        type: eventType || 'seminar',
+        status: isPublished && status === 'draft' ? 'upcoming' : status,
+        date: source.date,
+        endDate: source.endDate,
+        venue: source.venue,
+        city: source.city,
+        state: source.state || 'Karnataka',
+        description: source.description,
+        coverImageUrl: source.coverImageUrl,
+        affiliatedBody: source.affiliatedBody,
+        hostingBranch,
+        isPublished,
+        isFeatured: Boolean(source.isFeatured),
+        isResultsPublished: false,
+        showInJourney: Boolean(source.showInJourney),
+        participants: [],
+        results: [],
+      }))
+
+  const event = await withLegacyApiError(() => createEventRecordLive(payload)) as FeeTrackEvent
+  if (event.type === 'tournament') {
+    revalidateTournamentSitePaths(event)
+  } else {
+    revalidateEventSitePaths(event)
+  }
+  return { success: true, data: { event: mapEventForFeeTrack(event) } }
+}
+
+async function updateEventFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const source = (body.event && typeof body.event === 'object')
+    ? body.event as Record<string, unknown>
+    : body
+  const event = await getFeeTrackEvent(session, source.id || body.eventId)
+
+  const nextType = source.type === undefined
+    ? String(event.type || 'seminar')
+    : slugify(source.type || 'seminar')
+  if (event.type !== nextType && (event.type === 'tournament' || nextType === 'tournament')) {
+    throw new ValidationError({
+      type: ['Create a new record when changing an event to or from a tournament.'],
+    })
+  }
+
+  const hostingBranch = source.hostingBranch !== undefined || source.branch !== undefined
+    ? normalizeBranch(source.hostingBranch ?? source.branch, { allowOverall: true })
+    : String(event.hostingBranch || '')
+  assertBranchAccess(session, hostingBranch)
+
+  const name = String(source.name ?? event.name ?? '').trim()
+  if (!name) throw new ValidationError({ name: ['Event name is required.'] })
+
+  const isPublished = source.isPublished === undefined ? Boolean(event.isPublished) : Boolean(source.isPublished)
+  const status = String(source.status ?? event.status ?? 'upcoming').trim() || 'upcoming'
+  const payload = event.type === 'tournament'
+    ? await withLegacyApiError(() => ({
+        ...validateTournamentPayload({
+          ...event,
+          name,
+          shortName: String(source.shortName ?? event.shortName ?? name).trim() || name,
+          slug: source.slug === undefined ? String(event.slug || slugify(name)) : slugify(source.slug || name),
+          level: slugify(source.level ?? event.level ?? 'district') || 'district',
+          status: isPublished && status === 'draft' ? 'upcoming' : status,
+          date: source.date ?? event.date,
+          endDate: source.endDate ?? event.endDate,
+          venue: source.venue ?? event.venue ?? 'SKF Karate',
+          city: source.city ?? event.city ?? 'Bengaluru',
+          state: source.state ?? event.state ?? 'Karnataka',
+          description: source.description ?? event.description ?? `${name} tournament`,
+          coverImageUrl: source.coverImageUrl ?? event.coverImageUrl,
+          totalParticipants: Math.max(
+            1,
+            Number(source.totalParticipants ?? event.totalParticipants ?? (event.participants || []).length ?? 1)
+          ),
+          skfParticipants: Number(source.skfParticipants ?? event.skfParticipants ?? (event.participants || []).length ?? 0),
+          affiliatedBody: source.affiliatedBody ?? event.affiliatedBody,
+          isPublished,
+          isFeatured: source.isFeatured === undefined ? Boolean(event.isFeatured) : Boolean(source.isFeatured),
+          showInJourney: source.showInJourney === undefined ? Boolean(event.showInJourney) : Boolean(source.showInJourney),
+          participants: event.participants || [],
+          results: Array.isArray(event.results) ? event.results : [],
+          winners: Array.isArray(event.winners) ? event.winners : [],
+        }),
+        type: 'tournament',
+      }))
+    : await withLegacyApiError(() => validateEventPayload({
+        ...event,
+        name,
+        shortName: String(source.shortName ?? event.shortName ?? name).trim() || name,
+        slug: source.slug === undefined ? String(event.slug || slugify(name)) : slugify(source.slug || name),
+        type: nextType || 'seminar',
+        status: isPublished && status === 'draft' ? 'upcoming' : status,
+        date: source.date ?? event.date,
+        endDate: source.endDate ?? event.endDate,
+        venue: source.venue ?? event.venue,
+        city: source.city ?? event.city,
+        state: source.state ?? event.state ?? 'Karnataka',
+        description: source.description ?? event.description,
+        coverImageUrl: source.coverImageUrl ?? event.coverImageUrl,
+        affiliatedBody: source.affiliatedBody ?? event.affiliatedBody,
+        hostingBranch,
+        isPublished,
+        isFeatured: source.isFeatured === undefined ? Boolean(event.isFeatured) : Boolean(source.isFeatured),
+        isResultsPublished: Boolean(event.isResultsPublished),
+        showInJourney: source.showInJourney === undefined ? Boolean(event.showInJourney) : Boolean(source.showInJourney),
+        participants: event.participants || [],
+        results: Array.isArray(event.results) ? event.results : [],
+      }))
+
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  if (!updated) throw new NotFoundError('Event')
+
+  if (updated.type === 'tournament') {
+    revalidateTournamentSitePaths(updated)
+  } else {
+    revalidateEventSitePaths(event)
+    revalidateEventSitePaths(updated)
+  }
+  return { success: true, data: { event: mapEventForFeeTrack(updated) } }
+}
+
+async function assertEventCanBeDeletedFromFeeTrack(session: FeeTrackSession, event: FeeTrackEvent) {
+  const data = await EventFeesService.list(session, {
+    year: targetYear(event.date ? new Date(`${String(event.date).slice(0, 10)}T00:00:00.000Z`).getUTCFullYear() : undefined),
+    branch: '',
+  })
+  const linked = data.events.find((item) => item.event.id === event.id)
+  if (!linked) return
+
+  const hasFinancialActivity = Boolean(linked.config) ||
+    linked.collection.chargedCount > 0 ||
+    linked.collection.expected > 0 ||
+    linked.collection.collected > 0 ||
+    linked.collection.pending > 0 ||
+    linked.expenses.length > 0 ||
+    linked.deposits.length > 0
+
+  if (hasFinancialActivity) {
+    throw new ValidationError({
+      event: ['This event has FeeTrack fees, expenses, deposits, or configuration. Clear the financial activity before deleting the event.'],
+    })
+  }
+}
+
+async function deleteEventFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+
+  await assertEventCanBeDeletedFromFeeTrack(session, event)
+  await clearSyncedEventArtifactsFromAthletes(event.id)
+  const deleted = await withLegacyApiError(() => deleteEventRecordLive(event.id))
+  if (!deleted) throw new NotFoundError('Event')
+
+  if (event.type === 'tournament') {
+    revalidateTournamentSitePaths(event)
+  } else {
+    revalidateEventSitePaths(event)
+  }
+  for (const skfId of collectParticipantSkfIds(event)) {
+    revalidateAthleteSitePaths(skfId)
+  }
+
+  return { success: true, data: { eventId: event.id } }
+}
+
+async function searchEventAthletes(session: FeeTrackSession, body: ActionBody) {
+  const query = String(body.query || body.q || '').trim().toLowerCase()
+  if (query.length < 2) {
+    return { success: true, data: { athletes: [] } }
+  }
+
+  const athletes = (await getAllAthletesLive()) as FeeTrackAthlete[]
+  const results = athletes
+    .filter((athlete) => String(athlete.status || '').toLowerCase() !== 'inactive')
+    .filter((athlete) => canAccessBranch(session, athlete.branchName))
+    .filter((athlete) => {
+      const haystack = [
+        athlete.firstName,
+        athlete.lastName,
+        athlete.skfId,
+        athlete.branchName,
+        athlete.currentBelt,
+      ].join(' ').toLowerCase()
+      return haystack.includes(query)
+    })
+    .sort((a, b) => nameForAthlete(a).localeCompare(nameForAthlete(b)))
+    .slice(0, 50)
+    .map(mapAthleteForFeeTrack)
+
+  return { success: true, data: { athletes: results } }
+}
+
+async function findAthleteForAssignment(session: FeeTrackSession, source: Record<string, unknown>) {
+  const athleteId = String(source.athleteId || source.id || '').trim()
+  const skfId = normaliseSkfId(String(source.skfId || ''))
+  if (!athleteId && !skfId) {
+    throw new ValidationError({ athlete: ['Student ID or SKF ID is required.'] })
+  }
+
+  const athletes = (await getAllAthletesLive()) as FeeTrackAthlete[]
+  const athlete = athletes.find((entry) => (
+    (athleteId && String(entry.id || '') === athleteId) ||
+    (skfId && normaliseSkfId(String(entry.skfId || '')) === skfId)
+  )) || null
+
+  if (!athlete) throw new NotFoundError('Student')
+  if (String(athlete.status || '').toLowerCase() === 'inactive') {
+    throw new ValidationError({ athlete: ['Inactive students cannot be assigned to events.'] })
+  }
+  assertBranchAccess(session, athlete.branchName)
+
+  return athlete
+}
+
+async function saveEventParticipants(event: FeeTrackEvent, participants: FeeTrackEventParticipant[]) {
+  const payload = await withLegacyApiError(() => (
+    event.type === 'tournament'
+      ? validateTournamentPayload({ ...event, participants })
+      : validateEventPayload({ ...event, participants })
+  ))
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  if (!updated) throw new NotFoundError('Event')
+
+  if (updated.type === 'tournament') {
+    revalidateTournamentSitePaths(updated)
+  } else {
+    revalidateEventSitePaths(updated)
+  }
+
+  return updated
+}
+
+async function assignEventStudent(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId)
+  const source = (body.athlete && typeof body.athlete === 'object')
+    ? body.athlete as Record<string, unknown>
+    : body
+  const athlete = await findAthleteForAssignment(session, source)
+  const athleteSkfId = normaliseSkfId(String(athlete.skfId || ''))
+  const existingParticipants = event.participants || []
+
+  if (existingParticipants.some((participant) => (
+    (athlete.id && participant.athleteId === athlete.id) ||
+    normaliseSkfId(String(participant.skfId || '')) === athleteSkfId
+  ))) {
+    throw new ValidationError({ athlete: ['Student is already assigned to this event.'] })
+  }
+
+  const nextParticipant = {
+    id: `p_${event.id}_${athlete.id || athleteSkfId}`,
+    athleteId: String(athlete.id || ''),
+    athleteName: nameForAthlete(athlete),
+    skfId: athleteSkfId || String(athlete.skfId || ''),
+    branchName: String(athlete.branchName || ''),
+    belt: String(athlete.currentBelt || ''),
+    photoUrl: resolvedProfilePhoto(athlete),
+  }
+  const updated = await saveEventParticipants(event, [...existingParticipants, nextParticipant])
+
+  revalidateAthleteSitePaths(nextParticipant.skfId)
+  return { success: true, data: { event: mapEventForFeeTrack(updated) } }
+}
+
+async function removeEventStudent(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId)
+  const participantId = String(body.participantId || body.id || '').trim()
+  const skfId = normaliseSkfId(String(body.skfId || ''))
+  if (!participantId && !skfId) {
+    throw new ValidationError({ participant: ['Participant ID or SKF ID is required.'] })
+  }
+
+  const existingParticipants = event.participants || []
+  const removed = existingParticipants.filter((participant) => (
+    (participantId && String(participant.id || '') === participantId) ||
+    (skfId && normaliseSkfId(String(participant.skfId || '')) === skfId)
+  ))
+  const nextParticipants = existingParticipants.filter((participant) => !removed.includes(participant))
+  const updated = await saveEventParticipants(event, nextParticipants)
+
+  for (const participant of removed) {
+    revalidateAthleteSitePaths(String(participant.skfId || ''))
+  }
+
+  return { success: true, data: { event: mapEventForFeeTrack(updated) } }
+}
+
+function formatTournamentBelt(value: unknown) {
+  const text = String(value || '').trim()
+  if (!text) return 'White Belt'
+  if (/\bbelt\b/i.test(text)) return text
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)} Belt`
+}
+
+function resultWithParticipantDefaults(
+  event: FeeTrackEvent,
+  result: FeeTrackEventResult,
+  index: number
+) {
+  const participantId = String(result.participantId || '')
+  const skfId = normaliseSkfId(String(result.skfId || ''))
+  const participant = (event.participants || []).find((entry) => {
+    return (
+      (participantId && String(entry.id || '') === participantId) ||
+      (skfId && normaliseSkfId(String(entry.skfId || '')) === skfId)
+    )
+  })
+
+  const resolvedSkfId = normaliseSkfId(String(result.skfId || participant?.skfId || ''))
+  const id = String(result.id || `res_${event.id}_${resolvedSkfId || index + 1}`)
+
+  return {
+    ...result,
+    id,
+    participantId: participantId || String(participant?.id || ''),
+    athleteId: String(result.athleteId || participant?.athleteId || ''),
+    athleteName: String(result.athleteName || participant?.athleteName || resolvedSkfId || 'SKF Athlete'),
+    skfId: resolvedSkfId,
+    branchName: String(result.branchName || participant?.branchName || 'SKF Karate'),
+    belt: String(result.belt || participant?.belt || ''),
+    photoUrl: resolvedProfilePhoto({
+      skfId: resolvedSkfId,
+      photoUrl: String(result.photoUrl || participant?.photoUrl || ''),
+    }),
+  }
+}
+
+function deriveTournamentWinners(results: FeeTrackEventResult[]) {
+  const positionMap: Record<string, number> = { gold: 1, silver: 2, bronze: 3 }
+  return results
+    .filter((result) => ['gold', 'silver', 'bronze'].includes(String(result.medal || result.result || '').toLowerCase()))
+    .map((result, index) => {
+      const medal = String(result.medal || result.result || 'bronze').toLowerCase()
+      return {
+        id: String(result.id || `winner_${index + 1}`),
+        athleteId: String(result.athleteId || ''),
+        athleteName: String(result.athleteName || result.skfId || 'SKF Athlete'),
+        skfId: String(result.skfId || ''),
+        branchName: String(result.branchName || 'SKF Karate'),
+        belt: formatTournamentBelt(result.belt),
+        category: String(result.category || 'kata-individual'),
+        ageGroup: String(result.ageGroup || 'sub-junior'),
+        weightCategory: String(result.weightCategory || ''),
+        difficultyLevel: result.difficultyLevel,
+        wins: result.wins,
+        medal,
+        position: Number(result.position || positionMap[medal] || index + 1),
+        photoUrl: resolvedProfilePhoto({
+          skfId: String(result.skfId || ''),
+          photoUrl: String(result.photoUrl || ''),
+        }),
+      }
+    })
+}
+
+async function updateEventResultsRecord(
+  event: FeeTrackEvent,
+  results: FeeTrackEventResult[],
+  extra: Record<string, unknown> = {}
+) {
+  const normalizedResults = results.map((result, index) => resultWithParticipantDefaults(event, result, index))
+
+  const payload = event.type === 'tournament'
+    ? await withLegacyApiError(() => ({
+        ...validateTournamentPayload({
+          ...event,
+          status: extra.status || event.status || 'completed',
+          totalParticipants: Math.max(
+            1,
+            Number(event.totalParticipants || 0),
+            normalizedResults.length,
+            (event.participants || []).length
+          ),
+          skfParticipants: Math.max(
+            Number(event.skfParticipants || 0),
+            normalizedResults.length,
+            (event.participants || []).length
+          ),
+          venue: event.venue || 'SKF Karate',
+          city: event.city || 'Bengaluru',
+          state: event.state || 'Karnataka',
+          description: event.description || `${event.name} tournament`,
+          participants: event.participants || [],
+          results: normalizedResults,
+          winners: deriveTournamentWinners(normalizedResults),
+          isPublished: extra.isPublished ?? event.isPublished,
+          showInJourney: extra.showInJourney ?? event.showInJourney,
+          resultsAppliedAt: extra.resultsAppliedAt || event.resultsAppliedAt,
+        }),
+        type: 'tournament',
+      }))
+    : await withLegacyApiError(() => validateEventPayload({
+        ...event,
+        status: extra.status || event.status || 'completed',
+        participants: event.participants || [],
+        results: normalizedResults,
+        isResultsPublished: extra.isResultsPublished ?? event.isResultsPublished,
+        isPublished: extra.isPublished ?? event.isPublished,
+        showInJourney: extra.showInJourney ?? event.showInJourney,
+        resultsAppliedAt: extra.resultsAppliedAt || event.resultsAppliedAt,
+      }))
+
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  if (!updated) throw new NotFoundError('Event')
+  return updated
+}
+
+async function saveEventResultsFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const results = Array.isArray(body.results) ? body.results as FeeTrackEventResult[] : []
+  const updated = await updateEventResultsRecord(event, results)
+
+  if (updated.type === 'tournament') {
+    revalidateTournamentSitePaths(updated)
+  } else {
+    revalidateEventSitePaths(updated)
+  }
+
+  return { success: true, data: { event: mapEventForFeeTrack(updated) } }
+}
+
+async function publishEventResultsFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const sourceResults = Array.isArray(body.results)
+    ? body.results as FeeTrackEventResult[]
+    : Array.isArray(event.results)
+      ? event.results
+      : []
+  if (sourceResults.length === 0) {
+    throw new ValidationError({ results: ['Record at least one outcome before publishing.'] })
+  }
+
+  const saved = await updateEventResultsRecord(event, sourceResults, {
+    status: 'completed',
+    isPublished: true,
+    isResultsPublished: true,
+    showInJourney: true,
+  })
+
+  const syncSummary = saved.type === 'tournament'
+    ? await syncTournamentResultsToAthletes(saved as Parameters<typeof syncTournamentResultsToAthletes>[0])
+    : await syncStandaloneEventResultsToAthletes(saved as Parameters<typeof syncStandaloneEventResultsToAthletes>[0])
+
+  const published = await updateEventResultsRecord(saved, Array.isArray(saved.results) ? saved.results : [], {
+    status: 'completed',
+    isPublished: true,
+    isResultsPublished: true,
+    showInJourney: true,
+    resultsAppliedAt: new Date().toISOString(),
+  })
+
+  if (published.type === 'tournament') {
+    revalidateTournamentSitePaths(published)
+  } else {
+    revalidateEventSitePaths(published)
+  }
+
+  for (const skfId of collectParticipantSkfIds(published)) {
+    revalidateAthleteSitePaths(skfId)
+  }
+
+  return { success: true, data: { event: mapEventForFeeTrack(published), syncSummary } }
+}
+
 async function getEventCollections(session: FeeTrackSession, body: ActionBody) {
   const branch = normalizeBranch(body.branch, { allowOverall: true })
   const data = await EventFeesService.list(session, {
@@ -1275,6 +2075,168 @@ async function addEventExpense(session: FeeTrackSession, body: ActionBody) {
 async function addEventDeposit(session: FeeTrackSession, body: ActionBody) {
   const result = await EventFeesService.createDeposit(session, eventFeeDepositSchema.parse(body))
   return { success: true, data: result }
+}
+
+function assertPortalContentWrite(session: FeeTrackSession) {
+  if (!FEE_TRACK_EVENT_WRITE_ROLES.has(session.user.role)) {
+    throw new AuthorizationError('Fee viewer access is read-only.')
+  }
+}
+
+async function getPortalVideos(session: FeeTrackSession) {
+  assertPortalContentWrite(session)
+  const videos = await getAllPortalVideosAdmin()
+  return { success: true, data: { videos } }
+}
+
+async function upsertPortalVideo(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const source = (body.video && typeof body.video === 'object')
+    ? body.video as Record<string, unknown>
+    : body
+  const id = String(body.videoId || source.id || '').trim()
+  const video = id
+    ? await updatePortalVideo(id, { ...source, id })
+    : await createPortalVideo(source)
+  revalidatePortalSitePaths()
+  return { success: true, data: { video } }
+}
+
+async function deletePortalVideoFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const videoId = String(body.videoId || body.id || '').trim()
+  if (!videoId) throw new ValidationError({ video: ['Video ID is required.'] })
+  await deletePortalVideo(videoId)
+  revalidatePortalSitePaths()
+  return { success: true, data: { videoId } }
+}
+
+async function getBranchTimetables(session: FeeTrackSession) {
+  assertPortalContentWrite(session)
+  const timetables = await getAllBranchTimetablesAdmin()
+  return { success: true, data: { timetables } }
+}
+
+async function getGalleryPhotos(session: FeeTrackSession) {
+  assertPortalContentWrite(session)
+  const photos = await getAllGalleryPhotosAdmin()
+  return { success: true, data: { photos, categories: GALLERY_CATEGORY_OPTIONS } }
+}
+
+async function getEventGalleryPhotos(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const eventId = String(body.eventId || body.id || '').trim()
+  if (!eventId) throw new ValidationError({ eventId: ['Event ID is required.'] })
+  const photos = await getEventGalleryPhotosAdmin(eventId)
+  return { success: true, data: { photos, categories: GALLERY_CATEGORY_OPTIONS } }
+}
+
+async function upsertGalleryPhoto(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const source = (body.photo && typeof body.photo === 'object')
+    ? body.photo as Record<string, unknown>
+    : body
+  const photoId = String(body.photoId || source.id || '').trim()
+  const photo = photoId
+    ? await updateGalleryPhoto(photoId, { ...source, id: photoId })
+    : await createGalleryPhoto(source)
+  revalidatePath('/gallery')
+  return { success: true, data: { photo } }
+}
+
+async function deleteGalleryPhotoFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const photoId = String(body.photoId || body.id || '').trim()
+  if (!photoId) throw new ValidationError({ photoId: ['Gallery photo ID is required.'] })
+  const photo = await deleteGalleryPhoto(photoId)
+  revalidatePath('/gallery')
+  return { success: true, data: { photoId, photo } }
+}
+
+function assertShopWrite(session: FeeTrackSession) {
+  if (!FEE_TRACK_EVENT_WRITE_ROLES.has(session.user.role)) {
+    throw new AuthorizationError('Fee viewer access is read-only.')
+  }
+}
+
+function assertReportAccess(session: FeeTrackSession) {
+  if (!FEE_TRACK_EVENT_WRITE_ROLES.has(session.user.role)) {
+    throw new AuthorizationError('Website analytics access is restricted.')
+  }
+}
+
+function revalidateShopPaths(productId?: string) {
+  revalidatePath('/shop')
+  revalidatePath('/shop/orders')
+  if (productId) {
+    revalidatePath(`/shop/${productId}`)
+  }
+  revalidateTag(SHOP_PRODUCTS_CACHE_TAG, 'max')
+}
+
+async function getShopProducts() {
+  const products = await getProducts()
+  return { success: true, data: { products } }
+}
+
+async function upsertShopProduct(session: FeeTrackSession, body: ActionBody) {
+  assertShopWrite(session)
+  const source = (body.product && typeof body.product === 'object')
+    ? body.product as SaveShopProductInput
+    : body as SaveShopProductInput
+  const product = await upsertProduct(source)
+  revalidateShopPaths(product.id)
+  return { success: true, data: { product } }
+}
+
+async function getShopOrders() {
+  const orders = await getAllShopOrders()
+  return { success: true, data: { orders } }
+}
+
+async function updateShopOrderStatusFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertShopWrite(session)
+  const orderId = String(body.orderId || '').trim()
+  const status = String(body.status || '').trim()
+  if (!orderId) throw new ValidationError({ orderId: ['Order ID is required.'] })
+  if (!status) throw new ValidationError({ status: ['Order status is required.'] })
+
+  const order = await updateShopOrderStatus(orderId, status)
+  if (!order) throw new NotFoundError('Shop order')
+
+  revalidateShopPaths()
+  return { success: true, data: { order } }
+}
+
+async function getWebsiteAnalytics(session: FeeTrackSession, body: ActionBody) {
+  assertReportAccess(session)
+  const rangeDays = Number(body.rangeDays || 90)
+  const result = await getWebsiteAnalyticsSummary({ rangeDays })
+  return { success: true, data: result }
+}
+
+async function getWebsiteNotifications() {
+  const notifications = await getPendingWebsiteSheetNotifications(50)
+  return { success: true, data: { notifications } }
+}
+
+async function markWebsiteNotificationContacted(session: FeeTrackSession, body: ActionBody) {
+  assertShopWrite(session)
+  const kind = String(body.kind || '').trim()
+  const rowNumber = Number(body.rowNumber || 0)
+
+  if (kind !== 'free_trial' && kind !== 'callback') {
+    throw new ValidationError({ kind: ['Website notification kind must be free_trial or callback.'] })
+  }
+
+  if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+    throw new ValidationError({ rowNumber: ['A valid sheet row number is required.'] })
+  }
+
+  const updated = await markWebsiteSheetNotificationContacted(kind, rowNumber)
+  if (!updated) throw new NotFoundError('Website notification')
+
+  return { success: true, data: { kind, rowNumber, status: 'Contacted' } }
 }
 
 async function handleAction(body: ActionBody) {
@@ -1341,6 +2303,22 @@ async function handleAction(body: ActionBody) {
       return upsertAdmissionPromoCode(session, body)
     case 'update_admission_branch_settings':
       return updateAdmissionBranchSettings(session, body)
+    case 'create_event':
+      return createEventFromFeeTrack(session, body)
+    case 'update_event':
+      return updateEventFromFeeTrack(session, body)
+    case 'delete_event':
+      return deleteEventFromFeeTrack(session, body)
+    case 'search_event_athletes':
+      return searchEventAthletes(session, body)
+    case 'assign_event_student':
+      return assignEventStudent(session, body)
+    case 'remove_event_student':
+      return removeEventStudent(session, body)
+    case 'save_event_results':
+      return saveEventResultsFromFeeTrack(session, body)
+    case 'publish_event_results':
+      return publishEventResultsFromFeeTrack(session, body)
     case 'get_event_collections':
       return getEventCollections(session, body)
     case 'upsert_event_fee_config':
@@ -1353,6 +2331,36 @@ async function handleAction(body: ActionBody) {
       return addEventExpense(session, body)
     case 'add_event_deposit':
       return addEventDeposit(session, body)
+    case 'get_portal_videos':
+      return getPortalVideos(session)
+    case 'upsert_portal_video':
+      return upsertPortalVideo(session, body)
+    case 'delete_portal_video':
+      return deletePortalVideoFromFeeTrack(session, body)
+    case 'get_branch_timetables':
+      return getBranchTimetables(session)
+    case 'get_gallery_photos':
+      return getGalleryPhotos(session)
+    case 'get_event_gallery_photos':
+      return getEventGalleryPhotos(session, body)
+    case 'upsert_gallery_photo':
+      return upsertGalleryPhoto(session, body)
+    case 'delete_gallery_photo':
+      return deleteGalleryPhotoFromFeeTrack(session, body)
+    case 'get_shop_products':
+      return getShopProducts()
+    case 'upsert_shop_product':
+      return upsertShopProduct(session, body)
+    case 'get_shop_orders':
+      return getShopOrders()
+    case 'update_shop_order_status':
+      return updateShopOrderStatusFromFeeTrack(session, body)
+    case 'get_website_analytics':
+      return getWebsiteAnalytics(session, body)
+    case 'get_website_notifications':
+      return getWebsiteNotifications()
+    case 'mark_website_notification_contacted':
+      return markWebsiteNotificationContacted(session, body)
     default:
       throw new ValidationError({ action: ['Unsupported FeeTrack action.'] })
   }
@@ -1432,6 +2440,9 @@ export async function GET() {
       fees: true,
       finance: true,
       events: true,
+      gallery: true,
+      portal: true,
+      shop: true,
     },
   })
 }

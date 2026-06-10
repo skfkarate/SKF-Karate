@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 
 import { getAllAthletesLive, getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { ensureFeeRowsForStudent } from '@/lib/server/repositories/fee-records'
+import { getLocalProfilePhotoFile, resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { normaliseSkfId } from '@/lib/utils/registration'
 import { env } from '@/src/server/config/env'
@@ -60,6 +61,8 @@ type AthleteRecord = {
   firstName?: string | null
   lastName?: string | null
   branchName?: string | null
+  gender?: string | null
+  photoUrl?: string | null
   monthlyFee?: number | null
   joinDate?: string | null
   status?: string | null
@@ -1228,7 +1231,7 @@ async function notifyPaymentProofSubmitted(input: {
     input.paymentReference ? `Reference: ${input.paymentReference}` : '',
     `Submitted: ${new Date().toLocaleString('en-IN')}`,
     '',
-    `Review Pending Proofs: ${siteUrl}/admin/treasury?status=pending_verification`,
+    `Review Pending Proofs: ${siteUrl.replace('www.skfkarate.org', 'fees.skfkarate.org')}/payments?status=pending_verification`,
   ].filter(Boolean).join('\n')
 
   try {
@@ -1476,15 +1479,27 @@ export class FeeOperationsService {
         const creditApplied = creditBySkfId.get(skfId) || 0
         const amount = Math.max(0, baseAmount - creditApplied)
         const city = cityLabelForBranch(athlete.branchName)
+        const photoUrl = String(athlete.photoUrl || '').trim()
+        const localProfilePhoto = getLocalProfilePhotoFile(skfId)
+        const hasProfilePhoto = Boolean(photoUrl && !photoUrl.includes('/no-profile/')) || Boolean(localProfilePhoto)
+        const resolvedPhotoUrl = resolveServerAthleteProfilePhoto({
+          skfId,
+          photoUrl,
+          gender: athlete.gender || '',
+        })
         return {
           skfId,
           name: athleteName(athlete),
           branch: athlete.branchName || '',
           city: city.city,
           citySlug: city.citySlug,
+          gender: athlete.gender || '',
+          photoUrl: resolvedPhotoUrl,
+          hasProfilePhoto,
           parentName: athlete.parentName || '',
           phone: athlete.phone || '',
           email: athlete.email || '',
+          dateOfBirth: athlete.dateOfBirth || '',
           joinDate: athlete.joinDate || '',
           amount: nonBillableStatus(status) ? 0 : amount,
           originalAmount: baseAmount,
@@ -2168,8 +2183,8 @@ export class FeeOperationsService {
       { type: 'fee_amount_mismatch', actionLabel: 'Reconcile amounts', action: 'reconcile_due_amounts' },
       { type: 'stale_payment_proofs', actionLabel: 'Review proofs', route: '/fee/payments?status=pending_verification' },
       { type: 'unclear_expense_scope', actionLabel: 'Review fund', route: '/fee/development-fund' },
-      { type: 'missing_branch', actionLabel: 'Fix students', route: '/admin/students' },
-      { type: 'unmapped_city', actionLabel: 'Map branch', route: '/admin/classes' },
+      { type: 'missing_branch', actionLabel: 'Fix students', route: '/students/all' },
+      { type: 'unmapped_city', actionLabel: 'Map branch', route: '/students/all' },
       { type: 'zero_monthly_fee', actionLabel: 'Open students', route: '/fee/students' },
     ]
 

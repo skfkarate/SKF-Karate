@@ -15,7 +15,7 @@ type ImportRecord = {
   dp: boolean
 }
 
-const rawData = `SKF13BL000	SHRIROSHAN P	Bangalore	2013-04-13	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Black Belt	Legacy pre-SKF ID record
+const rawData = `SKF13BL000	SHRIROSHAN P	Bangalore	2013-04-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Black Belt	Legacy pre-SKF ID record
 SKF13BL000	SHRIROSHAN P	Bangalore	2013-10-13	Belt Exam	Yellow Belt	SKF Progressive Kyu Examination – October 2013	Pass	A	Dr. Renshi Channegowda UC	No	Black Belt	
 SKF13BL000	SHRIROSHAN P	Bangalore	2014-01-14	Belt Exam	Orange Belt	SKF Progressive Kyu Examination – January 2014	Pass	A	Dr. Renshi Channegowda UC	No	Black Belt	
 SKF13BL000	SHRIROSHAN P	Bangalore	2014-04-18	Belt Exam	Green II Belt	SKF Progressive Kyu Examination – April 2014	Pass	A	Dr. Renshi Channegowda UC	No	Black Belt	
@@ -105,6 +105,8 @@ SKF24HE001	KUSHIL V	Herohalli	2025-12-07	Belt Exam	Orange Belt	SKF Progressive K
 SKF25HE001	LIKHITH GOWDA U R	Herohalli	2025-01-12	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Yellow Belt	White belt issued / joining date
 SKF25HE001	LIKHITH GOWDA U R	Herohalli	2025-07-12	Belt Exam	Yellow Belt	SKF Progressive Kyu Examination – June 2025	Pass	A	Dr. Renshi Channegowda UC	No	Yellow Belt	Normalized to June 2025 grading batch
 SKF25HE002	MANAV	Herohalli	2025-11-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	White Belt	Joining after October; no grading yet
+SKF25HE003	MRITHIKA P	Herohalli	2025-01-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Yellow Belt	Enrollment; resuming June 2026
+SKF25HE003	MRITHIKA P	Herohalli	2025-07-12	Belt Exam	Yellow Belt	SKF Progressive Kyu Examination – June 2025	Pass	A	Dr. Renshi Channegowda UC	No	Yellow Belt	Normalized to June 2025 grading batch
 SKF26HE001	M MONISHPRASAD	Herohalli	2026-01-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	White Belt	Exact joining date given; no grading yet`
 
 export async function POST(request: NextRequest) {

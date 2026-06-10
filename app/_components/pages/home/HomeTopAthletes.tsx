@@ -32,9 +32,15 @@ export default async function HomeTopAthletes() {
       .map((a) => [String(a.id), a])
   )
 
+  // Sort by belt order (from snapshot) then by tournament points as tiebreaker
   const topAthletes = snapshots
-    .filter((s) => athleteMap.has(String(s.athleteId)) && Number(s.totalPoints || 0) > 0)
-    .sort((a, b) => Number(b.totalPoints || 0) - Number(a.totalPoints || 0))
+    .filter((s) => athleteMap.has(String(s.athleteId)))
+    .sort((a, b) => {
+      const aBelt = a.beltOrder ?? 0
+      const bBelt = b.beltOrder ?? 0
+      if (bBelt !== aBelt) return bBelt - aBelt
+      return Number(b.totalPoints || 0) - Number(a.totalPoints || 0)
+    })
     .slice(0, 3)
     .map((s) => {
       const athlete = athleteMap.get(String(s.athleteId))
@@ -68,6 +74,8 @@ export default async function HomeTopAthletes() {
 
   if (top3.length < 3) return null
 
+  const hasPoints = top3.some((a) => a.totalPoints > 0)
+
   return (
     <section className="obs-athletes-section" id="top-athletes">
       <div className="container">
@@ -80,7 +88,7 @@ export default async function HomeTopAthletes() {
               OUR TOP <span className="text-gradient">ATHLETES</span>
             </h2>
             <p className="obs-subtitle">
-              The highest-ranked competitors across all SKF Karate branches.
+              The top-ranked athletes across all SKF Karate branches.
             </p>
           </div>
         </ScrollReveal>
@@ -95,7 +103,9 @@ export default async function HomeTopAthletes() {
               <h3 className="hon-pcard__name">{top3[1].name}</h3>
               <span className="hon-pcard__belt">{top3[1].belt}</span>
               <span className="hon-pcard__branch">{top3[1].branch}</span>
-              <div className="hon-pcard__pts">{Number(top3[1].totalPoints).toFixed(0)}<small>pts</small></div>
+              <div className="hon-pcard__pts">
+                {hasPoints ? <>{Number(top3[1].totalPoints).toFixed(0)}<small>pts</small></> : <>{top3[1].belt}</>}
+              </div>
             </Link>
 
             {/* 1st Place */}
@@ -105,7 +115,9 @@ export default async function HomeTopAthletes() {
               <h3 className="hon-pcard__name">{top3[0].name}</h3>
               <span className="hon-pcard__belt">{top3[0].belt}</span>
               <span className="hon-pcard__branch">{top3[0].branch}</span>
-              <div className="hon-pcard__pts">{Number(top3[0].totalPoints).toFixed(0)}<small>pts</small></div>
+              <div className="hon-pcard__pts">
+                {hasPoints ? <>{Number(top3[0].totalPoints).toFixed(0)}<small>pts</small></> : <>{top3[0].belt}</>}
+              </div>
             </Link>
 
             {/* 3rd Place */}
@@ -115,14 +127,16 @@ export default async function HomeTopAthletes() {
               <h3 className="hon-pcard__name">{top3[2].name}</h3>
               <span className="hon-pcard__belt">{top3[2].belt}</span>
               <span className="hon-pcard__branch">{top3[2].branch}</span>
-              <div className="hon-pcard__pts">{Number(top3[2].totalPoints).toFixed(0)}<small>pts</small></div>
+              <div className="hon-pcard__pts">
+                {hasPoints ? <>{Number(top3[2].totalPoints).toFixed(0)}<small>pts</small></> : <>{top3[2].belt}</>}
+              </div>
             </Link>
           </div>
         </ScrollReveal>
 
         <ScrollReveal className="obs-athletes-cta" delay={0.3}>
           <Link href="/rankings" className="obs-btn-outline">
-            VIEW FULL RANKINGS <ArrowRight size={14} />
+            VIEW SKF RANKINGS <ArrowRight size={14} />
           </Link>
         </ScrollReveal>
       </div>

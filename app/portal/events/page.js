@@ -10,7 +10,6 @@ import {
   isUpcomingPortalEvent,
 } from '@/lib/utils/portal-events'
 
-export const dynamic = 'force-dynamic'
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', {

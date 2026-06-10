@@ -6,13 +6,12 @@ import {
   getAllAthletesLive,
   getRankSnapshotsLive,
 } from '@/lib/server/repositories/athletes-live'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildNoIndexMetadata } from '@/data/constants/seo'
 import './honours.css'
-
-export const revalidate = 300
 
 export const metadata = buildNoIndexMetadata(
   '/honours',
@@ -117,7 +116,7 @@ function buildTournamentAchievements(publicAthletes: PublicAthlete[]): Tournamen
           skfId: athlete.skfId,
           branchName: athlete.branchName,
           belt: beltLabel(athlete.currentBelt),
-          photoUrl: athlete.photoUrl,
+          photoUrl: resolveServerAthleteProfilePhoto(athlete),
           medal: normaliseResult(
             achievement.competitionResult ||
             achievement.result ||

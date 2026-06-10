@@ -15,8 +15,6 @@ import BranchDetailClient from './BranchDetailClient'
 // that are defined in obsidian.css — corrected import below.
 import '../../obsidian.css'
 
-export const revalidate = 300
-
 export async function generateMetadata({ params }: { params: Promise<{ city: string; branch: string }> }) {
     const { city: citySlug, branch: branchSlug } = await params
     const [city, branch] = await Promise.all([

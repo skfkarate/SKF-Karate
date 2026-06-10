@@ -7,8 +7,6 @@ import {
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
 
-export const dynamic = 'force-dynamic'
-
 export default async function DojoDashboard() {
   const { athlete } = await requirePortalAthlete()
 

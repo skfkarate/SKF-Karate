@@ -4,8 +4,6 @@ import { SHOP_PRODUCTS_CACHE_TAG } from '@/lib/shop/cache'
 import ShopListingClient from '../ShopListingClient'
 import '../shop.css'
 
-export const revalidate = 300
-
 // Cache the initial catalog so /shop opens with products already rendered and avoids repeated live DB reads.
 const getCachedShopProducts = unstable_cache(
   async () => getProducts(),

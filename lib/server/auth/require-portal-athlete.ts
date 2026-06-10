@@ -7,6 +7,7 @@ import {
   buildCanonicalPortalSession,
   isEligiblePortalAthlete,
 } from '@/lib/server/auth/portal-athlete'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 
 export const getPortalAthleteFromCookies = cache(async function getPortalAthleteFromCookies() {
@@ -25,7 +26,10 @@ export const getPortalAthleteFromCookies = cache(async function getPortalAthlete
 
   return {
     session: buildCanonicalPortalSession(session, athlete),
-    athlete,
+    athlete: {
+      ...athlete,
+      photoUrl: resolveServerAthleteProfilePhoto(athlete),
+    },
   }
 })
 

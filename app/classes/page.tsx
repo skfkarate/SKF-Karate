@@ -15,8 +15,6 @@ import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './obsidian.css' // Import the unified Obsidian styling instead of classes.css
 
-export const revalidate = 300
-
 export const metadata = buildSeoMetadata(
     '/classes',
     'Find SKF Karate classes near you in Bangalore, Kunigal, Tumkur, and Udupi for kids, adults, self-defense, kata, kumite, fitness, and black belt training.'

@@ -1,8 +1,5 @@
 import { ZodError, type ZodType } from 'zod'
 
-import type { Session } from 'next-auth'
-
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { getPortalSession } from '@/lib/server/auth/portal'
 import {
   buildCanonicalPortalSession,
@@ -20,7 +17,6 @@ type RequestLike = Request & { nextUrl?: URL }
 
 type RouteOptions<TBody, TQuery> = {
   auth?:
-    | { type: 'admin'; roles?: string[] }
     | { type: 'portal'; roles?: UserRole[] }
   bodySchema?: ZodType<TBody>
   querySchema?: ZodType<TQuery>
@@ -38,7 +34,6 @@ type RouteContext<TBody, TQuery> = {
   requestId: string
   body: TBody
   query: TQuery
-  adminSession: Session | null
   portalSession: JWTPayload | null
 }
 
@@ -112,17 +107,9 @@ async function parseBody<TBody>(
 async function resolveAuth(
   request: RequestLike,
   auth: RouteOptions<unknown, unknown>['auth']
-): Promise<Pick<RouteContext<unknown, unknown>, 'adminSession' | 'portalSession'>> {
+): Promise<Pick<RouteContext<unknown, unknown>, 'portalSession'>> {
   if (!auth) {
-    return { adminSession: null, portalSession: null }
-  }
-
-  if (auth.type === 'admin') {
-    const session = await getAuthorizedApiSession(auth.roles)
-    if (!session?.user?.role) {
-      throw new AuthenticationError()
-    }
-    return { adminSession: session, portalSession: null }
+    return { portalSession: null }
   }
 
   const portalSession = getPortalSession(request)
@@ -139,7 +126,7 @@ async function resolveAuth(
     throw new AuthorizationError()
   }
 
-  return { adminSession: null, portalSession: buildCanonicalPortalSession(portalSession, athlete!) }
+  return { portalSession: buildCanonicalPortalSession(portalSession, athlete!) }
 }
 
 function buildErrorResponse(error: unknown, requestId: string): Response {
@@ -176,6 +163,16 @@ function buildErrorResponse(error: unknown, requestId: string): Response {
   return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500, {
     details: { requestId },
   })
+}
+
+function isNextPrerenderBailout(error: unknown) {
+  if (!(error instanceof Error)) return false
+
+  const digest = (error as Error & { digest?: unknown }).digest
+  return (
+    digest === 'NEXT_PRERENDER_INTERRUPTED' ||
+    error.message.includes('needs to bail out of prerendering')
+  )
 }
 
 export function withRoute<TBody = Record<string, never>, TQuery = Record<string, never>>(
@@ -238,6 +235,10 @@ export function withRoute<TBody = Record<string, never>, TQuery = Record<string,
 
       return finalResponse
     } catch (error) {
+      if (isNextPrerenderBailout(error)) {
+        throw error
+      }
+
       const response = buildErrorResponse(error, requestId)
       const status = response.status
       const isServerError = status >= 500

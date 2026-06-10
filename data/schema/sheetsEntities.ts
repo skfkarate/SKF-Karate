@@ -5,7 +5,7 @@ import type { EntitySchema } from './types'
  * Source: /types/index.ts Student interface + lib/server/sheets.ts Students tab
  *
  * IMPORTANT: Student and Athlete are the SAME person.
- * - Student = Sheets row shape (portal/admin view, authoritative for identity)
+ * - Student = Sheets row shape (portal view, authoritative for identity)
  * - Athlete = JSON store shape (public profile, achievements, rankings)
  *
  * Sheets columns A:K → skfId, name, branch, batch, belt, parentName, phone, status, enrolledDate, monthlyFee, photoConsent

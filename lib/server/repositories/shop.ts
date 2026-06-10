@@ -51,18 +51,6 @@ type ShopOrderRow = {
   updated_at: string | null
 }
 
-type LegacyShopOrderRow = {
-  orderId?: unknown
-  skfId?: unknown
-  status?: unknown
-  addressJson?: unknown
-  itemsJson?: unknown
-  total?: unknown
-  discount?: unknown
-  pointsUsed?: unknown
-  date?: unknown
-}
-
 type RawOrderItem = {
   productId?: unknown
   variantId?: unknown
@@ -163,9 +151,7 @@ export async function upsertProduct(input: SaveShopProductInput): Promise<ShopPr
 }
 
 export async function getAllShopOrders(): Promise<ShopOrder[]> {
-  const dbOrders = await getDatabaseOrders()
-  const legacyOrders = await getLegacyOrders()
-  return mergeShopOrders(dbOrders, legacyOrders)
+  return getDatabaseOrders()
 }
 
 export async function getShopOrdersBySkfId(skfId: string): Promise<ShopOrder[]> {
@@ -186,24 +172,27 @@ export async function getShopOrderById(orderId: string): Promise<ShopOrder | nul
     return null
   }
 
-  if (isSupabaseReady()) {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from(ORDERS_TABLE)
-        .select('*')
-        .eq('order_id', normalizedOrderId)
-        .maybeSingle()
-
-      if (!error && data) {
-        return normalizeDatabaseOrder(data)
-      }
-    } catch (error) {
-      logger.error('shop.orders.fetch_by_id_failed', { orderId: normalizedOrderId, error })
-    }
+  if (!isSupabaseReady()) {
+    return null
   }
 
-  const legacyOrders = await getLegacyOrders()
-  return legacyOrders.find((order) => order.orderId === normalizedOrderId) || null
+  try {
+    const { data, error } = await supabaseAdmin
+      .from(ORDERS_TABLE)
+      .select('*')
+      .eq('order_id', normalizedOrderId)
+      .maybeSingle()
+
+    if (error) {
+      logger.error('shop.orders.fetch_by_id_failed', { orderId: normalizedOrderId, error })
+      return null
+    }
+
+    return data ? normalizeDatabaseOrder(data) : null
+  } catch (error) {
+    logger.error('shop.orders.fetch_by_id_failed', { orderId: normalizedOrderId, error })
+    return null
+  }
 }
 
 export async function updateShopOrderStatus(
@@ -217,62 +206,60 @@ export async function updateShopOrderStatus(
     throw new Error('Order ID is required.')
   }
 
-  if (isSupabaseReady()) {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from(ORDERS_TABLE)
-        .update({
-          status: normalizedStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('order_id', normalizedOrderId)
-        .select('*')
-        .maybeSingle()
+  if (!isSupabaseReady()) {
+    throw new Error('Supabase is not configured for shop order management.')
+  }
 
-      if (!error && data) {
-        return normalizeDatabaseOrder(data)
-      }
-    } catch (error) {
-      logger.error('shop.orders.update_status_failed', { orderId: normalizedOrderId, status: normalizedStatus, error })
+  try {
+    const { data, error } = await supabaseAdmin
+      .from(ORDERS_TABLE)
+      .update({
+        status: normalizedStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('order_id', normalizedOrderId)
+      .select('*')
+      .maybeSingle()
+
+    if (error) {
+      logger.error('shop.orders.update_status_failed', {
+        orderId: normalizedOrderId,
+        status: normalizedStatus,
+        error,
+      })
+      throw new Error('Failed to update the shop order status.')
     }
+
+    return data ? normalizeDatabaseOrder(data) : null
+  } catch (error) {
+    logger.error('shop.orders.update_status_unexpected_failed', {
+      orderId: normalizedOrderId,
+      status: normalizedStatus,
+      error,
+    })
+    throw error
   }
-
-  const legacy = await getLegacyShopHelpers()
-  const updated = await legacy.updateShopOrderStatus(
-    normalizedOrderId,
-    getShopOrderStatusLabel(normalizedStatus)
-  )
-
-  if (!updated) {
-    return null
-  }
-
-  return getShopOrderById(normalizedOrderId)
 }
 
 export async function placeShopOrder(input: PersistShopOrderInput): Promise<ShopOrder> {
-  if (isSupabaseReady()) {
-    const rpcOrder = await tryPlaceShopOrderRpc(input)
-    if (rpcOrder) {
-      return rpcOrder
-    }
-
-    const insertedOrder = await insertShopOrderRow(input)
-
-    if (!insertedOrder.persistedToDatabase) {
-      return insertedOrder.order
-    }
-
-    try {
-      await reserveInventoryFallback(input.items)
-      return insertedOrder.order
-    } catch (error) {
-      await markOrderAsCancelled(insertedOrder.order.orderId)
-      throw error
-    }
+  if (!isSupabaseReady()) {
+    throw new Error('Supabase is not configured for shop checkout.')
   }
 
-  return createLegacyShopOrder(input)
+  const rpcOrder = await tryPlaceShopOrderRpc(input)
+  if (rpcOrder) {
+    return rpcOrder
+  }
+
+  const insertedOrder = await insertShopOrderRow(input)
+
+  try {
+    await reserveInventoryFallback(input.items)
+    return insertedOrder.order
+  } catch (error) {
+    await markOrderAsCancelled(insertedOrder.order.orderId)
+    throw error
+  }
 }
 
 async function getDatabaseOrders(): Promise<ShopOrder[]> {
@@ -297,27 +284,6 @@ async function getDatabaseOrders(): Promise<ShopOrder[]> {
   } catch (error) {
     logger.error('shop.orders.fetch_unexpected_failed', { error })
     return []
-  }
-}
-
-async function getLegacyOrders(): Promise<ShopOrder[]> {
-  const legacy = await getLegacyShopHelpers()
-  const rawOrders = await legacy.getAllShopOrders()
-
-  return rawOrders.map((order) =>
-    normalizeLegacyOrder({
-      ...order,
-      status: getShopOrderStatusLabel(order.status),
-    })
-  )
-}
-
-async function getLegacyShopHelpers() {
-  const sheetsModule = await import('@/lib/server/sheets')
-  return {
-    createShopOrder: sheetsModule.createShopOrder,
-    getAllShopOrders: sheetsModule.getAllShopOrders,
-    updateShopOrderStatus: sheetsModule.updateShopOrderStatus,
   }
 }
 
@@ -348,38 +314,6 @@ function normalizeDatabaseOrder(record: Partial<ShopOrderRow>): ShopOrder {
     address,
     createdAt: record.created_at || new Date().toISOString(),
     updatedAt: record.updated_at || null,
-  }
-}
-
-function normalizeLegacyOrder(record: LegacyShopOrderRow): ShopOrder {
-  const status = normalizeShopOrderStatus(String(record.status || ''))
-  const address = normalizeOrderAddress(record.addressJson)
-  const items = normalizeOrderItems(record.itemsJson)
-  const skfId = normalizeOptionalText(record.skfId)
-  const isAthleteOrder = Boolean(skfId && skfId.toUpperCase() !== 'GUEST')
-  const pickupOrder = address.addressLine1 === 'CLASS PICKUP'
-
-  return {
-    orderId: String(record.orderId || ''),
-    skfId,
-    customerName: address.fullName || (isAthleteOrder ? skfId || 'Athlete' : 'Guest'),
-    customerPhone: normalizeOptionalText(address.phone),
-    customerType: isAthleteOrder ? 'athlete' : 'guest',
-    items,
-    subtotal: normalizeCurrencyAmount(
-      items.reduce((total, item) => total + item.lineTotal, 0)
-    ),
-    shippingFee: pickupOrder ? 0 : 0,
-    total: normalizeCurrencyAmount(record.total),
-    discount: normalizeCurrencyAmount(record.discount),
-    pointsUsed: normalizeWholeNumber(record.pointsUsed),
-    promoCode: null,
-    status,
-    statusLabel: getShopOrderStatusLabel(status),
-    fulfillmentMethod: pickupOrder ? 'dojo-pickup' : 'shipping',
-    address,
-    createdAt: String(record.date || new Date().toISOString()),
-    updatedAt: null,
   }
 }
 
@@ -441,26 +375,6 @@ function parseJsonValue(value: unknown): unknown {
   }
 
   return value
-}
-
-function mergeShopOrders(primaryOrders: ShopOrder[], secondaryOrders: ShopOrder[]): ShopOrder[] {
-  const orderMap = new Map<string, ShopOrder>()
-
-  for (const order of [...primaryOrders, ...secondaryOrders]) {
-    if (!order.orderId) {
-      continue
-    }
-
-    if (!orderMap.has(order.orderId)) {
-      orderMap.set(order.orderId, order)
-    }
-  }
-
-  return Array.from(orderMap.values()).sort((left, right) => {
-    const leftTime = Date.parse(left.createdAt || '') || 0
-    const rightTime = Date.parse(right.createdAt || '') || 0
-    return rightTime - leftTime
-  })
 }
 
 function sanitizeProductForSave(input: SaveShopProductInput): ShopProduct {
@@ -621,14 +535,6 @@ async function insertShopOrderRow(input: PersistShopOrderInput): Promise<{
     .maybeSingle()
 
   if (error || !data) {
-    const legacyOrder = await tryCreateLegacyOrder(input)
-    if (legacyOrder) {
-      return {
-        order: legacyOrder,
-        persistedToDatabase: false,
-      }
-    }
-
     logger.error('shop.orders.insert_failed', { orderId: input.orderId, error })
     throw new Error('Failed to save the order.')
   }
@@ -752,64 +658,4 @@ async function markOrderAsCancelled(orderId: string) {
   } catch (error) {
     logger.error('shop.orders.cancel_incomplete_failed', { orderId, error })
   }
-}
-
-async function createLegacyShopOrder(input: PersistShopOrderInput): Promise<ShopOrder> {
-  const legacyOrder = await tryCreateLegacyOrder(input)
-
-  if (!legacyOrder) {
-    throw new Error('Failed to save the order.')
-  }
-
-  return legacyOrder
-}
-
-async function tryCreateLegacyOrder(
-  input: PersistShopOrderInput
-): Promise<ShopOrder | null> {
-  const legacy = await getLegacyShopHelpers()
-  const success = await legacy.createShopOrder({
-    orderId: input.orderId,
-    skfId:
-      input.customerType === 'athlete'
-        ? input.actor.skfId || 'ATHLETE'
-        : 'GUEST',
-    itemsJson: JSON.stringify(
-      input.items.map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        name: item.name,
-        size: item.size,
-        quantity: item.quantity,
-        price: item.unitPrice,
-        image: item.image,
-        requiresApproval: item.requiresApproval,
-      }))
-    ),
-    total: input.total,
-    discount: input.discount,
-    pointsUsed: input.pointsUsed,
-    date: new Date().toISOString(),
-    status: getShopOrderStatusLabel(input.status),
-    addressJson: JSON.stringify(input.address),
-  })
-
-  if (!success) {
-    return null
-  }
-
-  return normalizeLegacyOrder({
-    orderId: input.orderId,
-    skfId:
-      input.customerType === 'athlete'
-        ? input.actor.skfId || 'ATHLETE'
-        : 'GUEST',
-    itemsJson: JSON.stringify(input.items),
-    total: input.total,
-    discount: input.discount,
-    pointsUsed: input.pointsUsed,
-    date: new Date().toISOString(),
-    status: getShopOrderStatusLabel(input.status),
-    addressJson: JSON.stringify(input.address),
-  })
 }

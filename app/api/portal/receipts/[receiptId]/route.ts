@@ -7,8 +7,6 @@ import { applyRateLimit } from '@/src/server/lib/rate-limit'
 import { withRoute } from '@/src/server/lib/route'
 import { FeeLedgerService } from '@/src/server/services/fee-ledger.service'
 
-export const runtime = 'nodejs'
-
 function formatFilename(input: string) {
   return input
     .trim()
@@ -44,6 +42,7 @@ export const GET = withRoute(
         receiptId: data.receiptId,
         studentName: data.athleteName,
         skfId: data.skfId,
+        parentName: data.parentName,
         branch: data.branch,
         feeType: data.feeType,
         month: data.month,

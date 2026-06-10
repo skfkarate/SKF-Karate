@@ -385,7 +385,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '150px', height: '150px', background: 'rgba(255,183,3,0.15)', filter: 'blur(50px)' }} />
             
             <p style={{ margin: '0 0 15px 0', color: 'rgba(255,183,3,0.8)', fontSize: '18px', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800 }}>
-              World Ranking
+              SKF Ranking
             </p>
             <p style={{ margin: '0 0 10px 0', color: 'rgba(255,255,255,0.6)', fontSize: '24px', fontWeight: 600, letterSpacing: '1px' }}>
               {primary?.name}

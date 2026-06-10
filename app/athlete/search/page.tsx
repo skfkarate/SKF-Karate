@@ -11,9 +11,14 @@ const BELT_COLORS: Record<string, string> = {
   'yellow': '#ffd700',
   'orange': '#ff8c00',
   'green': '#2ecc71',
+  'green-ii': '#32CD32',
+  'green-i': '#228B22',
   'blue': '#3498db',
   'purple': '#9b59b6',
   'brown': '#8B4513',
+  'brown-iii': '#CD853F',
+  'brown-ii': '#8B4513',
+  'brown-i': '#5C4033',
   'black': '#1a1a1a',
   'black-1st-dan': '#1a1a1a',
   'black-2nd-dan': '#1a1a1a',
@@ -37,7 +42,8 @@ function getBeltDisplay(belt: string) {
   if (!belt) return { label: 'White', color: '#f5f5f5' }
   const lower = belt.toLowerCase()
   const color = BELT_COLORS[lower] || '#f5f5f5'
-  const label = lower.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  let label = lower.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  label = label.replace(/\bIi\b/g, 'II').replace(/\bIii\b/g, 'III').replace(/\bI\b/g, 'I')
   return { label, color }
 }
 

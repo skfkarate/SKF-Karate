@@ -3,6 +3,7 @@ import { DEFAULT_COUNTRY_FLAG } from '@/data/seed/beltExaminations'
 import { EVENT_TYPE_LABELS, canonicalizeEventType } from '@/lib/types/event'
 import { findClassBranchByName } from '@/lib/classes/catalog'
 import { getAllCities } from '@/lib/classesData'
+import { resolveAthleteProfilePhoto } from '@/lib/profile-photos'
 import {
   EVENT_CATEGORY_LABELS,
   TOURNAMENT_LEVEL_LABELS,
@@ -308,7 +309,12 @@ function getPrimaryCategoryName(rankInfo: RankInfo | null | undefined, competiti
 
   const rankingCategory = rankInfo?.rankingCategory
   if (!rankingCategory) {
-    return 'Competition'
+    return 'Technical Ranking'
+  }
+
+  // If no tournaments, show "Technical Ranking" instead of Kata/Kumite
+  if (rankingCategory.discipline === 'technical-ranking') {
+    return 'Technical Ranking'
   }
 
   if (rankingCategory.discipline === 'kumite' && rankingCategory.weightCategory) {
@@ -544,13 +550,21 @@ export function buildAthleteProfileData(
     ? `${Math.round((totalWins / totalBouts) * 100)}%`
     : '0%'
   const branchRecord = findClassBranchByName(getAllCities(), athlete.branchName)
+  const fallbackPhoto = athlete.gender?.toLowerCase() === 'female'
+    ? '/no-profile/no profile female.png'
+    : '/no-profile/no profile male.png'
+  const profilePhoto = resolveAthleteProfilePhoto({
+    skfId: athlete.skfId,
+    photoUrl: athlete.photoUrl,
+    gender: athlete.gender,
+  })
 
   return {
     athlete: {
       name: `${athlete.firstName} ${athlete.lastName}`.trim().toUpperCase(),
       shortName: `${athlete.firstName} ${athlete.lastName}`.trim(),
-      fallbackPhoto: athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png',
-      photo: athlete.photoUrl || (athlete.gender?.toLowerCase() === 'female' ? '/no-profile/no profile female.png' : '/no-profile/no profile male.png'),
+      fallbackPhoto,
+      photo: profilePhoto || fallbackPhoto,
       country: 'INDIA',
       countryFlag: DEFAULT_COUNTRY_FLAG,
       id: athlete.skfId,
@@ -572,7 +586,7 @@ export function buildAthleteProfileData(
       biography:
         totals.totalEvents > 0
           ? `${athlete.firstName} trains at SKF ${athlete.branchName} and has ${totals.totalMedals} podium finish${totals.totalMedals === 1 ? '' : 'es'} recorded across ${totals.totalEvents} competition result${totals.totalEvents === 1 ? '' : 's'}.`
-          : `${athlete.firstName} trains at SKF ${athlete.branchName}. Published event participation, gradings, and recognitions will appear here as they are updated by the admin team.`,
+          : `${athlete.firstName} trains at SKF ${athlete.branchName}. Belt progression, event participation, and training achievements will appear here as they are updated.`,
     },
     primaryCategory,
     categories,

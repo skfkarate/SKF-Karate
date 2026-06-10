@@ -23,8 +23,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default('https://www.skfkarate.org'),
   NEXT_PUBLIC_SITE_URL: z.string().url().default('https://www.skfkarate.org'),
   NEXT_PUBLIC_MEDIA_CDN_ORIGIN: optionalString(z.string().url()),
-  NEXTAUTH_URL: optionalString(z.string().url()),
-  NEXTAUTH_SECRET: optionalString(z.string().min(32)),
   JWT_SECRET: optionalString(z.string().min(32)),
   ADMIN_USERNAME: optionalString(z.string().min(1)),
   ADMIN_PASSWORD: optionalString(z.string().min(1)),

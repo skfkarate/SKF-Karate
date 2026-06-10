@@ -30,6 +30,7 @@ type EventResultRecord = {
   attended?: boolean
   beltAwarded?: string
   promotion?: string
+  promotionType?: string
   doublePromotion?: boolean
   notes?: string
   examiner?: string
@@ -188,6 +189,27 @@ function getEventResultValue(event: EventRecord, result: EventResultRecord) {
   return 'absent'
 }
 
+function getPromotionType(result: EventResultRecord) {
+  const value = String(result.promotionType || '').toLowerCase()
+  if (value === 'triple') return 'triple'
+  if (value === 'double' || result.doublePromotion) return 'double'
+  return 'normal'
+}
+
+function getPromotionLabel(result: EventResultRecord) {
+  const promotionType = getPromotionType(result)
+  if (promotionType === 'triple') return 'Triple Promotion'
+  if (promotionType === 'double') return 'Double Promotion'
+  return 'Promotion'
+}
+
+function getPromotionBonus(result: EventResultRecord) {
+  const promotionType = getPromotionType(result)
+  if (promotionType === 'triple') return 120
+  if (promotionType === 'double') return 60
+  return 0
+}
+
 function getPointsForEventOutcome(
   event: EventRecord,
   resultValue: string,
@@ -291,6 +313,8 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
   if (event.type === 'grading') {
     const beltAwarded = String(result.beltAwarded || result.promotion || '').toLowerCase()
     const isPass = resultValue === 'pass' && beltAwarded
+    const promotionLabel = getPromotionLabel(result)
+    const promotionBonus = getPromotionBonus(result)
 
     achievements.push(
       isPass
@@ -298,15 +322,15 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
             id: `ach_${randomUUID()}`,
             type: 'belt-grading',
             date: toIsoDate(event.date),
-            title: result.doublePromotion
-              ? `Double Promotion — ${event.name}`
+            title: promotionLabel !== 'Promotion'
+              ? `${promotionLabel} — ${event.name}`
               : `Passed ${event.name}`,
-            description: result.doublePromotion
-              ? `Promoted to ${formatBeltLabel(beltAwarded)} with double promotion${result.notes ? ` • ${result.notes}` : ''}`
+            description: promotionLabel !== 'Promotion'
+              ? `Promoted to ${formatBeltLabel(beltAwarded)} with ${promotionLabel.toLowerCase()}${result.notes ? ` • ${result.notes}` : ''}`
               : result.notes || `Promoted to ${formatBeltLabel(beltAwarded)}`,
-            pointsAwarded: Number((pointsAwarded + (result.doublePromotion ? 60 : 0)).toFixed(2)),
+            pointsAwarded: Number((pointsAwarded + promotionBonus).toFixed(2)),
             beltEarned: beltAwarded,
-            grade: result.doublePromotion ? 'Double Promotion' : 'Promotion',
+            grade: promotionLabel,
             examiner: result.examiner || '',
             result: 'pass',
             ...sourceMeta,
@@ -325,19 +349,29 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
           }
     )
   } else if (isBeltExamType(event.type)) {
+    const beltAwarded = String(result.beltAwarded || result.promotion || '').toLowerCase()
+    const isPass = resultValue === 'pass'
+    const promotionLabel = getPromotionLabel(result)
+    const promotionBonus = getPromotionBonus(result)
     achievements.push({
       id: `ach_${randomUUID()}`,
       type: resultValue === 'pass' ? 'belt-pass' : 'belt-fail',
       date: toIsoDate(event.date),
-      title: `${resultValue === 'pass' ? 'Passed' : 'Attempted'} ${event.name}`,
+      title:
+        isPass && promotionLabel !== 'Promotion'
+          ? `${promotionLabel} — ${event.name}`
+          : `${isPass ? 'Passed' : 'Attempted'} ${event.name}`,
       description: [
+        isPass && beltAwarded ? `Promoted to ${formatBeltLabel(beltAwarded)}` : '',
         result.grade ? `Grade ${result.grade}` : '',
         result.score === 0 || result.score ? `Score ${result.score}` : '',
         result.notes || '',
       ]
         .filter(Boolean)
         .join(' • '),
-      pointsAwarded,
+      pointsAwarded: Number((pointsAwarded + (isPass ? promotionBonus : 0)).toFixed(2)),
+      beltEarned: isPass ? beltAwarded : '',
+      examiner: result.examiner || '',
       grade: result.grade || '',
       result: resultValue,
       ...sourceMeta,
@@ -392,7 +426,9 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
 
 function deriveCurrentBelt(athlete: AthleteRecord, achievements: AthleteAchievement[]) {
   const latestBeltAchievement = sortByDateDesc(
-    achievements.filter((achievement) => achievement.type === 'belt-grading' && achievement.beltEarned)
+    achievements.filter((achievement) =>
+      (achievement.type === 'belt-grading' || achievement.type === 'belt-pass') && achievement.beltEarned
+    )
   ).sort((a, b) => {
     const beltDiff = getBeltOrder(b.beltEarned || '') - getBeltOrder(a.beltEarned || '')
     if (beltDiff !== 0) return beltDiff
@@ -558,6 +594,24 @@ export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
       const nextAchievement = buildTournamentAchievement(tournament, entry)
       const bucket = achievementsByAthlete.get(String(athlete.id)) || []
       bucket.push(nextAchievement)
+      const specialAward = entry.specialAward || entry.award
+      if (specialAward) {
+        bucket.push({
+          id: `ach_${randomUUID()}`,
+          type: 'special-award',
+          date: toIsoDate(tournament.date),
+          title: `${specialAward} — ${tournament.name}`,
+          description: entry.notes || `${formatTournamentLevel(tournament.level || '')} tournament recognition`,
+          pointsAwarded: 150,
+          awardReason: specialAward,
+          awardedBy: tournament.hostingBranch || 'SKF Karate',
+          result: normaliseResult(entry.medal || entry.result || 'participation'),
+          ...getSourceMeta(
+            { ...tournament, type: 'tournament' },
+            entry.participantId || entry.id
+          ),
+        })
+      }
       achievementsByAthlete.set(String(athlete.id), bucket)
     }
 
