@@ -76,6 +76,10 @@ import { timingSafeStringEqual } from '@/src/server/lib/security'
 import { AdmissionService } from '@/src/server/services/admission.service'
 import { EventFeesService } from '@/src/server/services/event-fees.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
+import {
+  getFeeTrackPushPublicKey,
+  saveFeeTrackPushSubscription,
+} from '@/src/server/services/feetrack-push.service'
 
 const MONTHS = [
   'January',
@@ -2239,6 +2243,44 @@ async function markWebsiteNotificationContacted(session: FeeTrackSession, body: 
   return { success: true, data: { kind, rowNumber, status: 'Contacted' } }
 }
 
+function assertPushSubscription(value: unknown) {
+  if (!value || typeof value !== 'object') {
+    throw new ValidationError({ subscription: ['Push subscription is required.'] })
+  }
+
+  const endpoint = (value as { endpoint?: unknown }).endpoint
+  const keys = (value as { keys?: unknown }).keys
+  if (typeof endpoint !== 'string' || !endpoint.trim()) {
+    throw new ValidationError({ subscription: ['Push subscription endpoint is required.'] })
+  }
+
+  if (!keys || typeof keys !== 'object') {
+    throw new ValidationError({ subscription: ['Push subscription keys are required.'] })
+  }
+
+  return value as Parameters<typeof saveFeeTrackPushSubscription>[0]['subscription']
+}
+
+async function getPushConfig() {
+  return {
+    success: true,
+    data: {
+      publicKey: getFeeTrackPushPublicKey(),
+    },
+  }
+}
+
+async function savePushSubscription(session: FeeTrackSession, body: ActionBody) {
+  const subscription = assertPushSubscription(body.subscription)
+  const result = await saveFeeTrackPushSubscription({
+    staff: session.user,
+    subscription,
+    userAgent: typeof body.userAgent === 'string' ? body.userAgent : null,
+  })
+
+  return { success: true, data: result }
+}
+
 async function handleAction(body: ActionBody) {
   if (body.action === 'login') return login(body)
 
@@ -2361,6 +2403,10 @@ async function handleAction(body: ActionBody) {
       return getWebsiteNotifications()
     case 'mark_website_notification_contacted':
       return markWebsiteNotificationContacted(session, body)
+    case 'get_push_config':
+      return getPushConfig()
+    case 'save_push_subscription':
+      return savePushSubscription(session, body)
     default:
       throw new ValidationError({ action: ['Unsupported FeeTrack action.'] })
   }

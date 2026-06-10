@@ -7,6 +7,7 @@ import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import { extractClientIp, recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service'
 import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 // The schema matching FreeTrialForm.tsx
@@ -110,6 +111,13 @@ export const POST = withRoute(
 
     // Return success if AT LEAST ONE channel worked
     if (sheetOk || telegramOk) {
+      const pushResult = await sendFeeTrackPushNotification({
+        title: 'New Free Trial Request',
+        body: `${validatedData.studentName.trim()} • ${branchLabel} • ${validatedData.parentPhone.trim()}`,
+        url: '/dashboard',
+        tag: `lead-${Date.now()}`,
+      })
+
       await recordSiteAnalyticsEvent({
         eventType: 'lead_submit_success',
         path: '/book-trial',
@@ -119,6 +127,7 @@ export const POST = withRoute(
           branch: branchLabel,
           sheets: sheetOk,
           telegram: telegramOk,
+          push: pushResult,
         },
         userAgent: request.headers.get('user-agent'),
         ipAddress: extractClientIp(request.headers),

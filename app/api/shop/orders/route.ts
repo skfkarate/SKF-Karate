@@ -17,6 +17,7 @@ import {
 } from '@/src/server/api/validators/shop.validator'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
 
@@ -135,6 +136,13 @@ export const POST = withRoute(
       logger.error('shop.order.db_placement_failed', { orderId, error })
       throw new ApiError(503, 'Could not save the shop order. Please try again.')
     }
+
+    await sendFeeTrackPushNotification({
+      title: 'New Shop Order',
+      body: `${address.fullName} • ₹${preparedOrder.total.toLocaleString('en-IN')} • ${preparedOrder.items.length} item${preparedOrder.items.length === 1 ? '' : 's'}`,
+      url: '/shop',
+      tag: `shop-${orderId}`,
+    })
 
     let feeLedgerRecorded = false
     if (actor.authenticated && actor.skfId && preparedOrder.total > 0) {

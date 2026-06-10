@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ValidationError, ExternalServiceError } from '@/src/server/lib/errors';
 import { logger } from '@/src/server/lib/logger';
 import { withRoute } from '@/src/server/lib/route';
+import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service';
 import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service';
 
 type SummerCampRegistrationPayload = {
@@ -154,6 +155,13 @@ export const POST = withRoute(
     if (telegramNotified !== 'Yes') {
       throw new ExternalServiceError('Registration service is not configured.');
     }
+
+    await sendFeeTrackPushNotification({
+      title: 'New Summer Camp Registration',
+      body: `${data.studentName} • ${data.contactNumber} • ${isExisting ? 'Existing member' : 'New participant'}`,
+      url: '/dashboard',
+      tag: `camp-${Date.now()}`,
+    });
 
     return Response.json({ success: true, telegramNotified });
   }

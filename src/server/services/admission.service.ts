@@ -23,6 +23,7 @@ import {
 } from '@/src/server/api/validators/admission.validator'
 import { ConflictError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
+import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 import { hasTelegramChannel, sendTelegramMessage } from '@/src/server/services/telegram.service'
 
@@ -1107,6 +1108,19 @@ async function sendAdmissionAlert(application: ReturnType<typeof mapApplication>
   }
 }
 
+async function sendAdmissionPushAlert(application: ReturnType<typeof mapApplication>) {
+  try {
+    await sendFeeTrackPushNotification({
+      title: 'New Admission Application',
+      body: `${application.studentName} • ${application.branchName} • Rs. ${application.quotedJoiningTotal.toLocaleString('en-IN')}`,
+      url: '/admissions',
+      tag: `admission-${application.id}`,
+    })
+  } catch (error) {
+    logger.warn('admission.push_alert_failed', { applicationId: application.id, error })
+  }
+}
+
 async function recordApprovedJoiningFeesPaid(
   session: Session | null,
   input: {
@@ -1283,6 +1297,7 @@ export class AdmissionService {
 
       const application = mapApplication(data)
       await sendAdmissionAlert(application)
+      await sendAdmissionPushAlert(application)
       return application
     } catch (error) {
       await deleteAdmissionPaymentProof(paymentProofMeta)

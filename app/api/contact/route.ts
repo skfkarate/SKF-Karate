@@ -6,6 +6,7 @@ import { validateContactPayload } from '@/lib/server/validation'
 import { retryWithBackoff } from '@/lib/utils/retry'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
+import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service'
 import { sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 const contactBodySchema = z.object({
@@ -109,6 +110,13 @@ export const POST = withRoute(
 
         // 4. Return success if at least one channel captured the data
         if (sheetOk || telegramOk) {
+            await sendFeeTrackPushNotification({
+                title: 'New Callback Request',
+                body: `${name.trim()} • ${phone.trim()} • ${preferredTime || 'Anytime'}`,
+                url: '/dashboard',
+                tag: `callback-${Date.now()}`,
+            })
+
             return NextResponse.json({
                 success: true,
                 message: 'Message sent successfully!',

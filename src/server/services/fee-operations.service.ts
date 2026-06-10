@@ -1452,12 +1452,20 @@ export class FeeOperationsService {
           ? billingEnd.getUTCFullYear() * 12 + billingEnd.getUTCMonth()
           : -1
         const discontinuedStopValue = Math.max(lastPaidValue, billingEndValue)
+        const joiningDateString = String(billingProfile?.billing_start_date || athlete.joinDate || '').trim()
+        const joiningDate = joiningDateString ? new Date(`${joiningDateString.split('T')[0]}T00:00:00.000Z`) : null
+        const joiningValue = joiningDate && Number.isFinite(joiningDate.getTime())
+          ? joiningDate.getUTCFullYear() * 12 + joiningDate.getUTCMonth()
+          : -1
+
         let status = (row?.status || 'due') as FeeStatus
         if (
           String(billingProfile?.billing_status || '').toLowerCase() === 'discontinued' &&
           discontinuedStopValue >= 0 &&
           targetValue > discontinuedStopValue
         ) {
+          status = 'waived'
+        } else if (joiningValue >= 0 && targetValue < joiningValue) {
           status = 'waived'
         }
         const experienceEndValue = status === 'waived' && discontinuedStopValue >= 0
