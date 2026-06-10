@@ -550,7 +550,16 @@ function normaliseEventResult(result, index, eventType) {
       { max: 40 }
     ),
     athleteName: participantName,
+    branchName: optionalString(value.branchName, `Result ${index + 1} branch`, { max: 120 }),
+    belt: optionalString(value.belt, `Result ${index + 1} belt`, { max: 80 }),
+    photoUrl: optionalUrl(value.photoUrl, `Result ${index + 1} photo URL`),
     notes: optionalString(value.notes, `Result ${index + 1} notes`, { max: 400 }),
+    specialAward: optionalString(value.specialAward || value.award, `Result ${index + 1} special award`, {
+      max: 120,
+    }),
+    award: optionalString(value.award || value.specialAward, `Result ${index + 1} award`, {
+      max: 120,
+    }),
   }
 
   if (normalizedType === 'tournament') {
@@ -629,6 +638,11 @@ function normaliseEventResult(result, index, eventType) {
       `Result ${index + 1} result`,
       allowedResults
     )
+    const promotionType = enumValue(
+      value.promotionType || (value.doublePromotion ? 'double' : 'normal'),
+      `Result ${index + 1} promotion type`,
+      new Set(['normal', 'double', 'triple'])
+    )
 
     return {
       ...base,
@@ -638,6 +652,19 @@ function normaliseEventResult(result, index, eventType) {
         max: 1000,
       }),
       grade: optionalString(value.grade, `Result ${index + 1} grade`, { max: 80 }),
+      beltAwarded:
+        resultValue === 'pass'
+          ? enumValue(
+              value.beltAwarded || value.promotion || EVENT_BELT_VALUES[0],
+              `Result ${index + 1} belt awarded`,
+              EVENT_BELT_VALUE_SET
+            )
+          : '',
+      promotionType,
+      doublePromotion: promotionType === 'double',
+      examiner: optionalString(value.examiner, `Result ${index + 1} examiner`, {
+        max: 120,
+      }),
     }
   }
 
@@ -645,6 +672,11 @@ function normaliseEventResult(result, index, eventType) {
     value.result || 'fail',
     `Result ${index + 1} result`,
     allowedResults
+  )
+  const promotionType = enumValue(
+    value.promotionType || (value.doublePromotion ? 'double' : 'normal'),
+    `Result ${index + 1} promotion type`,
+    new Set(['normal', 'double', 'triple'])
   )
 
   return {
@@ -658,6 +690,8 @@ function normaliseEventResult(result, index, eventType) {
             EVENT_BELT_VALUE_SET
           )
         : '',
+    promotionType,
+    doublePromotion: promotionType === 'double',
     examiner: optionalString(value.examiner, `Result ${index + 1} examiner`, {
       max: 120,
     }),

@@ -38,7 +38,7 @@ export {
   SPONSOR_TIERS,
 } from './constants/categories'
 export { CONTACT } from './constants/contact'
-export { PUBLIC_NAV_ITEMS, ADMIN_NAV_GROUPS, ADMIN_NAV_ITEMS, PORTAL_NAV_ITEMS } from './constants/navigation'
+export { PUBLIC_NAV_ITEMS, PORTAL_NAV_ITEMS } from './constants/navigation'
 export {
   POINT_RULES, POINT_TIERS, TIER_THRESHOLDS, REDEMPTION_OPTIONS,
   LEGACY_ACHIEVEMENT_POINTS, TOURNAMENT_LEVEL_MULTIPLIERS,

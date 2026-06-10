@@ -4,8 +4,6 @@ import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import '@/app/results/results.css'
 
-export const revalidate = 300
-
 export const metadata = buildSeoMetadata(
     '/results',
     'See SKF Karate tournament results, medals, champions, kata and kumite performance, competition records, and official karate achievements across India.'

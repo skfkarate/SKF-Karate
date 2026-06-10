@@ -58,6 +58,8 @@
   background: linear-gradient(160deg, #ffffff 0%, #c0c0c0 60%, #777 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   margin: 0 0 1.1rem;
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 .aph-header__tags {
   display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
@@ -108,7 +110,7 @@
   }
 }
 .aph-photo img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
+  width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
 }
 .aph-photo__fade {
   position: absolute; inset: 0; pointer-events: none;
@@ -299,7 +301,7 @@
 @media (max-width: 899px) {
   .aph-header { padding: 2rem; text-align: center; }
   .aph-header__tags { justify-content: center; }
-  .aph-photo { min-height: 320px; }
+  .aph-photo { min-height: 380px; }
   .aph-rank { padding: 1.75rem; }
   .aph-rank__num { font-size: 4.5rem; }
   .aph-footer { padding: 1.5rem 1.75rem; justify-content: center; }
@@ -309,7 +311,7 @@
   .aph-card { border-radius: 20px; }
   .aph-header { padding: 2rem 1.5rem 1.5rem; }
   .aph-header__name { margin-bottom: 1rem; }
-  .aph-photo { min-height: 280px; }
+  .aph-photo { min-height: 360px; }
   .aph-rank { padding: 1.5rem; }
   .aph-rank__cat { font-size: 1.25rem; }
   .aph-rank__num { font-size: 4rem; }
@@ -326,10 +328,10 @@
   .aph-card { border-radius: 16px; margin: 0 0.5rem; }
   .aph-header { padding: 1.75rem 1.25rem 1.25rem; }
   .aph-header__pre { font-size: 0.6rem; letter-spacing: 0.25em; margin-bottom: 0.75rem; }
-  .aph-header__name { font-size: 2.8rem; letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .aph-header__name { font-size: clamp(2rem, 9vw, 2.8rem); letter-spacing: -0.02em; margin-bottom: 1rem; line-height: 1.1; }
   .aph-tag { font-size: 0.7rem; padding: 0.4rem 0.85rem; border-radius: 8px; }
   .aph-tag--accent { font-size: 0.7rem; padding: 0.4rem 0.85rem; }
-  .aph-photo { min-height: 260px; }
+  .aph-photo { min-height: 320px; }
   .aph-photo__id { bottom: 0.85rem; left: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 8px; font-size: 0.85rem; }
   .aph-photo__id-sup { font-size: 0.4rem; }
   .aph-rank { padding: 1.25rem; }
@@ -354,8 +356,8 @@
 @media (max-width: 360px) {
   .aph-card { margin: 0; border-radius: 12px; }
   .aph-header { padding: 1.5rem 1rem 1rem; }
-  .aph-header__name { font-size: 2.3rem; }
-  .aph-photo { min-height: 220px; }
+  .aph-header__name { font-size: clamp(1.8rem, 8vw, 2.3rem); }
+  .aph-photo { min-height: 280px; }
   .aph-rank__num { font-size: 2.6rem; }
   .aph-coin__face { width: 32px; height: 32px; font-size: 0.85rem; }
   .aph-stat__val { font-size: 1rem; }

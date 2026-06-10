@@ -6,7 +6,6 @@ import { buildSeoMetadata } from '@/data/constants/seo'
 import AdmissionFormClient from './AdmissionFormClient'
 import './admission.css'
 
-export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

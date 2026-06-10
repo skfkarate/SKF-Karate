@@ -21,8 +21,6 @@ export default function ClientLayoutWrapper({
 
   // Hide the public shell on private operational areas.
   const isPrivateRoute =
-    pathname?.startsWith('/admin') ||
-    pathname?.startsWith('/fee') ||
     pathname?.startsWith('/portal') ||
     pathname?.startsWith('/admission')
   const isPublicRoute = !isPrivateRoute

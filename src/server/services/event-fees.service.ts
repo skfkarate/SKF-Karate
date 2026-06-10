@@ -3,6 +3,7 @@ import type { Session } from 'next-auth'
 import { kyuBelts } from '@/data/seed/kyuBelts'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsAdminLive, getEventByIdAdminLive } from '@/lib/server/repositories/events-live'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { normaliseSkfId } from '@/lib/utils/registration'
 import type {
@@ -40,6 +41,16 @@ type AthleteRecord = {
   status?: string | null
 }
 
+type EventParticipant = {
+  id?: string | null
+  athleteId?: string | null
+  athleteName?: string | null
+  skfId?: string | null
+  branchName?: string | null
+  belt?: string | null
+  photoUrl?: string | null
+}
+
 type EventLike = {
   id: string
   name: string
@@ -48,7 +59,7 @@ type EventLike = {
   hostingBranch?: string
   status?: string
   isPublished?: boolean
-  participants?: Array<{ skfId?: string | null }>
+  participants?: EventParticipant[]
 }
 
 type EventFeeConfig = EventFeeConfigInput & {
@@ -139,13 +150,17 @@ function normalizeKey(value?: string | null) {
 function canSeeBranch(session: Session, branch?: string | null) {
   const scope = normalizeKey(branchScope(session))
   if (!scope || scope === 'all') return true
-  return normalizeKey(branch) === scope
+  const branchKey = normalizeKey(branch)
+  if (!branchKey) return true
+  return branchKey === scope
 }
 
 function branchMatchesFilter(branch?: string | null, filter?: string | null) {
   const normalized = normalizeKey(filter)
   if (!normalized || normalized === 'overall' || normalized === 'all' || normalized === 'both') return true
-  return normalizeKey(branch) === normalized
+  const branchKey = normalizeKey(branch)
+  if (!branchKey) return true
+  return branchKey === normalized
 }
 
 function normalizeAmount(value: unknown) {
@@ -155,6 +170,31 @@ function normalizeAmount(value: unknown) {
 
 function athleteName(athlete?: AthleteRecord | null) {
   return [athlete?.firstName, athlete?.lastName].filter(Boolean).join(' ').trim() || 'SKF Athlete'
+}
+
+function mapEventParticipant(participant: EventParticipant) {
+  return {
+    id: String(participant.id || ''),
+    athleteId: String(participant.athleteId || ''),
+    athleteName: String(participant.athleteName || participant.skfId || 'SKF Athlete'),
+    skfId: String(participant.skfId || ''),
+    branchName: String(participant.branchName || ''),
+    belt: String(participant.belt || ''),
+    photoUrl: resolveServerAthleteProfilePhoto({
+      skfId: String(participant.skfId || ''),
+      photoUrl: String(participant.photoUrl || ''),
+    }),
+  }
+}
+
+function mapEventResult(result: Record<string, unknown>) {
+  return {
+    ...result,
+    photoUrl: resolveServerAthleteProfilePhoto({
+      skfId: String(result.skfId || ''),
+      photoUrl: String(result.photoUrl || ''),
+    }),
+  }
 }
 
 function monthNameFromDate(date?: string | null) {
@@ -511,11 +551,26 @@ export class EventFeesService {
           event: {
             id: event.id,
             name: event.name,
+            slug: (event as Record<string, unknown>).slug || '',
             type: event.type || '',
+            level: (event as Record<string, unknown>).level || '',
             date: event.date || '',
+            endDate: (event as Record<string, unknown>).endDate || '',
             status: event.status || '',
             hostingBranch: event.hostingBranch || '',
+            venue: (event as Record<string, unknown>).venue || '',
+            city: (event as Record<string, unknown>).city || '',
+            state: (event as Record<string, unknown>).state || '',
+            description: (event as Record<string, unknown>).description || '',
             isPublished: Boolean(event.isPublished),
+            isResultsPublished: Boolean((event as Record<string, unknown>).isResultsPublished),
+            resultsAppliedAt: String((event as Record<string, unknown>).resultsAppliedAt || ''),
+            totalParticipants: Number((event as Record<string, unknown>).totalParticipants || 0),
+            skfParticipants: Number((event as Record<string, unknown>).skfParticipants || 0),
+            results: Array.isArray((event as Record<string, unknown>).results)
+              ? ((event as Record<string, unknown>).results as Record<string, unknown>[]).map(mapEventResult)
+              : [],
+            participants: (event.participants || []).map(mapEventParticipant),
           },
           config,
           collection,

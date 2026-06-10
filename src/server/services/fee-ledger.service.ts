@@ -613,17 +613,21 @@ export class FeeLedgerService {
     }
 
     const snapshot = await FeeReceiptsService.getReceiptForStudent(normalizedSkfId, normalizedReceiptId)
-    if (snapshot) return snapshot
-
-    const receiptRow = await findFeeByReceiptIdLive(normalizedReceiptId)
-    if (!receiptRow) return null
-    if (String(receiptRow.skfId || '').trim().toUpperCase() !== normalizedSkfId) return null
-    if (receiptRow.status !== 'paid') return null
 
     const [athlete, student] = await Promise.all([
       getAthleteBySkfIdLive(normalizedSkfId),
       getStudentBySkfId(normalizedSkfId),
     ])
+    const parentName = String(athlete?.parentName || student?.parentName || '').trim() || 'N/A'
+
+    if (snapshot) {
+      return { ...snapshot, parentName }
+    }
+
+    const receiptRow = await findFeeByReceiptIdLive(normalizedReceiptId)
+    if (!receiptRow) return null
+    if (String(receiptRow.skfId || '').trim().toUpperCase() !== normalizedSkfId) return null
+    if (receiptRow.status !== 'paid') return null
 
     const athleteName = buildAthleteDisplayName(athlete) || student?.name || 'SKF Athlete'
     const branch = String(athlete?.branchName || student?.branch || '').trim() || 'SKF Branch'
@@ -653,6 +657,7 @@ export class FeeLedgerService {
       issuedAt: receiptRow.verifiedAt || receiptRow.paidDate || paidDate,
       themeId: 'skf_iconic',
       source: 'legacy',
+      parentName,
     }
   }
 }

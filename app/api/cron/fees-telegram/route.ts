@@ -4,7 +4,6 @@ import { logger } from '@/src/server/lib/logger'
 import { env } from '@/src/server/config/env'
 import { withRoute } from '@/src/server/lib/route'
 
-export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // allow up to 5 minutes
 
 export const GET = withRoute(

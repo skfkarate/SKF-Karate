@@ -6,9 +6,6 @@ import {
 } from '@/src/server/services/admission.service'
 import { withRoute } from '@/src/server/lib/route'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
 const MAX_ADMISSION_BODY_BYTES = 20 * 1024 * 1024
 
 export const POST = withRoute(

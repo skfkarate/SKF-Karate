@@ -55,7 +55,6 @@ export const POST = withRoute(
 
     const orderId = createOrderId()
     // 1. Send to Telegram orders channel
-    let telegramNotified = 'No'
 
     try {
       const message = [
@@ -79,38 +78,28 @@ export const POST = withRoute(
             photo: new Blob([buffer]),
             filename: payload.paymentProofName || 'screenshot.jpg',
           })
-          if (result.ok) telegramNotified = 'Yes'
-          else logger.warn('shop.order.telegram_failed', { orderId, status: result.status, skipped: result.skipped, error: result.error })
+          if (!result.ok) {
+            logger.warn('shop.order.telegram_failed', {
+              orderId,
+              status: result.status,
+              skipped: result.skipped,
+              error: result.error,
+            })
+          }
         }
       } else {
         const result = await sendTelegramMessage({ channel: 'orders', text: message })
-        if (result.ok) telegramNotified = 'Yes'
-        else logger.warn('shop.order.telegram_failed', { orderId, status: result.status, skipped: result.skipped, error: result.error })
+        if (!result.ok) {
+          logger.warn('shop.order.telegram_failed', {
+            orderId,
+            status: result.status,
+            skipped: result.skipped,
+            error: result.error,
+          })
+        }
       }
     } catch (error) {
       logger.warn('shop.order.telegram_failed', { orderId, error })
-    }
-
-    // Save to the configured shop sheet first, then fall back to the legacy Orders sheet shape.
-    const sheetResult = await appendShopOrderToSheet({
-      orderId,
-      actor,
-      address,
-      items: preparedOrder.items,
-      subtotal: preparedOrder.subtotal,
-      discount: preparedOrder.discount,
-      total: preparedOrder.total,
-      pointsUsed: preparedOrder.pointsUsed,
-      status: preparedOrder.status,
-      paymentProofUploaded: Boolean(payload.paymentProofBase64),
-      telegramNotified,
-    })
-
-    if (!sheetResult.saved) {
-      logger.info('shop.order.sheet_save_skipped', {
-        orderId,
-        reason: sheetResult.reason,
-      })
     }
 
     if (preparedOrder.pointsUsed > 0 && actor.skfId) {
@@ -143,11 +132,8 @@ export const POST = withRoute(
         address,
       })
     } catch (error) {
-      logger.warn('shop.order.primary_db_placement_failed', { orderId, error })
-      order = {
-        orderId,
-        customerType: actor.authenticated ? 'athlete' : 'guest'
-      }
+      logger.error('shop.order.db_placement_failed', { orderId, error })
+      throw new ApiError(503, 'Could not save the shop order. Please try again.')
     }
 
     let feeLedgerRecorded = false
@@ -192,8 +178,6 @@ export const POST = withRoute(
       }
     }
 
-    revalidatePath('/admin/shop')
-    revalidatePath('/admin/shop/products')
     revalidatePath('/portal/fees')
     revalidatePath('/shop')
     revalidatePath('/shop/orders')
@@ -208,7 +192,7 @@ export const POST = withRoute(
       orderId: order.orderId,
       order,
       customerType: order.customerType,
-      sheetSaved: sheetResult.saved,
+      sheetSaved: false,
       feeLedgerRecorded,
     })
   }
@@ -317,32 +301,4 @@ function createOrderId() {
   const timePart = Date.now().toString(36).toUpperCase()
   const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `SHOP-${timePart}-${randomPart}`
-}
-
-type AppendShopOrderToSheetInput = {
-  orderId: string
-  actor: ShopCheckoutActor
-  address: ShopOrderAddress
-  items: ShopOrderItem[]
-  subtotal: number
-  discount: number
-  total: number
-  pointsUsed: number
-  status: string
-  paymentProofUploaded: boolean
-  telegramNotified: string
-}
-
-async function appendShopOrderToSheet(input: AppendShopOrderToSheetInput): Promise<{
-  saved: boolean
-  reason?: string
-}> {
-  logger.info('shop.order.sheet_save_skipped', {
-    orderId: input.orderId,
-    reason: 'Google Sheets writes are limited to contact form and book free trial submissions.',
-  })
-  return {
-    saved: false,
-    reason: 'Google Sheets writes are limited to contact form and book free trial submissions.',
-  }
 }

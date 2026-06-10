@@ -6,8 +6,6 @@ import { getTechniqueLibraryVideos } from '@/lib/server/repositories/portal-cont
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const revalidate = 3600
-
 export async function generateStaticParams() {
     const belts = ['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']
     return belts.map(b => ({ beltLevel: b }))

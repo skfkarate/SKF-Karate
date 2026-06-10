@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { renderToStream } from '@react-pdf/renderer'
 import { CertificatePDF } from '@/lib/certificates/CertificatePDF'
 import { CertificateRenderer } from '@/lib/certificates/CertificateRenderer'
-import { getAuthorizedApiSession } from '@/lib/server/auth/session'
 import { getPortalSession } from '@/lib/server/auth/portal'
 import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-flags'
 import React from 'react'
@@ -14,23 +13,20 @@ export const GET = withRoute(
     querySchema: certificateDataQuerySchema,
     rateLimit: { tier: 'certificateLookup' },
   },
-  async ({ request, params, query }) => {
+  async ({ request, params }) => {
     if (!isCertificatesEnabled()) {
       return disabledResponse('Certificates', 503)
     }
 
     try {
-    const adminSession = await getAuthorizedApiSession('admin')
     const portalSession = getPortalSession(request)
-    const isAdmin = adminSession?.user?.role === 'admin'
-    const skfId = isAdmin ? query.skfId || '' : portalSession?.skfId || ''
 
-    if (!isAdmin && !portalSession?.skfId) {
+    if (!portalSession?.skfId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const renderer = new CertificateRenderer()
-    const data = await renderer.getData(params.enrollmentId, skfId, isAdmin)
+    const data = await renderer.getData(params.enrollmentId, portalSession.skfId, false)
 
     const stream = await renderToStream(<CertificatePDF data={data} />)
     

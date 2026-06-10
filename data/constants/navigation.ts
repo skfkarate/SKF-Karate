@@ -10,17 +10,6 @@ export interface NavMenuItem {
   disabled?: boolean
 }
 
-export interface AdminNavItem {
-  label: string
-  href: string
-  description?: string
-}
-
-export interface AdminNavGroup {
-  label: string
-  items: AdminNavItem[]
-}
-
 export const PUBLIC_NAV_ITEMS: NavMenuItem[] = [
   {
     label: 'Events',
@@ -76,62 +65,6 @@ export const FOOTER_LEGAL_LINKS = [
   { label: 'Cookie Policy', href: '/cookie-policy' },
   { label: 'Terms of Service', href: '/terms-of-service' },
 ] as const
-
-/* ── Admin Sidebar ── */
-export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
-  {
-    label: 'Overview',
-    items: [
-      { label: 'Dashboard', href: '/admin/dashboard', description: 'Command center' },
-      { label: 'Analytics', href: '/admin/analytics', description: 'Website and certificate intelligence' },
-    ],
-  },
-  {
-    label: 'Content',
-    items: [
-      { label: 'Blogs', href: '/admin/blogs', description: 'Public karate guides and articles' },
-    ],
-  },
-  {
-    label: 'Training Network',
-    items: [
-      { label: 'Athletes', href: '/admin/students', description: 'Identity and public profiles' },
-      { label: 'Classes', href: '/admin/classes', description: 'Cities, branches, training centres' },
-      { label: 'Senseis', href: '/admin/senseis', description: 'Instructor directory and assignments' },
-      { label: 'Portal Content', href: '/admin/portal', description: 'Home practice and timetable control' },
-    ],
-  },
-  {
-    label: 'Event Operations',
-    items: [
-      { label: 'Events Hub', href: '/admin/events', description: 'Standard events and timeline' },
-      { label: 'Tournament Results', href: '/admin/results', description: 'Tournament records and outcomes' },
-    ],
-  },
-  {
-    label: 'Programs & Certificates',
-    items: [
-      { label: 'Programs', href: '/admin/programs', description: 'Program catalog and templates' },
-      { label: 'Issuance Queue', href: '/admin/enrollments', description: 'Certificate processing pipeline' },
-      { label: 'Certificates', href: '/admin/certificates', description: 'Issued documents and templates' },
-    ],
-  },
-  {
-    label: 'Commerce',
-    items: [
-      { label: 'Shop Orders', href: '/admin/shop', description: 'Fulfilment and approvals' },
-      { label: 'Shop Products', href: '/admin/shop/products', description: 'Merchandise catalog' },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { label: 'Settings', href: '/admin/settings', description: 'Environment and service health' },
-    ],
-  },
-]
-
-export const ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((group) => group.items)
 
 /* ── Portal Nav ── */
 export const PORTAL_NAV_ITEMS = [

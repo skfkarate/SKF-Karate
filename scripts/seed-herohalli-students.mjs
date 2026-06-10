@@ -89,6 +89,7 @@ const RAW_STUDENTS = [
   ['SKF24HE001', 'KUSHIL V',           '21/07/2017', 'M', 'Venkatesh S',     '9620512480', '9620512480', 'kushivenki7527@gmail.com',         '',           'Active'],
   ['SKF25HE001', 'LIKHITH GOWDA U R',  '01/02/2020', 'M', 'Rajesh U N',      '9880952278', '9880952278', 'rajeshun1984@gmail.com',           '',           'Active'],
   ['SKF25HE002', 'MANAV',              '',           'M', '',                 '9686244845', '9686244845', '',                                 '',           'NOT ACTIVE'],
+  ['SKF25HE003', 'MRITHIKA P',         '06/02/2015', 'F', 'Prakash D',        '9108699585', '9108699585', '',                                 '',           'Active'],
   ['SKF26HE001', 'M MONISHPRASAD',     '24/07/2020', 'M', 'Murthy G K',      '6366669065', '6366669065', '',                                 '',           'Active'],
 ]
 

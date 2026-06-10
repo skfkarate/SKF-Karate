@@ -3,7 +3,6 @@ import { getActiveTimetableForBranchName } from '@/lib/server/repositories/porta
 
 import TimetableClient from './TimetableClient'
 
-export const dynamic = 'force-dynamic'
 
 export default async function TimetablePage() {
   const { athlete, session } = await requirePortalAthlete()

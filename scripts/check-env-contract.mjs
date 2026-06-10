@@ -47,7 +47,6 @@ const productionRequired = [
   'NEXT_PUBLIC_APP_URL',
   'NEXT_PUBLIC_SITE_URL',
   'JWT_SECRET',
-  'NEXTAUTH_SECRET',
   'ADMIN_USERNAME',
   'ADMIN_PASSWORD',
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -74,7 +73,6 @@ const urlKeys = new Set([
 
 const minimumLengths = new Map([
   ['JWT_SECRET', 32],
-  ['NEXTAUTH_SECRET', 32],
   ['FEETRACK_API_KEY', 16],
 ])
 

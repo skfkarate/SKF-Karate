@@ -6,8 +6,6 @@ import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './blog.css'
 
-export const revalidate = 300
-
 export const metadata = buildSeoMetadata(
   '/blog',
   'Read SKF Karate guides on karate classes, kata, kumite, belts, self-defense, kids karate, adult training, dojo etiquette, and martial arts basics here.'

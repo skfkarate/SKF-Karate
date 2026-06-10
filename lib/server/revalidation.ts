@@ -3,7 +3,6 @@ import { revalidatePath } from 'next/cache'
 import { getAllCities } from '@/lib/classesData'
 
 export function revalidateAthleteSitePaths(skfId?: string) {
-  revalidatePath('/admin/students')
   revalidatePath('/athlete/search')
   revalidatePath('/rankings')
   revalidatePath('/honours')
@@ -24,15 +23,10 @@ export function revalidateAthleteSitePaths(skfId?: string) {
 }
 
 export function revalidateEventSitePaths(event?: { id?: string; slug?: string; type?: string }) {
-  revalidatePath('/admin/events')
   revalidatePath('/events')
   revalidatePath('/portal/events')
   revalidatePath('/portal/dashboard')
   revalidatePath('/')
-
-  if (event?.id) {
-    revalidatePath(`/admin/events/${event.id}`)
-  }
 
   if (event?.slug) {
     if (event.type === 'tournament') {
@@ -50,7 +44,6 @@ export function revalidateClassesSitePaths(options: {
   branchSlug?: string
 } = {}) {
   revalidatePath('/', 'layout')
-  revalidatePath('/admin/classes')
   revalidatePath('/classes')
   revalidatePath('/book-trial')
   revalidatePath('/contact')
@@ -69,7 +62,6 @@ export function revalidateClassesSitePaths(options: {
 }
 
 export function revalidateSenseiSitePaths(slug?: string) {
-  revalidatePath('/admin/senseis')
   revalidatePath('/about')
   revalidatePath('/classes')
   revalidatePath('/honours')
@@ -82,15 +74,10 @@ export function revalidateSenseiSitePaths(slug?: string) {
 }
 
 export function revalidateTournamentSitePaths(tournament?: { id?: string; slug?: string }) {
-  revalidatePath('/admin/results')
   revalidatePath('/results')
   revalidatePath('/events')
   revalidatePath('/honours')
   revalidatePath('/')
-
-  if (tournament?.id) {
-    revalidatePath(`/admin/results/${tournament.id}/edit`)
-  }
 
   if (tournament?.slug) {
     revalidatePath(`/results/${tournament.slug}`)
@@ -98,7 +85,6 @@ export function revalidateTournamentSitePaths(tournament?: { id?: string; slug?:
 }
 
 export function revalidatePortalSitePaths() {
-  revalidatePath('/admin/portal')
   revalidatePath('/portal', 'layout')
   revalidatePath('/portal/dashboard')
   revalidatePath('/portal/videos')
@@ -111,7 +97,6 @@ export function revalidatePortalSitePaths() {
 }
 
 export function revalidateBlogSitePaths(slug?: string) {
-  revalidatePath('/admin/blogs')
   revalidatePath('/blog')
 
   if (slug) {

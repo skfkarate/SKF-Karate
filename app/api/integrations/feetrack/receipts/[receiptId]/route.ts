@@ -3,14 +3,11 @@ import type { Session } from 'next-auth'
 import { renderToStream } from '@react-pdf/renderer'
 
 import { ReceiptDocument } from '@/lib/receipts/ReceiptDocument'
-import type { AuthUser } from '@/lib/server/auth/options'
+import type { AuthUser } from '@/lib/server/auth/staff'
 import { AppError, AuthenticationError, AuthorizationError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
 import { timingSafeStringEqual } from '@/src/server/lib/security'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 type FeeTrackSession = Session & {
   user: Session['user'] & {

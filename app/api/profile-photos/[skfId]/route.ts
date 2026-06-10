@@ -6,8 +6,6 @@ import { NextResponse } from 'next/server'
 import { getLocalProfilePhotoFile } from '@/lib/server/profile-photos'
 import { getAthleteFallbackProfilePhoto } from '@/lib/profile-photos'
 
-export const runtime = 'nodejs'
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ skfId: string }> }

@@ -64,8 +64,8 @@ const LEADS_HEADERS = [
   'Status',
 ]
 const CONTACT_FORM_SHEET_TITLE = 'ContactForm'
-const CONTACT_FORM_SHEET_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A:G`
-const CONTACT_FORM_HEADER_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A1:G1`
+const CONTACT_FORM_SHEET_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A:H`
+const CONTACT_FORM_HEADER_RANGE = `${CONTACT_FORM_SHEET_TITLE}!A1:H1`
 const CONTACT_FORM_HEADERS = [
   'Submitted At',
   'Name',
@@ -74,6 +74,7 @@ const CONTACT_FORM_HEADERS = [
   'Preferred Time',
   'Interest',
   'Message',
+  'Status',
 ]
 const RESTRICTED_SHEETS_WRITE_REASON =
   'Google Sheets writes are limited to contact form and book free trial submissions.'
@@ -801,8 +802,9 @@ export async function submitContactForm(row: SheetRow): Promise<boolean> {
   try {
     const sheets = await getSheets()
     const sheetId = process.env.GOOGLE_SHEET_ID!
+    const normalizedRow = row.length >= CONTACT_FORM_HEADERS.length ? row : [...row, 'New']
     try {
-      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, row)
+      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, normalizedRow)
     } catch (error) {
       if (!isRangeParseError(error)) {
         throw error
@@ -815,7 +817,7 @@ export async function submitContactForm(row: SheetRow): Promise<boolean> {
         CONTACT_FORM_HEADER_RANGE,
         CONTACT_FORM_HEADERS
       )
-      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, row)
+      await appendSheetRow(sheets, sheetId, CONTACT_FORM_SHEET_RANGE, normalizedRow)
     }
     return true
   } catch (error) {
@@ -875,6 +877,137 @@ export async function submitLead(row: string[]): Promise<boolean> {
   }
 }
 
+export type WebsiteSheetNotification = {
+  id: string
+  kind: 'free_trial' | 'callback'
+  rowNumber: number
+  title: string
+  phone: string
+  email: string
+  branch: string
+  meta: string
+  detail: string
+  submittedAt: string
+  status: string
+}
+
+function isOpenSheetStatus(value: unknown) {
+  const status = cellText(value).trim().toLowerCase()
+  return !status || status === 'new' || status === 'pending' || status === 'open'
+}
+
+function latestRows<T>(rows: T[], limit: number) {
+  return rows.slice(-Math.min(Math.max(limit, 1), 100)).reverse()
+}
+
+export async function getPendingWebsiteSheetNotifications(limit = 50): Promise<WebsiteSheetNotification[]> {
+  try {
+    const sheets = await getSheets()
+    const sheetId = process.env.GOOGLE_SHEET_ID!
+    const [leadResponse, contactResponse] = await Promise.all([
+      sheets.spreadsheets.values
+        .get({ spreadsheetId: sheetId, range: LEADS_SHEET_RANGE })
+        .catch(async (error) => {
+          if (!isRangeParseError(error)) throw error
+          await ensureSheetTab(sheets, sheetId, LEADS_SHEET_TITLE, LEADS_HEADER_RANGE, LEADS_HEADERS)
+          return { data: { values: [] } }
+        }),
+      sheets.spreadsheets.values
+        .get({ spreadsheetId: sheetId, range: CONTACT_FORM_SHEET_RANGE })
+        .catch(async (error) => {
+          if (!isRangeParseError(error)) throw error
+          await ensureSheetTab(
+            sheets,
+            sheetId,
+            CONTACT_FORM_SHEET_TITLE,
+            CONTACT_FORM_HEADER_RANGE,
+            CONTACT_FORM_HEADERS
+          )
+          return { data: { values: [] } }
+        }),
+    ])
+
+    const leads = latestRows(sheetDataRowsWithSheetIndex(leadResponse.data.values || []), limit)
+      .filter(({ row }) => isOpenSheetStatus(row[7]))
+      .map(({ row, sheetRow }) => ({
+        id: `free_trial:${sheetRow}`,
+        kind: 'free_trial' as const,
+        rowNumber: sheetRow,
+        title: cellText(row[0]).trim() || 'Free Trial Lead',
+        phone: cellText(row[1]).trim(),
+        email: '',
+        branch: cellText(row[3]).trim(),
+        meta: [
+          cellText(row[3]).trim(),
+          cellText(row[4]).trim(),
+          cellText(row[1]).trim(),
+        ].filter(Boolean).join(' | '),
+        detail: [
+          cellText(row[2]).trim() ? `Age ${cellText(row[2]).trim()}` : '',
+          cellText(row[5]).trim() ? `Source: ${cellText(row[5]).trim()}` : '',
+        ].filter(Boolean).join(' | '),
+        submittedAt: cellText(row[6]).trim(),
+        status: cellText(row[7]).trim() || 'New',
+      }))
+
+    const callbacks = latestRows(sheetDataRowsWithSheetIndex(contactResponse.data.values || []), limit)
+      .filter(({ row }) => isOpenSheetStatus(row[7]))
+      .map(({ row, sheetRow }) => ({
+        id: `callback:${sheetRow}`,
+        kind: 'callback' as const,
+        rowNumber: sheetRow,
+        title: cellText(row[1]).trim() || 'Callback Request',
+        phone: cellText(row[2]).trim(),
+        email: cellText(row[3]).trim(),
+        branch: cellText(row[5]).trim(),
+        meta: [
+          cellText(row[5]).trim() || 'Callback',
+          cellText(row[4]).trim() || 'Anytime',
+          cellText(row[2]).trim(),
+        ].filter(Boolean).join(' | '),
+        detail: cellText(row[6]).trim(),
+        submittedAt: cellText(row[0]).trim(),
+        status: cellText(row[7]).trim() || 'New',
+      }))
+
+    return [...leads, ...callbacks].slice(0, Math.min(Math.max(limit, 1), 100))
+  } catch (error) {
+    logger.warn('sheets.website_notifications_fetch_failed', { error, systemAlert: false })
+    return []
+  }
+}
+
+export async function markWebsiteSheetNotificationContacted(
+  kind: WebsiteSheetNotification['kind'],
+  rowNumber: number
+): Promise<boolean> {
+  const sheetTitle = kind === 'free_trial' ? LEADS_SHEET_TITLE : CONTACT_FORM_SHEET_TITLE
+  const row = Number(rowNumber)
+
+  if (!Number.isInteger(row) || row < 2) {
+    return false
+  }
+
+  try {
+    const sheets = await getSheets()
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID!,
+      range: `${sheetTitle}!H${row}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [['Contacted']] },
+    })
+    return true
+  } catch (error) {
+    logger.warn('sheets.website_notification_mark_contacted_failed', {
+      kind,
+      rowNumber,
+      error,
+      systemAlert: false,
+    })
+    return false
+  }
+}
+
 export async function submitSummerCampEnrollment(row: SheetRow): Promise<boolean> {
   skipRestrictedSheetWrite('submitSummerCampEnrollment', { columns: row.length })
   return false
@@ -924,79 +1057,5 @@ export const getSummerCampByBranch = cacheRead(async (branch: string) => {
 
 export async function decrementSummerCampSlots(branch: string): Promise<boolean> {
   skipRestrictedSheetWrite('decrementSummerCampSlots', { branch })
-  return false
-}
-
-// ----------------------------------------------------------------------
-// Shop E-Commerce / Orders Logic
-// ----------------------------------------------------------------------
-
-export interface ShopOrder {
-    orderId: string
-    skfId: string
-    itemsJson: string
-    total: number
-    discount: number
-    pointsUsed: number
-    date: string
-    status: string
-    addressJson: string
-}
-
-export async function createShopOrder(order: ShopOrder): Promise<boolean> {
-  skipRestrictedSheetWrite('createShopOrder', { orderId: order.orderId })
-  return false
-}
-
-export const getShopOrdersBySkfId = cacheRead(async (skfId: string): Promise<ShopOrder[]> => {
-    try {
-        const sheets = await getSheets()
-        const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Orders!A:I' })
-        const rows = res.data.values || []
-        
-        return sheetDataRows(rows)
-            .filter(r => r[1]?.toUpperCase() === skfId.toUpperCase())
-            .map(row => ({
-                orderId: row[0],
-                skfId: row[1],
-                itemsJson: row[2],
-                total: Number(row[3]),
-                discount: Number(row[4] || 0),
-                pointsUsed: Number(row[5] || 0),
-                date: row[6],
-                status: row[7],
-                addressJson: row[8]
-            }))
-    } catch (e) {
-        logger.error('sheets.shop_orders_by_skf_id_failed', { skfId, error: e })
-        return []
-    }
-}, ['shopOrdersBySkfId'], 15)
-
-export const getAllShopOrders = cacheRead(async (): Promise<ShopOrder[]> => {
-    try {
-        const sheets = await getSheets()
-        const res = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Orders!A:I' })
-        const rows = res.data.values || []
-        
-        return sheetDataRows(rows).map(row => ({
-            orderId: row[0],
-            skfId: row[1],
-            itemsJson: row[2],
-            total: Number(row[3]),
-            discount: Number(row[4] || 0),
-            pointsUsed: Number(row[5] || 0),
-            date: row[6],
-            status: row[7],
-            addressJson: row[8]
-        }))
-    } catch (e) {
-        logger.error('sheets.shop_orders_fetch_all_failed', { error: e })
-        return []
-    }
-}, ['allShopOrders'], 15)
-
-export async function updateShopOrderStatus(orderId: string, status: string): Promise<boolean> {
-  skipRestrictedSheetWrite('updateShopOrderStatus', { orderId, status })
   return false
 }

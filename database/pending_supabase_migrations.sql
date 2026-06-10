@@ -1,6 +1,6 @@
 -- SKF Karate Supabase repair bundle
 -- Generated for paste into Supabase SQL Editor if another environment still has pending objects.
--- The current configured Supabase project was rechecked after generation and has no pending schema items.
+-- The current configured Supabase project was rechecked and has no pending schema items.
 -- If you run this anyway, it is written to be repeat-safe where existing-policy conflicts were known.
 -- Source directory: /home/krish/SKF Karate/website/SKF-Karate/database/migrations
 

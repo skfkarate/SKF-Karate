@@ -12,8 +12,6 @@ import type { SenseiBranchAssignment, SenseiProfile } from '@/lib/types/sensei'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export const revalidate = 300
-
 type PageProps = {
     params: Promise<{ slug: string }>
 }

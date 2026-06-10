@@ -7,10 +7,7 @@ import { logger } from '@/src/server/lib/logger'
 import { timingSafeStringEqual } from '@/src/server/lib/security'
 import { AdmissionService } from '@/src/server/services/admission.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
-import type { AuthUser } from '@/lib/server/auth/options'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+import type { AuthUser } from '@/lib/server/auth/staff'
 
 const FEE_TRACK_ROLES = new Set(FeeOperationsService.roles)
 const MAX_APPROVAL_BODY_BYTES = 10 * 1024 * 1024

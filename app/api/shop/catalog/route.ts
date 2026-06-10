@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getProducts } from '@/lib/server/repositories/shop'
 import { withRoute } from '@/src/server/lib/route'
 
-export const dynamic = 'force-dynamic'
 
 export const GET = withRoute(
   { rateLimit: { tier: 'public' }, cacheControl: 'no-store' },

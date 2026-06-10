@@ -8,9 +8,8 @@ import {
 } from '@/lib/server/repositories/athletes-live'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
-
-export const revalidate = 300
 
 export async function generateMetadata({ params }) {
   const { skfId } = await params
@@ -25,7 +24,7 @@ export async function generateMetadata({ params }) {
   const name = `${athlete.firstName} ${athlete.lastName}`
   const canonicalSkfId = athlete.skfId || skfId
   const canonicalUrl = absoluteSiteUrl(`/athlete/${canonicalSkfId}`)
-  const imageUrl = athlete.photoUrl ? absoluteMediaUrl(athlete.photoUrl) : absoluteMediaUrl()
+  const imageUrl = absoluteMediaUrl(resolveServerAthleteProfilePhoto(athlete))
 
   return {
     title: 'SKF Karate',

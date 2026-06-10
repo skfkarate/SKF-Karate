@@ -79,7 +79,6 @@ async function readLimitedImage(response: Response) {
 
 export const GET = withRoute(
   {
-    auth: { type: 'admin', roles: ['admin'] },
     querySchema: templateImageQuerySchema,
     rateLimit: { tier: 'authed' },
     cacheControl: 'private, max-age=3600',

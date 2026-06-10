@@ -61,7 +61,7 @@ export default function FirstPartyAnalyticsTracker() {
   const lastTrackedPath = useRef<string>('')
 
   useEffect(() => {
-    if (!pathname || pathname.startsWith('/admin')) return
+    if (!pathname) return
 
     const search = searchParams?.toString()
     const fullPath = search ? `${pathname}?${search}` : pathname

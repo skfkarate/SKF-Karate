@@ -1,5 +1,6 @@
 import { createJWT, buildPortalCookie } from '@/lib/server/auth/portal'
 import { isEligiblePortalAthlete } from '@/lib/server/auth/portal-athlete'
+import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getAthleteBySkfIdLive, getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import type { PortalAuthInput } from '@/src/server/api/validators/portal.validator'
@@ -152,7 +153,7 @@ export class PortalAuthService {
         firstName: athlete.firstName,
         lastName: athlete.lastName,
         currentBelt: athlete.currentBelt,
-        photoUrl: athlete.photoUrl,
+        photoUrl: resolveServerAthleteProfilePhoto(athlete),
         branchName: athlete.branchName,
       }))
   }

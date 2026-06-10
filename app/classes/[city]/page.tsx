@@ -19,8 +19,6 @@ import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import '../obsidian.css' // Import Obsidian styles instead of legacy classes.css
 
-export const revalidate = 300
-
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }) {
     const { city: citySlug } = await params
     const city = await getCityBySlugLive(citySlug)

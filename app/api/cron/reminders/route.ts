@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 import { sendDailyReminders } from '@/src/server/services/reminders.service'
 import { withRoute } from '@/src/server/lib/route'
 
-export const dynamic = 'force-dynamic'
 
 export const GET = withRoute(
   { rateLimit: { tier: 'sensitive' } },

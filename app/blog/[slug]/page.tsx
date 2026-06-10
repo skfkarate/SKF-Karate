@@ -12,8 +12,6 @@ import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import BlogReadingClient from './BlogReadingClient'
 import '../blog.css'
 
-export const revalidate = 300
-
 type PageProps = {
   params: Promise<{ slug: string }>
 }

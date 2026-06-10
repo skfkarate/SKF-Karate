@@ -1,17 +1,8 @@
 import { notFound } from 'next/navigation'
 import ResultsDetailPageClient from './ResultsDetailPageClient'
-import {
-  getAllTournamentsLive,
-  getTournamentBySlugLive
-} from '@/lib/server/repositories/tournaments-live'
+import { getTournamentBySlugLive } from '@/lib/server/repositories/tournaments-live'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
-
-export async function generateStaticParams() {
-  return (await getAllTournamentsLive())
-    .filter(t => t.isPublished)
-    .map(t => ({ slug: t.slug }))
-}
 
 export async function generateMetadata({ params }) {
   const { slug } = await params

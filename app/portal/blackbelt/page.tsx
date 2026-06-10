@@ -3,7 +3,6 @@ import { getBBProgramForPortal } from '@/lib/server/repositories/blackbelt-live'
 import { redirect } from 'next/navigation'
 import BlackBeltClient from './BlackBeltClient'
 
-export const dynamic = 'force-dynamic'
 
 export default async function BlackBeltPage() {
   const { athlete } = await requirePortalAthlete()
