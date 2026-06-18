@@ -7,6 +7,7 @@
 
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { logger } from '@/src/server/lib/logger'
+import { normaliseSkfId } from '@/lib/utils/registration'
 
 /* ═══════════════════ Types ═══════════════════ */
 
@@ -197,14 +198,19 @@ export async function getBBCandidateBySkfId(
  * Used by both the portal navigation and the route guard so visibility matches access.
  */
 export async function isActiveBBCandidate(skfId?: string | null): Promise<boolean> {
-  const normalizedSkfId = String(skfId || '').trim()
-  if (!normalizedSkfId) return false
+  const raw = String(skfId || '').trim()
+  if (!raw) return false
 
   const program = await getActiveBBProgram()
   if (!program) return false
 
-  const candidate = await getBBCandidateBySkfId(program.id, normalizedSkfId)
-  return Boolean(candidate)
+  const normalizedAthleteId = normaliseSkfId(raw)
+  const candidate = await getBBCandidateBySkfId(program.id, normalizedAthleteId)
+  if (candidate) return true
+
+  // Fallback: normalize all candidate SKF IDs for comparison
+  const allCandidates = await getAllBBCandidates(program.id)
+  return allCandidates.some(c => normaliseSkfId(c.skf_id) === normalizedAthleteId)
 }
 
 /**
