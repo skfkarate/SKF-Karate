@@ -13,14 +13,14 @@ import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 export const getPortalAthleteFromCookies = cache(async function getPortalAthleteFromCookies() {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  const session = verifyJWT(token)
+  const session = token ? verifyJWT(token) : null
 
   if (!session?.skfId) {
     return null
   }
 
   const athlete = await getAthleteBySkfIdLive(session.skfId)
-  if (!isEligiblePortalAthlete(athlete)) {
+  if (!athlete || !isEligiblePortalAthlete(athlete)) {
     return null
   }
 

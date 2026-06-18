@@ -13,7 +13,7 @@ function AnimatedCounter({ target, duration = 1800, suffix = '+' }: { target: nu
         if (entry.isIntersecting && !hasAnimated.current) {
           hasAnimated.current = true
           const startTime = performance.now()
-          const animate = (now) => {
+          const animate = (now: number) => {
             const elapsed = now - startTime
             const progress = Math.min(elapsed / duration, 1)
             const eased = 1 - Math.pow(1 - progress, 3)
@@ -32,7 +32,7 @@ function AnimatedCounter({ target, duration = 1800, suffix = '+' }: { target: nu
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-export default function TournamentHero({ stats }) {
+export default function TournamentHero({ stats }: { stats: { totalTournaments: number; nationalChampions: number; totalSilver: number; totalGold: number; totalBronze: number } }) {
   return (
     <>
       <section className="res-hero">

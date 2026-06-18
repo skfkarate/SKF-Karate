@@ -597,7 +597,7 @@ async function reserveInventoryFallback(items: ShopOrderItem[]): Promise<void> {
     }
 
     const variants = Array.isArray(data.variants)
-      ? data.variants.map((variant: unknown) => normalizeShopProductVariant(variant))
+      ? data.variants.map((variant: unknown) => normalizeShopProductVariant(variant as any))
       : []
     let inventoryChanged = false
 

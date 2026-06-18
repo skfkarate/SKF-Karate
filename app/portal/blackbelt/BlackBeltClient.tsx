@@ -1,7 +1,6 @@
 'use client'
-import { submitBBEnrollmentPayment } from './actions'
 import { useState, useMemo } from 'react'
-import { Trophy, Shield, Flame, CheckCircle2, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Wallet, ShieldCheck, AlertTriangle, AlertCircle, Phone, Users } from 'lucide-react'
+import { Trophy, Shield, Flame, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Phone, Users } from 'lucide-react'
 import type { BBProgram, BBCandidate, BBProgressEntry } from '@/lib/server/repositories/blackbelt-live'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import { motion } from 'framer-motion'
@@ -12,7 +11,7 @@ const FIRST_AID_LINK = 'https://alison.com/course/first-aid-for-martial-arts'
 const KUMITE_PDF = 'https://www.wkf.net/files/pdf/documents/WKF%202026%20Kumite%20Competition%20Rules%20MASTER%20COPY_V11.pdf'
 const KATA_PDF = 'https://www.wkf.net/files/pdf/documents/WKF%20Kata%20Competition%20Rules%202026%20MASTER%20COPY_V2.pdf'
 const DRIVE_MAP: Record<string, string> = {
-  'SKF17BL000': 'https://drive.google.com/drive/folders/1GGfoE3SOgFsD6wICnp2ztnKHUlEgzjmo?usp=sharing', // SHRIROSHAN P
+  'SKF13BL000': 'https://drive.google.com/drive/folders/1GGfoE3SOgFsD6wICnp2ztnKHUlEgzjmo?usp=sharing', // SHRIROSHAN P
   'SKF20HE001': 'https://drive.google.com/drive/folders/1txctxGMEgZxv7zQejhW6s-xN9LpwW1Wz?usp=sharing', // SANJANA S
   'SKF20HE002': 'https://drive.google.com/drive/folders/1M9zhju2AwPaLbxzhhXB3beSRwFkyzxiB?usp=sharing', // TEJASHREE S
   'SKF20HE003': 'https://drive.google.com/drive/folders/1aDsAd4ULgD4DLA5NhlqndLstdumseaDv?usp=sharing', // AYUSH KASHYAP G
@@ -26,18 +25,75 @@ function getDriveLink(skfId: string | undefined): string {
 }
 
 type Mentee = { name: string; phone: string }
-const MENTEE_MAP: Record<string, Mentee[]> = {
-  'SKF17BL000': [{ name: 'Likhith Gowda U R', phone: '+919880952278' }],                          // SHRIROSHAN P
-  'SKF20HE001': [{ name: 'Mruthika', phone: '+919108699585' }],                                    // SANJANA S
-  'SKF20HE002': [{ name: 'M Monishprasad', phone: '+916366669065' }, { name: 'Kushil V', phone: '+919620512480' }], // TEJASHREE S
-  'SKF20HE003': [{ name: 'Vedank', phone: '+919845315354' }, { name: 'Jnanaviram', phone: '+919538539541' }],       // AYUSH KASHYAP G
-  'SKF21HE001': [{ name: 'Lochana', phone: '+919845315354' }, { name: 'Deeksharam', phone: '+919538539541' }],      // ISHAAN GOWDA B S
-  'SKF21HE003': [{ name: 'Krunal', phone: '+918197416646' }, { name: 'Kushal K', phone: '+919902267855' }],         // SHASHANK
+
+type MenteeCardConfig = {
+  title: string
+  subtitle: string
+  assignments: Record<string, Mentee[]>
 }
 
-function getMentees(skfId: string | undefined): Mentee[] {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function sanitizeMentee(value: unknown): Mentee | null {
+  if (!isRecord(value)) return null
+  const name = typeof value.name === 'string' ? value.name.trim() : ''
+  const phone = typeof value.phone === 'string' ? value.phone.trim() : ''
+  if (!name || !phone) return null
+  return { name, phone }
+}
+
+function normalizeMentees(values: unknown[]): Mentee[] {
+  const seen = new Set<string>()
+  const mentees: Mentee[] = []
+
+  for (const value of values) {
+    const mentee = sanitizeMentee(value)
+    if (!mentee) continue
+
+    const key = `${mentee.name.toLowerCase()}|${mentee.phone.replace(/\D/g, '')}`
+    if (seen.has(key)) continue
+
+    seen.add(key)
+    mentees.push(mentee)
+  }
+
+  return mentees
+}
+
+function getMenteeCardConfig(program: BBProgram | null): MenteeCardConfig {
+  const base = {
+    title: 'Your Mentees',
+    subtitle: 'Juniors assigned to you',
+    assignments: {},
+  }
+
+  if (!isRecord(program?.config)) return base
+
+  const card = isRecord(program.config.mentee_card) ? program.config.mentee_card : {}
+  const assignments: Record<string, Mentee[]> = {}
+  const rawAssignments = program.config.mentee_assignments
+
+  if (isRecord(rawAssignments)) {
+    for (const [skfId, rawMentees] of Object.entries(rawAssignments)) {
+      if (!Array.isArray(rawMentees)) continue
+      assignments[skfId] = normalizeMentees(rawMentees)
+    }
+  }
+
+  const hasDbAssignments = Object.keys(assignments).length > 0
+
+  return {
+    title: typeof card.title === 'string' && card.title.trim() ? card.title.trim() : base.title,
+    subtitle: typeof card.subtitle === 'string' && card.subtitle.trim() ? card.subtitle.trim() : base.subtitle,
+    assignments: hasDbAssignments ? assignments : base.assignments,
+  }
+}
+
+function getMentees(skfId: string | undefined, assignments: Record<string, Mentee[]>): Mentee[] {
   if (!skfId) return []
-  return MENTEE_MAP[skfId] || []
+  return assignments[skfId] || []
 }
 
 function formatPhone(raw: string): string {
@@ -323,28 +379,10 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
   
   const [me, setMe] = useState(candidates.find(c => c.skf_id === currentSkfId))
   const [activeMonth, setActiveMonth] = useState(curMonth)
-  const [activeTab, setActiveTab] = useState<'journey' | 'requirements' | 'examination' | 'payment'>('journey')
-  
-  const [isSubmittingFee, setIsSubmittingFee] = useState(false)
-  const [hasScreenshot, setHasScreenshot] = useState(false)
-  const [bbError, setBbError] = useState<string | null>(null)
-
-  const handleFeeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setBbError(null)
-    setIsSubmittingFee(true)
-    try {
-      const formData = new FormData(e.currentTarget)
-      await submitBBEnrollmentPayment(formData)
-      if (me) setMe({ ...me, enrollment_fee_status: 'verifying' })
-    } catch (err) {
-      setBbError(err instanceof Error ? err.message : 'Failed to submit payment details.')
-    } finally {
-      setIsSubmittingFee(false)
-    }
-  }
+  const [activeTab, setActiveTab] = useState<'journey' | 'requirements' | 'examination'>('journey')
   
   const daysLeft = useMemo(() => getDaysUntil(program?.exam_date ?? null), [program])
+  const menteeCard = useMemo(() => getMenteeCardConfig(program), [program])
 
   if (!program) return (
     <SecureContentWrapper>
@@ -383,6 +421,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
   const md = MONTHS[activeMonth - 1]
   const tasks = md.tasks(me)
   const contTasks = CONTINUOUS_GOALS(me)
+  const mentees = getMentees(me.skf_id, menteeCard.assignments)
 
   const allTasksCount = MONTHS.reduce((s, m) => s + m.tasks(me).length, 0) + contTasks.length
   const allDoneCount = MONTHS.reduce((s, m) => s + m.tasks(me).filter(t => t.status === 'done').length, 0) + contTasks.filter(t => t.status === 'done').length
@@ -472,141 +511,10 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
             <GraduationCap size={16} className="bb-tab__icon" />
             <span className="bb-tab__label">Examination</span>
           </button>
-          <button 
-            className={`bb-tab ${activeTab === 'payment' ? 'bb-tab--active' : ''}`}
-            onClick={() => setActiveTab('payment')}
-          >
-            <Wallet size={16} className="bb-tab__icon" />
-            <span className="bb-tab__label">Payment</span>
-          </button>
         </div>
       </div>
 
       <div className="bb-content-area">
-        {/* TAB 4: PAYMENT */}
-        {activeTab === 'payment' && (
-          <div className="bb-tab-content bb-in" key="payment">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              
-              {/* Highlighted Rules Section */}
-              <div className="bb-card" style={{ background: 'linear-gradient(135deg, rgba(255,183,3,0.08), rgba(255,183,3,0.02))', border: '1px solid rgba(255,183,3,0.3)', padding: '2rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--gold)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <AlertTriangle size={20} /> Program Enrollment Policies
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '0.4rem', background: 'rgba(255,183,3,0.1)', borderRadius: '8px', color: 'var(--gold)' }}><Wallet size={16} /></div>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Mandatory Initial Deposit</div>
-                      <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', lineHeight: 1.5 }}>To officially unlock the Black Belt Examination path and training modules, a deposit of <strong>₹2,000</strong> is required immediately upon enrollment.</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '0.4rem', background: 'rgba(255,183,3,0.1)', borderRadius: '8px', color: 'var(--gold)' }}><GraduationCap size={16} /></div>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Deductible from Final Fee</div>
-                      <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', lineHeight: 1.5 }}>The final Black Belt Examination fee is decided based on the Federation&apos;s current rates. This fee will be announced <strong>one month prior</strong> to the exam. Your ₹2,000 deposit will be <strong>fully deducted</strong> from this final fee.</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '0.4rem', background: 'rgba(214,40,40,0.15)', borderRadius: '8px', color: '#ff6b6b' }}><Shield size={16} /></div>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Strictly Non-Refundable</div>
-                      <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', lineHeight: 1.5 }}>If you decide to drop out of the program, fail the fitness/mock tests, or are unable to attend the final exam, this deposit is non-refundable and non-transferable.</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Gateway Section */}
-              <div className="bb-card" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.05)' }}>
-                {me.enrollment_fee_status === 'paid' ? (
-                  <div style={{ background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.2)', borderRadius: '12px', padding: '2rem', textAlign: 'center' }}>
-                    <CheckCircle2 size={40} color="#2dd4bf" style={{ margin: '0 auto 1rem' }} />
-                    <h4 style={{ color: '#2dd4bf', fontWeight: 800, fontSize: '1.25rem' }}>Enrollment Secured</h4>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', marginTop: '0.5rem', maxWidth: '400px', margin: '0.5rem auto 0' }}>Your ₹2,000 deposit has been verified. Continue your journey and prepare for the final evaluation.</p>
-                  </div>
-                ) : me.enrollment_fee_status === 'verifying' ? (
-                  <div style={{ background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.2)', borderRadius: '12px', padding: '2rem', textAlign: 'center' }}>
-                    <ShieldCheck size={40} color="#2dd4bf" style={{ margin: '0 auto 1rem' }} />
-                    <h4 style={{ color: '#2dd4bf', fontWeight: 800, fontSize: '1.25rem' }}>Verification Pending</h4>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', marginTop: '0.5rem', maxWidth: '400px', margin: '0.5rem auto 0' }}>Your payment screenshot is currently under manual review by the Sensei. Your status will update shortly.</p>
-                  </div>
-                ) : (
-                  <>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1.5rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
-                      Complete Your Payment
-                    </h3>
-                    <form onSubmit={handleFeeSubmit}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 700 }}>Total Amount Due</div>
-                          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff' }}>₹2,000</div>
-                        </div>
-                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 700 }}>UPI Phone Number</div>
-                          <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'monospace', color: '#fff' }}>9611990869</div>
-                        </div>
-                        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.25rem', textTransform: 'uppercase', fontWeight: 700 }}>Official UPI ID</div>
-                          <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'monospace', color: 'var(--gold)' }}>skfkarate@axl</div>
-                        </div>
-                      </div>
-
-                      {bbError && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          background: 'rgba(214, 40, 40, 0.15)',
-                          border: '1px solid rgba(214, 40, 40, 0.3)',
-                          color: '#ff6b6b',
-                          padding: '1rem',
-                          borderRadius: '12px',
-                          fontSize: '0.9rem',
-                          marginBottom: '1.5rem',
-                          lineHeight: 1.4
-                        }}>
-                          <AlertCircle size={20} style={{ flexShrink: 0 }} />
-                          <span>{bbError}</span>
-                        </div>
-                      )}
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' }}>Upload Payment Screenshot <span style={{ color: '#ff6b6b' }}>*</span></label>
-                          <input
-                            type="file"
-                            name="screenshot"
-                            accept="image/*"
-                            required
-                            onChange={(e) => {
-                              setBbError(null)
-                              const file = e.target.files?.[0]
-                              if (file && file.size > 5 * 1024 * 1024) {
-                                setBbError('Payment screenshot must be 5 MB or smaller.')
-                                e.currentTarget.value = ''
-                                setHasScreenshot(false)
-                                return
-                              }
-                              setHasScreenshot(!!file)
-                            }}
-                            style={{ width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', padding: '0.8rem', borderRadius: '12px', outline: 'none' }}
-                          />
-                        </div>
-                      </div>
-
-                      <button type="submit" disabled={isSubmittingFee || !hasScreenshot} style={{ width: '100%', padding: '1.25rem', background: 'linear-gradient(135deg, #ffb703, #fb8500)', color: '#000', border: 'none', borderRadius: '12px', fontWeight: 900, fontSize: '1.1rem', cursor: isSubmittingFee || !hasScreenshot ? 'not-allowed' : 'pointer', opacity: isSubmittingFee || !hasScreenshot ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(255,183,3,0.3)' }}>
-                        {isSubmittingFee ? 'Submitting to Treasury...' : <><Upload size={20} /> Confirm & Submit Payment</>}
-                      </button>
-                    </form>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* TAB 1: JOURNEY */}
         {activeTab === 'journey' && (
           <div className="bb-tab-content bb-in" key="journey">
@@ -666,19 +574,19 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
                 <ReminderList title="5-Month Continuous Goals" tasks={contTasks} icon={Target} />
 
                 {/* YOUR MENTEES — contact card */}
-                {getMentees(me.skf_id).length > 0 && (
+                {mentees.length > 0 && (
                   <div className="bb-card" style={{ padding: 0, overflow: 'hidden', background: 'linear-gradient(135deg, rgba(96,165,250,0.06), rgba(96,165,250,0.01))', border: '1px solid rgba(96,165,250,0.15)' }}>
                     <div style={{ padding: '1.25rem 1.25rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Users size={15} color="#60a5fa" />
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>Your Mentees</div>
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Juniors assigned to you</div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>{menteeCard.title}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{menteeCard.subtitle}</div>
                       </div>
                     </div>
                     <div style={{ padding: '0.5rem 1rem 1rem' }}>
-                      {getMentees(me.skf_id).map((mentee, i) => (
+                      {mentees.map((mentee, i) => (
                         <a
                           key={i}
                           href={`tel:${mentee.phone}`}
@@ -688,7 +596,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId }: P
                             background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
                             textDecoration: 'none', color: '#fff',
                             transition: 'all 0.2s ease',
-                            marginBottom: i < getMentees(me.skf_id).length - 1 ? '0.5rem' : 0,
+                            marginBottom: i < mentees.length - 1 ? '0.5rem' : 0,
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(96,165,250,0.08)'; e.currentTarget.style.borderColor = 'rgba(96,165,250,0.2)' }}
                           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)' }}

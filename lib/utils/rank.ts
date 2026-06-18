@@ -1,3 +1,4 @@
+import type { Athlete } from '@/data/types'
 import {
   buildCompetitionResultsFromAthletes,
   calculateRankingSnapshots,
@@ -31,7 +32,7 @@ export function calculateAllRanks(
 
   const results: CompetitionResult[] = Array.isArray(allResultsOrCurrentDate)
     ? allResultsOrCurrentDate
-    : buildCompetitionResultsFromAthletes(athletes)
+    : buildCompetitionResultsFromAthletes(athletes as Athlete[])
 
-  return calculateRankingSnapshots(athletes, results, currentDate)
+  return calculateRankingSnapshots(athletes as Athlete[], results, currentDate)
 }

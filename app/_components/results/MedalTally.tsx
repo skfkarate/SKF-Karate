@@ -1,6 +1,6 @@
 import { FaMedal } from 'react-icons/fa'
 
-export default function MedalTally({ medals }) {
+export default function MedalTally({ medals }: { medals: { gold: number; silver: number; bronze: number } }) {
   return (
     <div className="medal-dashboard-strip">
       <div className="medal-ds-item">

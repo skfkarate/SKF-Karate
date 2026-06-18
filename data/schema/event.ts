@@ -13,7 +13,7 @@ export const eventSchema: EntitySchema = {
     id:             { type: 'string',  required: true, unique: true },
     slug:           { type: 'string',  required: true, unique: true },
     name:           { type: 'string',  required: true },
-    type:           { type: 'enum',    required: true, enumValues: ['tournament', 'seminar', 'belt-exam', 'grading', 'camp', 'fun'], description: 'From EVENT_TYPES constant' },
+    type:           { type: 'enum',    required: true, enumValues: ['tournament', 'seminar', 'grading', 'camp', 'fun'], description: 'From EVENT_TYPES constant' },
     status:         { type: 'enum',    required: true, enumValues: ['draft', 'upcoming', 'ongoing', 'completed', 'cancelled'], description: 'From EVENT_STATUSES constant' },
     date:           { type: 'date',    required: true },
     endDate:        { type: 'date',    required: false },

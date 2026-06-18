@@ -1,12 +1,27 @@
 import { compareRankingEntries } from '@/lib/utils/rankings';
 
-function titleCase(value) {
+type RankingCategoryInfo = {
+  key?: string;
+  discipline?: string;
+  ageGroup?: string;
+  gender?: string;
+  weightCategory?: string;
+};
+
+type RankingEntry = {
+  rankingCategory?: RankingCategoryInfo;
+  totalPoints?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+};
+
+function titleCase(value: string) {
   return String(value || '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
-export function formatRankingCategory(entry) {
+export function formatRankingCategory(entry: { rankingCategory?: RankingCategoryInfo }) {
   const category = entry?.rankingCategory;
   if (!category) return 'Athlete Rankings';
 
@@ -25,7 +40,7 @@ export function formatRankingCategory(entry) {
   return bits.join(' · ') || 'Athlete Rankings';
 }
 
-export function buildRankingBoards(entries = []) {
+export function buildRankingBoards(entries: RankingEntry[] = []): { key: string; label: string; items: (RankingEntry & { categoryRank: number })[] }[] {
   const buckets = new Map();
 
   for (const entry of entries) {

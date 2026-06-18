@@ -21,7 +21,19 @@ const eventFilterOptions = [
 const MEDAL_LABELS = { gold: '🥇', silver: '🥈', bronze: '🥉' }
 const MEDAL_ORDER = { gold: 1, silver: 2, bronze: 3 }
 
-export default function ResultsTable({ winners }) {
+type ResultsTableWinner = {
+  id: string
+  athleteName: string
+  category: string
+  branchName: string
+  medal: 'gold' | 'silver' | 'bronze'
+  position: number
+  skfId?: string
+  ageGroup: string
+  wins: number
+}
+
+export default function ResultsTable({ winners }: { winners: ResultsTableWinner[] }) {
   const [filterText, setFilterText] = useState('')
   const [eventFilter, setEventFilter] = useState('all')
   const [catOpen, setCatOpen] = useState(false)
@@ -29,7 +41,7 @@ export default function ResultsTable({ winners }) {
   const [sortDir, setSortDir] = useState('asc')
   const [page, setPage] = useState(1)
 
-  const handleSort = (key) => {
+  const handleSort = (key: 'medal' | 'event' | 'athlete' | 'branch') => {
     if (sortKey === key) {
       setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
     } else {

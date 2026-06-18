@@ -60,6 +60,7 @@ export const POST = withRoute(
     let telegramOk = false
     let sheetError: unknown = null
     let telegramError: unknown = null
+    let dbError: unknown = null
 
     // --- Channel 1: Google Sheets ---
     try {
@@ -109,8 +110,27 @@ export const POST = withRoute(
       logger.error('leads.telegram_failed', { requestId, error: err })
     }
 
+    // --- Channel 3: Supabase DB ---
+    let dbOk = false
+    try {
+      const { supabaseAdmin } = await import('@/lib/server/supabase')
+      const { error: dbErr } = await supabaseAdmin.from('leads').insert({
+        name: validatedData.studentName.trim(),
+        phone: validatedData.parentPhone.trim(),
+        branch: branchLabel,
+        source: 'website',
+        status: 'new',
+        notes: `Age: ${validatedData.childAge}, Batch: ${validatedData.preferredBatch}${validatedData.hearAboutUs ? `, Source: ${validatedData.hearAboutUs}` : ''}`,
+      })
+      if (dbErr) { dbError = dbErr; throw dbErr }
+      dbOk = true
+    } catch (err) {
+      dbError = dbError || err
+      logger.error('leads.db_failed', { requestId, error: err })
+    }
+
     // Return success if AT LEAST ONE channel worked
-    if (sheetOk || telegramOk) {
+    if (sheetOk || telegramOk || dbOk) {
       const pushResult = await sendFeeTrackPushNotification({
         title: 'New Free Trial Request',
         body: `${validatedData.studentName.trim()} • ${branchLabel} • ${validatedData.parentPhone.trim()}`,
@@ -127,6 +147,7 @@ export const POST = withRoute(
           branch: branchLabel,
           sheets: sheetOk,
           telegram: telegramOk,
+          db: dbOk,
           push: pushResult,
         },
         userAgent: request.headers.get('user-agent'),
@@ -135,12 +156,12 @@ export const POST = withRoute(
 
       return NextResponse.json({ 
         success: true, 
-        captured: { sheets: sheetOk, telegram: telegramOk } 
+        captured: { sheets: sheetOk, telegram: telegramOk, database: dbOk } 
       })
     }
 
     // Both failed
-    throw new Error(`Submission failed. Sheets: ${getErrorMessage(sheetError)}, Telegram: ${getErrorMessage(telegramError)}`)
+    throw new Error(`Submission failed. Sheets: ${getErrorMessage(sheetError)}, Telegram: ${getErrorMessage(telegramError)}, Database: ${getErrorMessage(dbError)}`)
 
   } catch (error: unknown) {
     logger.error('leads.failed', { requestId, error })

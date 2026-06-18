@@ -17,7 +17,7 @@ import './obsidian.css' // Import the unified Obsidian styling instead of classe
 
 export const metadata = buildSeoMetadata(
     '/classes',
-    'Find SKF Karate classes near you in Bangalore, Kunigal, Tumkur, and Udupi for kids, adults, self-defense, kata, kumite, fitness, and black belt training.'
+    'Find SKF Karate classes near you in Bangalore and Kunigal for kids, adults, self-defense, kata, kumite, fitness, and black belt training.'
 )
 
 export default async function ClassesPage() {

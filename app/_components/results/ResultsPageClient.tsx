@@ -7,10 +7,38 @@ import TournamentHero from './TournamentHero'
 import TournamentFilters from './TournamentFilters'
 import TournamentCard from './TournamentCard'
 
+type ResultsPageTournament = {
+  id: string
+  slug: string
+  level: string
+  isFeatured?: boolean
+  date: string
+  endDate?: string
+  name: string
+  shortName: string
+  venue: string
+  city: string
+  winners: { athleteName: string }[]
+  medals: { gold: number; silver: number; bronze: number }
+  skfParticipants: number
+}
+
+type ResultsPageStats = {
+  totalTournaments: number
+  nationalChampions: number
+  totalSilver: number
+  totalGold: number
+  totalBronze: number
+}
+
 export default function ResultsPageClient({
   allTournaments,
   stats,
   availableYears,
+}: {
+  allTournaments: ResultsPageTournament[]
+  stats: ResultsPageStats
+  availableYears: number[]
 }) {
   const searchParams = useSearchParams()
   const router = useRouter()

@@ -1,19 +1,14 @@
-// ⚠️ WARNING: This rate limiter uses in-memory storage.
-// On serverless (Vercel), counters reset per-invocation.
-// This provides NO rate limiting in production.
-// Replace with Redis-backed rate limiting before launch.
-// See: /lib/server/rate-limit-redis.ts for a drop-in replacement
-// using @upstash/ratelimit with a sliding window algorithm.
-// Once UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set,
-// swap the import to use the Redis-backed implementation.
+declare global {
+  var __skfRateLimitBuckets: Map<string, Map<string, { count: number; resetAt: number }>> | undefined
+}
 
-const globalBuckets = globalThis.__skfRateLimitBuckets || new Map()
+const globalBuckets = globalThis.__skfRateLimitBuckets || new Map<string, Map<string, { count: number; resetAt: number }>>()
 
 if (!globalThis.__skfRateLimitBuckets) {
   globalThis.__skfRateLimitBuckets = globalBuckets
 }
 
-function getBucket(name) {
+function getBucket(name: string): Map<string, { count: number; resetAt: number }> {
   const bucketName = name || 'default'
   const existing = globalBuckets.get(bucketName)
 
@@ -21,12 +16,12 @@ function getBucket(name) {
     return existing
   }
 
-  const bucket = new Map()
+  const bucket = new Map<string, { count: number; resetAt: number }>()
   globalBuckets.set(bucketName, bucket)
   return bucket
 }
 
-function pruneExpiredEntries(bucket, now) {
+function pruneExpiredEntries(bucket: Map<string, { count: number; resetAt: number }>, now: number) {
   for (const [key, entry] of bucket.entries()) {
     if (entry.resetAt <= now) {
       bucket.delete(key)
@@ -34,7 +29,7 @@ function pruneExpiredEntries(bucket, now) {
   }
 }
 
-export function checkRateLimit(name, key, { limit, windowMs }) {
+export function checkRateLimit(name: string, key: string, { limit, windowMs }: { limit: number; windowMs: number }) {
   const now = Date.now()
   const bucket = getBucket(name)
   const safeKey = key || 'unknown'

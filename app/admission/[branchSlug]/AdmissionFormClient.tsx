@@ -41,6 +41,36 @@ function todayStr() {
 }
 function formatPhone(val: string) { let v = val.replace(/\D/g, ''); if (v.length > 10) v = v.substring(0, 10); return v }
 
+async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new window.Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('Canvas is empty'))
+          resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' }))
+        }, 'image/jpeg', quality)
+      }
+      img.onerror = reject
+      img.src = e.target?.result as string
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function AdmissionFormClient({ config }: { config: AdmissionConfig }) {
   const [step, setStep] = useState(0)
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
@@ -202,32 +232,42 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     }
   }
 
-  const handleStudentPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStudentPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { setErrorMsg('Photo size must be less than 5MB'); return }
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Photo must be a JPG, PNG, or WebP image.'); return }
-      const reader = new FileReader()
-      reader.onloadend = () => { setFd(p => ({ ...p, studentPhotoBase64: reader.result as string, studentPhotoName: file.name, studentPhotoFile: file })) }
-      reader.readAsDataURL(file)
+      try {
+        const compressed = await compressImage(file, 800, 0.85)
+        if (compressed.size > 4.5 * 1024 * 1024) { setErrorMsg('Photo is still too large after compression. Please use a smaller image.'); return }
+        const reader = new FileReader()
+        reader.onloadend = () => { setFd(p => ({ ...p, studentPhotoBase64: reader.result as string, studentPhotoName: compressed.name, studentPhotoFile: compressed })) }
+        reader.readAsDataURL(compressed)
+      } catch {
+        setErrorMsg('Failed to process the photo. Please try another one.')
+      }
     }
   }
 
-  const handlePaymentProof = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePaymentProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { setErrorMsg('Payment screenshot must be less than 5MB.'); return }
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Payment screenshot must be a JPG, PNG, or WebP image.'); return }
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFd(p => ({
-          ...p,
-          paymentProofBase64: reader.result as string,
-          paymentProofName: file.name,
-          paymentProofFile: file,
-        }))
+      try {
+        const compressed = await compressImage(file, 1000, 0.85)
+        if (compressed.size > 4.5 * 1024 * 1024) { setErrorMsg('Payment screenshot is still too large after compression. Please use a smaller image.'); return }
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setFd(p => ({
+            ...p,
+            paymentProofBase64: reader.result as string,
+            paymentProofName: compressed.name,
+            paymentProofFile: compressed,
+          }))
+        }
+        reader.readAsDataURL(compressed)
+      } catch {
+        setErrorMsg('Failed to process the payment screenshot. Please try another one.')
       }
-      reader.readAsDataURL(file)
     }
   }
 

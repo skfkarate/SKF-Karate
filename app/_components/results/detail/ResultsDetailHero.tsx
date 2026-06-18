@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FaArrowLeft, FaCheck, FaShareAlt } from 'react-icons/fa'
 import { TOURNAMENT_LEVEL_LABELS } from '@/lib/types/tournament'
 
-function AnimatedCounter({ target, duration = 1400, suffix = '' }) {
+function AnimatedCounter({ target, duration = 1400, suffix = '' }: { target: number; duration?: number; suffix?: string }) {
   const [count, setCount] = useState(0)
   const ref = useRef(null)
   const hasAnimated = useRef(false)
@@ -16,7 +16,7 @@ function AnimatedCounter({ target, duration = 1400, suffix = '' }) {
         if (entry.isIntersecting && !hasAnimated.current) {
           hasAnimated.current = true
           const startTime = performance.now()
-          const animate = (now) => {
+          const animate = (now: number) => {
             const elapsed = now - startTime
             const progress = Math.min(elapsed / duration, 1)
             const eased = 1 - Math.pow(1 - progress, 3)
@@ -35,7 +35,7 @@ function AnimatedCounter({ target, duration = 1400, suffix = '' }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -43,7 +43,7 @@ function formatDate(dateStr) {
   })
 }
 
-export default function ResultsDetailHero({ tournament }) {
+export default function ResultsDetailHero({ tournament }: { tournament: { level: string; date: string; name: string; venue: string; city: string; totalParticipants: number; skfParticipants: number; medals: { gold: number; silver: number; bronze: number } } }) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {

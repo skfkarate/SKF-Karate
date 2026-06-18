@@ -70,7 +70,7 @@ export const FOOTER_LEGAL_LINKS = [
 export const PORTAL_NAV_ITEMS = [
   { href: '/portal/dashboard', label: 'Identity', iconName: 'UserCircle' },
   { href: '/portal/journey', label: 'Journey', iconName: 'Map' },
-  { href: '/portal/points', label: 'Rewards', iconName: 'Award', disabled: true },
+  { href: '/portal/credits', label: 'Credits', iconName: 'Award' },
   { href: '/portal/fees', label: 'Fees', iconName: 'CreditCard' },
   { href: '/portal/events', label: 'Events', iconName: 'Flag' },
   { href: '/portal/videos', label: 'Home Practice', iconName: 'PlayCircle' },

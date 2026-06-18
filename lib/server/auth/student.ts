@@ -1,31 +1,17 @@
-import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { JWTPayload } from '@/types'
 
-const JWT_SECRET = process.env.JWT_SECRET
-const PORTAL_SESSION_DAYS = 180
+import { requireEnv } from '@/src/server/config/env'
 
-function getJwtSecret() {
-  if (!JWT_SECRET) {
-    throw new Error(
-      '[SKF Auth] JWT_SECRET env var is not set. ' +
-      'Portal authentication cannot function safely. ' +
-      'Set this in .env.local and Vercel environment variables.'
-    )
-  }
-  return JWT_SECRET
-}
+const PORTAL_SESSION_DAYS = 30
+const JWT_EXPIRY = `${PORTAL_SESSION_DAYS}d`
 
-export async function hashPin(pin: string): Promise<string> {
-  return bcrypt.hash(pin, 12)
-}
-
-export async function verifyPin(pin: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(pin, hash)
+function getJwtSecret(): string {
+  return requireEnv('JWT_SECRET')
 }
 
 export function createStudentJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: `${PORTAL_SESSION_DAYS}d` })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRY })
 }
 
 export function verifyStudentJWT(token: string): JWTPayload | null {

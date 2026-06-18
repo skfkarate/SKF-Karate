@@ -5,6 +5,7 @@ import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../
 import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements';
 import { resolveDataFile, readJsonArray, writeJsonAtomically } from '../data-store';
 import { ApiError } from '../api';
+import type { Athlete } from '@/data/types';
 import { logger } from '@/src/server/lib/logger';
 
 const ATHLETES_DATA_FILE = resolveDataFile('athletes.json');
@@ -468,8 +469,8 @@ let mockAthletes: AthleteRecord[] = [
 
 let athletesLoadedFromDisk = false;
 
-function cloneAthleteData(value) {
-  return JSON.parse(JSON.stringify(value));
+function cloneAthleteData<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function ensureAthletesLoaded() {
@@ -506,20 +507,20 @@ export function getAllAthletes() {
   return cloneAthleteData(mockAthletes.map(withInitialWhiteBeltAchievement));
 }
 
-export function getAthleteBySkfId(skfId) {
+export function getAthleteBySkfId(skfId: string) {
   ensureAthletesLoaded();
   const normalized = normaliseSkfId(skfId);
   const athlete = mockAthletes.find(s => s.skfId.toUpperCase() === normalized.toUpperCase()) || null;
   return athlete ? cloneAthleteData(withInitialWhiteBeltAchievement(athlete)) : null;
 }
 
-export function getAthleteById(id) {
+export function getAthleteById(id: string) {
   ensureAthletesLoaded();
   const athlete = mockAthletes.find(s => s.id === id) || null;
   return athlete ? cloneAthleteData(withInitialWhiteBeltAchievement(athlete)) : null;
 }
 
-export function getAthletesByBranch(branch) {
+export function getAthletesByBranch(branch: string) {
   ensureAthletesLoaded();
   return cloneAthleteData(
     mockAthletes
@@ -537,7 +538,7 @@ export function getFeaturedAthletes() {
   );
 }
 
-export function getNextSequenceNumber(year, branchName = 'MP') {
+export function getNextSequenceNumber(year: number, branchName = 'MP') {
   ensureAthletesLoaded();
   const branchCode = getBranchCode(branchName);
   const seqs = mockAthletes
@@ -548,7 +549,7 @@ export function getNextSequenceNumber(year, branchName = 'MP') {
   return seqs.length > 0 ? Math.max(...seqs) + 1 : 1;
 }
 
-export function hasAthleteSkfId(skfId, excludeId = null) {
+export function hasAthleteSkfId(skfId: string, excludeId: string | null = null) {
   ensureAthletesLoaded();
   const normalized = normaliseSkfId(skfId);
 
@@ -560,7 +561,7 @@ export function hasAthleteSkfId(skfId, excludeId = null) {
   });
 }
 
-export function searchAthletesByName(query) {
+export function searchAthletesByName(query: string) {
   ensureAthletesLoaded();
   if (!query) return [];
   const lowerQuery = query.toLowerCase();
@@ -583,14 +584,14 @@ export function searchAthletesByName(query) {
 
 export function getRankSnapshots() {
   ensureAthletesLoaded();
-  const results = buildCompetitionResultsFromAthletes(mockAthletes);
+  const results = buildCompetitionResultsFromAthletes(mockAthletes as Athlete[]);
   return calculateAllRanks(mockAthletes, results, new Date());
 }
 
-export function getAthleteRank(athleteId) {
+export function getAthleteRank(athleteId: string) {
   ensureAthletesLoaded();
-  const results = buildCompetitionResultsFromAthletes(mockAthletes);
-  const rankInfo = getAthleteRankEntry(athleteId, mockAthletes, results);
+  const results = buildCompetitionResultsFromAthletes(mockAthletes as Athlete[]);
+  const rankInfo = getAthleteRankEntry(athleteId, mockAthletes as Athlete[], results);
   if (!rankInfo) return null;
   return {
     branchRank: rankInfo.branchRank,
@@ -603,7 +604,7 @@ export function getAthleteRank(athleteId) {
 function normaliseAthletePayload(
   input: AthletePayload = {},
   existing: AthletePayload | null = null
-) {
+): AthleteRecord {
   const now = new Date().toISOString();
   const joinDate = input.joinDate || existing?.joinDate || new Date().toISOString().split('T')[0];
   const joinYear = Number.parseInt(String(joinDate).slice(0, 4), 10) || new Date().getFullYear();
@@ -641,7 +642,7 @@ function normaliseAthletePayload(
     consentGivenAt:
       input.consentGivenAt === null
         ? null
-        : input.consentGivenAt || existing?.consentGivenAt || null,
+        : (input.consentGivenAt || existing?.consentGivenAt) ?? null,
     isPublic: typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured: typeof input.isFeatured === 'boolean' ? input.isFeatured : existing?.isFeatured ?? false,
     achievements: ensureInitialWhiteBeltAchievement(achievements, {
@@ -649,14 +650,14 @@ function normaliseAthletePayload(
       branchName,
     }),
     pointsHistory: Array.isArray(input.pointsHistory) ? input.pointsHistory : existing?.pointsHistory || [],
-    pointsBalance: Number.isFinite(input.pointsBalance) ? input.pointsBalance : existing?.pointsBalance || 0,
-    pointsLifetime: Number.isFinite(input.pointsLifetime) ? input.pointsLifetime : existing?.pointsLifetime || 0,
+    pointsBalance: typeof input.pointsBalance === 'number' && Number.isFinite(input.pointsBalance) ? input.pointsBalance : existing?.pointsBalance || 0,
+    pointsLifetime: typeof input.pointsLifetime === 'number' && Number.isFinite(input.pointsLifetime) ? input.pointsLifetime : existing?.pointsLifetime || 0,
     createdAt: existing?.createdAt || input.createdAt || now,
     updatedAt: now,
   };
 }
 
-export function createAthlete(input) {
+export function createAthlete(input: AthletePayload) {
   ensureAthletesLoaded();
   const athlete = normaliseAthletePayload(input);
 
@@ -669,7 +670,7 @@ export function createAthlete(input) {
   return cloneAthleteData(athlete);
 }
 
-export function updateAthlete(id, input) {
+export function updateAthlete(id: string, input: AthletePayload) {
   ensureAthletesLoaded();
   const index = mockAthletes.findIndex((athlete) => athlete.id === id);
   if (index === -1) return null;
@@ -685,7 +686,7 @@ export function updateAthlete(id, input) {
   return cloneAthleteData(updatedAthlete);
 }
 
-export function replaceAllAthletes(nextAthletes) {
+export function replaceAllAthletes(nextAthletes: AthleteRecord[]) {
   ensureAthletesLoaded();
   mockAthletes = cloneAthleteData(nextAthletes);
   persistAthletes();

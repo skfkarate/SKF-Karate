@@ -115,12 +115,12 @@ function normaliseTournamentPayload(
 
 function mapTournamentRowToRecord(row: TournamentDatabaseRow): TournamentRecord {
   return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
+    id: row.id || '',
+    slug: row.slug || '',
+    name: row.name || '',
     shortName: row.short_name || '',
     level: row.level || 'district',
-    date: row.date,
+    date: row.date || '',
     endDate: row.end_date || '',
     venue: row.venue || '',
     city: row.city || '',

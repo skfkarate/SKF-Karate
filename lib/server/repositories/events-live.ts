@@ -166,14 +166,14 @@ function buildUnifiedStoredEvent(event: EventRecord): EventRecord & { sourceKind
 
 function mapEventRowToRecord(row: EventDatabaseRow): EventRecord {
   return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
+    id: row.id || '',
+    slug: row.slug || '',
+    name: row.name || '',
     shortName: row.short_name || '',
     type: row.type || 'seminar',
     status: row.status || 'draft',
     level: row.level || '',
-    date: row.date,
+    date: row.date || '',
     endDate: row.end_date || '',
     venue: row.venue || '',
     city: row.city || '',
@@ -292,10 +292,15 @@ export async function getAllEventsAdminLive() {
     getAllTournamentsAdminLive(),
   ])
 
+  const seen = new Set<string>()
   return sortByDateDesc([
     ...standalone.map(buildUnifiedStoredEvent),
     ...tournaments.map(buildUnifiedTournamentEvent),
-  ])
+  ].filter((event) => {
+    if (seen.has(event.id)) return false
+    seen.add(event.id)
+    return true
+  }))
 }
 
 export async function getAllEventsLive() {
@@ -304,10 +309,15 @@ export async function getAllEventsLive() {
     getAllTournamentsLive(),
   ])
 
+  const seen = new Set<string>()
   return sortByDateDesc([
     ...standalone.map(buildUnifiedStoredEvent),
     ...tournaments.map(buildUnifiedTournamentEvent),
-  ])
+  ].filter((event) => {
+    if (seen.has(event.id)) return false
+    seen.add(event.id)
+    return true
+  }))
 }
 
 export async function getEventByIdAdminLive(id: string) {

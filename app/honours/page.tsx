@@ -120,7 +120,7 @@ function buildTournamentAchievements(publicAthletes: PublicAthlete[]): Tournamen
           medal: normaliseResult(
             achievement.competitionResult ||
             achievement.result ||
-            achievement.type.replace('tournament-', '')
+            achievement.type!.replace('tournament-', '')
           ),
           level: normaliseEventTier(achievement.sourceEventLevel || achievement.tournamentLevel),
           tournament: achievement.tournamentName || achievement.title || 'Tournament',

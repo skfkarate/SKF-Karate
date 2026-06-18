@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useRef, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import html2canvas from 'html2canvas'
@@ -9,6 +10,7 @@ import {
   Search, ChevronRight, Eye, Share2,
   Calendar, MapPin, Trophy, Shield, Star
 } from 'lucide-react'
+
 import '@/app/athlete-profile.css'
 import '@/app/athlete-hero.css'
 import '@/app/rankings/rankings.css'
@@ -42,6 +44,7 @@ type CompetitionResult = {
 
 type CompetitionCategory = {
   name: string
+  isPrimary?: boolean
   rank?: number | null
   points?: number | null
   results?: CompetitionResult[]
@@ -51,6 +54,49 @@ type CompetitionCategory = {
     silver: number
     bronze: number
   }>
+}
+
+type AthleteInfo = {
+  name: string
+  photo: string
+  fallbackPhoto?: string
+  country: string
+  countryFlag?: string
+  id: string
+  age: number
+  totalBouts: number
+  winRate: string
+  branchName?: string
+  branchHref?: string
+  publicProfileHref?: string
+  currentBelt?: string
+}
+
+type NextEvent = {
+  dateRange: string
+  name: string
+  href?: string
+  venue?: string
+  city?: string
+  branch?: string
+}
+
+type AthleteProfileClientProps = {
+  athleteInfo: AthleteInfo
+  categories?: CompetitionCategory[]
+  nextEvents?: NextEvent[]
+  beltExaminations?: Array<{ date: string; belt: string; grade: string; examiner: string; dojo: string; result: string }>
+  specialEvents?: Array<{ date: string; title: string; type: string; location: string }>
+  beltColors?: Record<string, string>
+  isDashboardContext?: boolean
+}
+
+function sumHonours(categories: CompetitionCategory[], medal: 'gold' | 'silver' | 'bronze') {
+  return categories.reduce(
+    (sum, category) =>
+      sum + (category.honours || []).reduce((inner, honour) => inner + Number(honour[medal] || 0), 0),
+    0
+  )
 }
 
 function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpenCertificate: (id: string) => void }) {
@@ -86,7 +132,7 @@ function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpe
 /* ═══════════════════════════════════════════════════════════════════════
    MEDAL BADGE — colored circle for ranks 1-3
    ═══════════════════════════════════════════════════════════════════════ */
-function MedalBadge({ rank }) {
+function MedalBadge({ rank }: { rank?: number | string | null }) {
   if (rank === '*' || rank === '-' || rank == null) {
     return <span className="ap-rank-plain">{rank ?? '-'}</span>
   }
@@ -99,26 +145,36 @@ function MedalBadge({ rank }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SECTION HEADER — bold heading with accent bar
+   SECTION HEADER — clean bold heading
    ═══════════════════════════════════════════════════════════════════════ */
-function SectionHeader({ icon, label }) {
+function SectionHeader({ label }: { icon?: ReactNode; label: string }) {
   return (
-    <div className="ap-sec-head">
-      <div className="ap-sec-head__bar" />
-      <div className="ap-sec-head__icon">{icon}</div>
-      <h2 className="ap-sec-head__text">{label}</h2>
-    </div>
+    <h2 className="ap-sec-head">{label}</h2>
   )
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
    HERO — Championship Card — One unified premium card
    ═══════════════════════════════════════════════════════════════════════ */
-function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDashboardContext = false, beltColors = {} }) {
-  const primary = categories.find((c) => c.isPrimary) || categories[0]
-  const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
-  const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
-  const totalB = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.bronze, 0), 0)
+function AthleteHero({
+  athleteInfo,
+  categories = [],
+  onShareCard,
+  isExporting,
+  isDashboardContext = false,
+  beltColors = {},
+}: {
+  athleteInfo: AthleteInfo
+  categories?: CompetitionCategory[]
+  onShareCard?: () => void
+  isExporting: boolean
+  isDashboardContext?: boolean
+  beltColors?: Record<string, string>
+}) {
+  const primary = categories.find((c) => c?.isPrimary) || categories[0] || { name: 'Unranked', rank: null, points: 0, honours: [] }
+  const totalG = sumHonours(categories, 'gold')
+  const totalS = sumHonours(categories, 'silver')
+  const totalB = sumHonours(categories, 'bronze')
   const totalMedals = totalG + totalS + totalB
 
   const beltLabel = athleteInfo.currentBelt || 'White Belt'
@@ -187,7 +243,7 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
                   <span className="aph-rank__label">SKF Ranking</span>
                   <span className="aph-rank__cat">{primary.name}</span>
                 {primary.points ? (
-                  <span className="aph-rank__pts">{primary.points.toLocaleString()} pts</span>
+                  <span className="aph-rank__pts">{primary.points.toLocaleString('en-IN')} pts</span>
                 ) : null}
                 </div>
                 <div className="aph-rank__num">
@@ -271,24 +327,26 @@ function AthleteHero({ athleteInfo, categories, onShareCard, isExporting, isDash
 /* ═══════════════════════════════════════════════════════════════════════
    NEXT EVENTS
    ═══════════════════════════════════════════════════════════════════════ */
-function NextEventsSection({ nextEvents }) {
+function NextEventsSection({ nextEvents }: { nextEvents: NextEvent[] }) {
   if (!nextEvents || nextEvents.length === 0) return null
+
   return (
     <section className="ap-section ap-animate-in ap-delay-1">
-      <SectionHeader icon={<Calendar size={16} />} label="Upcoming Events" />
-      <div className="ap-events-row">
+      <SectionHeader icon={<Calendar size={16} />} label="Athlete's Next Events" />
+      <div className="ap-next-events">
         {nextEvents.map((ev) => (
-          <Link key={`${ev.dateRange}-${ev.name}`} href={ev.href || '/events'} className="ap-ev-card" style={{ textDecoration: 'none' }}>
-            <div className="ap-ev-card__date">{ev.dateRange}</div>
-            <div className="ap-ev-card__body">
-              <span className="ap-ev-card__name">{ev.name}</span>
-              {ev.venue ? (
-                <span style={{ display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: '0.78rem', marginTop: '0.25rem' }}>
-                  {ev.venue}{ev.city ? `, ${ev.city}` : ''}
-                </span>
-              ) : null}
+          <Link
+            key={`${ev.dateRange}-${ev.name}`}
+            href={ev.href || '/events'}
+            className="ap-next-ev"
+          >
+            <div className="ap-next-ev__content">
+              <span className="ap-next-ev__date">{ev.dateRange}</span>
+              <span className="ap-next-ev__name">
+                {ev.name}{ev.branch ? ` — ${ev.branch}` : ev.venue ? ` — ${ev.venue}` : ''}{ev.city ? ` (${ev.city})` : ''}
+              </span>
             </div>
-            <ChevronRight size={15} className="ap-ev-card__arrow" />
+            <ChevronRight size={16} className="ap-next-ev__arrow" />
           </Link>
         ))}
       </div>
@@ -305,7 +363,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
 
   // Sort: ranked categories first (ascending), then unranked alphabetically
   const sortedCategories = useMemo(() => {
-    const ranked = categories.filter((c) => c.rank).sort((a, b) => a.rank - b.rank)
+    const ranked = categories.filter((c): c is CompetitionCategory & { rank: number } => c.rank != null).sort((a, b) => a.rank - b.rank)
     const unranked = categories.filter((c) => !c.rank).sort((a, b) => a.name.localeCompare(b.name))
     return [...ranked, ...unranked]
   }, [categories])
@@ -318,7 +376,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
     let rows = [...cat.results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     if (filter.trim()) {
       const q = filter.toLowerCase()
-      rows = rows.filter((r) => r.event.toLowerCase().includes(q) || r.type.toLowerCase().includes(q) || r.date.includes(q))
+      rows = rows.filter((r) => r.event.toLowerCase().includes(q) || (r.type || '').toLowerCase().includes(q) || (r.date || '').includes(q))
     }
     return rows
   }, [cat, filter])
@@ -351,7 +409,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
             )}
             <span className="ap-cat-overview__rank-label">RANK</span>
             <span className="ap-cat-overview__rank-pts">
-              {cat.points ? `${cat.points.toLocaleString()} points` : ''}
+              {cat.points ? `${cat.points.toLocaleString('en-IN')} points` : ''}
             </span>
           </div>
 
@@ -409,7 +467,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
                   <td>{r.category}</td>
                   <td className="ctr"><MedalBadge rank={r.rank} /></td>
                   <td className="ctr">{r.wins}</td>
-                  <td className={`ctr ${r.actual > 0 ? 'ap-tbl__gold-text' : ''}`}>{r.points}</td>
+                  <td className={`ctr ${(r.actual ?? 0) > 0 ? 'ap-tbl__gold-text' : ''}`}>{r.points}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
@@ -435,7 +493,7 @@ function TabbedCompetitions({ categories }: { categories: CompetitionCategory[];
 /* ═══════════════════════════════════════════════════════════════════════
    BELT JOURNEY — table with View column (portal only), sorted descending
    ═══════════════════════════════════════════════════════════════════════ */
-function BeltJourney({ beltExaminations, beltColors }) {
+function BeltJourney({ beltExaminations, beltColors }: { beltExaminations: { date: string; belt: string; grade: string; examiner: string; dojo: string; result: string }[]; beltColors: Record<string, string> }) {
   if (!beltExaminations || beltExaminations.length === 0) return null
   const sorted = [...beltExaminations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -498,13 +556,13 @@ function BeltJourney({ beltExaminations, beltColors }) {
 /* ═══════════════════════════════════════════════════════════════════════
    SPECIAL EVENTS — compact table, View column portal-only
    ═══════════════════════════════════════════════════════════════════════ */
-function SpecialEventsSection({ specialEvents, isDashboardContext = false }) {
+function SpecialEventsSection({ specialEvents, isDashboardContext = false }: { specialEvents: { date: string; title: string; type: string; location: string }[]; isDashboardContext?: boolean }) {
   if (!specialEvents || specialEvents.length === 0) return null
   const sorted = [...specialEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  const typeColor = { Seminar: '#ffe49a', 'Training Camp': '#99f6e4', Workshop: '#bfdbfe' }
-  const typeBg = { Seminar: 'rgba(255,183,3,0.1)', 'Training Camp': 'rgba(45,212,191,0.08)', Workshop: 'rgba(59,130,246,0.08)' }
-  const typeBorder = { Seminar: 'rgba(255,183,3,0.2)', 'Training Camp': 'rgba(45,212,191,0.18)', Workshop: 'rgba(59,130,246,0.18)' }
+  const typeColor: Record<string, string> = { Seminar: '#ffe49a', 'Training Camp': '#99f6e4', Workshop: '#bfdbfe' }
+  const typeBg: Record<string, string> = { Seminar: 'rgba(255,183,3,0.1)', 'Training Camp': 'rgba(45,212,191,0.08)', Workshop: 'rgba(59,130,246,0.08)' }
+  const typeBorder: Record<string, string> = { Seminar: 'rgba(255,183,3,0.2)', 'Training Camp': 'rgba(45,212,191,0.18)', Workshop: 'rgba(59,130,246,0.18)' }
 
   return (
     <section className="ap-section ap-animate-in ap-delay-4">
@@ -555,17 +613,17 @@ function SpecialEventsSection({ specialEvents, isDashboardContext = false }) {
    MAIN EXPORT
    ═══════════════════════════════════════════════════════════════════════ */
 export default function AthleteProfileClient({
-  athleteInfo, categories, nextEvents, beltExaminations, specialEvents, beltColors, isDashboardContext = false
-}) {
+  athleteInfo, categories = [], nextEvents = [], beltExaminations = [], specialEvents = [], beltColors = {}, isDashboardContext = false
+}: AthleteProfileClientProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null)
   
   const cardRef = useRef<HTMLDivElement>(null)
   const [isExporting, setIsExporting] = useState(false)
 
-  const totalG = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.gold, 0), 0)
-  const totalS = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.silver, 0), 0)
-  const totalB = categories.reduce((s, c) => s + c.honours.reduce((a, h) => a + h.bronze, 0), 0)
+  const totalG = sumHonours(categories, 'gold')
+  const totalS = sumHonours(categories, 'silver')
+  const totalB = sumHonours(categories, 'bronze')
 
   const handleShareCard = async () => {
     if (!cardRef.current) return
@@ -588,7 +646,7 @@ export default function AthleteProfileClient({
     }
   }
 
-  const handleOpenCertificate = (id) => {
+  const handleOpenCertificate = (id: string) => {
     setSelectedEnrollmentId(id)
     setModalOpen(true)
   }

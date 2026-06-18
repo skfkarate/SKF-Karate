@@ -122,6 +122,9 @@ export async function POST(request: NextRequest) {
 
   // Step 1: Update SKF17BL000 to SKF13BL000
   await supabaseAdmin.from('athletes').update({ skf_id: 'SKF13BL000' }).eq('skf_id', 'SKF17BL000')
+  await supabaseAdmin.from('bb_candidates').update({ skf_id: 'SKF13BL000' }).in('skf_id', ['SKF17BL000', 'SKF17BL0000', 'SKF17BL00'])
+  await supabaseAdmin.from('student_billing_profiles').update({ skf_id: 'SKF13BL000' }).in('skf_id', ['SKF17BL000', 'SKF17BL0000', 'SKF17BL00'])
+  await supabaseAdmin.from('fee_payment_proofs').update({ skf_id: 'SKF13BL000' }).in('skf_id', ['SKF17BL000', 'SKF17BL0000', 'SKF17BL00'])
 
   const groups = new Map<string, ImportRecord[]>()
   

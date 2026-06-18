@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- 1) Billing profiles used by the fee console for monthly amount and branch snapshots.
 WITH legacy_billing(skf_id, billing_status, monthly_fee, branch_snapshot) AS (
   VALUES
-  ('SKF17BL000', 'active', 1000, 'Herohalli'),
+  ('SKF13BL000', 'active', 1000, 'Herohalli'),
   ('SKF20HE001', 'active', 400, 'Herohalli'),
   ('SKF20HE002', 'active', 400, 'Herohalli'),
   ('SKF20HE003', 'active', 400, 'Herohalli'),
@@ -58,10 +58,10 @@ ON CONFLICT (skf_id) DO UPDATE SET
 -- 2) Monthly fee ledger rows plus the one used referral-credit adjustment.
 WITH legacy_fee_rows(skf_id, fee_type, month, year, amount, status, source_status, source_sheet) AS (
   VALUES
-  ('SKF17BL000', 'monthly', 'January', 2026, 1000, 'paid', 'Paid', 'Fees_Herohalli'),
-  ('SKF17BL000', 'monthly', 'February', 2026, 1000, 'paid', 'Paid', 'Fees_Herohalli'),
-  ('SKF17BL000', 'monthly', 'March', 2026, 1000, 'break', 'Break', 'Fees_Herohalli'),
-  ('SKF17BL000', 'monthly', 'April', 2026, 1000, 'break', 'Break', 'Fees_Herohalli'),
+  ('SKF13BL000', 'monthly', 'January', 2026, 1000, 'paid', 'Paid', 'Fees_Herohalli'),
+  ('SKF13BL000', 'monthly', 'February', 2026, 1000, 'paid', 'Paid', 'Fees_Herohalli'),
+  ('SKF13BL000', 'monthly', 'March', 2026, 1000, 'break', 'Break', 'Fees_Herohalli'),
+  ('SKF13BL000', 'monthly', 'April', 2026, 1000, 'break', 'Break', 'Fees_Herohalli'),
   ('SKF20HE001', 'monthly', 'January', 2026, 400, 'break', 'Break', 'Fees_Herohalli'),
   ('SKF20HE001', 'monthly', 'February', 2026, 400, 'break', 'Break', 'Fees_Herohalli'),
   ('SKF20HE001', 'monthly', 'March', 2026, 400, 'break', 'Break', 'Fees_Herohalli'),

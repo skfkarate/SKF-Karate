@@ -37,7 +37,6 @@ function buildContentSecurityPolicy(nonce: string) {
   const scriptSources = [
     "'self'",
     `'nonce-${nonce}'`,
-    'https://checkout.razorpay.com',
     'https://www.googletagmanager.com',
     'https://www.youtube.com',
     'https://www.youtube-nocookie.com',
@@ -51,7 +50,6 @@ function buildContentSecurityPolicy(nonce: string) {
     `script-src ${scriptSources.join(' ')}`,
     "style-src 'self'",
     `style-src-elem 'self' 'nonce-${nonce}'`,
-    // TODO(framer-motion/react-inline-styles): remove style-src-attr once static JSX style props are migrated to CSS classes.
     "style-src-attr 'unsafe-inline'",
     [
       "img-src 'self' data: blob:",
@@ -73,8 +71,6 @@ function buildContentSecurityPolicy(nonce: string) {
       'https://*.supabase.co',
       'wss://*.supabase.co',
       'https://api.telegram.org',
-      'https://checkout.razorpay.com',
-      'https://api.razorpay.com',
       'https://www.googletagmanager.com',
       'https://www.google-analytics.com',
       'https://region1.google-analytics.com',
@@ -82,7 +78,7 @@ function buildContentSecurityPolicy(nonce: string) {
       'https://www.youtube-nocookie.com',
       'https://*.ingest.sentry.io',
     ].join(' '),
-    "frame-src 'self' https://checkout.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://drive.google.com https://www.google.com https://maps.google.com",
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://drive.google.com https://www.google.com https://maps.google.com",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -220,7 +216,7 @@ async function verifyPortalJwt(token: string | undefined): Promise<PortalJwtPayl
   }
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const nonce = generateNonce()
   const csp = buildContentSecurityPolicy(nonce)
   const requestHeaders = new Headers(request.headers)

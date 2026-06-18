@@ -81,16 +81,13 @@ export const POST = withRoute(
             String(value).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
 
         const telegramMessage = [
-            `🥋 *New Callback Request*`,
+            `🔔 *New Callback Request in FeeTrack*`,
             ``,
-            `👤 *Name:* ${escapeTelegramMarkdown(name.trim())}`,
-            `📞 *Phone:* ${escapeTelegramMarkdown(phone.trim())}`,
-            `⏰ *Call Time:* ${escapeTelegramMarkdown(preferredTime || 'Anytime')}`,
-            email?.trim() ? `📧 *Email:* ${escapeTelegramMarkdown(email.trim())}` : '',
-            `🎯 *Interest:* ${escapeTelegramMarkdown(interest || 'General Inquiry')}`,
-            message?.trim() ? `💬 *Message:* ${escapeTelegramMarkdown(message.trim())}` : '',
+            `*Name:* ${escapeTelegramMarkdown(name.trim())}`,
+            `*Phone:* ${escapeTelegramMarkdown(phone.trim())}`,
+            `*Interest:* ${escapeTelegramMarkdown(interest || 'General Inquiry')}`,
             ``,
-            `🕐 ${escapeTelegramMarkdown(timestamp)}`,
+            `Open FeeTrack to review`,
         ].filter(Boolean).join('\n')
 
         try {
@@ -108,8 +105,33 @@ export const POST = withRoute(
             logger.error('contact.telegram_failed', { requestId, error: err })
         }
 
+        // --- Channel 3: Supabase DB ---
+        let dbOk = false
+        try {
+      const { supabaseAdmin } = await import('@/lib/server/supabase')
+            const noteParts = [
+                body.preferredTime ? `Preferred Time: ${body.preferredTime}` : '',
+                body.interest ? `Interest: ${body.interest}` : '',
+                body.message ? `Message: ${body.message.slice(0, 200)}` : '',
+            ].filter(Boolean).join(', ')
+
+            const { error: dbError } = await supabaseAdmin.from('leads').insert({
+                name: body.name,
+                phone: body.phone,
+                email: body.email,
+                branch: 'website-contact',
+                source: 'website',
+                status: 'new',
+                notes: noteParts || null,
+            })
+            if (dbError) throw dbError
+            dbOk = true
+        } catch (err) {
+            logger.error('contact.db_failed', { error: err })
+        }
+
         // 4. Return success if at least one channel captured the data
-        if (sheetOk || telegramOk) {
+        if (sheetOk || telegramOk || dbOk) {
             await sendFeeTrackPushNotification({
                 title: 'New Callback Request',
                 body: `${name.trim()} • ${phone.trim()} • ${preferredTime || 'Anytime'}`,
@@ -120,7 +142,7 @@ export const POST = withRoute(
             return NextResponse.json({
                 success: true,
                 message: 'Message sent successfully!',
-                channels: { sheet: sheetOk, telegram: telegramOk },
+                channels: { sheet: sheetOk, telegram: telegramOk, database: dbOk },
             })
         }
 

@@ -56,7 +56,7 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
         if (!athlete) return null
         
         const medals = (athlete.achievements || []).filter(a => 
-            ['tournament-gold', 'tournament-silver', 'tournament-bronze'].includes(a.type)
+            a.type != null && ['tournament-gold', 'tournament-silver', 'tournament-bronze'].includes(a.type)
         )
         const goldCount = medals.filter(m => m.type === 'tournament-gold').length
         const silverCount = medals.filter(m => m.type === 'tournament-silver').length
@@ -77,7 +77,7 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
             medals: medalsString || 'No medals yet',
             points: snapshot.totalPoints
         }
-    }).filter(Boolean)
+    }).filter((x): x is NonNullable<typeof x> => x != null)
 
     const isDirectSkipBranch = city.branches.length === 1 && city.schools.length === 0;
     let admissionFormHref: string | null = null

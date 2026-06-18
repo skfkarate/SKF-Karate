@@ -6,7 +6,7 @@ export const metadata = buildSeoMetadata(
   'Contact SKF Karate for karate classes, trial bookings, kids martial arts, adult self-defense training, branch details, fees, and instructor guidance today.'
 )
 
-export default function ContactLayout({ children }) {
+export default function ContactLayout({ children }: { children: React.ReactNode }) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Contact', '/contact')
   const faqJsonLd = buildFaqJsonLd([
     {

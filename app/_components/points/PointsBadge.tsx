@@ -27,16 +27,18 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
         
         fetchBalance()
 
-        if (isSupabaseClientReady() && supabaseClient) {
-            const subscription = supabaseClient
+        const client = supabaseClient
+        if (isSupabaseClientReady() && client) {
+            const subscription = client
                 .channel('points_channel')
                 .on('postgres_changes', { 
                     event: 'INSERT', 
                     schema: 'public', 
                     table: 'point_transactions', 
                     filter: `skf_id=eq.${skfId}` 
-                }, payload => {
-                    const tx = payload.new
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                }, (payload: any) => {
+                    const tx = payload.new as { type: string; points: number; reason: string; balance_after: number }
                     if (tx.type === 'EARN') {
 	                        setToastMsg(`+${tx.points} points for ${tx.reason.replace('_', ' ')}!`)
 	                        setBalance(tx.balance_after)
@@ -48,7 +50,7 @@ export default function PointsBadge({ skfId }: { skfId: string }) {
 
 	            return () => {
 	              if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
-	              supabaseClient.removeChannel(subscription)
+	              client.removeChannel(subscription)
 	            }
         }
     }, [skfId])

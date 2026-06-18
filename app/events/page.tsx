@@ -32,6 +32,7 @@ export default async function EventsPage() {
             date: formatDisplayDate(event.date),
             title: event.name,
             location: `${event.venue}, ${event.city}`,
+            branch: (event as Record<string, unknown>).hostingBranch as string || '',
             type: event.type,
             desc: event.description,
             cta: event.type === 'tournament' ? `/results/${event.slug}` : `/events/${event.slug}`,

@@ -1,4 +1,4 @@
-export default function AchievementBadge({ medal }) {
+export default function AchievementBadge({ medal }: { medal: 'gold' | 'silver' | 'bronze' }) {
   const labels = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' }
 
   return (

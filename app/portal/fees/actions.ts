@@ -69,6 +69,8 @@ export async function submitManualFeePayment(formData: FormData): Promise<Manual
       .getAll('feeKeys')
       .map((value) => String(value || '').trim())
       .filter(Boolean)
+    
+    const applyCreditId = String(formData.get('applyCreditId') || '').trim()
 
     if (selectedFeeKeys.length === 0) {
       return { ok: false, message: 'Please select at least one fee record.' }
@@ -102,9 +104,20 @@ export async function submitManualFeePayment(formData: FormData): Promise<Manual
 
     const submittedFeeKeys: string[] = []
     let lastError: unknown = null
+    let creditToApply = applyCreditId
 
     for (const fee of dueRecords) {
       try {
+        if (creditToApply) {
+          await FeeOperationsService.applyPortalCredit(portal.session.skfId, {
+            creditId: creditToApply,
+            month: fee.month,
+            year: fee.year,
+            feeType: fee.feeType,
+          })
+          creditToApply = '' // Only apply once!
+        }
+
         await FeeOperationsService.submitPortalPaymentProof(portal.session.skfId, {
           feeRecordIds: fee.id ? [fee.id] : undefined,
           month: fee.month,
@@ -134,5 +147,57 @@ export async function submitManualFeePayment(formData: FormData): Promise<Manual
   } catch (error) {
     logger.warn('portal.fee_payment_action_failed', { error })
     return { ok: false, message: friendlyPaymentError(error) }
+  }
+}
+
+type ApplyCreditResult =
+  | { ok: true; appliedAmount: number; remainingDue: number; creditId: string }
+  | { ok: false; message: string }
+
+export async function applyPortalCredit(input: {
+  creditId: string
+  feeKey: string
+  month: string
+  year: number
+  feeType: string
+}): Promise<ApplyCreditResult> {
+  try {
+    const portal = await getPortalAthleteFromCookies()
+    if (!portal?.session?.skfId) {
+      return { ok: false, message: 'Please log in again.' }
+    }
+
+    const skfId = portal.session.skfId
+
+    // Validate: the fee must exist and be due
+    const ledger = await FeeLedgerService.getPortalLedger(skfId)
+    const targetFee = ledger.entries.find(
+      (f) => f.key === input.feeKey && (f.status === 'due' || f.status === 'overdue' || f.status === 'rejected')
+    )
+    if (!targetFee) {
+      return { ok: false, message: 'The selected fee is no longer payable.' }
+    }
+
+    // Apply via the existing FeeOperationsService action
+    const result = await FeeOperationsService.applyPortalCredit(skfId, {
+      creditId: input.creditId,
+      month: input.month,
+      year: input.year,
+      feeType: input.feeType || 'monthly',
+    })
+
+    revalidatePath('/portal/fees')
+    return {
+      ok: true,
+      appliedAmount: result.appliedAmount,
+      remainingDue: result.remainingDue,
+      creditId: input.creditId,
+    }
+  } catch (error) {
+    logger.warn('portal.apply_credit_failed', { error })
+    return {
+      ok: false,
+      message: error instanceof AppError && error.expose ? error.message : 'Could not apply credit. Please try again.',
+    }
   }
 }

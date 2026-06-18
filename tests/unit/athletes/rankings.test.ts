@@ -106,7 +106,6 @@ describe('ranking calculations', () => {
   it('does not decay ranking points over time', () => {
     const points = calculateResultPoints(
       {
-        athleteId: 'ath_1',
         date: '2020-01-01',
         level: 'state',
         result: 'gold',

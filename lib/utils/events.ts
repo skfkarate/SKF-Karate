@@ -1,14 +1,15 @@
+import type { Athlete, TournamentRecord } from '@/data/types'
 import { EVENT_TYPES } from '@/lib/types/event'
 
 export { EVENT_TYPES }
 
-export function normaliseEventType(value) {
+export function normaliseEventType(value: string | null | undefined) {
   if (!value) return "competition"
   const normalized = String(value).trim().toLowerCase()
   return EVENT_TYPES.includes(normalized) ? normalized : "competition"
 }
 
-export function sortEventsByDate(events = [], direction = "desc") {
+export function sortEventsByDate<T extends { date: string }>(events: T[] = [], direction = "desc") {
   const multiplier = direction === "asc" ? 1 : -1
 
   return [...events].sort((a, b) => {
@@ -16,7 +17,7 @@ export function sortEventsByDate(events = [], direction = "desc") {
   })
 }
 
-export function getEventStatus(event, currentDate = new Date()) {
+export function getEventStatus(event: { date: string; endDate?: string }, currentDate: Date = new Date()) {
   const start = new Date(event.date)
   const end = new Date(event.endDate || event.date)
   const current = new Date(currentDate)
@@ -26,7 +27,7 @@ export function getEventStatus(event, currentDate = new Date()) {
   return "live"
 }
 
-export function buildEventFromTournament(tournament) {
+export function buildEventFromTournament(tournament: TournamentRecord) {
   return {
     ...tournament,
     type: "competition",
@@ -35,7 +36,7 @@ export function buildEventFromTournament(tournament) {
   }
 }
 
-export function getEventMedalTally(event) {
+export function getEventMedalTally(event: { participants?: Array<{ medal?: string }>; winners?: Array<{ medal?: string }> }) {
   const participants = event.participants || event.winners || []
 
   return participants.reduce(
@@ -49,7 +50,7 @@ export function getEventMedalTally(event) {
   )
 }
 
-export function getAthleteEventEntries(athlete, events = []) {
+export function getAthleteEventEntries(athlete: Athlete, events: Array<{ id: string; slug: string; name: string; date: string; level?: string; participants?: Array<{ skfId?: string; athleteName?: string; medal?: string; position?: string; category?: string; ageGroup?: string; weightCategory?: string }>; winners?: Array<{ skfId?: string; athleteName?: string; medal?: string; position?: string; category?: string; ageGroup?: string; weightCategory?: string }> }> = []) {
   return events.flatMap((event) => {
     const participants = event.participants || event.winners || []
 
@@ -75,7 +76,7 @@ export function getAthleteEventEntries(athlete, events = []) {
   })
 }
 
-export function buildResultCascadeSummary({ athlete, event, result }) {
+export function buildResultCascadeSummary({ athlete, event, result }: { athlete: { id: string; skfId: string }; event: { id: string; slug: string }; result: string }) {
   return {
     athleteId: athlete.id,
     eventId: event.id,

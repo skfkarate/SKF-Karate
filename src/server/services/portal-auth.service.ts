@@ -1,8 +1,10 @@
 import { createJWT, buildPortalCookie } from '@/lib/server/auth/portal'
 import { isEligiblePortalAthlete } from '@/lib/server/auth/portal-athlete'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
-import { getAthleteBySkfIdLive, getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { getAthleteBySkfIdLive, getAthletesByPhonesLive } from '@/lib/server/repositories/athletes-live'
+import { supabaseAdmin } from '@/lib/server/supabase'
 import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
+import type { Belt } from '@/data/types'
 import type { PortalAuthInput } from '@/src/server/api/validators/portal.validator'
 import { AuthenticationError, ValidationError } from '@/src/server/lib/errors'
 
@@ -93,7 +95,7 @@ export class PortalAuthService {
       role: 'student',
       branch: athlete.branchName || null,
       batch: athlete.batch || null,
-      belt: athlete.currentBelt || null,
+      belt: (athlete.currentBelt || null) as Belt | null,
       name: athlete.firstName || '',
       parentPhone: athlete.phone || null,
     })
@@ -107,7 +109,7 @@ export class PortalAuthService {
       metadata: {
         branch: athlete.branchName || null,
         batch: athlete.batch || null,
-        belt: athlete.currentBelt || null,
+      belt: (athlete.currentBelt || null) as Belt | null,
       },
       userAgent: requestMeta.userAgent,
       ipAddress: requestMeta.ipAddress,
@@ -119,32 +121,62 @@ export class PortalAuthService {
   }
 
   static async getSiblings(currentSkfId: string, parentPhone: string | null) {
-    const allAthletes = await getAllAthletesLive()
     const currentNormalized = currentSkfId.trim().toUpperCase()
-    const currentAthlete = allAthletes.find((athlete) => {
-      return String(athlete.skfId || '').trim().toUpperCase() === currentNormalized
-    })
 
-    const discoveryPhones = new Set(
-      [parentPhone, currentAthlete?.phone]
-        .map((value) => normalizeProfilePhone(value))
-        .filter(Boolean)
-    )
+    const currentAthlete = await getAthleteBySkfIdLive(currentNormalized)
+    if (!currentAthlete) return []
 
-    if (discoveryPhones.size === 0) {
-      return []
+    // 1. Check explicit family groups first (most reliable)
+    const { data: groupMembers } = await supabaseAdmin
+      .from('family_group_members')
+      .select('group_id')
+      .eq('skf_id', currentNormalized)
+      .maybeSingle()
+
+    if (groupMembers?.group_id) {
+      const { data: memberRows } = await supabaseAdmin
+        .from('family_group_members')
+        .select('skf_id')
+        .eq('group_id', groupMembers.group_id)
+        .neq('skf_id', currentNormalized)
+
+      // Group is authoritative — do NOT fall through to phone matching
+      if (!memberRows || memberRows.length === 0) return []
+
+      const results = await Promise.all(
+        memberRows.map(m => getAthleteBySkfIdLive(m.skf_id))
+      )
+      return results
+        .filter((a): a is NonNullable<typeof a> => a !== null && isEligiblePortalAthlete(a))
+        .sort((a, b) => athleteDisplayName(a).localeCompare(athleteDisplayName(b)))
+        .map((athlete) => ({
+          skfId: athlete.skfId,
+          name: athleteDisplayName(athlete),
+          firstName: athlete.firstName,
+          lastName: athlete.lastName,
+          currentBelt: athlete.currentBelt,
+          photoUrl: resolveServerAthleteProfilePhoto(athlete),
+          branchName: athlete.branchName,
+        }))
     }
 
-    return allAthletes
+    // 2. Fall back to implicit phone-based discovery
+    const discoveryPhones = Array.from(
+      new Set(
+        [parentPhone, currentAthlete.phone]
+          .map((value) => normalizeProfilePhone(value))
+          .filter(Boolean)
+      )
+    )
+
+    if (discoveryPhones.length === 0) return []
+
+    const candidates = await getAthletesByPhonesLive(discoveryPhones)
+
+    return candidates
       .filter((athlete) => {
         const skfId = String(athlete.skfId || '').trim().toUpperCase()
-        if (!skfId || skfId === currentNormalized || !isEligiblePortalAthlete(athlete)) {
-          return false
-        }
-
-        const phone = normalizeProfilePhone(athlete.phone)
-
-        return Boolean(phone && discoveryPhones.has(phone))
+        return skfId && skfId !== currentNormalized && isEligiblePortalAthlete(athlete)
       })
       .sort((a, b) => athleteDisplayName(a).localeCompare(athleteDisplayName(b)))
       .map((athlete) => ({
@@ -186,7 +218,7 @@ export class PortalAuthService {
     }
 
     const targetAthlete = await getAthleteBySkfIdLive(normalizedTarget)
-    if (!isEligiblePortalAthlete(targetAthlete)) {
+    if (!targetAthlete || !isEligiblePortalAthlete(targetAthlete)) {
       throw new AuthenticationError('Athlete not found.')
     }
 
@@ -195,7 +227,7 @@ export class PortalAuthService {
       role: 'student',
       branch: targetAthlete.branchName || null,
       batch: targetAthlete.batch || null,
-      belt: targetAthlete.currentBelt || null,
+      belt: (targetAthlete.currentBelt || null) as Belt | null,
       name: targetAthlete.firstName || '',
       parentPhone: targetAthlete.phone || null,
     })

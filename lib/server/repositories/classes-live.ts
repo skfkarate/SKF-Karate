@@ -348,16 +348,21 @@ async function resolveBranchSenseiPayload(
 }
 
 export const getAllCitiesLive = cache(async function getAllCitiesLive() {
+  let cities: City[] = []
+
   if (!isSupabaseReady()) {
-    return getStaticCityDataset()
+    cities = getStaticCityDataset()
+  } else {
+    try {
+      cities = cloneData(await readAllCitiesFromDatabase())
+    } catch (error) {
+      logger.warn('classes_live.static_fallback', { error })
+      cities = getStaticCityDataset()
+    }
   }
 
-  try {
-    return cloneData(await readAllCitiesFromDatabase())
-  } catch (error) {
-    logger.warn('classes_live.static_fallback', { error })
-    return getStaticCityDataset()
-  }
+  // Filter out disabled cities
+  return cities.filter(c => c.slug !== 'tumkur' && c.slug !== 'udupi')
 })
 
 export async function getCityBySlugLive(slug: string) {

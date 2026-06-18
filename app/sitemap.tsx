@@ -34,7 +34,6 @@ const staticRoutes: SitemapRoute[] = [
   { path: '/blog', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/shop', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/techniques', priority: 0.8, changeFrequency: 'weekly' },
-  { path: '/summer-camp/enroll', priority: 0.8, changeFrequency: 'monthly' },
   { path: '/privacy-policy', priority: 0.5, changeFrequency: 'yearly' },
   { path: '/cookie-policy', priority: 0.5, changeFrequency: 'yearly' },
   { path: '/terms-of-service', priority: 0.5, changeFrequency: 'yearly' },

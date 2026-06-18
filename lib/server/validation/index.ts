@@ -35,7 +35,7 @@ const TOURNAMENT_BELT_VALUES = new Set(TOURNAMENT_BELTS)
 const EVENT_TYPE_VALUES = new Set(EVENT_TYPES)
 const EVENT_STATUS_VALUES = new Set(EVENT_STATUSES)
 const EVENT_BELT_VALUE_SET = new Set(EVENT_BELT_VALUES)
-const ATTENDANCE_STYLE_EVENT_RESULT_VALUES = new Set(['absent', 'attended', 'completed'])
+const ATTENDANCE_STYLE_EVENT_RESULT_VALUES: Set<string> = new Set(['absent', 'attended', 'completed'])
 
 type NumericOptions = {
   min?: number
@@ -47,25 +47,25 @@ type PhoneOptions = {
   maxDigits?: number
 }
 
-function optionalInteger(value, label, options: NumericOptions = {}) {
+function optionalInteger(value: unknown, label: string, options: NumericOptions = {}) {
   if (value === undefined || value === null || value === '') return null
   return integerValue(value, label, options)
 }
 
-function optionalNumberValue(value, label, options: NumericOptions = {}) {
+function optionalNumberValue(value: unknown, label: string, options: NumericOptions = {}) {
   if (value === undefined || value === null || value === '') return null
   return numberValue(value, label, options)
 }
 
-function ensureObject(value, label) {
+function ensureObject(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new ApiError(400, `${label} is invalid.`)
   }
 
-  return value
+  return value as Record<string, unknown>
 }
 
-function requiredString(value, label, options: NumericOptions = {}) {
+function requiredString(value: unknown, label: string, options: NumericOptions = {}) {
   const trimmed = String(value ?? '').trim()
   const min = options.min ?? 1
   const max = options.max ?? 120
@@ -81,7 +81,7 @@ function requiredString(value, label, options: NumericOptions = {}) {
   return trimmed
 }
 
-function slugifyIdentifier(value) {
+function slugifyIdentifier(value: unknown) {
   return String(value ?? '')
     .trim()
     .toLowerCase()
@@ -90,9 +90,9 @@ function slugifyIdentifier(value) {
     .replace(/-+/g, '-')
 }
 
-function normalizeEventTypeValue(value, label = 'Event type') {
+function normalizeEventTypeValue(value: unknown, label: string = 'Event type') {
   const normalized = slugifyIdentifier(value || 'seminar')
-  const canonical = normalized === 'pelt-exam' ? 'belt-exam' : normalized
+  const canonical = normalized === 'pelt-exam' || normalized === 'belt-exam' ? 'grading' : normalized
 
   if (!canonical) {
     throw new ApiError(400, `${label} is required.`)
@@ -105,7 +105,7 @@ function normalizeEventTypeValue(value, label = 'Event type') {
   return canonical
 }
 
-function optionalString(value, label, options: NumericOptions = {}) {
+function optionalString(value: unknown, label: string, options: NumericOptions = {}) {
   if (value === undefined || value === null) return ''
 
   const trimmed = String(value).trim()
@@ -120,7 +120,7 @@ function optionalString(value, label, options: NumericOptions = {}) {
   return trimmed
 }
 
-function requiredDate(value, label) {
+function requiredDate(value: unknown, label: string) {
   const trimmed = requiredString(value, label, { max: 40 })
   const date = new Date(trimmed)
 
@@ -131,7 +131,7 @@ function requiredDate(value, label) {
   return trimmed
 }
 
-function calendarDateValue(value, label) {
+function calendarDateValue(value: unknown, label: string) {
   const normalized = String(value ?? '').trim()
   const dateOnlyMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/)
 
@@ -162,7 +162,7 @@ function calendarDateValue(value, label) {
   return parsed.getTime()
 }
 
-function ensureEndDateIsNotBeforeStartDate(startDate, endDate) {
+function ensureEndDateIsNotBeforeStartDate(startDate: unknown, endDate: unknown) {
   if (!endDate) return
 
   if (calendarDateValue(endDate, 'End date') < calendarDateValue(startDate, 'Start date')) {
@@ -170,7 +170,7 @@ function ensureEndDateIsNotBeforeStartDate(startDate, endDate) {
   }
 }
 
-function optionalDate(value, label) {
+function optionalDate(value: unknown, label: string) {
   if (value === undefined || value === null || String(value).trim() === '') {
     return ''
   }
@@ -178,11 +178,11 @@ function optionalDate(value, label) {
   return requiredDate(value, label)
 }
 
-function booleanValue(value, fallback = false) {
+function booleanValue(value: unknown, fallback: boolean = false) {
   return typeof value === 'boolean' ? value : fallback
 }
 
-function integerValue(value, label, options: NumericOptions = {}) {
+function integerValue(value: unknown, label: string, options: NumericOptions = {}) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     throw new ApiError(400, `${label} is invalid.`)
@@ -199,7 +199,7 @@ function integerValue(value, label, options: NumericOptions = {}) {
   return integer
 }
 
-function numberValue(value, label, options: NumericOptions = {}) {
+function numberValue(value: unknown, label: string, options: NumericOptions = {}) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
     throw new ApiError(400, `${label} is invalid.`)
@@ -215,7 +215,7 @@ function numberValue(value, label, options: NumericOptions = {}) {
   return parsed
 }
 
-function enumValue(value, label, allowedValues) {
+function enumValue(value: unknown, label: string, allowedValues: Set<string>) {
   const normalized = String(value ?? '').trim()
   if (!allowedValues.has(normalized)) {
     throw new ApiError(400, `${label} is invalid.`)
@@ -224,7 +224,7 @@ function enumValue(value, label, allowedValues) {
   return normalized
 }
 
-function athleteBeltValue(value, label) {
+function athleteBeltValue(value: unknown, label: string) {
   const normalized = String(value ?? '')
     .trim()
     .toLowerCase()
@@ -239,7 +239,7 @@ function athleteBeltValue(value, label) {
   return canonical
 }
 
-function optionalUrl(value, label) {
+function optionalUrl(value: unknown, label: string) {
   const normalized = optionalString(value, label, { max: 500 })
   if (!normalized) return ''
 
@@ -261,7 +261,7 @@ function optionalUrl(value, label) {
   return normalized
 }
 
-function optionalEmail(value, label) {
+function optionalEmail(value: unknown, label: string) {
   const normalized = optionalString(value, label, { max: 160 })
   if (!normalized) return ''
 
@@ -273,7 +273,7 @@ function optionalEmail(value, label) {
   return normalized.toLowerCase()
 }
 
-function optionalPhone(value, label, options: PhoneOptions = {}) {
+function optionalPhone(value: unknown, label: string, options: PhoneOptions = {}) {
   const normalized = optionalString(value, label, { max: 30 })
   if (!normalized) return ''
 
@@ -288,7 +288,7 @@ function optionalPhone(value, label, options: PhoneOptions = {}) {
   return normalized
 }
 
-function normaliseAchievement(achievement, index) {
+function normaliseAchievement(achievement: unknown, index: number) {
   const value = ensureObject(achievement, `Achievement ${index + 1}`)
   const pointsAwarded =
     value.pointsAwarded === undefined || value.pointsAwarded === null || value.pointsAwarded === ''
@@ -403,7 +403,7 @@ function normaliseAchievement(achievement, index) {
   }
 }
 
-function normalisePointsHistoryEntry(entry, index) {
+function normalisePointsHistoryEntry(entry: unknown, index: number) {
   const value = ensureObject(entry, `Points history entry ${index + 1}`)
 
   return {
@@ -436,10 +436,10 @@ function normalisePointsHistoryEntry(entry, index) {
   }
 }
 
-function normaliseWinner(winner, index) {
+function normaliseWinner(winner: unknown, index: number) {
   const value = ensureObject(winner, `Winner ${index + 1}`)
   const medal = enumValue(value.medal, `Winner ${index + 1} medal`, MEDAL_VALUES)
-  const positionMap = { gold: 1, silver: 2, bronze: 3 }
+  const positionMap: Record<string, number> = { gold: 1, silver: 2, bronze: 3 }
 
   return {
     id: optionalString(value.id, `Winner ${index + 1} id`, { max: 80 }),
@@ -495,7 +495,7 @@ function normaliseWinner(winner, index) {
   }
 }
 
-function normaliseParticipant(participant, index) {
+function normaliseParticipant(participant: unknown, index: number) {
   const value = ensureObject(participant, `Participant ${index + 1}`)
 
   const athleteName = requiredString(
@@ -525,12 +525,12 @@ function normaliseParticipant(participant, index) {
   }
 }
 
-function normaliseEventResult(result, index, eventType) {
+function normaliseEventResult(result: unknown, index: number, eventType: unknown) {
   const value = ensureObject(result, `Result ${index + 1}`)
   const normalizedType = normalizeEventTypeValue(eventType)
-  const allowedResults =
+  const allowedResults: Set<string> =
     EVENT_RESULT_OPTIONS[normalizedType]
-      ? new Set(EVENT_RESULT_OPTIONS[normalizedType] || [])
+      ? new Set(EVENT_RESULT_OPTIONS[normalizedType] ?? [])
       : ATTENDANCE_STYLE_EVENT_RESULT_VALUES
   const participantName = requiredString(
     value.athleteName,
@@ -698,7 +698,7 @@ function normaliseEventResult(result, index, eventType) {
   }
 }
 
-export function validateContactPayload(payload) {
+export function validateContactPayload(payload: unknown) {
   const value = ensureObject(payload, 'Request body')
   const website = optionalString(value.website, 'Website', { max: 120 })
   const phone = optionalPhone(requiredString(value.phone, 'Phone', { max: 30 }), 'Phone', {
@@ -722,7 +722,7 @@ export function validateContactPayload(payload) {
   }
 }
 
-export function validateAthletePayload(payload) {
+export function validateAthletePayload(payload: unknown) {
   const value = ensureObject(payload, 'Athlete payload')
 
   const dateOfBirth = requiredDate(value.dateOfBirth, 'Date of birth')
@@ -780,7 +780,7 @@ export function validateAthletePayload(payload) {
   }
 }
 
-export function validateTournamentPayload(payload) {
+export function validateTournamentPayload(payload: unknown) {
   const value = ensureObject(payload, 'Tournament payload')
   const name = requiredString(value.name, 'Tournament name', { max: 160 })
   const date = requiredDate(value.date, 'Start date')
@@ -813,7 +813,7 @@ export function validateTournamentPayload(payload) {
     ? value.participants.map(normaliseParticipant)
     : []
   const results = Array.isArray(value.results)
-    ? value.results.map((entry, index) => normaliseEventResult(entry, index, 'tournament'))
+    ? value.results.map((entry: unknown, index: number) => normaliseEventResult(entry, index, 'tournament'))
     : []
 
   return {
@@ -847,7 +847,7 @@ export function validateTournamentPayload(payload) {
   }
 }
 
-export function validateEventPayload(payload) {
+export function validateEventPayload(payload: unknown) {
   const value = ensureObject(payload, 'Event payload')
   const name = requiredString(value.name, 'Event name', { max: 160 })
   const type = normalizeEventTypeValue(value.type || 'seminar')
@@ -865,7 +865,7 @@ export function validateEventPayload(payload) {
     ? value.participants.map(normaliseParticipant)
     : []
   const results = Array.isArray(value.results)
-    ? value.results.map((entry, index) => normaliseEventResult(entry, index, type))
+    ? value.results.map((entry: unknown, index: number) => normaliseEventResult(entry, index, type))
     : []
 
   return {

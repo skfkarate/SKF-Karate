@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
 
 ALTER TABLE auth_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_full_auth_sessions" ON auth_sessions;
+CREATE POLICY "service_role_full_auth_sessions" ON auth_sessions
+  FOR ALL USING (auth.role() = 'service_role');
+
 CREATE TABLE IF NOT EXISTS otp_attempts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   phone TEXT NOT NULL,
@@ -688,16 +692,32 @@ CREATE POLICY "service_role_full_gallery_photos" ON gallery_photos
 
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  skf_id TEXT NOT NULL,
+  skf_id TEXT,
   branch TEXT,
   subscription JSONB NOT NULL,
+  endpoint TEXT,
+  audience TEXT NOT NULL DEFAULT 'student',
+  staff_id TEXT,
+  user_agent TEXT,
+  last_seen_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(skf_id)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_push_subs" ON push_subscriptions
   FOR ALL USING (auth.role() = 'service_role');
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint
+  ON push_subscriptions(endpoint)
+  WHERE endpoint IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_audience
+  ON push_subscriptions(audience, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_staff
+  ON push_subscriptions(staff_id, updated_at DESC)
+  WHERE staff_id IS NOT NULL;
 
 -- ══════════════════════════════════════
 -- SECTION 7: Events & Tournaments
@@ -1538,4 +1558,180 @@ CREATE INDEX IF NOT EXISTS idx_athlete_gradings_event ON athlete_gradings(event_
 
 ALTER TABLE athlete_gradings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_athlete_gradings" ON athlete_gradings
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- ══════════════════════════════════════
+-- SECTION 11: Staff & Fee Operations
+-- FeeTrack staff accounts, billing profiles, payment proofs,
+-- credits, expenses, special days, audit logs.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS staff_accounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'fee_manager'
+    CHECK (role IN ('admin', 'fee_manager', 'fee_viewer')),
+  branch_scope TEXT NOT NULL DEFAULT 'all',
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE staff_accounts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_staff_accounts" ON staff_accounts
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS student_billing_profiles (
+  skf_id TEXT PRIMARY KEY,
+  billing_status TEXT NOT NULL DEFAULT 'active'
+    CHECK (billing_status IN ('active', 'paused', 'discontinued')),
+  monthly_fee NUMERIC NOT NULL DEFAULT 0,
+  admission_fee NUMERIC NOT NULL DEFAULT 0,
+  dress_fee NUMERIC NOT NULL DEFAULT 0,
+  dress_cost NUMERIC NOT NULL DEFAULT 0,
+  billing_start_date DATE,
+  billing_end_date DATE,
+  branch_snapshot TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE student_billing_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_student_billing_profiles" ON student_billing_profiles
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS fee_payment_proofs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fee_record_id UUID REFERENCES fee_records(id) ON DELETE SET NULL,
+  skf_id TEXT NOT NULL,
+  amount NUMERIC NOT NULL DEFAULT 0,
+  proof_path TEXT NOT NULL,
+  proof_filename TEXT,
+  status TEXT NOT NULL DEFAULT 'submitted'
+    CHECK (status IN ('submitted', 'approved', 'rejected')),
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
+  review_note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_fee_payment_proofs_status_date
+  ON fee_payment_proofs (status, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_fee_payment_proofs_skf
+  ON fee_payment_proofs (skf_id, submitted_at DESC);
+
+ALTER TABLE fee_payment_proofs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_fee_payment_proofs" ON fee_payment_proofs
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS fee_credits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  credit_code TEXT UNIQUE NOT NULL,
+  skf_id TEXT NOT NULL,
+  branch TEXT,
+  amount NUMERIC NOT NULL DEFAULT 0,
+  reason TEXT,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'available'
+    CHECK (status IN ('available', 'used', 'cancelled')),
+  earned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  used_fee_record_id UUID REFERENCES fee_records(id) ON DELETE SET NULL,
+  used_month TEXT,
+  used_year INTEGER,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fee_credits_skf_status
+  ON fee_credits (skf_id, status);
+CREATE INDEX IF NOT EXISTS idx_fee_credits_branch_status
+  ON fee_credits (branch, status);
+
+ALTER TABLE fee_credits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_fee_credits" ON fee_credits
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS development_fund_expenses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  expense_code TEXT UNIQUE NOT NULL,
+  month TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  scope TEXT NOT NULL DEFAULT 'Both',
+  amount NUMERIC NOT NULL DEFAULT 0,
+  created_by TEXT,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_development_fund_expenses_period
+  ON development_fund_expenses (year, month);
+
+ALTER TABLE development_fund_expenses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_development_fund_expenses" ON development_fund_expenses
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS special_days (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  date_token TEXT NOT NULL,
+  category TEXT,
+  notes TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_special_days_active
+  ON special_days (is_active);
+
+ALTER TABLE special_days ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_special_days" ON special_days
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS fee_audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id TEXT,
+  actor_name TEXT,
+  actor_role TEXT,
+  action TEXT NOT NULL,
+  skf_id TEXT,
+  fee_record_id UUID,
+  before JSONB,
+  after JSONB,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fee_audit_logs_skf_date
+  ON fee_audit_logs (skf_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_fee_audit_logs_action_date
+  ON fee_audit_logs (action, created_at DESC);
+
+ALTER TABLE fee_audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_fee_audit_logs" ON fee_audit_logs
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- ══════════════════════════════════════
+-- SECTION 12: Exam Months
+-- Tracks which months have exams configured for belt gradings.
+-- ══════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS exam_months (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  year INTEGER NOT NULL,
+  month TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (year, month)
+);
+
+ALTER TABLE exam_months ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_exam_months" ON exam_months
   FOR ALL USING (auth.role() = 'service_role');

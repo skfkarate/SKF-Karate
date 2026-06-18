@@ -35,8 +35,16 @@ type JourneyEvent = {
   winners?: JourneyParticipant[]
 }
 
+type PortalAthlete = {
+  skfId: string
+  joinDate: string
+  branchName: string
+  achievements: AthleteAchievement[]
+}
+
 export default async function JourneyPage() {
-  const { athlete } = await requirePortalAthlete()
+  const { athlete: rawAthlete } = await requirePortalAthlete()
+  const athlete = rawAthlete as PortalAthlete
   const [allEvents] = await Promise.all([
     getAllEventsLive(),
   ])
@@ -62,14 +70,14 @@ export default async function JourneyPage() {
 
   // 2. Belt Promotions (Anchors)
   const achievements = Array.isArray(athlete.achievements)
-    ? (athlete.achievements as AthleteAchievement[])
+    ? athlete.achievements
     : []
   const beltAchievements = achievements.filter((ach) =>
-    ['belt-pass', 'belt-grading', 'enrollment'].includes(String(ach.type || ''))
+    ['belt-pass', 'belt-grading', 'grading-fail', 'enrollment'].includes(String(ach.type || ''))
   )
   beltAchievements.forEach((ach) => {
     if (!ach.date) return
-    const beltObj = getBelt(ach.beltEarned)
+    const beltObj = getBelt(ach.beltEarned ?? '')
     timelineNodes.push({
       id: ach.id || `belt-${ach.date}`,
       type: 'belt',
@@ -83,31 +91,30 @@ export default async function JourneyPage() {
     })
   })
 
-  // 3. Side Quests / Milestones (Events marked showInJourney)
-  const journeyEvents = (allEvents as JourneyEvent[]).filter((event) => event.showInJourney === true)
+  // 3. Side Quests / Milestones (Events marked showInJourney — camps, seminars & tournaments; grading is handled by belts & upcoming below)
+  const journeyEvents = (allEvents as JourneyEvent[]).filter(
+    (event) => event.showInJourney === true && ['camp', 'seminar', 'tournament'].includes(event.type?.toLowerCase() || '')
+  )
   journeyEvents.forEach((event) => {
     if (!event.date) return
+
     const isParticipant = isAssignedToEvent(event, athleteSkfId)
     const hasResult = (event.results || []).some((r) => normaliseSkfId(String(r.skfId || '')) === athleteSkfId)
-    const isWinner = (event.winners || []).some((w) => normaliseSkfId(String(w.skfId || '')) === athleteSkfId)
+    const isWinner = (event.results || []).some((r) => normaliseSkfId(String(r.skfId || '')) === athleteSkfId)
 
     if (isParticipant || hasResult || isWinner) {
       const isUpcoming = event.date ? new Date(event.date).getTime() > currentTimeMs : false
-      const isPastGrading = !isUpcoming && (event.type?.toLowerCase() === 'grading' || event.name?.toLowerCase().includes('progressive examination') || event.name?.toLowerCase().includes('belt'))
-      
-      if (!isPastGrading) {
-        timelineNodes.push({
-          id: event.id || `event-${event.date}`,
-          type: 'event',
-          date: event.date,
-          title: event.name,
-          description: event.type === 'tournament' ? 'Tournament Participation' : 'Special Event',
-          isCurrent: false,
-          isUpcoming,
-          eventType: event.type,
-          timestamp: new Date(event.date).getTime(),
-        })
-      }
+      timelineNodes.push({
+        id: event.id || `event-${event.date}`,
+        type: 'event',
+        date: event.date,
+        title: event.name ?? '',
+        description: event.type === 'tournament' ? 'Tournament Participation' : 'Special Event',
+        isCurrent: false,
+        isUpcoming,
+        eventType: event.type,
+        timestamp: new Date(event.date).getTime(),
+      })
     }
   })
 

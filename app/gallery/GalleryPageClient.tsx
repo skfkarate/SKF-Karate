@@ -243,14 +243,16 @@ export default function GalleryPageClient({
                     )}
                 </div>
             </section>
-            <GalleryLightbox
-              closeLightbox={closeLightbox}
-              currentPhoto={currentPhoto}
-              displayedPhotos={displayedPhotos}
-              goNext={goNext}
-              goPrev={goPrev}
-              lightboxIdx={lightboxIdx}
-            />
+            {lightboxIdx !== null && (
+              <GalleryLightbox
+                closeLightbox={closeLightbox}
+                currentPhoto={currentPhoto}
+                displayedPhotos={displayedPhotos}
+                goNext={goNext}
+                goPrev={goPrev}
+                lightboxIdx={lightboxIdx}
+              />
+            )}
         </div>
     )
 }
