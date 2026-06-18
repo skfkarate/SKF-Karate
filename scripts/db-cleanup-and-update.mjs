@@ -132,7 +132,7 @@ async function main() {
     const fullName = `${athlete.first_name} ${athlete.last_name}`
     let fee = 400
 
-    if (skfId === 'SKF17BL000') {
+    if (skfId === 'SKF13BL000') {
       fee = 1000
     } else if (skfId === 'SKF21HE003') {
       fee = 500

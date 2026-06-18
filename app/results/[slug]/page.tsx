@@ -4,7 +4,7 @@ import { getTournamentBySlugLive } from '@/lib/server/repositories/tournaments-l
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const tournament = await getTournamentBySlugLive(slug)
   if (!tournament) {
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
   )
 }
 
-export default async function TournamentDetailPage({ params }) {
+export default async function TournamentDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const tournament = await getTournamentBySlugLive(slug)
   if (!tournament) notFound()

@@ -10,6 +10,8 @@ import {
 import { SHOP_PRODUCTS_CACHE_TAG } from '@/lib/shop/cache'
 import { authorizeStaffCredentials, type AuthUser } from '@/lib/server/auth/staff'
 import { getWebsiteAnalyticsSummary } from '@/lib/server/site-analytics'
+import type { TournamentRecord } from '@/data/types'
+
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
 import {
   createEventRecordLive,
@@ -68,6 +70,7 @@ import {
   eventFeeExpenseSchema,
   eventFeeGenerateSchema,
   eventFeePreviewSchema,
+  feeTypeSchema,
 } from '@/src/server/api/validators/fees.validator'
 import { AppError, AuthenticationError, AuthorizationError, NotFoundError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -791,12 +794,16 @@ async function markPaid(session: FeeTrackSession, body: ActionBody) {
   const branch = normalizeBranch(body.branch)
   const month = monthName(body.month)
   const year = targetYear(body.year)
+  const feeType = feeTypeSchema.parse(body.feeType || 'monthly')
+  const feeRecordId = body.feeRecordId ? String(body.feeRecordId) : undefined
+
   const result = await FeeOperationsService.runLedgerAction(session, {
     action: 'mark_paid',
     skfId: String(body.id || body.skfId || ''),
     month,
     year,
-    feeType: 'monthly',
+    feeType,
+    feeRecordId,
     paymentMethod: 'manual',
     paymentReference: 'FeeTrack',
   })
@@ -832,6 +839,25 @@ async function markPaidWithCredit(session: FeeTrackSession, body: ActionBody) {
   }
 
   return { success: true, data: paidResult, credit: creditResult }
+}
+
+async function allocateExamFee(session: FeeTrackSession, body: ActionBody) {
+  const branch = normalizeBranch(body.branch)
+  const month = monthName(body.month)
+  const year = targetYear(body.year)
+  const amount = Number(body.amount) || 1500
+
+  const result = await FeeOperationsService.runLedgerAction(session, {
+    action: 'mark_due',
+    skfId: String(body.id || body.skfId || ''),
+    month,
+    year,
+    feeType: 'belt_exam',
+    amount,
+    reason: 'Allocated for Belt Examination',
+  })
+
+  return { success: true, branch, data: result }
 }
 
 async function runStatusAction(session: FeeTrackSession, body: ActionBody, action: 'mark_break' | 'mark_discontinued') {
@@ -992,6 +1018,20 @@ async function addReferralCredit(session: FeeTrackSession, body: ActionBody) {
   }
 
   return { success: true, data: created }
+}
+
+async function updateReferralCredit(session: FeeTrackSession, body: ActionBody) {
+  const updated = await FeeOperationsService.updateCredit(session, String(body.creditId || ''), {
+    amount: body.amount !== undefined ? readAmount(body.amount) : undefined,
+    reason: body.reason !== undefined ? String(body.reason) : undefined,
+    description: body.description !== undefined ? String(body.description) : undefined,
+  })
+  return { success: true, data: updated }
+}
+
+async function deleteReferralCredit(session: FeeTrackSession, body: ActionBody) {
+  const result = await FeeOperationsService.deleteCredit(session, String(body.creditId || ''))
+  return { success: true, data: result }
 }
 
 async function getDevelopmentFund(session: FeeTrackSession, body: ActionBody) {
@@ -1382,7 +1422,7 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
       feeType: 'all',
     }),
   ])
-  const monthRow = finance.monthlyBreakdown.find((row: Record<string, unknown>) => row.month === month) || {}
+  const monthRow = finance.monthlyBreakdown.find((row: Record<string, unknown>) => row.month === month) || {} as Record<string, unknown>
   const isOverall = !branch
   const reserveAmount = isOverall ? readAmount(finance.bankPosition?.reserveAmount) : 0
   const actualBankBalance = isOverall
@@ -1589,7 +1629,7 @@ async function createEventFromFeeTrack(session: FeeTrackSession, body: ActionBod
         results: [],
       }))
 
-  const event = await withLegacyApiError(() => createEventRecordLive(payload)) as FeeTrackEvent
+  const event = await withLegacyApiError(() => createEventRecordLive(payload as Partial<TournamentRecord>)) as FeeTrackEvent
   if (event.type === 'tournament') {
     revalidateTournamentSitePaths(event)
   } else {
@@ -1679,7 +1719,7 @@ async function updateEventFromFeeTrack(session: FeeTrackSession, body: ActionBod
         results: Array.isArray(event.results) ? event.results : [],
       }))
 
-  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload as Partial<TournamentRecord>)) as FeeTrackEvent | null
   if (!updated) throw new NotFoundError('Event')
 
   if (updated.type === 'tournament') {
@@ -1790,7 +1830,7 @@ async function saveEventParticipants(event: FeeTrackEvent, participants: FeeTrac
       ? validateTournamentPayload({ ...event, participants })
       : validateEventPayload({ ...event, participants })
   ))
-  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload as Partial<TournamentRecord>)) as FeeTrackEvent | null
   if (!updated) throw new NotFoundError('Event')
 
   if (updated.type === 'tournament') {
@@ -1830,6 +1870,15 @@ async function assignEventStudent(session: FeeTrackSession, body: ActionBody) {
   }
   const updated = await saveEventParticipants(event, [...existingParticipants, nextParticipant])
 
+  // Auto-generate fees for belt exam / grading events so fees appear without extra steps
+  if (event.type === 'grading' || event.name?.toLowerCase().includes('examination')) {
+    try {
+      await EventFeesService.generate(session, { eventId: event.id, overrides: [] })
+    } catch {
+      // Best-effort; fee generation may fail if no config exists yet
+    }
+  }
+
   revalidateAthleteSitePaths(nextParticipant.skfId)
   return { success: true, data: { event: mapEventForFeeTrack(updated) } }
 }
@@ -1856,6 +1905,82 @@ async function removeEventStudent(session: FeeTrackSession, body: ActionBody) {
   }
 
   return { success: true, data: { event: mapEventForFeeTrack(updated) } }
+}
+
+async function syncEligibleBeltExamParticipants(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId)
+  const eligibility = await EventFeesService.eligibleBeltExamRows(session, {
+    eventId: event.id,
+  })
+
+  const eligibleSkfIds = new Set(
+    eligibility.rows
+      .filter((row) => row.status === 'ready' || row.status === 'waived')
+      .map((row) => normaliseSkfId(String(row.skfId || '')))
+      .filter(Boolean)
+  )
+  const existingParticipants = event.participants || []
+  const existingSkfIds = collectParticipantSkfIds(event)
+  const athletes = (await getAllAthletesLive()) as FeeTrackAthlete[]
+  const athleteBySkfId = new Map(
+    athletes.map((athlete) => [normaliseSkfId(String(athlete.skfId || '')), athlete])
+  )
+
+  const nextParticipants = [...existingParticipants]
+  const addedSkfIds: string[] = []
+
+  for (const skfId of eligibleSkfIds) {
+    if (existingSkfIds.has(skfId)) continue
+    const athlete = athleteBySkfId.get(skfId)
+    if (!athlete) continue
+
+    nextParticipants.push({
+      id: `p_${event.id}_${String(athlete.id || skfId).replace(/[^a-z0-9_-]+/gi, '_')}`,
+      athleteId: String(athlete.id || ''),
+      athleteName: nameForAthlete(athlete),
+      skfId,
+      branchName: String(athlete.branchName || ''),
+      belt: String(athlete.currentBelt || ''),
+      photoUrl: resolvedProfilePhoto(athlete),
+    })
+    existingSkfIds.add(skfId)
+    addedSkfIds.push(skfId)
+  }
+
+  let updated = addedSkfIds.length
+    ? await saveEventParticipants(event, nextParticipants)
+    : event
+
+  if (addedSkfIds.length) {
+    try {
+      await EventFeesService.generate(session, { eventId: event.id, overrides: [] })
+      // Re-fetch event so returned data includes any updates from fee generation
+      updated = await getFeeTrackEvent(session, body.eventId)
+    } catch {
+      // Fee generation is best-effort during participant sync.
+      // If fee config isn't set up yet, fees will be generated later via generate_event_fees.
+    }
+  }
+
+  for (const skfId of addedSkfIds) {
+    revalidateAthleteSitePaths(skfId)
+  }
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(updated),
+      summary: {
+        added: addedSkfIds.length,
+        eligible: eligibility.summary.eligible,
+        alreadyAssigned: Math.max(0, eligibility.summary.eligible - addedSkfIds.length),
+        needsReview: eligibility.summary.needsReview,
+        excluded: eligibility.summary.excluded,
+        feeRecordsCreated: addedSkfIds.length,
+      },
+    },
+  }
 }
 
 function formatTournamentBelt(value: unknown) {
@@ -1973,7 +2098,7 @@ async function updateEventResultsRecord(
         resultsAppliedAt: extra.resultsAppliedAt || event.resultsAppliedAt,
       }))
 
-  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload)) as FeeTrackEvent | null
+  const updated = await withLegacyApiError(() => updateEventRecordLive(event.id, payload as Partial<TournamentRecord>)) as FeeTrackEvent | null
   if (!updated) throw new NotFoundError('Event')
   return updated
 }
@@ -2301,6 +2426,15 @@ async function handleAction(body: ActionBody) {
       return resumeStudent(session, body)
     case 'mark_non_recurring_paid':
       return markNonRecurringPaid(session, body)
+    case 'allocate_exam_fee':
+      return allocateExamFee(session, body)
+    case 'get_exam_months':
+      return { success: true, data: await FeeOperationsService.getExamMonths(session) }
+    case 'set_exam_month':
+      if (typeof body.year !== 'number' || typeof body.month !== 'string') {
+        throw new ValidationError({ year: ['Year and month are required'] })
+      }
+      return { success: true, data: await FeeOperationsService.setExamMonth(session, body.year, body.month) }
     case 'add_student':
       throw new ValidationError({
         student: ['Add students from the SKF-Karate admin so DOB, portal login, belt, and billing data stay complete.'],
@@ -2317,6 +2451,10 @@ async function handleAction(body: ActionBody) {
       return getCredits(session, body)
     case 'add_referral_credit':
       return addReferralCredit(session, body)
+    case 'update_referral_credit':
+      return updateReferralCredit(session, body)
+    case 'delete_referral_credit':
+      return deleteReferralCredit(session, body)
     case 'get_student_credits':
       return getStudentCredits(session, body)
     case 'get_dev_fund':
@@ -2355,6 +2493,8 @@ async function handleAction(body: ActionBody) {
       return searchEventAthletes(session, body)
     case 'assign_event_student':
       return assignEventStudent(session, body)
+    case 'sync_belt_exam_participants':
+      return syncEligibleBeltExamParticipants(session, body)
     case 'remove_event_student':
       return removeEventStudent(session, body)
     case 'save_event_results':

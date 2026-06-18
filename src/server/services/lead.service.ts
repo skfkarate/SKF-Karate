@@ -61,19 +61,14 @@ export class LeadService {
 
     if (hasTelegramChannel('leads')) {
       const telegramMessage = [
-        '📋 *New Free Trial Request*',
+        '🔔 *New Free Trial Lead in FeeTrack*',
         '',
         `*Student:* ${escapeTelegramMarkdown(input.studentName.trim())}`,
         `*Phone:* ${escapeTelegramMarkdown(input.parentPhone.trim())}`,
-        `*Age:* ${escapeTelegramMarkdown(String(input.childAge))}`,
         `*Branch:* ${escapeTelegramMarkdown(branchLabel)}`,
-        `*Batch:* ${escapeTelegramMarkdown(input.preferredBatch.trim())}`,
-        input.hearAboutUs ? `*Source:* ${escapeTelegramMarkdown(input.hearAboutUs.trim())}` : '',
         '',
-        escapeTelegramMarkdown(timestamp),
-      ]
-        .filter(Boolean)
-        .join('\n')
+        'Open FeeTrack to review',
+      ].join('\n')
 
       try {
         await retryWithBackoff(async () => {

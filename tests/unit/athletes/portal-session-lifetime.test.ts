@@ -1,7 +1,9 @@
 import jwt, { type JwtPayload } from 'jsonwebtoken'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const PORTAL_SESSION_SECONDS = 180 * 24 * 60 * 60
+const PORTAL_SESSION_DAYS = 30
+const PORTAL_SESSION_SECONDS = PORTAL_SESSION_DAYS * 24 * 60 * 60
+const TEST_JWT_SECRET = 'a'.repeat(32)
 
 describe('portal session lifetime', () => {
   afterEach(() => {
@@ -9,14 +11,14 @@ describe('portal session lifetime', () => {
     vi.resetModules()
   })
 
-  it('sets the portal cookie for 180 days', async () => {
+  it('sets the portal cookie for 30 days', async () => {
     const { buildPortalCookie } = await import('@/lib/server/auth/portal')
 
     expect(buildPortalCookie('signed-token')).toContain(`Max-Age=${PORTAL_SESSION_SECONDS}`)
   })
 
-  it('signs portal JWTs for 180 days', async () => {
-    vi.stubEnv('JWT_SECRET', 'test-secret')
+  it('signs portal JWTs for 30 days', async () => {
+    vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET)
     const { createJWT } = await import('@/lib/server/auth/portal')
 
     const token = createJWT({
@@ -37,7 +39,7 @@ describe('portal session lifetime', () => {
   })
 
   it('keeps the student auth helper aligned with the portal lifetime', async () => {
-    vi.stubEnv('JWT_SECRET', 'test-secret')
+    vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET)
     const { createStudentJWT } = await import('@/lib/server/auth/student')
 
     const token = createStudentJWT({

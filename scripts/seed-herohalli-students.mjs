@@ -72,7 +72,7 @@ const BRANCH_NAME = 'Herohalli'
 
 // Columns: skf_id, name, dob (DD/MM/YYYY or ''), gender, parent_name, phone, alt_phone, email, join_date, status
 const RAW_STUDENTS = [
-  ['SKF17BL000', 'SHRIROSHAN P',       '03/07/2007', 'M', 'Prasad M',        '7795840272', '7795840272', 'shriroshanp@gmail.com',            '',           'Active'],
+  ['SKF13BL000', 'SHRIROSHAN P',       '03/07/2007', 'M', 'Prasad M',        '7795840272', '7795840272', 'shriroshanp@gmail.com',            '',           'Active'],
   ['SKF20HE001', 'SANJANA S',          '16/03/2007', 'F', 'Shivanna. H G',   '9008069437', '9008069437', 'shivannahg4@gmail.com',            '',           'Active'],
   ['SKF20HE002', 'TEJASHREE S',        '21/12/2011', 'F', 'Shivanna. H G',   '8892544741', '8892544741', 'shivannahg4@gmail.com',            '',           'Active'],
   ['SKF20HE003', 'AYUSH KASHYAP G',    '17/08/2014', 'M', 'Girish',          '9743804467', '9743804467', 'srikrishnakalamandir50@gmail.com', '',           'Active'],
@@ -95,7 +95,7 @@ const RAW_STUDENTS = [
 
 // SKF IDs for Black Belt program enrollment
 const BB_CANDIDATE_SKF_IDS = [
-  'SKF17BL000',
+  'SKF13BL000',
   'SKF20HE001',
   'SKF20HE002',
   'SKF20HE003',
@@ -184,7 +184,7 @@ async function main() {
       phone: phone || null,
       email: email || null,
       batch: null,
-      monthly_fee: skfId === 'SKF17BL000'
+      monthly_fee: skfId === 'SKF13BL000'
         ? 1000
         : skfId === 'SKF21HE003'
           ? 500

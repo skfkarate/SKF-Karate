@@ -1,48 +1,34 @@
-import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
 import type { JWTPayload } from '@/types'
+import { env, requireEnv } from '@/src/server/config/env'
 
-const JWT_SECRET = process.env.JWT_SECRET
-const PORTAL_SESSION_DAYS = 180
+const PORTAL_SESSION_DAYS = 30
 const JWT_EXPIRY = `${PORTAL_SESSION_DAYS}d`
 const COOKIE_MAX_AGE = PORTAL_SESSION_DAYS * 24 * 60 * 60
 
 export const COOKIE_NAME = 'skf_portal_token'
 
-function getJwtSecret() {
-  if (!JWT_SECRET) {
-    throw new Error('[SKF Auth] JWT_SECRET is not configured.')
-  }
-  return JWT_SECRET
-}
-
-export async function hashPin(pin: string): Promise<string> {
-  if (!/^\d{4}$/.test(pin)) {
-    throw new Error('PIN must be exactly 4 digits')
-  }
-  return bcrypt.hash(pin, 12)
-}
-
-export async function verifyPin(pin: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(pin, hash)
+function getJwtSecret(): string {
+  return requireEnv('JWT_SECRET')
 }
 
 export function createJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRY })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRY, issuer: 'skf-portal', audience: 'skf-athlete' })
 }
 
 export function verifyJWT(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as JWTPayload
+    return jwt.verify(token, getJwtSecret(), { issuer: 'skf-portal', audience: 'skf-athlete' }) as JWTPayload
   } catch {
     return null
   }
 }
 
 export function buildPortalCookie(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}${secure}`
+  const isSecure = env.NODE_ENV === 'production'
+  const secureFlag = isSecure ? '; Secure' : ''
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}${secureFlag}`
 }
 
 export function buildPortalCookieClear(): string {

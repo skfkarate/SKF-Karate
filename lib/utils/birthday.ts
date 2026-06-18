@@ -1,9 +1,9 @@
+import type { Athlete } from '@/data/types'
 import { DEFAULT_POINTS } from './points';
 
-// Returns list of athletes whose birthday is today
-export function getAthletesWithBirthdayToday(athletes) {
+export function getAthletesWithBirthdayToday(athletes: Athlete[]) {
   const today = new Date();
-  const todayMonth = today.getMonth() + 1;   // 1-indexed
+  const todayMonth = today.getMonth() + 1;
   const todayDay = today.getDate();
 
   return athletes.filter(athlete => {
@@ -13,16 +13,14 @@ export function getAthletesWithBirthdayToday(athletes) {
   });
 }
 
-// Check if a athlete has already received a birthday bonus this calendar year
-export function hasReceivedBirthdayBonusThisYear(athlete) {
+export function hasReceivedBirthdayBonusThisYear(athlete: Athlete) {
   const thisYear = new Date().getFullYear().toString();
   return athlete.achievements.some(
     a => a.type === 'birthday-bonus' && a.date.startsWith(thisYear)
   );
 }
 
-// Build the birthday achievement object to be saved
-export function buildBirthdayAchievement(athlete) {
+export function buildBirthdayAchievement(athlete: Athlete) {
   const year = new Date().getFullYear();
   return {
     id: `birthday-${athlete.id}-${year}`,

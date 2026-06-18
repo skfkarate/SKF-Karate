@@ -16,6 +16,7 @@ const baseTelegramEnv = {
 }
 
 function mockTelegramEnv(overrides: Partial<typeof baseTelegramEnv> = {}) {
+  vi.doUnmock('@/src/server/config/env')
   vi.doMock('@/src/server/config/env', () => ({
     env: {
       ...baseTelegramEnv,

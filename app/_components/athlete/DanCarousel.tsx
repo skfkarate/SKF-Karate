@@ -44,7 +44,7 @@ function getCardName(holder: DanHolder) {
 function getCardBadge(holder: DanHolder) {
   if (holder?.danLabel) return holder.danLabel
   if (holder?.dan) return holder.dan
-  return beltLabel(holder?.currentBelt)
+  return beltLabel(holder?.currentBelt ?? '')
 }
 
 function getCardSubtitle(holder: DanHolder) {

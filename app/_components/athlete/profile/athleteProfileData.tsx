@@ -81,7 +81,7 @@ type RankInfo = {
   totalPoints?: number | string
   rankingCategory?: {
     discipline?: string
-    weightCategory?: string
+    weightCategory?: string | null
   }
 }
 
@@ -267,7 +267,7 @@ function buildCompetitionEntries(athlete: AthleteProfileSource): CompetitionEntr
       const result = String(
         achievement.competitionResult ||
         achievement.result ||
-        achievement.type.replace('tournament-', '')
+        (achievement.type ?? '').replace('tournament-', '')
       ).toLowerCase()
       const wins =
         achievement.wins === 0 || achievement.wins
@@ -277,16 +277,16 @@ function buildCompetitionEntries(athlete: AthleteProfileSource): CompetitionEntr
         date: achievement.date,
         level: achievement.sourceEventLevel || achievement.tournamentLevel,
         result,
-        difficultyLevel: achievement.difficultyLevel,
+        difficultyLevel: achievement.difficultyLevel == null ? null : Number(achievement.difficultyLevel),
         wins,
       })
 
       return {
         id: achievement.id,
-        date: achievement.date,
-        event: achievement.tournamentName || stripTournamentPrefix(achievement.title),
-        type: getTournamentLevelLabel(achievement.sourceEventLevel || achievement.tournamentLevel),
-        category: getCategoryLabel(achievement.eventCategory),
+        date: achievement.date ?? '',
+        event: achievement.tournamentName || stripTournamentPrefix(achievement.title ?? ''),
+        type: getTournamentLevelLabel(achievement.sourceEventLevel || achievement.tournamentLevel || ''),
+        category: getCategoryLabel(achievement.eventCategory ?? ''),
         categoryKey: achievement.eventCategory || 'general',
         ageGroup: achievement.ageGroup || '',
         weightCategory: achievement.weightCategory || '',
@@ -299,7 +299,7 @@ function buildCompetitionEntries(athlete: AthleteProfileSource): CompetitionEntr
         difficultyLevel: achievement.difficultyLevel ?? null,
       }
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => new Date(b.date ?? '').getTime() - new Date(a.date ?? '').getTime())
 }
 
 function getPrimaryCategoryName(rankInfo: RankInfo | null | undefined, competitionEntries: CompetitionEntry[]) {
@@ -417,12 +417,13 @@ function buildUpcomingEvents(athlete: AthleteProfileSource, allEvents: AthleteEv
       type: event.type,
       venue: event.venue,
       city: event.city,
+      branch: String((event as Record<string, unknown>).hostingBranch || '') || event.venue || event.city || '',
     }))
 }
 
 function buildBeltExaminations(athlete: AthleteProfileSource) {
   const achievements = (athlete.achievements || []).filter((achievement) =>
-    ['belt-grading', 'grading-fail', 'enrollment', 'belt-pass', 'belt-fail'].includes(achievement.type)
+    ['belt-grading', 'grading-fail', 'enrollment', 'belt-pass', 'belt-fail'].includes(achievement.type ?? '')
   )
 
   return achievements
@@ -567,21 +568,21 @@ export function buildAthleteProfileData(
       photo: profilePhoto || fallbackPhoto,
       country: 'INDIA',
       countryFlag: DEFAULT_COUNTRY_FLAG,
-      id: athlete.skfId,
-      age: calculateAge(athlete.dateOfBirth),
+      id: athlete.skfId ?? '',
+      age: calculateAge(athlete.dateOfBirth ?? ''),
       totalBouts,
       winRate,
       branchName: athlete.branchName,
-      currentBelt: formatBeltLabel(athlete.currentBelt),
+      currentBelt: formatBeltLabel(athlete.currentBelt ?? ''),
       status: formatTitleCase(athlete.status || 'active'),
-      joinedOn: formatLongDate(athlete.joinDate),
-      dateOfBirth: formatLongDate(athlete.dateOfBirth),
+      joinedOn: formatLongDate(athlete.joinDate ?? ''),
+      dateOfBirth: formatLongDate(athlete.dateOfBirth ?? ''),
       overallRank: rankInfo?.overallRank || primaryCategory?.rank || null,
       branchRank: rankInfo?.branchRank || null,
       activePoints,
       lifetimePoints,
       totalMedals: totals.totalMedals,
-      coachName: branchCoachMap[athlete.branchName] || 'Sensei SKF',
+      coachName: branchCoachMap[athlete.branchName ?? ''] || 'Sensei SKF',
       branchHref: branchRecord ? `/classes/${branchRecord.citySlug}/${branchRecord.slug}` : '/classes',
       biography:
         totals.totalEvents > 0
@@ -617,7 +618,7 @@ export function buildRestoredAthleteProfileData(
       totalBouts: profile.athlete.totalBouts,
       winRate: profile.athlete.winRate,
       branchName: profile.athlete.branchName,
-      branchSlug: slugify(profile.athlete.branchName) || 'mp-sports-club',
+      branchSlug: slugify(profile.athlete.branchName ?? '') || 'mp-sports-club',
       branchHref: profile.athlete.branchHref,
       publicProfileHref: athlete?.skfId ? `/athlete/${athlete.skfId}` : '',
       currentBelt: profile.athlete.currentBelt,

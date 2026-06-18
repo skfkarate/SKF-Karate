@@ -1,3 +1,4 @@
+import type { Athlete } from '@/data/types'
 import { calculatePoints, calculateResultPoints, normaliseEventTier, normaliseResult } from "./points"
 import { normaliseSkfId } from "./registration"
 import { getBeltOrder } from "@/data/constants/belts"
@@ -7,12 +8,12 @@ type RankingOptions = {
   categoryKey?: string
 }
 
-function toDate(value) {
-  const date = value instanceof Date ? value : new Date(value)
+function toDate(value: Date | string | null | undefined): Date | null {
+  const date = value instanceof Date ? value : new Date(value ?? '')
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-function getAgeOnDate(dateOfBirth, onDate) {
+function getAgeOnDate(dateOfBirth: string, onDate: Date | string) {
   const dob = toDate(dateOfBirth)
   const date = toDate(onDate)
   if (!dob || !date) return null
@@ -27,7 +28,7 @@ function getAgeOnDate(dateOfBirth, onDate) {
   return age
 }
 
-export function getAgeCategory(dateOfBirth, onDate = new Date()) {
+export function getAgeCategory(dateOfBirth: string, onDate: Date = new Date()) {
   const age = getAgeOnDate(dateOfBirth, onDate)
 
   if (age === null) return "senior"
@@ -36,7 +37,7 @@ export function getAgeCategory(dateOfBirth, onDate = new Date()) {
   return "senior"
 }
 
-export function normaliseAgeGroup(ageGroup, dateOfBirth, onDate = new Date()) {
+export function normaliseAgeGroup(ageGroup: string | null | undefined, dateOfBirth: string, onDate: Date = new Date()) {
   if (ageGroup) {
     const normalized = String(ageGroup).trim().toLowerCase()
     if (["cadet", "sub-junior", "u14"].includes(normalized)) return "cadet"
@@ -47,13 +48,13 @@ export function normaliseAgeGroup(ageGroup, dateOfBirth, onDate = new Date()) {
   return getAgeCategory(dateOfBirth, onDate)
 }
 
-export function normaliseDiscipline(category) {
+export function normaliseDiscipline(category: string | null | undefined) {
   if (!category) return "kata"
   const normalized = String(category).toLowerCase()
   return normalized.includes("kumite") ? "kumite" : "kata"
 }
 
-export function buildCompetitionResultsFromAthletes(athletes = []) {
+export function buildCompetitionResultsFromAthletes(athletes: Athlete[] = []) {
   return athletes.flatMap((athlete) => {
     const achievements = athlete.achievements || []
 
@@ -85,7 +86,7 @@ export function buildCompetitionResultsFromAthletes(athletes = []) {
           ageGroup: normaliseAgeGroup(
             achievement.ageGroup,
             athlete.dateOfBirth,
-            achievement.date
+            new Date(achievement.date ?? '')
           ),
           gender: athlete.gender || "male",
           weightCategory: achievement.weightCategory || null,
@@ -99,7 +100,7 @@ export function buildCompetitionResultsFromAthletes(athletes = []) {
   })
 }
 
-export function getAthleteCompetitionResults(athlete, allResults = [], currentDate = new Date()) {
+export function getAthleteCompetitionResults(athlete: Athlete, allResults: Array<{ athleteId?: string; date?: string; ageGroup?: string; level?: string; tier?: string; result?: string; difficultyLevel?: number | null; wins?: number | null; eventType?: string; gender?: string; discipline?: string; weightCategory?: string | null }> = [], currentDate: Date = new Date()) {
   const results = allResults.filter((result) => result.athleteId === athlete.id)
 
   const currentAgeCategory = getAgeCategory(athlete.dateOfBirth, currentDate)
@@ -119,7 +120,7 @@ export function getAthleteCompetitionResults(athlete, allResults = [], currentDa
  * Check if an athlete is white-belt-only (enrollment-only, no grading or tournament achievements).
  * These athletes are excluded from rankings.
  */
-export function isWhiteBeltOnly(athlete) {
+export function isWhiteBeltOnly(athlete: { currentBelt?: string; achievements?: Array<{ type?: string }> }) {
   const belt = String(athlete.currentBelt || 'white').toLowerCase()
   if (belt !== 'white') return false
 
@@ -131,10 +132,10 @@ export function isWhiteBeltOnly(athlete) {
   })
 }
 
-export function getAthleteRankingCategory(athlete, allResults = [], currentDate = new Date()) {
+export function getAthleteRankingCategory(athlete: Athlete, allResults: Array<{ athleteId?: string; date?: string; ageGroup?: string; discipline?: string; gender?: string; weightCategory?: string | null; level?: string; tier?: string; result?: string; difficultyLevel?: number | null; wins?: number | null; eventType?: string }> = [], currentDate: Date = new Date()) {
   const athleteResults = getAthleteCompetitionResults(athlete, allResults, currentDate)
   const latestResult = [...athleteResults].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date ?? '').getTime() - new Date(a.date ?? '').getTime()
   )[0]
 
   // If the athlete has no tournament results, use a simple belt-progression category
@@ -162,39 +163,38 @@ export function getAthleteRankingCategory(athlete, allResults = [], currentDate 
   }
 }
 
-export function compareRankingEntries(a, b) {
+export function compareRankingEntries(a: { currentBelt?: string; beltOrder?: number; totalPoints?: number; goldCount?: number; silverCount?: number; bronzeCount?: number; fightWinCount?: number; tournamentCount?: number; mostRecentResultAt?: string; athleteName?: string }, b: { currentBelt?: string; beltOrder?: number; totalPoints?: number; goldCount?: number; silverCount?: number; bronzeCount?: number; fightWinCount?: number; tournamentCount?: number; mostRecentResultAt?: string; athleteName?: string }) {
   // Primary: belt level (higher belt = higher rank)
-  const aBeltOrder = a.beltOrder ?? getBeltOrder(a.currentBelt || 'white')
-  const bBeltOrder = b.beltOrder ?? getBeltOrder(b.currentBelt || 'white')
+  const aBeltOrder = a.beltOrder ?? getBeltOrder(a.currentBelt ?? 'white')
+  const bBeltOrder = b.beltOrder ?? getBeltOrder(b.currentBelt ?? 'white')
   if (bBeltOrder !== aBeltOrder) return bBeltOrder - aBeltOrder
 
   // Secondary: tournament points
-  if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
-  if (b.goldCount !== a.goldCount) return b.goldCount - a.goldCount
-  if (b.silverCount !== a.silverCount) return b.silverCount - a.silverCount
-  if (b.bronzeCount !== a.bronzeCount) return b.bronzeCount - a.bronzeCount
-  if (b.fightWinCount !== a.fightWinCount) return b.fightWinCount - a.fightWinCount
-  if (b.tournamentCount !== a.tournamentCount) return b.tournamentCount - a.tournamentCount
+  if ((b.totalPoints ?? 0) !== (a.totalPoints ?? 0)) return (b.totalPoints ?? 0) - (a.totalPoints ?? 0)
+  if ((b.goldCount ?? 0) !== (a.goldCount ?? 0)) return (b.goldCount ?? 0) - (a.goldCount ?? 0)
+  if ((b.silverCount ?? 0) !== (a.silverCount ?? 0)) return (b.silverCount ?? 0) - (a.silverCount ?? 0)
+  if ((b.bronzeCount ?? 0) !== (a.bronzeCount ?? 0)) return (b.bronzeCount ?? 0) - (a.bronzeCount ?? 0)
+  if ((b.fightWinCount ?? 0) !== (a.fightWinCount ?? 0)) return (b.fightWinCount ?? 0) - (a.fightWinCount ?? 0)
+  if ((b.tournamentCount ?? 0) !== (a.tournamentCount ?? 0)) return (b.tournamentCount ?? 0) - (a.tournamentCount ?? 0)
 
   const aRecent = a.mostRecentResultAt ? new Date(a.mostRecentResultAt).getTime() : 0
   const bRecent = b.mostRecentResultAt ? new Date(b.mostRecentResultAt).getTime() : 0
   if (bRecent !== aRecent) return bRecent - aRecent
 
-  return a.athleteName.localeCompare(b.athleteName)
+  return (a.athleteName ?? '').localeCompare(b.athleteName ?? '')
 }
 
 export function getRankedAthletes(
-  athletes = [],
-  allResults = [],
+  athletes: Athlete[] = [],
+  allResults: Array<{ athleteId?: string; date?: string; ageGroup?: string; discipline?: string; gender?: string; weightCategory?: string | null; level?: string; tier?: string; result?: string; difficultyLevel?: number | null; wins?: number | null; eventType?: string }> = [],
   options: RankingOptions = {}
 ) {
   const currentDate = options.currentDate || new Date()
-  // Filter: active athletes only, exclude white-belt-only students
   const activeAthletes = athletes.filter(
     (athlete) => athlete.status === "active" && !isWhiteBeltOnly(athlete)
   )
 
-  const ranked = activeAthletes.map((athlete) => {
+  const ranked = activeAthletes.map((athlete: Athlete) => {
     const results = getAthleteCompetitionResults(athlete, allResults, currentDate)
     const totalPoints = calculatePoints(athlete.id, results, currentDate)
     const rankingCategory = getAthleteRankingCategory(athlete, allResults, currentDate)
@@ -222,7 +222,7 @@ export function getRankedAthletes(
       tournamentCount: results.length,
       mostRecentResultAt: results
         .map((result) => result.date)
-        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null,
+        .sort((a, b) => new Date(b ?? '').getTime() - new Date(a ?? '').getTime())[0] || null,
       rankingCategory,
       pointsBreakdown: results.map((result) => ({
         ...result,
@@ -236,25 +236,26 @@ export function getRankedAthletes(
     ? ranked.filter((entry) => entry.rankingCategory.key === options.categoryKey)
     : ranked
 
-  return filtered.sort(compareRankingEntries).map((entry, index) => ({
+  return filtered.sort(compareRankingEntries as (a: typeof filtered[0], b: typeof filtered[0]) => number).map((entry, index) => ({
     ...entry,
     overallRank: index + 1,
   }))
 }
 
-export function getBranchRankMap(entries = []) {
-  const branchBuckets = new Map()
+export function getBranchRankMap(entries: { branchName?: string; athleteId?: string; currentBelt?: string; beltOrder?: number; totalPoints?: number; goldCount?: number; silverCount?: number; bronzeCount?: number; fightWinCount?: number; tournamentCount?: number; mostRecentResultAt?: string; athleteName?: string }[] = []) {
+  const branchBuckets = new Map<string, { branchName?: string; athleteId?: string; currentBelt?: string; beltOrder?: number; totalPoints?: number; goldCount?: number; silverCount?: number; bronzeCount?: number; fightWinCount?: number; tournamentCount?: number; mostRecentResultAt?: string; athleteName?: string }[]>()
 
   for (const entry of entries) {
-    const bucket = branchBuckets.get(entry.branchName) || []
+    const branchName = entry.branchName ?? ''
+    const bucket = branchBuckets.get(branchName) || []
     bucket.push(entry)
-    branchBuckets.set(entry.branchName, bucket)
+    branchBuckets.set(branchName, bucket)
   }
 
   const rankMap = new Map()
 
   for (const bucket of branchBuckets.values()) {
-    bucket.sort(compareRankingEntries).forEach((entry, index) => {
+    bucket.sort(compareRankingEntries as (a: typeof bucket[0], b: typeof bucket[0]) => number).forEach((entry, index) => {
       rankMap.set(entry.athleteId, index + 1)
     })
   }
@@ -262,9 +263,9 @@ export function getBranchRankMap(entries = []) {
   return rankMap
 }
 
-export function calculateRankingSnapshots(athletes = [], allResults = [], currentDate = new Date()) {
+export function calculateRankingSnapshots(athletes: Athlete[] = [], allResults: Array<{ athleteId?: string; date?: string; ageGroup?: string; discipline?: string; gender?: string; weightCategory?: string | null; level?: string; tier?: string; result?: string; difficultyLevel?: number | null; wins?: number | null; eventType?: string }> = [], currentDate: Date = new Date()) {
   const ranked = getRankedAthletes(athletes, allResults, { currentDate })
-  const branchRankMap = getBranchRankMap(ranked)
+  const branchRankMap = getBranchRankMap(ranked as Parameters<typeof getBranchRankMap>[0])
 
   return ranked.map((entry) => ({
     ...entry,
@@ -273,7 +274,7 @@ export function calculateRankingSnapshots(athletes = [], allResults = [], curren
   }))
 }
 
-export function getAthleteRankEntry(athleteId, athletes = [], allResults = [], currentDate = new Date()) {
+export function getAthleteRankEntry(athleteId: string, athletes: Athlete[] = [], allResults: Array<{ athleteId?: string; date?: string; ageGroup?: string; discipline?: string; gender?: string; weightCategory?: string | null; level?: string; tier?: string; result?: string; difficultyLevel?: number | null; wins?: number | null; eventType?: string }> = [], currentDate: Date = new Date()) {
   return calculateRankingSnapshots(athletes, allResults, currentDate).find(
     (entry) => entry.athleteId === athleteId
   ) || null

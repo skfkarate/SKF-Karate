@@ -4,20 +4,26 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner } from 'react-icons/fa';
 
-export default function SearchBox({ defaultValue = '', autoFocus = true }) {
+type SearchResult = {
+  skfId: string;
+  firstName: string;
+  lastName: string;
+};
+
+export default function SearchBox({ defaultValue = '', autoFocus = true }: { defaultValue?: string; autoFocus?: boolean }) {
   const router = useRouter();
   const [inputVal, setInputVal] = useState(defaultValue);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
-  const wrapperRef = useRef(null);
-  const debounceRef = useRef(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
-    const handleClick = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+    const handleClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -25,7 +31,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const doSearch = async (query) => {
+  const doSearch = async (query: string) => {
     if (!query || query.trim().length < 2) {
       setResults([]);
       setIsOpen(false);
@@ -44,7 +50,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputVal(val);
     setSelectedIdx(-1);
@@ -54,13 +60,13 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     debounceRef.current = setTimeout(() => doSearch(val), 250);
   };
 
-  const navigateToAthlete = (skfId) => {
+  const navigateToAthlete = (skfId: string) => {
     setIsOpen(false);
     setInputVal(skfId);
     router.push(`/athlete/${skfId}`);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (selectedIdx >= 0 && results[selectedIdx]) {
       navigateToAthlete(results[selectedIdx].skfId);
@@ -74,7 +80,7 @@ export default function SearchBox({ defaultValue = '', autoFocus = true }) {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || results.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();

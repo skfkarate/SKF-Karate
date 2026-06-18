@@ -1,4 +1,5 @@
 import { withRoute } from '@/src/server/lib/route'
+import { logger } from '@/src/server/lib/logger'
 import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
 export const GET = withRoute(
@@ -8,13 +9,17 @@ export const GET = withRoute(
     cacheControl: 'private, no-store',
   },
   async ({ portalSession }) => {
-    const session = portalSession!
-    
+    const session = portalSession
+
+    if (!session) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     let isBlackBeltCandidate = false
     try {
       isBlackBeltCandidate = await isActiveBBCandidate(session.skfId)
-    } catch {
-      // Ignore error
+    } catch (error) {
+      logger.error('session.black_belt_check_failed', { skfId: session.skfId, error })
     }
 
     return Response.json({

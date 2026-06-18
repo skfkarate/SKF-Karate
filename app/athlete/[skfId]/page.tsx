@@ -11,7 +11,7 @@ import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-liv
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params }: { params: Promise<{ skfId: string }> }) {
   const { skfId } = await params
   const athlete = await getAthleteBySkfIdLive(skfId)
 
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }) {
 
   return {
     title: 'SKF Karate',
-    description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
+      description: `${name} · ${athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
     alternates: {
       canonical: canonicalUrl,
     },
@@ -41,13 +41,13 @@ export async function generateMetadata({ params }) {
     twitter: {
       card: 'summary_large_image',
       title: 'SKF Karate',
-      description: `${name} · ${athlete.belt || athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
+    description: `${name} · ${athlete.currentBelt} Belt · SKF Karate ${athlete.branchName}`,
       images: [imageUrl],
     },
   }
 }
 
-export default async function AthleteProfilePage({ params }) {
+export default async function AthleteProfilePage({ params }: { params: Promise<{ skfId: string }> }) {
   const { skfId } = await params
   const athlete = await getAthleteBySkfIdLive(skfId)
 
@@ -64,7 +64,8 @@ export default async function AthleteProfilePage({ params }) {
     getAllEventsLive(),
     getBranchCoachNameMapLive(),
   ])
-  const profile = buildRestoredAthleteProfileData(athlete, rankInfo, allEvents, branchCoachMap)
-
-  return <AthleteProfileClient {...profile} />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profile = buildRestoredAthleteProfileData(athlete as any, rankInfo, allEvents, branchCoachMap)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <AthleteProfileClient {...(profile as any)} />
 }

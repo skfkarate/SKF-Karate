@@ -1,9 +1,7 @@
-import { env, hasEnv } from '@/src/server/config/env'
+import { env } from '@/src/server/config/env'
 
 export const FEATURES = {
-  SHOP:
-    (env.SHOP_ENABLED === 'true' || env.PAYMENTS_ENABLED === 'true') &&
-    hasEnv('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'),
+  SHOP: env.SHOP_ENABLED === 'true',
   CERTIFICATES: env.CERTIFICATES_ENABLED === 'true',
   POINTS: env.POINTS_ENABLED !== 'false',
   TECHNIQUE_VIDEOS: env.PUBLIC_TECHNIQUE_VIDEOS_ENABLED === 'true',

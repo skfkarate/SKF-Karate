@@ -45,6 +45,15 @@ const PROOF_BUCKET = 'fee-payment-proofs'
 const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024
 const BANGALORE_OPENING_RESERVE = 30000
 
+// Hardcoded Black Belt Candidates for 2026 examination installments
+const EXAM_CANDIDATES = [
+  'SKF20HE001', // Sanjana S
+  'SKF20HE003', // Ayush Kashyap G
+  'SKF20HE002', // Tejashree S
+  'SKF21HE001', // Ishaan Gowda B S
+  'SKF21HE003'  // Shashank
+]
+
 type FeeStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
 type FeeType =
   | 'monthly'
@@ -312,12 +321,12 @@ function isOptionalWorkflowSchemaError(error: unknown) {
   return (
     ['42p01', '42703', 'pgrst200', 'pgrst202', 'pgrst204', 'pgrst205'].includes(code) &&
     (
-    combined.includes('fee_payment_intents') ||
-    combined.includes('fee_reminder_logs') ||
-    combined.includes('event_fee_expenses') ||
-    combined.includes('event_fee_deposits') ||
-    combined.includes('event_fee_configs') ||
-    combined.includes('payment_intent_id') ||
+      combined.includes('fee_payment_intents') ||
+      combined.includes('fee_reminder_logs') ||
+      combined.includes('event_fee_expenses') ||
+      combined.includes('event_fee_deposits') ||
+      combined.includes('event_fee_configs') ||
+      combined.includes('payment_intent_id') ||
       combined.includes('payment_reference') ||
       combined.includes('metadata')
     )
@@ -587,12 +596,24 @@ function buildReceiptId(skfId: string, feeType: FeeType, month: string, year: nu
   return `SKF-FEE-${year}-${receiptMonthNumber(month)}-${receiptTypeCode(feeType)}-${normaliseSkfId(skfId)}${receiptSourceToken(sourceKey, rowId)}`
 }
 
+function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?: string) {
+  if (feeType === 'credit_adjustment' || feeType === 'belt_exam') return false
+  if (feeType === 'monthly' && Number(amount) === 2000 && skfId && EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))) return false
+  if (feeType === 'monthly' && Number(amount) === 11000 && skfId && skfId.replace(/\s+/g, '') === 'SKF13BL000') return false
+  return true
+}
+
+function receiptIdForPaidFee(row: FeeRecord, skfId = row.skf_id, feeType: FeeType = row.fee_type, month = row.month, year = row.year) {
+  if (!shouldIssueReceiptForFeeType(feeType, normalizeAmount(row.amount), skfId)) return null
+  return row.receipt_id || buildReceiptId(skfId, feeType, month, year, row.source_key, row.id)
+}
+
 async function ensureReceiptForPaidRow(input: {
   row: FeeRecord
   athlete: AthleteRecord
   issuedAt?: string
 }) {
-  if (input.row.status !== 'paid' || input.row.fee_type === 'credit_adjustment') return null
+  if (input.row.status !== 'paid' || !shouldIssueReceiptForFeeType(input.row.fee_type, input.row.amount)) return null
 
   let row = input.row
   let receiptId = String(row.receipt_id || '').trim()
@@ -1314,7 +1335,7 @@ export class FeeOperationsService {
     const feeType = input.feeType || 'other'
     const metadata = input.metadata || {}
     const sourceLabel = String(input.sourceLabel || '').trim() || null
-    const sourceId = String(input.sourceId || '').trim() || null
+    const sourceId = String(input.sourceId || '').trim() || undefined
     const branchSnapshot = String(input.branchSnapshot || athlete.branchName || '').trim() || null
 
     const row = await ensureFeeRecord({
@@ -1331,7 +1352,7 @@ export class FeeOperationsService {
       branchSnapshot: branchSnapshot || undefined,
     })
     const before = row
-    const receiptId = row.receipt_id || buildReceiptId(skfId, feeType, month, year, row.source_key, row.id)
+    const receiptId = receiptIdForPaidFee(row, skfId, feeType, month, year)
     const paymentMethod = [input.paymentMethod || 'source_payment', input.paymentReference || '']
       .filter(Boolean)
       .join(' - ')
@@ -1483,7 +1504,21 @@ export class FeeOperationsService {
           0,
           trainingMonthCount(athlete.joinDate, experienceEndYear, experienceEndMonth) - knownBreakMonths
         )
-        const baseAmount = row?.amount ?? normalizeAmount(athlete.monthlyFee)
+        let baseAmount = row?.amount ?? normalizeAmount(athlete.monthlyFee)
+
+        const isBlackBeltCandidate = EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))
+
+        const mIndex = MONTHS.indexOf(targetMonth)
+        if (isBlackBeltCandidate && targetYear === 2026 && mIndex >= 5 && mIndex <= 9) {
+          baseAmount = 2000
+        }
+
+        // Special logic for Shri Roshan (SKF 13 BL 000)
+        // Maintains standard monthly fee from June-September, but pays 11,000 in October.
+        if (skfId.replace(/\s+/g, '') === 'SKF13BL000' && targetYear === 2026 && targetMonth === 'October') {
+          baseAmount = 11000
+        }
+
         const creditApplied = creditBySkfId.get(skfId) || 0
         const amount = Math.max(0, baseAmount - creditApplied)
         const city = cityLabelForBranch(athlete.branchName)
@@ -1523,6 +1558,7 @@ export class FeeOperationsService {
           trainingMonths,
           trainingExperience: formatTrainingExperience(trainingMonths),
           health: buildFeeHealth(history, targetMonth),
+          isExamInstallment: isBlackBeltCandidate && targetYear === 2026 && mIndex >= 5 && mIndex <= 9
         }
       })
       .filter((student) => {
@@ -2186,15 +2222,15 @@ export class FeeOperationsService {
       action?: string
       route?: string
     }> = [
-      { type: 'missing_monthly_rows', actionLabel: 'Sync rows', action: 'sync_missing_monthly_rows' },
-      { type: 'paid_without_receipt', actionLabel: 'Generate receipts', action: 'generate_missing_receipts' },
-      { type: 'fee_amount_mismatch', actionLabel: 'Reconcile amounts', action: 'reconcile_due_amounts' },
-      { type: 'stale_payment_proofs', actionLabel: 'Review proofs', route: '/fee/payments?status=pending_verification' },
-      { type: 'unclear_expense_scope', actionLabel: 'Review fund', route: '/fee/development-fund' },
-      { type: 'missing_branch', actionLabel: 'Fix students', route: '/students/all' },
-      { type: 'unmapped_city', actionLabel: 'Map branch', route: '/students/all' },
-      { type: 'zero_monthly_fee', actionLabel: 'Open students', route: '/fee/students' },
-    ]
+        { type: 'missing_monthly_rows', actionLabel: 'Sync rows', action: 'sync_missing_monthly_rows' },
+        { type: 'paid_without_receipt', actionLabel: 'Generate receipts', action: 'generate_missing_receipts' },
+        { type: 'fee_amount_mismatch', actionLabel: 'Reconcile amounts', action: 'reconcile_due_amounts' },
+        { type: 'stale_payment_proofs', actionLabel: 'Review proofs', route: '/fee/payments?status=pending_verification' },
+        { type: 'unclear_expense_scope', actionLabel: 'Review fund', route: '/fee/development-fund' },
+        { type: 'missing_branch', actionLabel: 'Fix students', route: '/students/all' },
+        { type: 'unmapped_city', actionLabel: 'Map branch', route: '/students/all' },
+        { type: 'zero_monthly_fee', actionLabel: 'Open students', route: '/fee/students' },
+      ]
 
     for (const config of issueGroups) {
       const issue = issueByType.get(config.type)
@@ -2628,7 +2664,7 @@ export class FeeOperationsService {
       })
       let updatedTarget = targetRow
       if (existingCreditAmount >= normalizeAmount(targetRow.amount)) {
-        const receiptId = targetRow.receipt_id || buildReceiptId(skfId, feeType, month, targetYear, targetRow.source_key, targetRow.id)
+        const receiptId = receiptIdForPaidFee(targetRow, skfId, feeType, month, targetYear)
         const { data, error } = await supabaseAdmin
           .from('fee_records')
           .update({
@@ -2701,7 +2737,7 @@ export class FeeOperationsService {
 
     if (input.action === 'mark_paid') {
       const paymentMethod = [input.paymentMethod || 'manual', input.paymentReference || ''].filter(Boolean).join(' - ')
-      const receiptId = row.receipt_id || buildReceiptId(skfId, feeType, month, targetYear, row.source_key, row.id)
+      const receiptId = receiptIdForPaidFee(row, skfId, feeType, month, targetYear)
       const now = new Date().toISOString()
       const { data, error } = await supabaseAdmin
         .from('fee_records')
@@ -3111,6 +3147,83 @@ export class FeeOperationsService {
     return { success: true, skfId, year, ...result }
   }
 
+  static async applyPortalCredit(skfId: string, input: {
+    creditId: string
+    month: string
+    year: number
+    feeType: string
+  }): Promise<{ appliedAmount: number; remainingDue: number }> {
+    requireFeeDatabase()
+    const normalizedSkfId = normaliseSkfId(skfId)
+    const athlete = await getAthleteBySkfIdLive(normalizedSkfId) as AthleteRecord | null
+    if (!athlete) throw new NotFoundError('Student')
+
+    const month = normalizeMonth(input.month)
+    const feeType = input.feeType || 'monthly'
+    const year = input.year
+
+    // Call the atomic RPC
+    const { data: creditResult, error: creditError } = await supabaseAdmin.rpc('apply_fee_credit', {
+      p_credit_id: input.creditId,
+      p_skf_id: normalizedSkfId,
+      p_month: month,
+      p_year: year,
+      p_fee_type: feeType,
+      p_actor: `Portal: ${athleteName(athlete)}`,
+    })
+    if (creditError) throwFeeDatabaseError(creditError)
+
+    const creditPayload = creditResult as {
+      credit?: Record<string, unknown>
+      adjustment?: Record<string, unknown>
+    } | null
+    const credit = creditPayload?.credit
+    const adjustment = creditPayload?.adjustment
+    if (!credit || !adjustment) throw new NotFoundError('Credit')
+
+    const amount = normalizeAmount(credit.amount)
+
+    // Check if the credit fully covers the target fee record
+    const existingCreditRows = await getFeeRows({
+      skfId: normalizedSkfId,
+      feeType: 'credit_adjustment',
+      month,
+      year,
+    })
+    const existingCreditAmount = existingCreditRows.reduce((sum, row) => sum + normalizeAmount(row.amount), 0)
+    const targetRows = await getFeeRows({ skfId: normalizedSkfId, feeType, month, year })
+    const targetRow = targetRows[0]
+    const targetAmount = targetRow ? normalizeAmount(targetRow.amount) : normalizeAmount(athlete.monthlyFee)
+    const remainingDue = Math.max(0, targetAmount - existingCreditAmount)
+
+    if (targetRow && existingCreditAmount >= targetAmount) {
+      const now = new Date().toISOString()
+      const receiptId = receiptIdForPaidFee(targetRow, normalizedSkfId, feeType as FeeType, month, year)
+      await supabaseAdmin
+        .from('fee_records')
+        .update({
+          status: 'paid',
+          paid_date: now,
+          receipt_id: receiptId,
+          payment_method: 'credit adjustment',
+          verified_by: `Portal: ${athleteName(athlete)}`,
+          verified_at: now,
+          notes: 'Paid fully using fee credit.',
+          updated_at: now,
+        })
+        .eq('id', targetRow.id)
+    }
+
+    notifyTreasuryAction('Portal Credit Applied', [
+      `*Student:* ${athleteName(athlete)} (${normalizedSkfId})`,
+      `*Credit:* ₹${amount}`,
+      `*Applied To:* ${formatFeeTypeLabel(feeType)} / ${month} ${year}`,
+      `*Source:* Athlete Portal (Self-Service)`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
+
+    return { appliedAmount: amount, remainingDue }
+  }
+
   static async submitPortalPaymentProof(skfId: string, input: PortalFeeProofInput) {
     const normalizedSkfId = normaliseSkfId(skfId)
     const athlete = await getAthleteBySkfIdLive(normalizedSkfId) as AthleteRecord | null
@@ -3430,7 +3543,7 @@ export class FeeOperationsService {
       })
     }
 
-    const receiptId = row.receipt_id || buildReceiptId(row.skf_id, row.fee_type, row.month, row.year, row.source_key, row.id)
+    const receiptId = receiptIdForPaidFee(row)
     const now = new Date().toISOString()
     const { data: updatedRow, error: rowError } = await supabaseAdmin
       .from('fee_records')
@@ -3678,6 +3791,55 @@ export class FeeOperationsService {
       `*Issued By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return data
+  }
+
+  static async updateCredit(session: Session, creditId: string, input: Partial<FeeCreditCreateInput>) {
+    assertWrite(session)
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('fee_credits')
+      .select('*')
+      .eq('id', creditId)
+      .single()
+    if (fetchError || !existing) throw new NotFoundError('Credit record')
+    
+    await assertCanAccessSkfId(session, existing.skf_id)
+
+    const updates: Record<string, number | string | null> = {}
+    if (input.amount !== undefined) updates.amount = input.amount
+    if (input.reason !== undefined) updates.reason = input.reason
+    if (input.description !== undefined) updates.description = input.description || null
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_credits')
+      .update(updates)
+      .eq('id', creditId)
+      .select('*')
+      .single()
+      
+    if (error) throwFeeDatabaseError(error)
+    await logAudit(session, { action: 'fee_credit_updated', skfId: existing.skf_id, before: existing, after: data })
+    return data
+  }
+
+  static async deleteCredit(session: Session, creditId: string) {
+    assertWrite(session)
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('fee_credits')
+      .select('*')
+      .eq('id', creditId)
+      .single()
+    if (fetchError || !existing) throw new NotFoundError('Credit record')
+
+    await assertCanAccessSkfId(session, existing.skf_id)
+
+    const { error } = await supabaseAdmin
+      .from('fee_credits')
+      .delete()
+      .eq('id', creditId)
+      
+    if (error) throwFeeDatabaseError(error)
+    await logAudit(session, { action: 'fee_credit_deleted', skfId: existing.skf_id, before: existing })
+    return { success: true }
   }
 
   static async getDevelopmentFund(session: Session, query: FeeConsoleQueryInput) {
@@ -3942,5 +4104,47 @@ export class FeeOperationsService {
       `*Deleted By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return { success: true, income: data }
+  }
+
+  static async getExamMonths(session: Session) {
+    if (!FEE_ACCESS_ROLES.includes(actorRole(session))) {
+      throw new AuthorizationError('Insufficient permissions.')
+    }
+    requireFeeDatabase()
+    const { data, error } = await supabaseAdmin
+      .from('exam_months')
+      .select('year, month, created_at')
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
+    if (error) throwFeeDatabaseError(error)
+    return data || []
+  }
+
+  static async setExamMonth(session: Session, year: number, month: string) {
+    if (!WRITE_ROLES.has(actorRole(session))) {
+      throw new AuthorizationError('Insufficient permissions.')
+    }
+    requireFeeDatabase()
+    const normalizedMonth = normalizeMonth(month)
+    const { data, error } = await supabaseAdmin
+      .from('exam_months')
+      .insert({ year, month: normalizedMonth })
+      .select('*')
+      .single()
+
+    if (error) {
+      if (error.code === '23505') {
+        // Unique constraint violation
+        return { success: true }
+      }
+      throwFeeDatabaseError(error)
+    }
+
+    await logAudit(session, {
+      action: 'exam_month_set',
+      after: data,
+      metadata: { year, month: normalizedMonth }
+    })
+    return { success: true, ...data }
   }
 }

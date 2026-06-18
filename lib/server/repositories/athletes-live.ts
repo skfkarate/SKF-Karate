@@ -6,6 +6,7 @@ import { buildCompetitionResultsFromAthletes, getAthleteRankEntry } from '../../
 import { generateSkfId, getBranchCode, normaliseSkfId, parseSkfId } from '../../utils/registration'
 import { ensureInitialWhiteBeltAchievement } from '../../utils/athlete-achievements'
 import { ApiError } from '../api'
+import type { Athlete } from '@/data/types'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
 import {
@@ -133,7 +134,7 @@ function readBoolean(value: unknown, fallback = false) {
 }
 
 function buildRankSnapshotsForAthletes(athletes: AthleteRecord[]) {
-  const results = buildCompetitionResultsFromAthletes(athletes)
+  const results = buildCompetitionResultsFromAthletes(athletes as unknown as Athlete[])
   return calculateAllRanks(athletes, results, new Date())
 }
 
@@ -269,7 +270,7 @@ function normaliseAthletePayload(
     phone: input.phone || existing?.phone || '',
     email: input.email || existing?.email || '',
     batch: input.batch || existing?.batch || '',
-    monthlyFee: Number.isFinite(input.monthlyFee) && input.monthlyFee !== 0
+    monthlyFee: typeof input.monthlyFee === 'number' && Number.isFinite(input.monthlyFee) && input.monthlyFee !== 0
       ? input.monthlyFee
       : (existing?.monthlyFee || 0) !== 0
         ? existing!.monthlyFee
@@ -281,7 +282,7 @@ function normaliseAthletePayload(
     consentGivenAt:
       input.consentGivenAt === null
         ? null
-        : input.consentGivenAt || existing?.consentGivenAt || null,
+        : (input.consentGivenAt || existing?.consentGivenAt) ?? null,
     isPublic:
       typeof input.isPublic === 'boolean' ? input.isPublic : existing?.isPublic ?? true,
     isFeatured:
@@ -295,10 +296,10 @@ function normaliseAthletePayload(
     pointsHistory: Array.isArray(input.pointsHistory)
       ? input.pointsHistory
       : existing?.pointsHistory || [],
-    pointsBalance: Number.isFinite(input.pointsBalance)
+    pointsBalance: typeof input.pointsBalance === 'number' && Number.isFinite(input.pointsBalance)
       ? input.pointsBalance
       : existing?.pointsBalance || 0,
-    pointsLifetime: Number.isFinite(input.pointsLifetime)
+    pointsLifetime: typeof input.pointsLifetime === 'number' && Number.isFinite(input.pointsLifetime)
       ? input.pointsLifetime
       : existing?.pointsLifetime || 0,
     attendanceRate:
@@ -308,6 +309,37 @@ function normaliseAthletePayload(
     createdAt: existing?.createdAt || input.createdAt || now,
     updatedAt: now,
   }
+}
+
+export async function getAthletesByPhonesLive(phones: string[]): Promise<AthleteRecord[]> {
+  const normalizedPhones = phones.map(p => p.replace(/\D/g, '').slice(-10)).filter(Boolean)
+  if (normalizedPhones.length === 0) return []
+
+  if (!isSupabaseReady()) {
+    const all = await getAthleteDataset()
+    return all.filter(a => {
+      const digits = String(a.phone || '').replace(/\D/g, '').slice(-10)
+      return digits && normalizedPhones.includes(digits)
+    })
+  }
+
+  // Use ilike to match phones regardless of formatting (e.g. "+91 98765 43210" matches "9876543210")
+  const filters = normalizedPhones.map(p => `phone.ilike.%${p}`)
+  const { data, error } = await supabaseAdmin
+    .from('athletes')
+    .select('*')
+    .or(filters.join(','))
+
+  if (error) {
+    logger.warn('athletes_live.phone_query_failed', { error, filters })
+    const all = await getAthleteDataset()
+    return all.filter(a => {
+      const digits = String(a.phone || '').replace(/\D/g, '').slice(-10)
+      return digits && normalizedPhones.includes(digits)
+    })
+  }
+
+  return (data || []).map(mapAthleteRowToRecord)
 }
 
 async function readAllAthletesFromDatabase(): Promise<AthleteRecord[]> {
@@ -325,14 +357,14 @@ async function readAllAthletesFromDatabase(): Promise<AthleteRecord[]> {
 
 const getAthleteDataset = cache(async function getAthleteDataset(): Promise<AthleteRecord[]> {
   if (!isSupabaseReady()) {
-    return cloneAthleteData(getAllAthletes())
+    return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 
   try {
     return await readAllAthletesFromDatabase()
   } catch (error) {
     logger.warn('athletes_live.local_fallback', { error })
-    return cloneAthleteData(getAllAthletes())
+    return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 })
 
@@ -410,9 +442,9 @@ async function findAthleteByColumn(column: string, lookupCandidates: string[]) {
   return null
 }
 
-export async function getAthleteBySkfIdLive(skfId: string) {
+export async function getAthleteBySkfIdLive(skfId: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
-    return cloneAthleteData(getAthleteBySkfId(skfId))
+    return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 
   try {
@@ -440,13 +472,13 @@ export async function getAthleteBySkfIdLive(skfId: string) {
     return null
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_skf_id_fallback', { skfId, error })
-    return cloneAthleteData(getAthleteBySkfId(skfId))
+    return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 }
 
-export async function getAthleteByIdLive(id: string) {
+export async function getAthleteByIdLive(id: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
-    return cloneAthleteData(getAthleteById(id))
+    return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 
   try {
@@ -464,7 +496,7 @@ export async function getAthleteByIdLive(id: string) {
     return mapAthleteRowToRecord(data)
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_id_fallback', { id, error })
-    return cloneAthleteData(getAthleteById(id))
+    return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 }
 
@@ -594,8 +626,8 @@ export async function getRankSnapshotsLive() {
 
 export async function getAthleteRankLive(athleteId: string) {
   const athletes = await getAthleteDataset()
-  const results = buildCompetitionResultsFromAthletes(athletes)
-  const rankInfo = getAthleteRankEntry(athleteId, athletes, results)
+  const results = buildCompetitionResultsFromAthletes(athletes as unknown as Athlete[])
+  const rankInfo = getAthleteRankEntry(athleteId, athletes as unknown as Athlete[], results)
 
   if (!rankInfo) return null
 
@@ -707,7 +739,7 @@ export async function upsertAthleteMirror(input: AthleteInput) {
 
   if (existing) {
     return updateAthleteLive(existing.id, {
-      ...existing,
+      ...existing as AthleteInput,
       ...input,
       skfId: normalizedSkfId,
     })

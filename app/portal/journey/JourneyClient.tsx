@@ -8,7 +8,7 @@ import { Medal, Award, Star, X, Info } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 
 // Local helper to map the belt colour strings to actual hexes
-const getHexColor = (beltStr: string) => {
+const getHexColor = (beltStr: string | undefined) => {
   if (!beltStr) return '#ffffff'
   const normalized = beltStr.toLowerCase()
   if (normalized.includes('white')) return '#F5F5F5'

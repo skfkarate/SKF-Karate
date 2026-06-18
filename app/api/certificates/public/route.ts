@@ -18,7 +18,7 @@ export const GET = withRoute(
 
     const skfId = query.skfId
 
-    if (portalSession!.skfId.toUpperCase() !== skfId.toUpperCase()) {
+    if (!portalSession?.skfId || portalSession.skfId.toUpperCase() !== skfId.toUpperCase()) {
       throw new AuthorizationError()
     }
 

@@ -66,7 +66,7 @@ export async function getMonthlyPointsLeaderboard(limit = 10) {
 
   const athletes = await getAllAthletesLive() as LeaderboardAthlete[]
   const athleteMap = new Map(
-    athletes.map((athlete) => [normaliseSkfId(athlete.skfId), athlete])
+    athletes.map((athlete) => [normaliseSkfId(athlete.skfId ?? ''), athlete])
   )
 
   return sorted.map(([skfId, points], index) => {

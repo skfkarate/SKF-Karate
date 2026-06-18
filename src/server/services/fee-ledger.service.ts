@@ -15,6 +15,14 @@ import {
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
 
+const EXAM_CANDIDATES = [
+  'SKF20HE001', // Sanjana S
+  'SKF20HE003', // Ayush Kashyap G
+  'SKF20HE002', // Tejashree S
+  'SKF21HE001', // Ishaan Gowda B S
+  'SKF21HE003', // Shashank
+]
+
 const MONTHS = [
   'January',
   'February',
@@ -196,6 +204,55 @@ function shouldHideFromPortalFees(entry: FeeLedgerEntry, profile: BillingProfile
   return entryPeriod >= endPeriod
 }
 
+export interface PortalCreditEntry {
+  id: string
+  creditCode: string
+  amount: number
+  reason: string
+  description: string
+  status: string
+  earnedAt: string
+}
+
+async function getPortalCreditBalance(skfId: string): Promise<{
+  available: PortalCreditEntry[]
+  totalAvailable: number
+  used: PortalCreditEntry[]
+  totalUsed: number
+}> {
+  const empty = { available: [], totalAvailable: 0, used: [], totalUsed: 0 }
+  if (!isSupabaseReady()) return empty
+
+  const { data, error } = await supabaseAdmin
+    .from('fee_credits')
+    .select('id, credit_code, amount, reason, description, status, earned_at')
+    .eq('skf_id', skfId)
+    .in('status', ['available', 'used'])
+    .order('created_at', { ascending: false })
+
+  if (error || !data) return empty
+
+  const mapped = data.map((row) => ({
+    id: String(row.id || ''),
+    creditCode: String(row.credit_code || ''),
+    amount: normalizeRupees(row.amount),
+    reason: String(row.reason || ''),
+    description: String(row.description || ''),
+    status: String(row.status || ''),
+    earnedAt: String(row.earned_at || ''),
+  }))
+
+  const available = mapped.filter((c) => c.status === 'available')
+  const used = mapped.filter((c) => c.status === 'used')
+
+  return {
+    available,
+    totalAvailable: available.reduce((sum, c) => sum + c.amount, 0),
+    used,
+    totalUsed: used.reduce((sum, c) => sum + c.amount, 0),
+  }
+}
+
 export class FeeLedgerService {
   static async getPortalLedger(skfId: string, year?: number) {
     const normalizedSkfId = String(skfId || '').trim().toUpperCase()
@@ -207,10 +264,11 @@ export class FeeLedgerService {
       ? Math.min(Math.max(2020, Math.trunc(requestedYear)), currentYear)
       : currentYear
 
-    const [athlete, initialFeeRows, billingProfile] = await Promise.all([
+    const [athlete, initialFeeRows, billingProfile, creditData] = await Promise.all([
       getAthleteBySkfIdLive(normalizedSkfId),
       getFeesBySkfIdLive(normalizedSkfId, targetYear),
       getPortalBillingProfile(normalizedSkfId),
+      getPortalCreditBalance(normalizedSkfId),
     ])
     let student: Awaited<ReturnType<typeof getStudentBySkfId>> | null = null
     let feeRows = initialFeeRows
@@ -235,10 +293,35 @@ export class FeeLedgerService {
     }
     const branch = athleteBranch || String(student?.branch || '').trim() || 'SKF Branch'
 
+    const isBlackBeltCandidate = EXAM_CANDIDATES.includes(normalizedSkfId.replace(/\s+/g, ''))
+    const isShriRoshan = normalizedSkfId.replace(/\s+/g, '') === 'SKF13BL000'
+
     const entries: FeeLedgerEntry[] = feeRows
       .map((row) => {
         const month = toMonthName(row.month)
         const monthIndex = getMonthIndex(month)
+        
+        let amount = normalizeRupees(row.amount)
+        let sourceLabel = row.sourceLabel || ''
+        
+        if (
+          isBlackBeltCandidate && 
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.year === 2026 && 
+          monthIndex >= 5 && monthIndex <= 9
+        ) {
+          amount = 2000
+          sourceLabel = 'Black Belt Exam Installment'
+        } else if (
+          isShriRoshan && 
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.year === 2026 && 
+          month === 'October'
+        ) {
+          amount = 11000
+          sourceLabel = 'Black Belt Exam Fee'
+        }
+
         return {
           id: row.id || null,
           key: row.id || `${row.skfId}:${row.feeType || 'monthly'}:${month}:${row.year}:${row.sourceKey || ''}`,
@@ -248,7 +331,7 @@ export class FeeLedgerService {
           month,
           monthIndex,
           year: row.year,
-          amount: normalizeRupees(row.amount),
+          amount,
           status: deriveLedgerStatus(row),
           feeType: (row.feeType || 'monthly') as LedgerFeeType,
           paidDate: row.paidDate || null,
@@ -258,7 +341,7 @@ export class FeeLedgerService {
           sourceKey: row.sourceKey || '',
           sourceType: row.sourceType || '',
           sourceId: row.sourceId || '',
-          sourceLabel: row.sourceLabel || '',
+          sourceLabel,
           dueDate: row.dueDate || '',
           branchSnapshot: row.branchSnapshot || '',
           metadata: row.metadata || {},
@@ -336,6 +419,7 @@ export class FeeLedgerService {
       nextDue,
       entries,
       pendingProofs,
+      credits: creditData,
     }
   }
 
@@ -387,6 +471,30 @@ export class FeeLedgerService {
         const monthIndex = getMonthIndex(month)
         const status = deriveLedgerStatus(row)
 
+        const isBlackBeltCandidate = EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))
+        const isShriRoshan = skfId.replace(/\s+/g, '') === 'SKF13BL000'
+
+        let amount = normalizeRupees(row.amount)
+        let sourceLabel = row.sourceLabel || ''
+        
+        if (
+          isBlackBeltCandidate && 
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.year === 2026 && 
+          monthIndex >= 5 && monthIndex <= 9
+        ) {
+          amount = 2000
+          sourceLabel = 'Black Belt Exam Installment'
+        } else if (
+          isShriRoshan && 
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.year === 2026 && 
+          month === 'October'
+        ) {
+          amount = 11000
+          sourceLabel = 'Black Belt Exam Fee'
+        }
+
         return {
           id: row.id || null,
           key: `${skfId}:${row.feeType || 'monthly'}:${month}:${row.year}`,
@@ -396,13 +504,14 @@ export class FeeLedgerService {
           month,
           monthIndex,
           year: row.year,
-          amount: normalizeRupees(row.amount),
+          amount,
           status,
           feeType: (row.feeType || 'monthly') as LedgerFeeType,
           paidDate: row.paidDate || null,
           receiptId: row.receiptId || null,
           paymentMethod: row.paymentMethod || null,
           rejectedReason: row.rejectedReason || null,
+          sourceLabel,
         } satisfies FeeLedgerEntry
       })
       .filter((entry) => (monthFilter ? entry.month.toLowerCase() === monthFilter.toLowerCase() : true))

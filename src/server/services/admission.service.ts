@@ -1066,32 +1066,16 @@ async function attachPaymentProofUrls(applications: AdmissionApplicationMapped[]
 async function sendAdmissionAlert(application: ReturnType<typeof mapApplication>) {
   if (!hasTelegramChannel('leads')) return
 
-  const submittedAt = new Date(application.createdAt || Date.now()).toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-
   const message = [
-    '*New Admission Application*',
+    '🔔 *New Admission in FeeTrack*',
     '',
     `*Student:* ${escapeTelegramMarkdown(application.studentName)}`,
     `*Branch:* ${escapeTelegramMarkdown(application.branchName)}`,
-    `*Guardian:* ${escapeTelegramMarkdown(application.guardianName)} (${escapeTelegramMarkdown(application.guardianRelationship)})`,
-    `*Phone:* ${escapeTelegramMarkdown(application.guardianPhone)}`,
-    `*WhatsApp:* ${escapeTelegramMarkdown(application.guardianWhatsapp || application.guardianPhone)}`,
-    `*Batch:* ${escapeTelegramMarkdown(application.preferredBatch || 'To confirm')}`,
-    `*Joining Quote:* ${escapeTelegramMarkdown(`Rs. ${application.quotedJoiningTotal.toLocaleString('en-IN')}`)}`,
-    application.promoCode ? `*Promo:* ${escapeTelegramMarkdown(application.promoCode)}` : '',
-    application.paymentProofPath ? '*Payment Proof:* uploaded' : '*Payment Proof:* missing',
-    application.admissionPhotoPath ? '*Student Photo:* uploaded' : '*Student Photo:* not provided',
-    '*Action:* Open FeeTrack > Admissions',
-    '',
+    `*Guardian:* ${escapeTelegramMarkdown(application.guardianName)}`,
     `*Reference:* ${escapeTelegramMarkdown(application.id.slice(0, 8).toUpperCase())}`,
-    escapeTelegramMarkdown(submittedAt),
-  ]
-    .filter(Boolean)
-    .join('\n')
+    '',
+    `Open FeeTrack > Admissions to review`,
+  ].join('\n')
 
   try {
     await retryWithBackoff(async () => {
@@ -1451,7 +1435,8 @@ export class AdmissionService {
       const updated = await updateAthleteLive(athlete.id, {
         ...athlete,
         photoUrl: finalPhotoUrl,
-      })
+        achievements: athlete.achievements as (Record<string, unknown> & { type?: string })[],
+      } as Parameters<typeof updateAthleteLive>[1])
       if (updated) athlete = updated
     }
 

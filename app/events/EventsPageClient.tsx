@@ -20,6 +20,7 @@ interface EventItem {
     endDate?: string
     title: string
     location: string
+    branch: string
     type: string
     desc: string
     cta: string
@@ -164,7 +165,7 @@ export default function EventsPageClient({
                             </div>
                             <div className="ev-countdown__event-name">{nextEvent.title}</div>
                             <div className="ev-countdown__event-location">
-                                <FaMapMarkerAlt /> {nextEvent.location}
+                                <FaMapMarkerAlt /> {nextEvent.branch || nextEvent.location}
                             </div>
                         </div>
                     )}
@@ -284,7 +285,7 @@ export default function EventsPageClient({
                                                         <div className="ev-card__footer">
                                                             <div className="ev-card__info">
                                                                 <span className="ev-card__info-item">
-                                                                    <FaMapMarkerAlt /> {e.location}
+                                                                    <FaMapMarkerAlt /> {e.branch || e.location}
                                                                 </span>
                                                                 <span className="ev-card__info-item">
                                                                     <FaUsers /> Open to All

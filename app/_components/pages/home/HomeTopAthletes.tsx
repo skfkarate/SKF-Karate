@@ -61,7 +61,7 @@ export default async function HomeTopAthletes() {
   // Dev fallback
   let top3 = topAthletes
   if (top3.length === 0) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NEXT_PUBLIC_SHOW_DEV_FILL === 'true') {
       top3 = [
         { name: 'John Doe', belt: 'Black Belt', branch: 'Main Dojo', totalPoints: 1200, skfId: 'SKF001' },
         { name: 'Jane Smith', belt: 'Brown Belt', branch: 'West Side', totalPoints: 950, skfId: 'SKF002' },

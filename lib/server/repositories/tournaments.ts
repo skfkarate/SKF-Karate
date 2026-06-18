@@ -535,26 +535,26 @@ export function getFeaturedTournaments() {
 }
 
 /** Find a tournament by its URL slug */
-export function getTournamentBySlug(slug) {
+export function getTournamentBySlug(slug: string) {
   ensureTournamentsLoaded()
   return tournaments.find(t => t.slug === slug && t.isPublished) || null
 }
 
 /** Find a tournament by ID (admin use — includes unpublished) */
-export function getTournamentById(id) {
+export function getTournamentById(id: string) {
   ensureTournamentsLoaded()
   const tournament = tournaments.find(t => t.id === id) || null
   return tournament ? cloneTournamentData(tournament) : null
 }
 
 /** Get tournaments by competition level */
-export function getTournamentsByLevel(level) {
+export function getTournamentsByLevel(level: string) {
   ensureTournamentsLoaded()
   return cloneTournamentData(tournaments.filter(t => t.isPublished && t.level === level))
 }
 
 /** Get tournaments by year */
-export function getTournamentsByYear(year) {
+export function getTournamentsByYear(year: number) {
   ensureTournamentsLoaded()
   return cloneTournamentData(
     tournaments.filter(t => t.isPublished && new Date(t.date).getFullYear() === year)
@@ -600,7 +600,7 @@ export function getTournamentStats() {
 }
 
 /** Search tournaments by name, venue, city, or winner name */
-export function searchTournaments(query) {
+export function searchTournaments(query: string) {
   ensureTournamentsLoaded()
   const q = query.toLowerCase().trim()
   if (!q) return getAllTournaments()
@@ -614,7 +614,7 @@ export function searchTournaments(query) {
   ))
 }
 
-export function hasTournamentSlug(slug, excludeId = null) {
+export function hasTournamentSlug(slug: string, excludeId: string | null = null) {
   ensureTournamentsLoaded()
   const normalized = String(slug || '').trim().toLowerCase()
 
@@ -633,7 +633,7 @@ export function getAllTournamentsAdmin() {
   )
 }
 
-export function createTournament(input) {
+export function createTournament(input: Partial<TournamentRecord>) {
   ensureTournamentsLoaded()
   const tournament = normaliseTournamentPayload(input)
 
@@ -648,7 +648,7 @@ export function createTournament(input) {
   return cloneTournamentData(tournament)
 }
 
-export function updateTournament(id, input) {
+export function updateTournament(id: string, input: Partial<TournamentRecord>) {
   ensureTournamentsLoaded()
   const index = tournaments.findIndex((tournament) => tournament.id === id)
   if (index === -1) return null
@@ -664,7 +664,7 @@ export function updateTournament(id, input) {
   return cloneTournamentData(updatedTournament)
 }
 
-export function deleteTournament(id) {
+export function deleteTournament(id: string) {
   ensureTournamentsLoaded()
   const index = tournaments.findIndex((tournament) => tournament.id === id)
   if (index === -1) return false

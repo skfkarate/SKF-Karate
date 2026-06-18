@@ -62,7 +62,6 @@ function DojoLoginInner({ fallbackCallbackUrl }) {
 
       if (res.ok) {
         router.push(callbackUrl)
-        router.refresh()
       } else {
         setError(getPortalLoginErrorMessage(data))
         setLoading(false)
@@ -189,7 +188,7 @@ function DojoLoginInner({ fallbackCallbackUrl }) {
           )}
         </AnimatePresence>
 
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NEXT_PUBLIC_SHOW_DEV_FILL === 'true' && (
           <motion.div
             className="dojo-login__test-bypass"
             initial={{ opacity: 0 }}

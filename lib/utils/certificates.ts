@@ -1,3 +1,5 @@
+import type { Athlete, Achievement } from '@/data/types'
+
 export const CERTIFICATE_TYPES = {
   BELT: "belt",
   PORTFOLIO: "portfolio",
@@ -9,6 +11,12 @@ export function createCertificateRecord({
   sourceId,
   issuedAt = new Date().toISOString(),
   status = "available",
+}: {
+  athlete: Athlete
+  type: string
+  sourceId: string
+  issuedAt?: string
+  status?: string
 }) {
   return {
     id: `${type}_${athlete.id}_${sourceId}`,
@@ -21,7 +29,7 @@ export function createCertificateRecord({
   }
 }
 
-export function buildBeltCertificatePayload(athlete, gradingAchievement) {
+export function buildBeltCertificatePayload(athlete: Athlete, gradingAchievement: Achievement) {
   return {
     type: CERTIFICATE_TYPES.BELT,
     athleteName: `${athlete.firstName} ${athlete.lastName}`,
@@ -33,7 +41,7 @@ export function buildBeltCertificatePayload(athlete, gradingAchievement) {
   }
 }
 
-export function buildAchievementPortfolioPayload(athlete, rankingEntry = null) {
+export function buildAchievementPortfolioPayload(athlete: Athlete, rankingEntry: { totalPoints?: number; overallRank?: number } | null = null) {
   const achievements = athlete.achievements || []
 
   return {
@@ -54,7 +62,7 @@ export function buildAchievementPortfolioPayload(athlete, rankingEntry = null) {
   }
 }
 
-export function getCertificateAvailability(athlete) {
+export function getCertificateAvailability(athlete: Athlete) {
   const achievements = athlete.achievements || []
   const latestGrading = [...achievements]
     .filter((achievement) => achievement.type === "belt-grading")

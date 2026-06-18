@@ -201,13 +201,13 @@ export function getStandaloneEvents() {
   return cloneEventData(sortByDateDesc(events.filter((event) => event.isPublished)))
 }
 
-export function getStandaloneEventById(id) {
+export function getStandaloneEventById(id: string) {
   ensureEventsLoaded()
   const event = events.find((entry) => entry.id === id) || null
   return event ? buildUnifiedStoredEvent(event) : null
 }
 
-export function getStandaloneEventBySlug(slug) {
+export function getStandaloneEventBySlug(slug: string) {
   ensureEventsLoaded()
   const event =
     events.find((entry) => entry.slug === slug && entry.isPublished) || null
@@ -226,7 +226,7 @@ export function getAllEvents() {
   return sortByDateDesc([...standalone, ...tournaments])
 }
 
-export function getEventByIdAdmin(id) {
+export function getEventByIdAdmin(id: string) {
   const tournament = getTournamentById(id)
   if (tournament) {
     return buildUnifiedTournamentEvent(tournament)
@@ -235,7 +235,7 @@ export function getEventByIdAdmin(id) {
   return getStandaloneEventById(id)
 }
 
-export function getEventBySlug(slug) {
+export function getEventBySlug(slug: string) {
   const tournament = getTournamentBySlug(slug)
   if (tournament) {
     return buildUnifiedTournamentEvent(tournament)
@@ -244,7 +244,7 @@ export function getEventBySlug(slug) {
   return getStandaloneEventBySlug(slug)
 }
 
-export function createStandaloneEvent(input) {
+export function createStandaloneEvent(input: Partial<EventRecord>) {
   ensureEventsLoaded()
   const event = normaliseEventPayload(input)
 
@@ -261,7 +261,7 @@ export function createStandaloneEvent(input) {
   return buildUnifiedStoredEvent(event)
 }
 
-export function updateStandaloneEvent(id, input) {
+export function updateStandaloneEvent(id: string, input: Partial<EventRecord>) {
   ensureEventsLoaded()
   const index = events.findIndex((entry) => entry.id === id)
   if (index === -1) return null
@@ -281,7 +281,7 @@ export function updateStandaloneEvent(id, input) {
   return buildUnifiedStoredEvent(updatedEvent)
 }
 
-export function deleteStandaloneEvent(id) {
+export function deleteStandaloneEvent(id: string) {
   ensureEventsLoaded()
   const index = events.findIndex((entry) => entry.id === id)
   if (index === -1) return false
@@ -291,7 +291,7 @@ export function deleteStandaloneEvent(id) {
   return true
 }
 
-export function createEventRecord(input) {
+export function createEventRecord(input: Partial<EventRecord>) {
   if (input.type === "tournament") {
     return buildUnifiedTournamentEvent(createTournament(input))
   }
@@ -299,7 +299,7 @@ export function createEventRecord(input) {
   return createStandaloneEvent(input)
 }
 
-export function updateEventRecord(id, input) {
+export function updateEventRecord(id: string, input: Partial<EventRecord>) {
   if (getTournamentById(id)) {
     const updatedTournament = updateTournament(id, input)
     return updatedTournament ? buildUnifiedTournamentEvent(updatedTournament) : null
@@ -308,7 +308,7 @@ export function updateEventRecord(id, input) {
   return updateStandaloneEvent(id, input)
 }
 
-export function deleteEventRecord(id) {
+export function deleteEventRecord(id: string) {
   if (getTournamentById(id)) {
     return deleteTournament(id)
   }

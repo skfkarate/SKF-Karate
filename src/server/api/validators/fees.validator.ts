@@ -3,7 +3,7 @@ import { z } from 'zod'
 const yearSchema = z.coerce.number().int().min(2020).max(2100)
 const skfIdSchema = z.string().trim().min(1).max(64)
 const monthSchema = z.string().trim().min(3).max(20)
-const feeTypeSchema = z.enum([
+export const feeTypeSchema = z.enum([
   'monthly',
   'admission',
   'dress',
@@ -124,6 +124,7 @@ export const feeConsoleLedgerActionSchema = z.discriminatedUnion('action', [
     year: yearSchema,
     feeType: feeTypeSchema,
     feeRecordId: z.string().uuid().optional(),
+    amount: z.coerce.number().min(0).max(1000000).optional(),
     reason: z.string().trim().max(500).optional(),
   }),
   z.object({
@@ -253,6 +254,7 @@ const studentOverrideSchema = z.object({
   skfId: skfIdSchema,
   amount: z.coerce.number().min(0).max(1000000).optional(),
   excluded: z.boolean().optional(),
+  included: z.boolean().optional(),
   waived: z.boolean().optional(),
   reason: z.string().trim().max(300).optional(),
 })
@@ -271,6 +273,7 @@ export const eventFeeConfigSchema = z.object({
   branchBeltPrices: z.record(z.string().trim().min(1).max(220), z.coerce.number().min(0).max(1000000)).default({}),
   studentOverrides: z.array(studentOverrideSchema).max(500).default([]),
   notes: z.string().trim().max(1000).optional(),
+  status: z.enum(['draft', 'active', 'paused', 'settled']).default('active'),
 })
 
 export const eventFeePreviewSchema = z.object({

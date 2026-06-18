@@ -1,9 +1,10 @@
+import type { Athlete, Achievement } from '@/data/types'
 import { getAllEvents } from '@/lib/server/repositories/events'
 import { getBelt, getNextBelt, BELTS } from "@/data/constants/belts"
 import { calculateResultPoints, normaliseEventTier } from "./points"
 import { getAgeCategory, getAthleteRankingCategory } from "./rankings"
 
-const BRANCH_COACHES = {
+const BRANCH_COACHES: Record<string, string> = {
   Sunkadakatte: "Sensei Rajesh Kumar",
   Rajajinagar: "Sensei Arvind Kumar",
   Malleshwaram: "Sensei Deepa Natarajan",
@@ -11,7 +12,7 @@ const BRANCH_COACHES = {
   Vijayanagar: "Sensei Sanjay Bhat",
 }
 
-function slugify(value) {
+function slugify(value: string) {
   return String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
@@ -20,16 +21,16 @@ function slugify(value) {
     .trim()
 }
 
-function pluralize(count, singular, plural = `${singular}s`) {
+function pluralize(count: number, singular: string, plural: string = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`
 }
 
-function daysBetween(startDate, endDate) {
+function daysBetween(startDate: string | Date, endDate: string | Date) {
   const ms = new Date(endDate).getTime() - new Date(startDate).getTime()
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)))
 }
 
-function monthsBetween(startDate, endDate) {
+function monthsBetween(startDate: string | Date, endDate: string | Date) {
   const start = new Date(startDate)
   const end = new Date(endDate)
   return Math.max(
@@ -38,7 +39,7 @@ function monthsBetween(startDate, endDate) {
   )
 }
 
-function formatLongDate(value) {
+function formatLongDate(value: string | Date) {
   return new Date(value).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
@@ -46,7 +47,7 @@ function formatLongDate(value) {
   })
 }
 
-function getGradingRequirements(currentBeltIndex) {
+function getGradingRequirements(currentBeltIndex: number) {
   const pointsByIndex = [0, 40, 80, 120, 180, 240, 320, 420, 540, 680, 820]
   const monthsByIndex = [0, 3, 4, 5, 6, 8, 10, 12, 18, 24, 30]
 
@@ -59,11 +60,11 @@ function getGradingRequirements(currentBeltIndex) {
   }
 }
 
-function clampPercent(value) {
+function clampPercent(value: number) {
   return Math.max(0, Math.min(100, value))
 }
 
-function getEventLinkForAchievement(achievement, events) {
+function getEventLinkForAchievement(achievement: { tournamentName?: string; title?: string; sourceEventSlug?: string }, events: Array<{ slug: string; name: string; type: string; shortName?: string }>) {
   const explicitName = achievement.tournamentName || achievement.title || ""
   const title = achievement.title || ""
 
@@ -100,7 +101,7 @@ function getEventLinkForAchievement(achievement, events) {
     : null
 }
 
-function getCompetitionEntry(athlete, achievement, events, currentDate) {
+function getCompetitionEntry(athlete: Athlete, achievement: Achievement, events: Array<{ slug: string; name: string; type: string; shortName?: string }>, currentDate: Date) {
   const tournamentLink = getEventLinkForAchievement(achievement, events)
   const result = achievement.competitionResult || achievement.result || achievement.type.replace("tournament-", "")
   const points = calculateResultPoints(
@@ -136,7 +137,7 @@ function getCompetitionEntry(athlete, achievement, events, currentDate) {
   }
 }
 
-function getTimelineEntry(athlete, achievement, events, currentDate) {
+function getTimelineEntry(athlete: Athlete, achievement: Achievement, events: Array<{ slug: string; name: string; type: string; shortName?: string }>, currentDate: Date) {
   if (achievement.type === "belt-grading") {
     const belt = getBelt(achievement.beltEarned || athlete.currentBelt)
     const eventLink = getEventLinkForAchievement(achievement, events)
@@ -231,7 +232,7 @@ function getTimelineEntry(athlete, achievement, events, currentDate) {
   }
 }
 
-export function buildAthleteProfileData(athlete, rankInfo, currentDate = new Date()) {
+export function buildAthleteProfileData(athlete: Athlete, rankInfo: { totalPoints?: number; overallRank?: number; rankingCategory?: { discipline?: string; weightCategory?: string | null } } | null, currentDate: Date = new Date()) {
   const events = getAllEvents()
   const ageCategory = getAgeCategory(athlete.dateOfBirth, currentDate)
   const rankingCategory = rankInfo?.rankingCategory || getAthleteRankingCategory(athlete, [], currentDate)

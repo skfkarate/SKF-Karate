@@ -2,6 +2,7 @@ import type { Session } from 'next-auth'
 
 import { kyuBelts } from '@/data/seed/kyuBelts'
 import { getAllAthletesLive } from '@/lib/server/repositories/athletes-live'
+import { getActiveBBProgram, getAllBBCandidates } from '@/lib/server/repositories/blackbelt-live'
 import { getAllEventsAdminLive, getEventByIdAdminLive } from '@/lib/server/repositories/events-live'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
@@ -13,7 +14,7 @@ import type {
   EventFeeGenerateInput,
   EventFeePreviewInput,
 } from '@/src/server/api/validators/fees.validator'
-import { AuthorizationError, ExternalServiceError, NotFoundError } from '@/src/server/lib/errors'
+import { AuthorizationError, ExternalServiceError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
 
 const MONTHS = [
   'January',
@@ -31,6 +32,7 @@ const MONTHS = [
 ] as const
 
 const WRITE_ROLES = new Set(['admin', 'instructor', 'fee_manager'])
+const BELT_EXAM_MIN_TRAINING_MONTHS = 5
 
 type AthleteRecord = {
   skfId?: string | null
@@ -38,7 +40,22 @@ type AthleteRecord = {
   lastName?: string | null
   branchName?: string | null
   currentBelt?: string | null
+  joinDate?: string | null
   status?: string | null
+}
+
+type BillingProfileRow = {
+  skf_id: string
+  billing_status?: string | null
+  billing_start_date?: string | null
+  billing_end_date?: string | null
+}
+
+type MonthlyFeeStatusRow = {
+  skf_id: string
+  month: string
+  year: number
+  status: string
 }
 
 type EventParticipant = {
@@ -217,16 +234,55 @@ function dateOnly(value?: string | null, fallback?: string | null) {
   return parsed.toISOString().slice(0, 10)
 }
 
+function parseDateOnly(value?: string | null) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  const parsed = new Date(`${raw.split('T')[0]}T00:00:00.000Z`)
+  return Number.isFinite(parsed.getTime()) ? parsed : null
+}
+
+function formatShortDate(value?: string | null) {
+  const parsed = parseDateOnly(value)
+  if (!parsed) return ''
+  return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+}
+
+function daysInUtcMonth(year: number, monthIndex: number) {
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate()
+}
+
+function subtractUtcMonths(date: Date, months: number) {
+  const rawMonth = date.getUTCMonth() - months
+  const year = date.getUTCFullYear() + Math.floor(rawMonth / 12)
+  const month = ((rawMonth % 12) + 12) % 12
+  const day = Math.min(date.getUTCDate(), daysInUtcMonth(year, month))
+  return new Date(Date.UTC(year, month, day))
+}
+
+function periodValue(year?: number | string | null, month?: string | null) {
+  const parsedYear = Number(year)
+  const monthIndex = MONTHS.findIndex((candidate) => candidate.toLowerCase() === String(month || '').trim().toLowerCase())
+  if (!Number.isFinite(parsedYear) || monthIndex < 0) return null
+  return parsedYear * 12 + monthIndex
+}
+
+function monthPeriodValue(date: Date) {
+  return date.getUTCFullYear() * 12 + date.getUTCMonth()
+}
+
 function feeCategoryForEvent(event: EventLike, explicit?: string): EventFeeConfig['feeCategory'] {
   if (explicit === 'belt_exam' || explicit === 'tournament' || explicit === 'event' || explicit === 'other') return explicit
   const type = normalizeKey(event.type)
-  if (type.includes('belt') || type.includes('grading')) return 'belt_exam'
+  if (type.includes('grading') || type.includes('belt')) return 'belt_exam'
   if (type.includes('tournament')) return 'tournament'
   return 'event'
 }
 
 function eventFeeLabel(event: EventLike, config: EventFeeConfig) {
-  if (config.feeCategory === 'belt_exam') return `${event.name} Belt Examination`
+  if (config.feeCategory === 'belt_exam') {
+    const name = String(event.name || 'Belt Examination').trim()
+    return /\b(fee|fees)\b/i.test(name) ? name : `${name} Fee`
+  }
   if (config.feeCategory === 'tournament') return `${event.name} Tournament Fee`
   return `${event.name} Fee`
 }
@@ -300,7 +356,7 @@ function mapConfig(row: Record<string, unknown>, event?: EventLike | null): Even
     branchBeltPrices: (row.branch_belt_prices || {}) as Record<string, number>,
     studentOverrides: Array.isArray(row.student_overrides) ? row.student_overrides as EventFeeConfigInput['studentOverrides'] : [],
     notes: String(row.notes || ''),
-    status: String(row.status || 'draft'),
+    status: (String(row.status || 'draft') as EventFeeConfig['status']),
   }
 }
 
@@ -342,6 +398,7 @@ function mergeConfig(event: EventLike, base: EventFeeConfig, partial?: Partial<E
     beltPrices: partial?.beltPrices || base.beltPrices || {},
     branchBeltPrices: partial?.branchBeltPrices || base.branchBeltPrices || {},
     studentOverrides: partial?.studentOverrides || base.studentOverrides || [],
+    status: partial?.status || base.status || 'draft',
   }
   return merged
 }
@@ -381,10 +438,106 @@ function calculateAmount(config: EventFeeConfig, athlete: AthleteRecord, target:
   return normalizeAmount(config.defaultAmount)
 }
 
-async function buildPreview(session: Session, event: EventLike, config: EventFeeConfig) {
-  const [athletes, existingRows] = await Promise.all([
+async function getActiveBlackBeltCandidateSkfIds() {
+  const program = await getActiveBBProgram()
+  if (!program) return new Set<string>()
+  const candidates = await getAllBBCandidates(program.id)
+  return new Set(candidates.map((candidate) => normaliseSkfId(candidate.skf_id)).filter(Boolean))
+}
+
+function looksLikeBlackBelt(value?: string | null) {
+  const normalized = normalizeKey(value)
+  return [
+    'black',
+    'dan',
+    'shodan',
+    'nidan',
+    'sandan',
+    'yodan',
+    'yondan',
+    'godan',
+  ].some((token) => normalized.includes(token))
+}
+
+async function getBillingProfiles(skfIds: string[]) {
+  if (!skfIds.length) return new Map<string, BillingProfileRow>()
+  const { data, error } = await supabaseAdmin
+    .from('student_billing_profiles')
+    .select('skf_id, billing_status, billing_start_date, billing_end_date')
+    .in('skf_id', skfIds)
+  if (error) throwEventFeeDatabaseError(error)
+
+  return new Map((data || []).map((profile) => [
+    normaliseSkfId(String(profile.skf_id || '')),
+    profile as BillingProfileRow,
+  ]))
+}
+
+async function getMonthlyBreakSkfIds(skfIds: string[], fromDate: Date, throughDate: Date) {
+  if (!skfIds.length) return new Set<string>()
+  const { data, error } = await supabaseAdmin
+    .from('fee_records')
+    .select('skf_id, month, year, status')
+    .eq('fee_type', 'monthly')
+    .eq('status', 'break')
+    .in('skf_id', skfIds)
+  if (error) throwEventFeeDatabaseError(error)
+
+  const fromPeriod = monthPeriodValue(fromDate)
+  const throughPeriod = monthPeriodValue(throughDate)
+  const skfIdsWithBreak = new Set<string>()
+  for (const row of (data || []) as MonthlyFeeStatusRow[]) {
+    const rowPeriod = periodValue(row.year, row.month)
+    if (rowPeriod === null) continue
+    if (rowPeriod >= fromPeriod && rowPeriod <= throughPeriod) {
+      skfIdsWithBreak.add(normaliseSkfId(String(row.skf_id || '')))
+    }
+  }
+  return skfIdsWithBreak
+}
+
+function beltExamEligibilityReason(input: {
+  athlete: AthleteRecord
+  billingProfile?: BillingProfileRow | null
+  hasMonthlyBreak: boolean
+  isBlackBeltCandidate: boolean
+  eventDate: Date
+  cutoffDate: Date
+  current: ReturnType<typeof normalizeBelt>
+  target: ReturnType<typeof nextBelt>
+}) {
+  if (input.isBlackBeltCandidate || looksLikeBlackBelt(input.athlete.currentBelt)) {
+    return 'Black belt candidates are excluded from this Kyu belt examination fee.'
+  }
+
+  if (!input.current || !input.target) {
+    return 'Current belt needs review before this student can be charged.'
+  }
+
+  const billingStatus = normalizeKey(input.billingProfile?.billing_status || 'active')
+  if (billingStatus === 'paused') return 'Billing profile is paused; student is not regular for this examination.'
+  if (billingStatus === 'discontinued') return 'Billing profile is discontinued; student is not eligible for this examination.'
+
+  if (input.hasMonthlyBreak) {
+    return `A monthly fee break is recorded between ${formatShortDate(input.cutoffDate.toISOString())} and ${formatShortDate(input.eventDate.toISOString())}.`
+  }
+
+  const joinDate = parseDateOnly(input.billingProfile?.billing_start_date || input.athlete.joinDate)
+  if (!joinDate) return 'Joining date is missing; six-month eligibility cannot be confirmed.'
+
+  if (joinDate.getTime() > input.cutoffDate.getTime()) {
+    const eligibleFrom = subtractUtcMonths(joinDate, -BELT_EXAM_MIN_TRAINING_MONTHS)
+    return `Student has not completed ${BELT_EXAM_MIN_TRAINING_MONTHS} months by ${formatShortDate(input.eventDate.toISOString())}. Joined ${formatShortDate(joinDate.toISOString())}; eligible from ${formatShortDate(eligibleFrom.toISOString())}.`
+  }
+
+  return ''
+}
+
+async function buildPreview(session: Session, event: EventLike, config: EventFeeConfig, options: { requireAmount?: boolean } = {}) {
+  const [athletes, existingRows, blackBeltCandidateSkfIds] = await Promise.all([
     getAllAthletesLive() as Promise<AthleteRecord[]>,
     existingEventFeeRows(event.id),
+    config.feeCategory === 'belt_exam' ? getActiveBlackBeltCandidateSkfIds() : Promise.resolve(new Set<string>()),
   ])
   const existingBySkfId = new Map(existingRows.map((row) => [normaliseSkfId(row.skf_id), row]))
   const participantSkfIds = new Set((event.participants || []).map((p) => normaliseSkfId(String(p.skfId || ''))).filter(Boolean))
@@ -392,6 +545,8 @@ async function buildPreview(session: Session, event: EventLike, config: EventFee
   const branchScopeKeys = new Set(branchScopeValues.map(normalizeKey))
   const beltScopeKeys = new Set(config.beltScope.map((belt) => normalizeKey(belt)))
   const overrideBySkfId = readOverrideMap(config.studentOverrides)
+  const eventDate = parseDateOnly(config.eventDate || event.date) || new Date()
+  const cutoffDate = subtractUtcMonths(eventDate, BELT_EXAM_MIN_TRAINING_MONTHS)
 
   const candidates = athletes
     .filter((athlete) => String(athlete.status || 'active').toLowerCase() === 'active')
@@ -405,10 +560,20 @@ async function buildPreview(session: Session, event: EventLike, config: EventFee
       if (!branchScopeKeys.size) return true
       return branchScopeKeys.has(normalizeKey(athlete.branchName))
     })
+  const candidateSkfIds = candidates.map((athlete) => normaliseSkfId(String(athlete.skfId || ''))).filter(Boolean)
+  const [billingBySkfId, monthlyBreakSkfIds] = config.feeCategory === 'belt_exam'
+    ? await Promise.all([
+        getBillingProfiles(candidateSkfIds),
+        getMonthlyBreakSkfIds(candidateSkfIds, cutoffDate, eventDate),
+      ])
+    : [new Map<string, BillingProfileRow>(), new Set<string>()]
 
   return candidates.map((athlete) => {
     const skfId = normaliseSkfId(String(athlete.skfId || ''))
     const override = overrideBySkfId.get(skfId)
+    const excluded = Boolean(override?.excluded)
+    const included = Boolean(override?.included)
+    const waived = Boolean(override?.waived)
     const current = normalizeBelt(athlete.currentBelt)
     const target = config.feeCategory === 'belt_exam' ? nextBelt(athlete.currentBelt) : null
     const existing = existingBySkfId.get(skfId)
@@ -417,9 +582,22 @@ async function buildPreview(session: Session, event: EventLike, config: EventFee
     const beltAllowed = !beltScopeKeys.size || (
       target && (beltScopeKeys.has(normalizeKey(target.key)) || beltScopeKeys.has(normalizeKey(target.label)))
     )
-    const needsReview = config.feeCategory === 'belt_exam' && (!current || !target)
-    const excluded = Boolean(override?.excluded)
-    const waived = Boolean(override?.waived)
+    const billingProfile = billingBySkfId.get(skfId) || null
+    const eligibilityReason = config.feeCategory === 'belt_exam'
+      ? beltExamEligibilityReason({
+          athlete,
+          billingProfile,
+          hasMonthlyBreak: monthlyBreakSkfIds.has(skfId),
+          isBlackBeltCandidate: blackBeltCandidateSkfIds.has(skfId),
+          eventDate,
+          cutoffDate,
+          current,
+          target,
+        })
+      : ''
+    const autoExcluded = !included && config.feeCategory === 'belt_exam' && (blackBeltCandidateSkfIds.has(skfId) || looksLikeBlackBelt(athlete.currentBelt))
+    const missingAmount = options.requireAmount !== false && config.feeCategory === 'belt_exam' && !waived && amount <= 0
+    const needsReview = !included && config.feeCategory === 'belt_exam' && Boolean(eligibilityReason || missingAmount)
 
     return {
       skfId,
@@ -431,14 +609,27 @@ async function buildPreview(session: Session, event: EventLike, config: EventFee
       targetBeltKey: target?.key || '',
       amount,
       finalAmount: waived ? 0 : amount,
-      status: excluded
+      status: excluded || autoExcluded
         ? 'excluded'
         : needsReview || !beltAllowed
           ? 'needs_review'
           : waived
             ? 'waived'
             : 'ready',
-      reason: override?.reason || (needsReview ? 'Current belt needs review.' : !beltAllowed ? 'Target belt is outside this event scope.' : ''),
+      reason: override?.reason || (
+        autoExcluded
+          ? eligibilityReason
+          : eligibilityReason
+            ? eligibilityReason
+            : missingAmount
+              ? 'Belt examination fee amount is not configured for this student.'
+              : !beltAllowed
+                ? 'Target belt is outside this event scope.'
+                : ''
+      ),
+      eligibilityCutoffDate: cutoffDate.toISOString().slice(0, 10),
+      joinedDate: dateOnly(billingProfile?.billing_start_date || athlete.joinDate) || '',
+      receiptEligible: config.feeCategory !== 'belt_exam',
       existingFeeRecordId: existing?.id || null,
       existingStatus: existing?.status || null,
       receiptId: existing?.receipt_id || null,
@@ -626,7 +817,7 @@ export class EventFeesService {
         event_type: event.type || '',
         event_date: dateOnly(event.date),
         fee_category: config.feeCategory,
-        status: 'active',
+        status: config.status || 'active',
         targeting_mode: config.targetingMode,
         pricing_mode: config.pricingMode,
         default_amount: config.defaultAmount,
@@ -673,6 +864,39 @@ export class EventFeesService {
     }
   }
 
+  static async eligibleBeltExamRows(session: Session, input: EventFeePreviewInput) {
+    requireFeeDatabase()
+    const event = await eventById(input.eventId)
+    if (!canSeeBranch(session, event.hostingBranch)) {
+      throw new AuthorizationError('This event is outside your branch scope.')
+    }
+
+    const stored = await getStoredConfig(event)
+    const inferredCategory = feeCategoryForEvent(event, input.config?.feeCategory || stored.feeCategory)
+    if (inferredCategory !== 'belt_exam') {
+      throw new ValidationError({ event: ['Eligible student sync is available only for belt examination or grading events.'] })
+    }
+    const config = mergeConfig(event, stored, {
+      ...input.config,
+      feeCategory: 'belt_exam',
+    })
+
+    const rows = await buildPreview(session, event, config, { requireAmount: false })
+    return {
+      success: true,
+      event: { id: event.id, name: event.name, type: event.type || '', date: event.date || '', hostingBranch: event.hostingBranch || '' },
+      config,
+      rows,
+      summary: {
+        eligible: rows.filter((row) => row.status === 'ready' || row.status === 'waived').length,
+        ready: rows.filter((row) => row.status === 'ready').length,
+        waived: rows.filter((row) => row.status === 'waived').length,
+        excluded: rows.filter((row) => row.status === 'excluded').length,
+        needsReview: rows.filter((row) => row.status === 'needs_review').length,
+      },
+    }
+  }
+
   static async generate(session: Session, input: EventFeeGenerateInput) {
     assertWrite(session)
     requireFeeDatabase()
@@ -713,6 +937,9 @@ export class EventFeesService {
           currentBeltKey: row.currentBeltKey,
           targetBelt: row.targetBelt,
           targetBeltKey: row.targetBeltKey,
+          joinedDate: row.joinedDate,
+          eligibilityCutoffDate: row.eligibilityCutoffDate,
+          receiptEligible: row.receiptEligible,
           overrideReason: row.reason,
         },
         p_source_key: sourceKey,

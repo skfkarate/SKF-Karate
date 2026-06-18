@@ -9,6 +9,17 @@ import {
   FaTag,
   FaUser,
 } from 'react-icons/fa'
+import type { RefObject, ChangeEvent, FormEvent } from 'react'
+
+type ContactFormData = {
+  website: string
+  name: string
+  email: string
+  phone: string
+  preferredTime: string
+  interest: string
+  message: string
+}
 
 export default function ContactFormCard({
   emailRef,
@@ -20,6 +31,16 @@ export default function ContactFormCard({
   onReset,
   onSubmit,
   status,
+}: {
+  emailRef: RefObject<HTMLInputElement | null>
+  errorMsg: string
+  formData: ContactFormData
+  onEmailChange: (e: ChangeEvent<HTMLInputElement>) => void
+  onFieldChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onPhoneChange: (e: ChangeEvent<HTMLInputElement>) => void
+  onReset: () => void
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void
+  status: 'success' | 'error' | 'loading' | string
 }) {
   return (
     <div className="contact-glass-pane contact-glass-pane--prime">

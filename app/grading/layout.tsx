@@ -33,7 +33,7 @@ function JsonLd() {
   return <JsonLdScript data={faqSchema} />
 }
 
-export default function GradingLayout({ children }) {
+export default function GradingLayout({ children }: { children: React.ReactNode }) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Grading', '/grading')
 
   return (

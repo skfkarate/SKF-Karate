@@ -2,11 +2,24 @@ import Link from 'next/link'
 import { FaArrowRight } from 'react-icons/fa'
 import { TOURNAMENT_LEVEL_LABELS } from '../../../lib/types/tournament'
 
-export default function TournamentCard({ tournament }) {
+type TournamentCardTournament = {
+  slug: string
+  level: string
+  isFeatured?: boolean
+  date: string
+  endDate?: string
+  name: string
+  venue: string
+  city: string
+  medals: { gold: number; silver: number; bronze: number }
+  skfParticipants: number
+}
+
+export default function TournamentCard({ tournament }: { tournament: TournamentCardTournament }) {
   const t = tournament
   const year = new Date(t.date).getFullYear()
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',

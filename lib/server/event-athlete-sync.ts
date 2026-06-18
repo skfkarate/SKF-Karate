@@ -173,11 +173,12 @@ function getSourceMeta(event: EventRecord, participantId?: string) {
 }
 
 function getEventResultValue(event: EventRecord, result: EventResultRecord) {
-  if (event.type === 'tournament') {
+  const eventType = event.type ?? ''
+  if (eventType === 'tournament') {
     return String(result.medal || result.result || 'participation').toLowerCase()
   }
 
-  if (event.type === 'grading' || isBeltExamType(event.type)) {
+  if (eventType === 'grading' || isBeltExamType(eventType)) {
     if (result.result) return String(result.result).toLowerCase()
     if (result.beltAwarded || result.promotion) return 'pass'
     return 'fail'
@@ -246,8 +247,8 @@ function buildTournamentAchievement(event: EventRecord, tournamentResult: EventR
   const resultValue = normaliseResult(
     tournamentResult.medal || tournamentResult.result || 'participation'
   )
-  const categoryLabel = formatEventCategory(tournamentResult.category)
-  const ageGroupLabel = formatAgeGroup(tournamentResult.ageGroup)
+  const categoryLabel = formatEventCategory(tournamentResult.category ?? '')
+  const ageGroupLabel = formatAgeGroup(tournamentResult.ageGroup ?? '')
   const weightLabel = tournamentResult.weightCategory ? ` ${tournamentResult.weightCategory}` : ''
   const normalizedWins =
     tournamentResult.wins === undefined || tournamentResult.wins === null || tournamentResult.wins === ''
@@ -263,10 +264,10 @@ function buildTournamentAchievement(event: EventRecord, tournamentResult: EventR
   const resultSummary = [
     categoryLabel,
     `${ageGroupLabel}${weightLabel}`,
-    Number.isFinite(normalizedWins) && normalizedWins > 0
+    (normalizedWins ?? 0) > 0
       ? `${normalizedWins} fight${normalizedWins === 1 ? '' : 's'} won`
       : '',
-    Number.isFinite(normalizedDifficulty) && normalizedDifficulty > 0
+    (normalizedDifficulty ?? 0) > 0
       ? `Difficulty ${normalizedDifficulty}/5`
       : '',
   ]
@@ -276,14 +277,14 @@ function buildTournamentAchievement(event: EventRecord, tournamentResult: EventR
   return {
     id: `ach_${randomUUID()}`,
     type: `tournament-${resultValue}`,
-    date: toIsoDate(event.date),
-    title: `${getTournamentOutcomeLabel(resultValue)} — ${event.name}`,
-    description: resultSummary || `${formatTournamentLevel(event.level)} tournament result`,
+    date: toIsoDate(event.date ?? ''),
+    title: `${getTournamentOutcomeLabel(resultValue)} — ${event.name ?? ''}`,
+    description: resultSummary || `${formatTournamentLevel(event.level ?? '')} tournament result`,
     pointsAwarded: getPointsForEventOutcome(
       { ...event, type: 'tournament' },
       resultValue,
       {
-        difficultyLevel: Number.isFinite(normalizedDifficulty) ? normalizedDifficulty : null,
+    difficultyLevel: normalizedDifficulty ?? undefined,
         wins: Number.isFinite(normalizedWins) ? normalizedWins : null,
       }
     ),
@@ -296,7 +297,7 @@ function buildTournamentAchievement(event: EventRecord, tournamentResult: EventR
     result: resultValue,
     position: tournamentResult.position || '',
     difficultyLevel: Number.isFinite(normalizedDifficulty) ? normalizedDifficulty : null,
-    wins: Number.isFinite(normalizedWins) ? normalizedWins : 0,
+    wins: (normalizedWins ?? 0),
     ...getSourceMeta(
       { ...event, type: 'tournament' },
       tournamentResult.participantId || tournamentResult.id
@@ -321,7 +322,7 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
         ? {
             id: `ach_${randomUUID()}`,
             type: 'belt-grading',
-            date: toIsoDate(event.date),
+            date: toIsoDate(event.date ?? ''),
             title: promotionLabel !== 'Promotion'
               ? `${promotionLabel} — ${event.name}`
               : `Passed ${event.name}`,
@@ -338,8 +339,8 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
         : {
             id: `ach_${randomUUID()}`,
             type: 'grading-fail',
-            date: toIsoDate(event.date),
-            title: `Did Not Pass ${event.name}`,
+            date: toIsoDate(event.date ?? ''),
+            title: `Did Not Pass ${event.name ?? ''}`,
             description: result.notes || 'Grading attempt recorded.',
             pointsAwarded: 0,
             grade: 'Grading Attempt',
@@ -348,7 +349,7 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
             ...sourceMeta,
           }
     )
-  } else if (isBeltExamType(event.type)) {
+  } else if (isBeltExamType(event.type ?? '')) {
     const beltAwarded = String(result.beltAwarded || result.promotion || '').toLowerCase()
     const isPass = resultValue === 'pass'
     const promotionLabel = getPromotionLabel(result)
@@ -356,11 +357,11 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
     achievements.push({
       id: `ach_${randomUUID()}`,
       type: resultValue === 'pass' ? 'belt-pass' : 'belt-fail',
-      date: toIsoDate(event.date),
+      date: toIsoDate(event.date ?? ''),
       title:
         isPass && promotionLabel !== 'Promotion'
-          ? `${promotionLabel} — ${event.name}`
-          : `${isPass ? 'Passed' : 'Attempted'} ${event.name}`,
+          ? `${promotionLabel} — ${event.name ?? ''}`
+          : `${isPass ? 'Passed' : 'Attempted'} ${event.name ?? ''}`,
       description: [
         isPass && beltAwarded ? `Promoted to ${formatBeltLabel(beltAwarded)}` : '',
         result.grade ? `Grade ${result.grade}` : '',
@@ -390,7 +391,7 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
     achievements.push({
       id: `ach_${randomUUID()}`,
       type: `${typePrefix}-${resultValue}`,
-      date: toIsoDate(event.date),
+      date: toIsoDate(event.date ?? ''),
       title: outcomeTitle,
       description: [
         result.daysAttended ? `${result.daysAttended} day${result.daysAttended === 1 ? '' : 's'} attended` : '',
@@ -410,9 +411,9 @@ function buildStandaloneEventAchievements(event: EventRecord, result: EventResul
     achievements.push({
       id: `ach_${randomUUID()}`,
       type: 'special-award',
-      date: toIsoDate(event.date),
-      title: `${specialAward} — ${event.name}`,
-      description: result.notes || `${formatEventTypeLabel(event.type)} recognition`,
+      date: toIsoDate(event.date ?? ''),
+      title: `${specialAward} — ${event.name ?? ''}`,
+      description: result.notes || `${formatEventTypeLabel(event.type ?? '')} recognition`,
       pointsAwarded: 150,
       awardReason: specialAward,
       awardedBy: result.examiner || event.hostingBranch || 'SKF Karate',
@@ -489,6 +490,8 @@ async function syncAchievementsForSource(
     if (existingSerialized === mergedSerialized && currentBelt === athlete.currentBelt) {
       continue
     }
+
+    if (!athlete.id) continue
 
     await updateAthleteLive(athlete.id, {
       achievements: mergedAchievements,
@@ -599,7 +602,7 @@ export async function syncTournamentResultsToAthletes(tournament: EventRecord) {
         bucket.push({
           id: `ach_${randomUUID()}`,
           type: 'special-award',
-          date: toIsoDate(tournament.date),
+          date: toIsoDate(tournament.date ?? ''),
           title: `${specialAward} — ${tournament.name}`,
           description: entry.notes || `${formatTournamentLevel(tournament.level || '')} tournament recognition`,
           pointsAwarded: 150,

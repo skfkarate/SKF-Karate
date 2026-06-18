@@ -1,6 +1,12 @@
 import Image from 'next/image'
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa'
 
+type GalleryPhoto = {
+  src: string
+  title: string
+  cat: string
+}
+
 export default function GalleryLightbox({
   closeLightbox,
   currentPhoto,
@@ -8,6 +14,13 @@ export default function GalleryLightbox({
   goNext,
   goPrev,
   lightboxIdx,
+}: {
+  closeLightbox: () => void
+  currentPhoto: GalleryPhoto | null
+  displayedPhotos: GalleryPhoto[]
+  goNext: () => void
+  goPrev: () => void
+  lightboxIdx: number
 }) {
   if (!currentPhoto) return null
 

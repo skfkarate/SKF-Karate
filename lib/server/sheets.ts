@@ -1,7 +1,7 @@
 import { google } from 'googleapis'
 import { unstable_cache } from 'next/cache'
 import type { 
-  Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement, Belt
+  Student, FeeRow, VideoRow, TournamentResult, AttendanceRow, Announcement, Belt, Branch
 } from '@/types'
 import { logger } from '@/src/server/lib/logger'
 
@@ -306,19 +306,19 @@ export const getAllStudents = cacheRead(async (): Promise<Student[]> => {
     const { getAllAthletesLive } = await import('@/lib/server/repositories/athletes-live')
     const athletes = (await getAllAthletesLive()) as LiveAthlete[]
     return athletes.map((athlete) => ({
-      skfId: athlete.skfId,
-      name: `${athlete.firstName} ${athlete.lastName}`.trim(),
-      branch: athlete.branchName || 'M P Sports Club',
+      skfId: athlete.skfId ?? '',
+      name: `${athlete.firstName ?? ''} ${athlete.lastName ?? ''}`.trim(),
+      branch: (athlete.branchName || 'M P Sports Club') as Branch,
       batch: athlete.batch || 'Evening',
       belt: (athlete.currentBelt || 'white') as Belt,
       parentName: athlete.parentName || '',
       phone: athlete.phone || '',
-      status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+      status: athlete.status === 'active' ? 'Active' as const : 'Inactive' as const,
       enrolledDate: athlete.joinDate || '',
-      monthlyFee: Number(athlete.monthlyFee || 0),
-      photoConsent: athlete.photoConsent ?? true,
-      dob: athlete.dateOfBirth || undefined,
-    }))
+      monthlyFee: athlete.monthlyFee ? Number(athlete.monthlyFee) : 1500,
+      photoConsent: athlete.photoConsent !== false,
+      dob: athlete.dateOfBirth,
+    })) as Student[]
   }
 }, ['getAllStudents'], 60)
 
@@ -349,19 +349,19 @@ export const getStudentsByBranch = cacheRead(async (branch: string): Promise<Stu
     return athletes
       .filter((athlete) => athlete.branchName === branch)
       .map((athlete) => ({
-        skfId: athlete.skfId,
-        name: `${athlete.firstName} ${athlete.lastName}`.trim(),
-        branch: athlete.branchName || '',
+        skfId: athlete.skfId ?? '',
+        name: `${athlete.firstName ?? ''} ${athlete.lastName ?? ''}`.trim(),
+        branch: (athlete.branchName || '') as Branch,
         batch: athlete.batch || 'Evening',
         belt: (athlete.currentBelt || 'white') as Belt,
         parentName: athlete.parentName || '',
         phone: athlete.phone || '',
-        status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+        status: athlete.status === 'inactive' ? 'Inactive' as const : 'Active' as const,
         enrolledDate: athlete.joinDate || '',
         monthlyFee: Number(athlete.monthlyFee || 0),
         photoConsent: athlete.photoConsent ?? true,
         dob: athlete.dateOfBirth || undefined,
-      }))
+      })) as Student[]
   }
 }, ['getStudentsByBranch'], 60)
 
@@ -394,19 +394,19 @@ export const getStudentsByPhone = cacheRead(async (phone: string): Promise<Stude
     return athletes
       .filter((athlete) => athlete.phone === phone)
       .map((athlete) => ({
-        skfId: athlete.skfId,
-        name: `${athlete.firstName} ${athlete.lastName}`.trim(),
-        branch: athlete.branchName || '',
+        skfId: athlete.skfId ?? '',
+        name: `${athlete.firstName ?? ''} ${athlete.lastName ?? ''}`.trim(),
+        branch: (athlete.branchName || '') as Branch,
         batch: athlete.batch || 'Evening',
         belt: (athlete.currentBelt || 'white') as Belt,
         parentName: athlete.parentName || '',
         phone: athlete.phone || '',
-        status: athlete.status === 'inactive' ? 'Inactive' : 'Active',
+        status: athlete.status === 'inactive' ? 'Inactive' as const : 'Active' as const,
         enrolledDate: athlete.joinDate || '',
         monthlyFee: Number(athlete.monthlyFee || 0),
         photoConsent: athlete.photoConsent ?? true,
         dob: athlete.dateOfBirth || undefined,
-      }))
+      })) as Student[]
   }
 }, ['getStudentsByPhone'], 60)
 

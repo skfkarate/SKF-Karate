@@ -11,17 +11,29 @@ const levelOptions = [
   { value: 'international', label: 'International' },
 ]
 
-export default function TournamentFilters({ filters, availableYears, totalCount, filteredCount, onChange }) {
-  const handleLevelChange = (level) => {
+type TournamentFiltersFilters = {
+  level: string
+  year: number | string
+  search: string
+}
+
+export default function TournamentFilters({ filters, availableYears, totalCount, filteredCount, onChange }: {
+  filters: TournamentFiltersFilters
+  availableYears: number[]
+  totalCount: number
+  filteredCount: number
+  onChange: (filters: TournamentFiltersFilters) => void
+}) {
+  const handleLevelChange = (level: string) => {
     onChange({ ...filters, level })
   }
 
-  const handleYearChange = (e) => {
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value
     onChange({ ...filters, year: val === 'all' ? 'all' : Number(val) })
   }
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...filters, search: e.target.value })
   }
 

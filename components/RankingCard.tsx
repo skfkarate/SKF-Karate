@@ -247,7 +247,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
   }
 
   const { athleteInfo, categories, totalG, totalS, totalB } = props
-  const primary = categories.find((category) => category.isPrimary) || categories[0]
+  const primary = categories?.find((category) => category.isPrimary) || categories?.[0] || { name: 'Unranked', rank: null, points: 0, honours: [] }
   const totalMedals = totalG + totalS + totalB
 
   return (
@@ -394,7 +394,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               {primary?.rank ? `#${primary.rank}` : '—'}
             </h3>
             <div style={{ marginTop: 'auto', paddingTop: '25px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ color: '#fff', fontSize: '32px', fontWeight: 800 }}>{primary?.points != null ? Number(primary.points).toLocaleString() : '0'}</span>
+              <span style={{ color: '#fff', fontSize: '32px', fontWeight: 800 }}>{primary?.points != null ? Number(primary.points).toLocaleString('en-IN') : '0'}</span>
               <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '16px', marginLeft: '10px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Points</span>
             </div>
           </div>

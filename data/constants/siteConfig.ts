@@ -106,7 +106,7 @@ export function buildOrgJsonLd() {
       addressRegion: SITE_CONFIG.STATE,
       addressCountry: SITE_CONFIG.COUNTRY,
     },
-    areaServed: ['Bangalore', 'Kunigal', 'Tumkur', 'Udupi'],
+    areaServed: ['Bangalore', 'Kunigal'],
     sameAs: SOCIAL_LINKS_LIST,
   }
 }

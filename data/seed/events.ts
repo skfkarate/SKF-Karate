@@ -29,14 +29,26 @@ export interface SeedEvent {
 
 export const events: SeedEvent[] = [
   {
-    id: 'evt_kyu_grading_june_2026', slug: 'kyu-belt-grading-june-2026',
-    name: 'Kyu Belt Grading Examination', shortName: 'Kyu Grading',
-    type: "grading", status: "upcoming", date: '2026-06-07', endDate: '',
-    venue: 'MP Sports Club', city: 'Bangalore', state: 'Karnataka',
-    description: 'The first belt grading examination of the season. Exact dates in June will be finalized and announced shortly.',
+    id: 'evt_kyu_grading_june_2026', slug: 'kyu-belt-examination-mpsc-june-2026',
+    name: 'Kyu Belt Examination - M P Sports Club', shortName: 'Kyu Belt Exam - MPSC',
+    type: "grading", status: "upcoming", date: '2026-06-28', endDate: '',
+    venue: 'M P Sports Club', city: 'Bengaluru', state: 'Karnataka',
+    description: 'Kyu belt examination for eligible M P Sports Club students who have completed the required training period.',
     coverImageUrl: '', affiliatedBody: '',
     isPublished: true, isFeatured: false, isResultsPublished: false,
-    hostingBranch: 'MP Sports Club', createdAt: '2026-05-13T00:00:00Z', updatedAt: '2026-05-13T00:00:00Z',
+    showInJourney: true,
+    hostingBranch: 'M P Sports Club', createdAt: '2026-05-13T00:00:00Z', updatedAt: '2026-06-17T00:00:00Z',
+  },
+  {
+    id: 'evt_kyu_grading_herohalli_june_2026', slug: 'kyu-belt-examination-herohalli-june-2026',
+    name: 'Kyu Belt Examination - Herohalli', shortName: 'Kyu Belt Exam - Herohalli',
+    type: "grading", status: "upcoming", date: '2026-06-28', endDate: '',
+    venue: 'Herohalli', city: 'Bengaluru', state: 'Karnataka',
+    description: 'Kyu belt examination for eligible Herohalli students who have completed the required training period.',
+    coverImageUrl: '', affiliatedBody: '',
+    isPublished: true, isFeatured: false, isResultsPublished: false,
+    showInJourney: true,
+    hostingBranch: 'Herohalli', createdAt: '2026-06-17T00:00:00Z', updatedAt: '2026-06-17T00:00:00Z',
   },
   {
     id: 'evt_summer_camp_2026', slug: 'summer-camp-2026',
@@ -101,7 +113,7 @@ export const events: SeedEvent[] = [
   {
     id: 'evt_belt_exam_2027', slug: 'belt-examination-2027',
     name: 'Belt Examination 2027', shortName: 'Belt Exam 2027',
-    type: "belt-exam", status: "upcoming", date: '2027-03-15', endDate: '',
+    type: "grading", status: "upcoming", date: '2027-03-15', endDate: '',
     venue: 'M P Sports Club', city: 'Bengaluru', state: 'Karnataka',
     description: 'Physical Education Leadership Training practical examination for all instructor-track candidates.',
     coverImageUrl: '', affiliatedBody: '',

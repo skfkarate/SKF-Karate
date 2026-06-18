@@ -38,7 +38,7 @@ type AthleteSearchResponse = {
   athletes?: AthleteSearchResult[]
 }
 
-function getBeltDisplay(belt: string) {
+function getBeltDisplay(belt: string | undefined) {
   if (!belt) return { label: 'White', color: '#f5f5f5' }
   const lower = belt.toLowerCase()
   const color = BELT_COLORS[lower] || '#f5f5f5'

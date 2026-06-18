@@ -193,19 +193,26 @@ export function calculateShippingFee(subtotal: number, actor: ShopCheckoutActor)
   return 0
 }
 
+const PROMO_CODES: Record<string, number> = {
+  SKF10: 0.1,
+}
+
+export const ALLOWED_PROMO_CODES = new Set(Object.keys(PROMO_CODES))
+
 export function calculatePromoDiscount(
   subtotal: number,
   promoCode?: string | null
 ): { promoCode: string | null; promoDiscount: number } {
   const normalizedPromoCode = String(promoCode || '').trim().toUpperCase()
 
-  if (normalizedPromoCode !== 'SKF10') {
+  const discountRate = PROMO_CODES[normalizedPromoCode]
+  if (!discountRate) {
     return { promoCode: null, promoDiscount: 0 }
   }
 
   return {
     promoCode: normalizedPromoCode,
-    promoDiscount: normalizeCurrencyAmount(subtotal * 0.1),
+    promoDiscount: normalizeCurrencyAmount(subtotal * discountRate),
   }
 }
 

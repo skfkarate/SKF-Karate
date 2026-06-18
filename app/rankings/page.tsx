@@ -34,7 +34,8 @@ export default async function RankingsPage() {
     publicActiveAthleteIds.has(String(entry.athleteId))
   )
   const snapshots = await hydrateRankingMovementsLive(visibleSnapshots)
-  const boards = buildRankingBoards(snapshots)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const boards = buildRankingBoards(snapshots as any[])
   const dojos = [...new Set(snapshots.map((s) => s.branchName).filter(Boolean))].sort()
 
   // Check if any athletes have tournament points
@@ -158,7 +159,8 @@ export default async function RankingsPage() {
 
       {/* ═══ LEADERBOARD ═══ */}
       <section className="rk-board-section">
-        <RankingDashboard boards={boards} dojos={dojos} totalRanked={snapshots.length} hasAnyTournamentPoints={hasAnyTournamentPoints} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <RankingDashboard boards={boards as any} dojos={dojos} totalRanked={snapshots.length} hasAnyTournamentPoints={hasAnyTournamentPoints} />
       </section>
     </div>
   )

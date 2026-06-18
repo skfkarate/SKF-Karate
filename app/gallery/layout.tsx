@@ -6,7 +6,7 @@ export const metadata = buildSeoMetadata(
   'Browse SKF Karate gallery photos from dojo training, kata practice, kumite tournaments, belt exams, camps, demonstrations, and student events in India.'
 )
 
-export default function GalleryLayout({ children }) {
+export default function GalleryLayout({ children }: { children: React.ReactNode }) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Gallery', '/gallery')
 
   return (

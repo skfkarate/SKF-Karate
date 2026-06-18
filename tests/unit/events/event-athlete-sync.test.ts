@@ -268,10 +268,10 @@ describe('event-athlete-sync', () => {
     expect(athleteRepositoryMocks.updateAthleteLive).toHaveBeenCalledTimes(2)
 
     const firstCall = athleteRepositoryMocks.updateAthleteLive.mock.calls.find(
-      ([athleteId]: [string]) => athleteId === 'ath_4'
+      ([athleteId]: unknown[]) => (athleteId as string) === 'ath_4'
     )
     const secondCall = athleteRepositoryMocks.updateAthleteLive.mock.calls.find(
-      ([athleteId]: [string]) => athleteId === 'ath_5'
+      ([athleteId]: unknown[]) => (athleteId as string) === 'ath_5'
     )
 
     expect(firstCall?.[1]).toEqual(

@@ -19,7 +19,7 @@ import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
 import { sendFeeTrackPushNotification } from '@/src/server/services/feetrack-push.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
-import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
+import { sendTelegramMessage } from '@/src/server/services/telegram.service'
 
 export const POST = withRoute(
   { rateLimit: { tier: 'write' } },
@@ -59,45 +59,23 @@ export const POST = withRoute(
 
     try {
       const message = [
-        'New shop order',
+        '🔔 *New Shop Order in FeeTrack*',
         '',
-        `Order ID: ${orderId}`,
-        `Customer: ${address.fullName}`,
-        `Phone: ${address.phone || 'N/A'}`,
-        `Student: ${address.studentName ? `${address.studentName} (Age: ${address.age || 'N/A'})` : 'Athlete Profile Linked'}`,
-        `Amount: ₹${preparedOrder.total.toLocaleString('en-IN')}`,
-        `Items: ${preparedOrder.items.map((item) => `${item.quantity}x ${item.name} (${item.size})`).join(', ')}`,
+        `*Customer:* ${address.fullName}`,
+        `*Amount:* ₹${preparedOrder.total.toLocaleString('en-IN')}`,
+        `*Items:* ${preparedOrder.items.length} item${preparedOrder.items.length === 1 ? '' : 's'}`,
+        '',
+        `Open FeeTrack > Shop to fulfill`,
       ].join('\n')
 
-      if (payload.paymentProofBase64) {
-        const base64Data = payload.paymentProofBase64.split(';base64,').pop()
-        if (base64Data) {
-          const buffer = Buffer.from(base64Data, 'base64')
-          const result = await sendTelegramPhoto({
-            channel: 'orders',
-            caption: message,
-            photo: new Blob([buffer]),
-            filename: payload.paymentProofName || 'screenshot.jpg',
-          })
-          if (!result.ok) {
-            logger.warn('shop.order.telegram_failed', {
-              orderId,
-              status: result.status,
-              skipped: result.skipped,
-              error: result.error,
-            })
-          }
-        }
-      } else {
-        const result = await sendTelegramMessage({ channel: 'orders', text: message })
-        if (!result.ok) {
-          logger.warn('shop.order.telegram_failed', {
-            orderId,
-            status: result.status,
-            skipped: result.skipped,
-            error: result.error,
-          })
-        }
+      const result = await sendTelegramMessage({ channel: 'orders', text: message, parseMode: 'Markdown' })
+      if (!result.ok) {
+        logger.warn('shop.order.telegram_failed', {
+          orderId,
+          status: result.status,
+          skipped: result.skipped,
+          error: result.error,
+        })
       }
     } catch (error) {
       logger.warn('shop.order.telegram_failed', { orderId, error })
@@ -267,8 +245,8 @@ function createPickupAddress(actor: ShopCheckoutActor): ShopOrderAddress {
 
 function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAddress {
   const parsedAddress = shopOrderAddressSchema.parse(address)
-  const parentName = parsedAddress.parentName || parsedAddress.fullName
-  const studentName = parsedAddress.studentName
+  const parentName = parsedAddress.parentName || parsedAddress.fullName || undefined
+  const studentName = parsedAddress.studentName ?? undefined
   const age = parsedAddress.age
   const phone = parsedAddress.phone
 
@@ -278,10 +256,10 @@ function createCampPickupAddress(address: ShopOrderBody['address']): ShopOrderAd
 
   return {
     ...parsedAddress,
-    fullName: parentName,
+    fullName: parentName || 'SKF Guest',
     parentName,
     studentName,
-    age,
+    age: age ?? undefined,
     phone,
     addressLine1: 'SKF FREE TRAINING CAMP PICKUP',
     addressLine2: [

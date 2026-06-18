@@ -185,7 +185,7 @@ function createAssignmentMapFromStaticBranches() {
       const key = normalizePersonKey(branch.sensei)
       if (!key || key === 'to be updated') continue
 
-      const bucket = assignments.get(key) || []
+      const bucket: SenseiBranchAssignment[] = assignments.get(key) || []
       bucket.push({
         citySlug: city.slug,
         cityName: city.name,
@@ -712,7 +712,7 @@ export async function syncStaticSenseisToLive(options: { replace?: boolean } = {
             updated_at: new Date().toISOString(),
           }
         })
-        .filter(Boolean)
+        .filter(<T>(item: T | null): item is T => item !== null)
     )
 
   if (branchUpdates.length > 0) {

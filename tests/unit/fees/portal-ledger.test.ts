@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
     status: 'active',
   },
   billingProfile: null as Record<string, unknown> | null,
+  feeCredits: [] as Array<Record<string, unknown>>,
   feeRows: [] as Array<Record<string, unknown>>,
   ensureFeeRowsForStudent: vi.fn(),
   getFeesBySkfIdLive: vi.fn(),
@@ -69,6 +70,21 @@ function monthlyFeeRow(month: string, status: string, amount = 1000) {
 
 function setupSupabaseMock() {
   state.supabaseFrom.mockImplementation((table: string) => {
+    if (table === 'fee_credits') {
+      return {
+        select: () => ({
+          eq: () => ({
+            in: () => ({
+              order: async () => ({
+                data: state.feeCredits,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      }
+    }
+
     if (table !== 'student_billing_profiles') {
       throw new Error(`Unexpected table ${table}`)
     }
@@ -91,6 +107,7 @@ describe('portal fee ledger', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-05-20T00:00:00.000Z'))
     state.billingProfile = null
+    state.feeCredits = []
     state.feeRows = []
     state.ensureFeeRowsForStudent.mockReset()
     state.ensureFeeRowsForStudent.mockResolvedValue({ created: 0, updated: 0 })

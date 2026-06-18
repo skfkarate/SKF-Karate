@@ -195,6 +195,7 @@ export interface Athlete {
   pointsHistory: PointsHistoryEntry[]
   parentName?: string
   phone?: string
+  attendanceRate?: number
   createdAt: string
   updatedAt: string
 }
@@ -210,6 +211,20 @@ export interface Achievement {
   filter: string
   meta?: string[]
   beltEarned?: string
+  competitionResult?: string
+  result?: string
+  tournamentName?: string
+  sourceEventSlug?: string
+  eventCategory?: string
+  location?: string
+  description?: string
+  awardReason?: string
+  awardedBy?: string
+  ageGroup?: string
+  weightCategory?: string | null
+  difficultyLevel?: number | null
+  wins?: number | null
+  sourceEventId?: string
 }
 
 export interface PointsHistoryEntry {

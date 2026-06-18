@@ -12,8 +12,7 @@ export const TOURNAMENT_LEVELS = ['inter-dojo', 'district', 'state', 'national',
 /** @type {readonly [1, 2, 3, 4, 5]} */
 export const TOURNAMENT_DIFFICULTY_LEVELS = [1, 2, 3, 4, 5]
 
-/** @type {Record<string, string>} */
-export const TOURNAMENT_LEVEL_LABELS = {
+export const TOURNAMENT_LEVEL_LABELS: Record<string, string> = {
   'inter-dojo': 'Inter-Dojo',
   'district': 'District',
   'state': 'State',
@@ -24,8 +23,7 @@ export const TOURNAMENT_LEVEL_LABELS = {
 /** @type {readonly ['kata-individual', 'kata-team', 'kumite-individual', 'kumite-team', 'mixed']} */
 export const EVENT_CATEGORIES = ['kata-individual', 'kata-team', 'kumite-individual', 'kumite-team', 'mixed']
 
-/** @type {Record<string, string>} */
-export const EVENT_CATEGORY_LABELS = {
+export const EVENT_CATEGORY_LABELS: Record<string, string> = {
   'kata-individual': 'Kata Individual',
   'kata-team': 'Kata Team',
   'kumite-individual': 'Kumite Individual',
@@ -36,8 +34,7 @@ export const EVENT_CATEGORY_LABELS = {
 /** @type {readonly ['sub-junior', 'junior', 'senior', 'open']} */
 export const AGE_GROUPS = ['sub-junior', 'junior', 'senior', 'open']
 
-/** @type {Record<string, string>} */
-export const AGE_GROUP_LABELS = {
+export const AGE_GROUP_LABELS: Record<string, string> = {
   'sub-junior': 'Sub-Junior (U14)',
   'junior': 'Junior (14–17)',
   'senior': 'Senior (18+)',

@@ -11,5 +11,11 @@ export default async function FeesPage() {
   // It handles customized/decremented fees per student securely.
   const ledgerData = await FeeLedgerService.getPortalLedger(session.skfId!)
 
-  return <FeesClient feeRecords={ledgerData.entries} />
+  return (
+    <FeesClient
+      feeRecords={ledgerData.entries}
+      credits={ledgerData.credits}
+      athleteSkfId={session.skfId!}
+    />
+  )
 }
