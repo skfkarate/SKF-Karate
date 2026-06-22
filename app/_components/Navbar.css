@@ -458,6 +458,7 @@ nextjs-portal {
 /* ── Drawer footer ── */
 .drawer__footer {
     padding: 1rem 1.5rem 2rem;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     flex-direction: column;
@@ -573,15 +574,15 @@ nextjs-portal {
     }
 
     .nav__icon {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
     }
 
     .nav__hamburger {
-        width: 36px;
-        height: 36px;
-        font-size: 0.9rem;
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
     }
 
     /* Mobile sticky CTA */

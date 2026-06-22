@@ -13,12 +13,18 @@ export const pushSubscriptionSchema: EntitySchema = {
   rls: true,
   fields: {
     id:           { type: 'uuid',   supabaseType: 'UUID',        required: true,  default: 'gen_random_uuid()' },
-    skf_id:       { type: 'string', supabaseType: 'TEXT',        required: true,  unique: true },
+    skf_id:       { type: 'string', supabaseType: 'TEXT',        required: false },
     branch:       { type: 'string', supabaseType: 'TEXT',        required: false },
     subscription: { type: 'json',   supabaseType: 'JSONB',       required: true,  description: 'PushSubscription object from browser Push API' },
+    endpoint:     { type: 'string', supabaseType: 'TEXT',        required: false, description: 'Push endpoint URL, unique for staff subscriptions' },
+    audience:     { type: 'string', supabaseType: 'TEXT',        required: true,  default: "'student'", description: "'student' or 'feetrack_staff'" },
+    staff_id:     { type: 'string', supabaseType: 'TEXT',        required: false },
+    user_agent:   { type: 'string', supabaseType: 'TEXT',        required: false },
+    last_seen_at: { type: 'date',   supabaseType: 'TIMESTAMPTZ', required: false },
     created_at:   { type: 'date',   supabaseType: 'TIMESTAMPTZ', required: false, default: 'NOW()' },
+    updated_at:   { type: 'date',   supabaseType: 'TIMESTAMPTZ', required: true,  default: 'NOW()' },
   },
-  notes: 'Future feature placeholder. UNIQUE on skf_id.',
+  notes: 'Unique index on endpoint (partial, WHERE endpoint IS NOT NULL). Supports both student and staff push subscriptions.',
 }
 
 /**

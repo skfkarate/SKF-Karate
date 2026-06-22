@@ -97,6 +97,7 @@ body {
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .skip-to-content {
@@ -846,8 +847,71 @@ nextjs-portal,
         right: 1.5rem;
     }
 }
-/* Force CSS reload */
+/* ============================================================
+   MOBILE UTILITY CLASSES
+   ============================================================ */
+@media (max-width: 767px) {
+  .hide-on-mobile { display: none !important; }
+  .show-on-mobile { display: inline !important; }
+}
+@media (min-width: 768px) {
+  .show-on-mobile { display: none !important; }
+}
+@media (max-width: 480px) {
+  .hide-on-xs { display: none !important; }
+}
+@media (min-width: 481px) {
+  .hide-on-xs { display: inline !important; }
+}
 
+/* ============================================================
+   TOUCH FEEDBACK — active states for all interactive elements
+   ============================================================ */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active,
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-outline:active { transform: scale(0.97); }
+
+  a:active,
+  [role="button"]:active,
+  button:active { opacity: 0.7; }
+
+  .nav__link:active { opacity: 0.6; }
+  .nav__icon:active,
+  .nav__hamburger:active { opacity: 0.6; transform: scale(0.92); }
+
+  .contact-glass-pane:active { transform: scale(0.98); }
+  .contact-location-card:active { transform: scale(0.98); }
+  .contact-faq-item:active { border-color: rgba(255,183,3,0.4); }
+  .contact-cta-btn:active { transform: scale(0.97); }
+  .contact-success .btn:active { transform: scale(0.97); }
+
+  .glass-card:active { transform: scale(0.98); }
+
+  .obs-btn-primary:active,
+  .obs-btn-outline:active { transform: scale(0.97); }
+
+  .ev-filter:active { transform: scale(0.95); }
+  .ev-card:active { transform: scale(0.98); }
+
+  .gal-lightbox__close:active,
+  .gal-lightbox__nav--prev:active,
+  .gal-lightbox__nav--next:active { opacity: 0.6; transform: scale(0.92); }
+
+  .adm-btn-next:active,
+  .adm-btn-back:active { transform: scale(0.97); }
+  .adm-intro__btn:active { transform: scale(0.97); }
+
+  .shop-filter-row .shop-filter-tab:active,
+  .shop-filter-row .obsidian-filter-tab:active { transform: scale(0.95); }
+  .shop-card:active { transform: scale(0.98); }
+
+  .wa-floating-btn:active { transform: scale(0.95); }
+}
+
+/* Force CSS reload */
+ 
 /* ============================================================
    IOS SAFARI ZOOM PREVENTION & MOBILE RESPONSIVENESS
    ============================================================ */

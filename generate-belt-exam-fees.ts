@@ -106,8 +106,9 @@ async function generateExistingBeltExamFees() {
   if (!beltEventsError && beltEvents?.length) {
     console.log(`Found ${beltEvents.length} potential belt exam events:`)
     for (const ev of beltEvents) {
-      const participantCount = Array.isArray((ev as any).participants) ? (ev as any).participants.length : '?'
-      console.log(`  - ${ev.id}: ${ev.name || 'Unnamed'} (${ev.type || 'N/A'})`)
+      const participantsArr = (ev as Record<string, unknown>).participants
+      const pCount = Array.isArray(participantsArr) ? participantsArr.length : '?'
+      console.log(`  - ${ev.id}: ${ev.name || 'Unnamed'} [participants: ${pCount}]`)
     }
     console.log('')
   }
@@ -151,7 +152,8 @@ async function generateExistingBeltExamFees() {
   }
 
   // Create or update fee configs for belt exam events
-  const configuredEventIds = new Set((configs || []).map((c: any) => c.event_id))
+  const rawConfigs = (configs || []) as { event_id: string }[]
+  const configuredEventIds = new Set(rawConfigs.map((c) => c.event_id))
   let configsToUse = configs || []
 
   for (const event of examEvents) {

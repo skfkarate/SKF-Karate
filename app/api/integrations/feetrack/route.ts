@@ -129,6 +129,8 @@ type LedgerEntry = {
   sourceLabel?: string | null
   dueDate?: string | null
   metadata?: Record<string, unknown>
+  month?: string
+  year?: number
 }
 
 type FeeTrackAthlete = {
@@ -609,6 +611,9 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
     status: String(due.status || 'due'),
     receiptId: due.receiptId || null,
     dueDate: String(due.dueDate || ''),
+    month: due.month || '',
+    year: due.year || 0,
+    proofId: String(due.metadata?.latestProofId || '') || null,
   }))
   const monthStatus = statusToMonthStatus(status)
 

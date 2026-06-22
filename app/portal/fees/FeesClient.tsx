@@ -142,14 +142,6 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
   const selectedDueRecords = dueRecords.filter((fee) => selectedFeeKeys.has(fee.key))
   const selectedTotalDue = selectedDueRecords.reduce((sum, f) => sum + (Number(f.amount) || 0), 0)
 
-  // Get oldest due for display
-  const oldestDue = dueRecords.length > 0 ? dueRecords[dueRecords.length - 1] : null
-  const dueDateStr = oldestDue
-    ? oldestDue.dueDate
-      ? new Date(`${oldestDue.dueDate}T00:00:00`).toLocaleDateString('en-GB')
-      : `10 ${oldestDue.month.substring(0, 3)} ${oldestDue.year}`
-    : 'N/A'
-
   // Status booleans
   const isClear = totalDue === 0
   const hasPending = pendingRecords.length > 0

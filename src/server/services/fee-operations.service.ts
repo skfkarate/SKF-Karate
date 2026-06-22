@@ -1263,7 +1263,7 @@ async function notifyPaymentProofSubmitted(input: {
         photo: blob,
         filename: input.proofFilename || 'proof.png',
         caption: text,
-        timeoutMs: 3000,
+        timeoutMs: 15000,
       })
 
       if (photoResult.ok) return
@@ -1278,7 +1278,7 @@ async function notifyPaymentProofSubmitted(input: {
     const messageResult = await sendTelegramMessage({
       channel: 'fees',
       text,
-      timeoutMs: 3000,
+      timeoutMs: 10000,
     })
     if (!messageResult.ok) {
       logger.warn('fee.payment_proof_alert_failed', {
@@ -1294,7 +1294,7 @@ async function notifyPaymentProofSubmitted(input: {
       await sendTelegramMessage({
         channel: 'fees',
         text,
-        timeoutMs: 3000,
+        timeoutMs: 10000,
       })
     } catch (fallbackError) {
       logger.warn('fee.payment_proof_alert_fallback_failed', { error: fallbackError })

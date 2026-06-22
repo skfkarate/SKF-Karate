@@ -280,15 +280,10 @@ const CONTINUOUS_GOALS: (c: BBCandidate) => Task[] = (c) => [
 
 function getCurrentMonth(start: string | null): number {
   if (!start) return 1
-  // Month 1 = June (the first month with tasks), regardless of when program_start is.
-  // MONTHS array: June=1, July=2, August=3, September=4, October=5
   const s = new Date(start)
   const now = new Date()
-  // Calculate the first June on or after program_start
-  // If program started in May 2026, first task month (June) is month index 5 of 2026
   const firstJuneYear = s.getMonth() <= 5 ? s.getFullYear() : s.getFullYear() + 1
   const monthsSinceJune = (now.getFullYear() - firstJuneYear) * 12 + (now.getMonth() - 5)
-  // monthsSinceJune: 0 = June, 1 = July, etc.
   return Math.max(1, Math.min(5, monthsSinceJune + 1))
 }
 function getDaysUntil(d: string | null): number { return d ? Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)) : 0 }
@@ -375,13 +370,13 @@ function ReminderList({ title, tasks, icon: Icon }: { title: string, tasks: Task
 interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string }
 
 export default function BlackBeltClient({ program, candidates, currentSkfId }: Props) {
-  const curMonth = useMemo(() => getCurrentMonth(program?.program_start ?? null), [program])
-  
-  const [me, setMe] = useState(candidates.find(c => c.skf_id === currentSkfId))
-  const [activeMonth, setActiveMonth] = useState(curMonth)
+  const [curMonth] = useState(() => program ? getCurrentMonth(program.program_start ?? null) : 1)
+  const [daysLeft] = useState(() => program ? getDaysUntil(program.exam_date ?? null) : 0)
+
+  const [me] = useState(() => candidates.find(c => c.skf_id === currentSkfId))
+  const [activeMonth, setActiveMonth] = useState(() => Math.max(1, curMonth))
   const [activeTab, setActiveTab] = useState<'journey' | 'requirements' | 'examination'>('journey')
   
-  const daysLeft = useMemo(() => getDaysUntil(program?.exam_date ?? null), [program])
   const menteeCard = useMemo(() => getMenteeCardConfig(program), [program])
 
   if (!program) return (

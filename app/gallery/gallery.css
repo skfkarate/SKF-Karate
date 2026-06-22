@@ -550,9 +550,9 @@
     .gal-hero__title { font-size: 2.5rem; }
     .gal-hero__subtitle { font-size: 1.05rem; }
     .gal-lightbox { padding: 1rem; }
-    .gal-lightbox__close { top: 0; right: 0; width: 40px; height: 40px; }
+    .gal-lightbox__close { top: 0; right: 0; width: 44px; height: 44px; }
     .gal-lightbox__img-wrap { height: 65%; }
     .gal-lightbox__title { font-size: 1.1rem; }
-    .gal-lightbox__nav--prev { left: 0.25rem; }
-    .gal-lightbox__nav--next { right: 0.25rem; }
+    .gal-lightbox__nav--prev { left: 0.75rem; }
+    .gal-lightbox__nav--next { right: 0.75rem; }
 }

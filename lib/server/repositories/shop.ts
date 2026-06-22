@@ -7,6 +7,7 @@ import {
   normalizeShopProduct,
   normalizeShopProductVariant,
   normalizeWholeNumber,
+  RawShopProductVariant,
 } from '@/lib/shop/logic'
 import type {
   ShopCheckoutActor,
@@ -597,7 +598,7 @@ async function reserveInventoryFallback(items: ShopOrderItem[]): Promise<void> {
     }
 
     const variants = Array.isArray(data.variants)
-      ? data.variants.map((variant: unknown) => normalizeShopProductVariant(variant as any))
+      ? data.variants.map((variant: unknown) => normalizeShopProductVariant(variant as RawShopProductVariant))
       : []
     let inventoryChanged = false
 

@@ -32,6 +32,13 @@ export default function ContactPage() {
     const [status, setStatus] = useState<ContactStatus>('idle')
     const [errorMsg, setErrorMsg] = useState('')
     const [openFaq, setOpenFaq] = useState<number | null>(null)
+    const formCardRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (status === 'success' && formCardRef.current) {
+            formCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+    }, [status])
 
     const flushQueue = useCallback(async () => {
         try {
@@ -150,6 +157,7 @@ export default function ContactPage() {
 
             {/* MAIN CONTENT */}
             <div className="contact-grid">
+                <div ref={formCardRef}>
                 <ContactFormCard
                     emailRef={emailRef}
                     errorMsg={errorMsg}
@@ -161,6 +169,7 @@ export default function ContactPage() {
                     onSubmit={handleSubmit}
                     status={status}
                 />
+                </div>
                 <ContactInfoPanel />
             </div>
 

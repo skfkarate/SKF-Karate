@@ -730,9 +730,22 @@ export async function syncStaticClassesToLive(options: { replace?: boolean } = {
     const branchSlugs = branchRows.map((branch) => branch.slug)
     const schoolIds = schoolRows.map((school) => school.id)
 
-    await supabaseAdmin.from('class_schools').delete().not('id', 'in', `(${schoolIds.map((id) => `"${id}"`).join(',')})`)
-    await supabaseAdmin.from('class_branches').delete().not('slug', 'in', `(${branchSlugs.map((slug) => `"${slug}"`).join(',')})`)
-    await supabaseAdmin.from('class_cities').delete().not('slug', 'in', `(${citySlugs.map((slug) => `"${slug}"`).join(',')})`)
+    if (schoolIds.length > 0) {
+      const validSchoolIds = schoolIds.filter((id) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+      )
+      if (validSchoolIds.length > 0) {
+        await supabaseAdmin.from('class_schools').delete().not('id', 'in', `(${validSchoolIds.map((id) => `"${id}"`).join(',')})`)
+      }
+    }
+    if (branchSlugs.length > 0) {
+      const validBranchSlugs = branchSlugs.filter((s) => s.length > 0 && s.length < 200)
+      await supabaseAdmin.from('class_branches').delete().not('slug', 'in', `(${validBranchSlugs.map((s) => `"${s}"`).join(',')})`)
+    }
+    if (citySlugs.length > 0) {
+      const validCitySlugs = citySlugs.filter((s) => s.length > 0 && s.length < 200)
+      await supabaseAdmin.from('class_cities').delete().not('slug', 'in', `(${validCitySlugs.map((s) => `"${s}"`).join(',')})`)
+    }
   }
 
   return getAllCitiesLive()

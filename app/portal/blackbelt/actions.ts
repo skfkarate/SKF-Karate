@@ -83,7 +83,7 @@ export async function submitBBEnrollmentPayment(formData: FormData): Promise<Act
         filename: screenshot.name || 'proof.png',
         caption: text,
         parseMode: 'Markdown',
-        timeoutMs: 5000,
+        timeoutMs: 15000,
       })
     } catch {
       try {
