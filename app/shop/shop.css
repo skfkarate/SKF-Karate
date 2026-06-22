@@ -945,7 +945,7 @@
   .shop-filter-row .obsidian-filter-tab {
     font-size: clamp(0.52rem, 2.25vw, 0.68rem) !important;
     letter-spacing: 0.45px !important;
-    padding: 0.45rem 0 !important;
+    padding: 0.45rem 0.7rem !important;
   }
 
   .shop-cart-item {

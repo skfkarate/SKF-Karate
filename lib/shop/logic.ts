@@ -31,7 +31,7 @@ type RawShopProduct = Partial<Omit<ShopProduct, 'category' | 'images' | 'variant
   review_count?: unknown
 }
 
-type RawShopProductVariant = Partial<SeedProductVariant> & Partial<ShopProductVariant>
+export type RawShopProductVariant = Partial<SeedProductVariant> & Partial<ShopProductVariant>
 
 export function seedProductToShopProduct(seedProduct: SeedProduct): ShopProduct {
   const product = {

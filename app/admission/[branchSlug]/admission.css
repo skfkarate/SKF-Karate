@@ -1614,7 +1614,7 @@ textarea.adm-field__input {
   }
   
   .adm-header__back span {
-    display: none;
+    font-size: 0.7rem;
   }
 
   .adm-progress__text {

@@ -9,7 +9,9 @@ export default async function BlackBeltPage() {
   const { athlete } = await requirePortalAthlete()
   const data = await getBBProgramForPortal()
 
-  if (!data?.program || !data.candidates.some(c => normaliseSkfId(c.skf_id) === athlete.skfId)) {
+  const normalizedAthleteId = normaliseSkfId(athlete.skfId)
+
+  if (!data?.program || !data.candidates.some(c => normaliseSkfId(c.skf_id) === normalizedAthleteId)) {
     redirect('/portal/dashboard')
   }
 
@@ -18,7 +20,7 @@ export default async function BlackBeltPage() {
       program={data.program}
       candidates={data.candidates}
       progressMap={data.progressMap}
-      currentSkfId={athlete.skfId}
+      currentSkfId={normalizedAthleteId}
     />
   )
 }
