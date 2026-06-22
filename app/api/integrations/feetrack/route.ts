@@ -1100,7 +1100,7 @@ function financeFormulae() {
     collected: 'Verified monthly fees marked paid for the selected month.',
     monthlyFeeCash: 'Monthly fees collected minus referral credits applied.',
     grossIncome: 'Monthly fee cash + admission collected + dress profit + extra income + event income.',
-    developmentFundContribution: '30% of monthly/admission/dress/extra income. Event income is tracked separately.',
+    developmentFundContribution: '30% of monthly fee cash only. Admission, dress, extra income, and event income are excluded.',
     developmentFundBalance: 'Total development fund contributions minus development expenses.',
     availableBalance: 'Opening reserve + gross income - development expenses - event expenses through the selected month.',
     pending: 'Monthly fees still due or rejected. Submitted proofs awaiting verification stay in the action inbox until approved.',

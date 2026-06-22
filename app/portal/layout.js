@@ -3,7 +3,7 @@ import AthleteHubNav from '@/app/_components/portal/AthleteHubNav'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
 
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
-import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
+import { isBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
 export const metadata = buildNoIndexMetadata(
   '/portal',
@@ -16,7 +16,7 @@ export default async function PortalLayout({ children }) {
 
   try {
     portal = await getPortalAthleteFromCookies()
-    isBlackBeltCandidate = await isActiveBBCandidate(portal?.session?.skfId)
+    isBlackBeltCandidate = await isBBCandidate(portal?.session?.skfId)
   } catch {
     isBlackBeltCandidate = false
   }

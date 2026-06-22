@@ -1,7 +1,12 @@
 'use server'
 
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
+import {
+  getBBCandidateBySkfIdAcrossPrograms,
+  getBBProgramById,
+} from '@/lib/server/repositories/blackbelt-live'
 import { supabaseAdmin } from '@/lib/server/supabase'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import { sendTelegramMessage, sendTelegramPhoto } from '@/src/server/services/telegram.service'
 import { AppError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -19,28 +24,16 @@ export async function submitBBEnrollmentPayment(formData: FormData): Promise<Act
       return { success: false, message: 'Please log in again.' }
     }
 
-    const skfId = portal.session.skfId
+    const skfId = normaliseSkfId(portal.session.skfId)
 
-    const { data: program, error: progErr } = await supabaseAdmin
-      .from('bb_programs')
-      .select('*')
-      .eq('status', 'active')
-      .limit(1)
-      .maybeSingle()
-
-    if (progErr || !program) {
-      return { success: false, message: 'No active Black Belt program found.' }
+    const candidate = await getBBCandidateBySkfIdAcrossPrograms(skfId)
+    if (!candidate) {
+      return { success: false, message: 'Candidate not enrolled in this program.' }
     }
 
-    const { data: candidate, error: candErr } = await supabaseAdmin
-      .from('bb_candidates')
-      .select('*')
-      .eq('program_id', program.id)
-      .eq('skf_id', skfId)
-      .maybeSingle()
-
-    if (candErr || !candidate) {
-      return { success: false, message: 'Candidate not enrolled in this program.' }
+    const program = await getBBProgramById(candidate.program_id)
+    if (!program) {
+      return { success: false, message: 'Black Belt program not found.' }
     }
 
     const screenshot = formData.get('screenshot') as File | null
@@ -60,8 +53,7 @@ export async function submitBBEnrollmentPayment(formData: FormData): Promise<Act
     const { error: updateErr } = await supabaseAdmin
       .from('bb_candidates')
       .update({ enrollment_fee_status: 'verifying' })
-      .eq('program_id', program.id)
-      .eq('skf_id', skfId)
+      .eq('id', candidate.id)
 
     if (updateErr) {
       return { success: false, message: 'Failed to update payment status in database.' }

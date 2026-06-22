@@ -1772,9 +1772,8 @@ export class FeeOperationsService {
         const eventIncome = monthEntries
           .filter((entry) => ['belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType))
           .reduce((sum, entry) => sum + normalizeAmount(entry.amount), 0)
-        const coreGrossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome
-        const grossIncome = coreGrossIncome + eventIncome
-        const developmentAllocation = Math.round(Math.max(0, coreGrossIncome) * 0.3)
+        const grossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome + eventIncome
+        const developmentAllocation = Math.round(Math.max(0, monthlyCash) * 0.3)
         const developmentExpenses = sourceExpenses
           .filter((expense) => normalizeMonth(expense.month) === month)
           .reduce((sum, expense) => sum + normalizeAmount(expense.amount), 0)
@@ -3855,14 +3854,6 @@ export class FeeOperationsService {
       if (entry.feeType === 'monthly') {
         incomeByMonth.set(entry.month, (incomeByMonth.get(entry.month) || 0) + entry.amount)
         continue
-      }
-      if (entry.feeType === 'admission') {
-        incomeByMonth.set(entry.month, (incomeByMonth.get(entry.month) || 0) + entry.amount)
-        continue
-      }
-      if (entry.feeType === 'dress') {
-        const dressProfit = normalizeAmount(entry.amount) - metadataNumber(entry.metadata, 'dressCost')
-        incomeByMonth.set(entry.month, (incomeByMonth.get(entry.month) || 0) + dressProfit)
       }
     }
 

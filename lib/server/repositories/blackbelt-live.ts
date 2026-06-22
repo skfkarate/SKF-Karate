@@ -154,6 +154,24 @@ export async function getActiveBBProgram(): Promise<BBProgram | null> {
 }
 
 /**
+ * Get a program by ID regardless of status.
+ */
+export async function getBBProgramById(programId: string): Promise<BBProgram | null> {
+  const { data, error } = await supabaseAdmin
+    .from('bb_programs')
+    .select('*')
+    .eq('id', programId)
+    .maybeSingle()
+
+  if (error) {
+    logger.error('blackbelt_live.program_by_id_failed', { programId, error })
+    return null
+  }
+
+  return data as BBProgram | null
+}
+
+/**
  * Get all candidates for a program, ordered by sort_order.
  */
 export async function getAllBBCandidates(programId: string): Promise<BBCandidate[]> {
@@ -165,6 +183,23 @@ export async function getAllBBCandidates(programId: string): Promise<BBCandidate
 
   if (error) {
     logger.error('blackbelt_live.candidates_load_failed', { programId, error })
+    return []
+  }
+
+  return (data || []) as BBCandidate[]
+}
+
+/**
+ * Get all candidates across every program.
+ */
+export async function getAllBBCandidatesAcrossPrograms(): Promise<BBCandidate[]> {
+  const { data, error } = await supabaseAdmin
+    .from('bb_candidates')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    logger.error('blackbelt_live.all_candidates_load_failed', { error })
     return []
   }
 
@@ -194,24 +229,60 @@ export async function getBBCandidateBySkfId(
 }
 
 /**
- * True only when the athlete is assigned to the currently active Black Belt program.
- * Used by both the portal navigation and the route guard so visibility matches access.
+ * Get a specific candidate by their SKF ID across every program.
+ * Portal access is tied to the candidate enrollment row, not the program status.
  */
-export async function isActiveBBCandidate(skfId?: string | null): Promise<boolean> {
+export async function getBBCandidateBySkfIdAcrossPrograms(
+  skfId?: string | null
+): Promise<BBCandidate | null> {
   const raw = String(skfId || '').trim()
-  if (!raw) return false
-
-  const program = await getActiveBBProgram()
-  if (!program) return false
+  if (!raw) return null
 
   const normalizedAthleteId = normaliseSkfId(raw)
-  const candidate = await getBBCandidateBySkfId(program.id, normalizedAthleteId)
-  if (candidate) return true
 
-  // Fallback: normalize all candidate SKF IDs for comparison
-  const allCandidates = await getAllBBCandidates(program.id)
-  return allCandidates.some(c => normaliseSkfId(c.skf_id) === normalizedAthleteId)
+  const { data, error } = await supabaseAdmin
+    .from('bb_candidates')
+    .select('*')
+    .eq('skf_id', normalizedAthleteId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (error) {
+    logger.error('blackbelt_live.candidate_by_skf_id_any_program_failed', {
+      skfId: normalizedAthleteId,
+      error,
+    })
+    return null
+  }
+
+  if (data?.[0]) return data[0] as BBCandidate
+
+  // Fallback: normalize stored candidate IDs before comparison.
+  const allCandidates = await getAllBBCandidatesAcrossPrograms()
+  return (
+    allCandidates.find((candidate) => normaliseSkfId(candidate.skf_id) === normalizedAthleteId) ||
+    null
+  )
 }
+
+/**
+ * Get the program containing an assigned candidate, regardless of status.
+ */
+export async function getBBProgramForCandidate(skfId?: string | null): Promise<BBProgram | null> {
+  const candidate = await getBBCandidateBySkfIdAcrossPrograms(skfId)
+  if (!candidate?.program_id) return null
+  return getBBProgramById(candidate.program_id)
+}
+
+/**
+ * True when the athlete is assigned to any Black Belt program.
+ * Used by both the portal navigation and the route guard so visibility matches access.
+ */
+export async function isBBCandidate(skfId?: string | null): Promise<boolean> {
+  return Boolean(await getBBCandidateBySkfIdAcrossPrograms(skfId))
+}
+
+export const isActiveBBCandidate = isBBCandidate
 
 /**
  * Get progress entries for a candidate (public entries only).
@@ -244,8 +315,8 @@ export async function getBBCandidateProgress(
  * Full portal data bundle: program + all candidates + their public progress.
  * This is the single query used by the portal page.
  */
-export async function getBBProgramForPortal() {
-  const program = await getActiveBBProgram()
+export async function getBBProgramForPortal(skfId?: string | null) {
+  const program = (skfId ? await getBBProgramForCandidate(skfId) : null) || await getActiveBBProgram()
   if (!program) return null
 
   const candidates = await getAllBBCandidates(program.id)

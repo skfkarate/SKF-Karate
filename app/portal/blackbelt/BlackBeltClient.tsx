@@ -1,7 +1,8 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Trophy, Shield, Flame, Circle, Clock, Video, FileText, Upload, ArrowRight, GraduationCap, Heart, Megaphone, Target, BookOpen, ExternalLink, Map, BookMarked, CalendarDays, CheckCircle, CircleDashed, Phone, Users } from 'lucide-react'
 import type { BBProgram, BBCandidate, BBProgressEntry } from '@/lib/server/repositories/blackbelt-live'
+import { normaliseSkfId } from '@/lib/utils/registration'
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import { motion } from 'framer-motion'
 import './blackbelt.css'
@@ -21,7 +22,7 @@ const DRIVE_MAP: Record<string, string> = {
 
 function getDriveLink(skfId: string | undefined): string {
   if (!skfId) return 'https://drive.google.com'
-  return DRIVE_MAP[skfId] || 'https://drive.google.com'
+  return DRIVE_MAP[normaliseSkfId(skfId)] || 'https://drive.google.com'
 }
 
 type Mentee = { name: string; phone: string }
@@ -93,7 +94,7 @@ function getMenteeCardConfig(program: BBProgram | null): MenteeCardConfig {
 
 function getMentees(skfId: string | undefined, assignments: Record<string, Mentee[]>): Mentee[] {
   if (!skfId) return []
-  return assignments[skfId] || []
+  return assignments[skfId] || assignments[normaliseSkfId(skfId)] || []
 }
 
 function formatPhone(raw: string): string {
@@ -278,15 +279,14 @@ const CONTINUOUS_GOALS: (c: BBCandidate) => Task[] = (c) => [
   { key: 'cg_kug', label: 'Kumite Gold Medal 🏆', hint: c.tournament_kumite_event || 'Achieve gold in Kumite', status: c.tournament_kumite_status === 'won' ? 'done' : 'todo' },
 ]
 
-function getCurrentMonth(start: string | null): number {
+function getCurrentMonth(start: string | null, now: Date): number {
   if (!start) return 1
   const s = new Date(start)
-  const now = new Date()
   const firstJuneYear = s.getMonth() <= 5 ? s.getFullYear() : s.getFullYear() + 1
   const monthsSinceJune = (now.getFullYear() - firstJuneYear) * 12 + (now.getMonth() - 5)
   return Math.max(1, Math.min(5, monthsSinceJune + 1))
 }
-function getDaysUntil(d: string | null): number { return d ? Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)) : 0 }
+function getDaysUntil(d: string | null, now: Date): number { return d ? Math.max(0, Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000)) : 0 }
 
 /* ═══ Sub-components ═══ */
 function XPRing({ pct }: { pct: number }) {
@@ -367,14 +367,25 @@ function ReminderList({ title, tasks, icon: Icon }: { title: string, tasks: Task
 }
 
 /* ═══ MAIN ═══ */
-interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string }
+interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string; renderedAt: string }
 
-export default function BlackBeltClient({ program, candidates, currentSkfId }: Props) {
-  const [curMonth] = useState(() => program ? getCurrentMonth(program.program_start ?? null) : 1)
-  const [daysLeft] = useState(() => program ? getDaysUntil(program.exam_date ?? null) : 0)
-
-  const [me] = useState(() => candidates.find(c => c.skf_id === currentSkfId))
+export default function BlackBeltClient({ program, candidates, currentSkfId, renderedAt }: Props) {
+  const referenceDate = useMemo(() => new Date(renderedAt), [renderedAt])
+  const curMonth = useMemo(
+    () => program ? getCurrentMonth(program.program_start ?? null, referenceDate) : 1,
+    [program, referenceDate]
+  )
+  const daysLeft = useMemo(
+    () => program ? getDaysUntil(program.exam_date ?? null, referenceDate) : 0,
+    [program, referenceDate]
+  )
   const [activeMonth, setActiveMonth] = useState(() => Math.max(1, curMonth))
+
+  const normalizedCurrentSkfId = useMemo(() => normaliseSkfId(currentSkfId), [currentSkfId])
+  const me = useMemo(
+    () => candidates.find(c => normaliseSkfId(c.skf_id) === normalizedCurrentSkfId),
+    [candidates, normalizedCurrentSkfId]
+  )
   const [activeTab, setActiveTab] = useState<'journey' | 'requirements' | 'examination'>('journey')
   
   const menteeCard = useMemo(() => getMenteeCardConfig(program), [program])
