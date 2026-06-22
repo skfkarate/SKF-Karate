@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const athleteRepositoryMocks = vi.hoisted(() => ({
   getAllAthletesLive: vi.fn(),
   getAthleteBySkfIdLive: vi.fn(),
+  getAthletesByPhonesLive: vi.fn(),
 }))
 
 const analyticsMocks = vi.hoisted(() => ({
@@ -12,10 +13,24 @@ const analyticsMocks = vi.hoisted(() => ({
 vi.mock('@/lib/server/repositories/athletes-live', () => ({
   getAllAthletesLive: athleteRepositoryMocks.getAllAthletesLive,
   getAthleteBySkfIdLive: athleteRepositoryMocks.getAthleteBySkfIdLive,
+  getAthletesByPhonesLive: athleteRepositoryMocks.getAthletesByPhonesLive,
 }))
 
 vi.mock('@/lib/server/site-analytics', () => ({
   recordSiteAnalyticsEvent: analyticsMocks.recordSiteAnalyticsEvent,
+}))
+
+vi.mock('@/lib/server/supabase', () => ({
+  supabaseAdmin: {
+    from: vi.fn(() => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null, error: null }),
+          neq: async () => ({ data: [], error: null }),
+        }),
+      }),
+    })),
+  },
 }))
 
 import { verifyJWT } from '@/lib/server/auth/portal'
@@ -93,6 +108,13 @@ describe('portal profile auto-discovery switcher', () => {
     athleteRepositoryMocks.getAllAthletesLive.mockResolvedValue(athletes)
     athleteRepositoryMocks.getAthleteBySkfIdLive.mockImplementation(async (skfId: string) => {
       return athletes.find((item) => item.skfId === skfId) || null
+    })
+    athleteRepositoryMocks.getAthletesByPhonesLive.mockImplementation(async (phones: string[]) => {
+      const normalizedPhones = phones.map(phone => phone.replace(/\D/g, '').slice(-10)).filter(Boolean)
+      return athletes.filter((item) => {
+        const phone = String(item.phone || '').replace(/\D/g, '').slice(-10)
+        return phone && normalizedPhones.includes(phone)
+      })
     })
     analyticsMocks.recordSiteAnalyticsEvent.mockResolvedValue(undefined)
   })

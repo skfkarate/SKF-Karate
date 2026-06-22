@@ -7,7 +7,7 @@ import BlackBeltClient from './BlackBeltClient'
 
 export default async function BlackBeltPage() {
   const { athlete } = await requirePortalAthlete()
-  const data = await getBBProgramForPortal()
+  const data = await getBBProgramForPortal(athlete.skfId)
 
   const normalizedAthleteId = normaliseSkfId(athlete.skfId)
 
@@ -21,6 +21,7 @@ export default async function BlackBeltPage() {
       candidates={data.candidates}
       progressMap={data.progressMap}
       currentSkfId={normalizedAthleteId}
+      renderedAt={new Date().toISOString()}
     />
   )
 }

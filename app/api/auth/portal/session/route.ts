@@ -1,6 +1,6 @@
 import { withRoute } from '@/src/server/lib/route'
 import { logger } from '@/src/server/lib/logger'
-import { isActiveBBCandidate } from '@/lib/server/repositories/blackbelt-live'
+import { isBBCandidate } from '@/lib/server/repositories/blackbelt-live'
 
 export const GET = withRoute(
   {
@@ -17,7 +17,7 @@ export const GET = withRoute(
 
     let isBlackBeltCandidate = false
     try {
-      isBlackBeltCandidate = await isActiveBBCandidate(session.skfId)
+      isBlackBeltCandidate = await isBBCandidate(session.skfId)
     } catch (error) {
       logger.error('session.black_belt_check_failed', { skfId: session.skfId, error })
     }
