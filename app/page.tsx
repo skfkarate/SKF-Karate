@@ -11,7 +11,7 @@ export const metadata: Metadata = buildSeoMetadata(
 )
 
 export default function HomePage() {
-  preload('/videos/august-4th-poster.jpg', {
+  preload('/videos/august-4th-poster.webp', {
     as: 'image',
     fetchPriority: 'high',
   })

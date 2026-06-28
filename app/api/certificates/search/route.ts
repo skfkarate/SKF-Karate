@@ -5,10 +5,16 @@ import { certificateSearchQuerySchema } from '@/src/server/api/validators/certif
 import { NotFoundError } from '@/src/server/lib/errors'
 import { withRoute } from '@/src/server/lib/route'
 
+const CERTIFICATE_SELECT = 'skf_id, enrollment_id, verification_code, certificate_number'
+const CERTIFICATE_NUMBER_PATTERN = /^SKF-C-\d{6,}$/i
+const VERIFICATION_CODE_PATTERN = /^[a-f0-9]{32}$/i
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export const GET = withRoute(
   {
     querySchema: certificateSearchQuerySchema,
     rateLimit: { tier: 'certificateLookup' },
+    cacheControl: 'public, max-age=60',
   },
   async ({ query }) => {
   if (!isCertificatesEnabled()) {
@@ -16,13 +22,26 @@ export const GET = withRoute(
   }
 
   const id = query.id
+  const normalized = id.trim()
+  const upper = normalized.toUpperCase()
 
-  const { data, error } = await supabaseAdmin
+  let request = supabaseAdmin
     .from('certificates')
-    .select('skf_id, enrollment_id')
-    .or(`verification_code.eq.${id},enrollment_id.eq.${id}`)
+    .select(CERTIFICATE_SELECT)
+    .eq('status', 'issued')
     .limit(1)
-    .maybeSingle()
+
+  if (CERTIFICATE_NUMBER_PATTERN.test(normalized)) {
+    request = request.eq('certificate_number', upper)
+  } else if (VERIFICATION_CODE_PATTERN.test(normalized)) {
+    request = request.eq('verification_code', normalized.toLowerCase())
+  } else if (UUID_PATTERN.test(normalized)) {
+    request = request.eq('enrollment_id', normalized)
+  } else {
+    throw new NotFoundError('Certificate')
+  }
+
+  const { data, error } = await request.maybeSingle()
 
   if (error) {
     return NextResponse.json({ error: 'Certificate lookup failed' }, { status: 500 })
@@ -35,6 +54,8 @@ export const GET = withRoute(
   return NextResponse.json({
     skfId: data.skf_id,
     enrollmentId: data.enrollment_id,
+    verificationCode: data.verification_code,
+    certificateNumber: data.certificate_number,
   })
   }
 )

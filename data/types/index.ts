@@ -14,6 +14,17 @@ export type BeltLevel = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'purp
 export type FieldAlignment = 'left' | 'center' | 'right'
 export type DownloadFormat = 'pdf' | 'png'
 export type CertificateEventType = 'viewed' | 'downloaded_pdf' | 'downloaded_png' | 'verified' | 'shared'
+export type CertificateStatus = 'draft' | 'issued' | 'revoked'
+export type CertificateType =
+  | 'general'
+  | 'belt_exam'
+  | 'black_belt_exam'
+  | 'seminar'
+  | 'camp'
+  | 'special_program'
+  | 'tournament'
+  | 'participation'
+  | 'achievement'
 export type UserRole = 'student' | 'sensei' | 'branch_admin' | 'super_admin'
 export type Belt = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black'
 export type Branch = 'mp-sports-club' | 'herohalli' | 'kunigal-main' | 'tumkur-main' | 'udupi-main' | string
@@ -63,6 +74,7 @@ export interface Program {
   name: string
   type: ProgramType
   branch?: string | null
+  source_event_id?: string | null
   has_belt_subtypes: boolean
   is_active: boolean
   created_at: string
@@ -79,6 +91,7 @@ export interface TemplateFieldConfig {
   color: string
   align: FieldAlignment
   bold: boolean
+  maxWidth?: number
 }
 
 export interface CertificateTemplate {
@@ -124,6 +137,28 @@ export interface CertificateView {
   viewed_at: string
   downloaded_at: string | null
   download_format: DownloadFormat | null
+}
+
+export interface CertificateRecord {
+  enrollment_id: string
+  skf_id: string
+  program_id: string | null
+  issued_at: string
+  verification_code: string
+  certificate_serial: number | null
+  certificate_number: string | null
+  certificate_type: CertificateType | string
+  status: CertificateStatus
+  template_id: string | null
+  issued_snapshot: Record<string, unknown>
+  render_hash: string | null
+  pdf_storage_path: string | null
+  preview_storage_path: string | null
+  prepared_at: string | null
+  published_at: string | null
+  published_by: string | null
+  revoked_at: string | null
+  revoked_reason: string | null
 }
 
 export interface VideoProgress {

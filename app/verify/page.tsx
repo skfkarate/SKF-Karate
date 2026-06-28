@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ShieldCheck, Fingerprint, DatabaseBackup } from 'lucide-react'
-import { FaSpinner } from 'react-icons/fa'
-import { TbCertificate } from 'react-icons/tb'
+import { Award, DatabaseBackup, Fingerprint, LoaderCircle, Search, ShieldCheck } from 'lucide-react'
 import './verify.css'
 
 export default function CertificateSearchPage() {
@@ -13,19 +11,16 @@ export default function CertificateSearchPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
 
-    async function handleSearch(e: React.FormEvent) {
-        if (e) e.preventDefault()
+    async function handleSearch(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault()
         if (!query.trim()) return
 
         setIsLoading(true)
         setError('')
         
         try {
-            // Enforce a minimum scanning time of 1.5 seconds so the animation is always visible
-            const minDelay = new Promise(resolve => setTimeout(resolve, 1500))
             const apiReq = fetch(`/api/certificates/search?id=${encodeURIComponent(query.trim())}`)
-            
-            const [, res] = await Promise.all([minDelay, apiReq])
+            const res = await apiReq
             
             if (!res.ok) {
                 if (res.status === 404) {
@@ -36,11 +31,10 @@ export default function CertificateSearchPage() {
             }
             
             const data = await res.json()
-            if (data.skfId && data.enrollmentId) {
-                // Wait just an extra split second before shifting pages
-                setTimeout(() => {
-                    router.push(`/verify/${data.skfId}/${data.enrollmentId}`)
-                }, 300)
+            if (data.verificationCode) {
+                router.push(`/verify/c/${data.verificationCode}`)
+            } else if (data.skfId && data.enrollmentId) {
+                router.push(`/verify/${data.skfId}/${data.enrollmentId}`)
             } else {
                 throw new Error('Invalid certificate data from server')
             }
@@ -58,7 +52,7 @@ export default function CertificateSearchPage() {
                 {/* ═══════ HEADER ═══════ */}
                 <div className="verify-header">
                     <div className="verify-icon-wrapper">
-                        <TbCertificate className="verify-icon" />
+                        <Award className="verify-icon" aria-hidden="true" />
                     </div>
                     <h1 className="verify-title">
                         Certificate <span className="text-gradient">Verification</span>
@@ -81,7 +75,7 @@ export default function CertificateSearchPage() {
                             <Search className="verify-search-icon" size={24} />
                             <input 
                                 type="text" 
-                                placeholder="ex. CERT-9821, ach_3_4..."
+                                placeholder="ex. SKF-C-000001"
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 className="verify-input"
@@ -98,7 +92,7 @@ export default function CertificateSearchPage() {
                             <span className="btn-content">
                                 {isLoading ? (
                                     <>
-                                        <FaSpinner className="spin" /> Scanning...
+                                        <LoaderCircle className="spin" size={18} /> Scanning...
                                     </>
                                 ) : (
                                     'Authenticate'
@@ -116,7 +110,7 @@ export default function CertificateSearchPage() {
                         </div>
                         <div className="error-content">
                             <h3>{error}</h3>
-                            <p>Please double-check the ID from your physical document or email. Certificate IDs are case-sensitive.</p>
+                            <p>Please double-check the ID from your physical document or email. Certificate IDs are accepted in uppercase or lowercase.</p>
                         </div>
                     </div>
                 )}

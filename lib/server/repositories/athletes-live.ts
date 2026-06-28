@@ -113,6 +113,14 @@ function cloneAthleteData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+function canUseLocalAthleteFallback() {
+  return process.env.NODE_ENV !== 'production'
+}
+
+function unavailableAthleteDatabaseError() {
+  return new ApiError(503, 'Athlete database is not available.')
+}
+
 function normalizedText(value: unknown, fallback = '') {
   const normalized = String(value ?? '').trim()
   return normalized || fallback
@@ -316,6 +324,8 @@ export async function getAthletesByPhonesLive(phones: string[]): Promise<Athlete
   if (normalizedPhones.length === 0) return []
 
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
+
     const all = await getAthleteDataset()
     return all.filter(a => {
       const digits = String(a.phone || '').replace(/\D/g, '').slice(-10)
@@ -332,6 +342,8 @@ export async function getAthletesByPhonesLive(phones: string[]): Promise<Athlete
 
   if (error) {
     logger.warn('athletes_live.phone_query_failed', { error, filters })
+    if (!canUseLocalAthleteFallback()) throw error
+
     const all = await getAthleteDataset()
     return all.filter(a => {
       const digits = String(a.phone || '').replace(/\D/g, '').slice(-10)
@@ -357,6 +369,7 @@ async function readAllAthletesFromDatabase(): Promise<AthleteRecord[]> {
 
 const getAthleteDataset = cache(async function getAthleteDataset(): Promise<AthleteRecord[]> {
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 
@@ -364,6 +377,7 @@ const getAthleteDataset = cache(async function getAthleteDataset(): Promise<Athl
     return await readAllAthletesFromDatabase()
   } catch (error) {
     logger.warn('athletes_live.local_fallback', { error })
+    if (!canUseLocalAthleteFallback()) throw error
     return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 })
@@ -444,6 +458,7 @@ async function findAthleteByColumn(column: string, lookupCandidates: string[]) {
 
 export async function getAthleteBySkfIdLive(skfId: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 
@@ -472,12 +487,14 @@ export async function getAthleteBySkfIdLive(skfId: string): Promise<AthleteRecor
     return null
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_skf_id_fallback', { skfId, error })
+    if (!canUseLocalAthleteFallback()) throw error
     return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 }
 
 export async function getAthleteByIdLive(id: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 
@@ -496,6 +513,7 @@ export async function getAthleteByIdLive(id: string): Promise<AthleteRecord | nu
     return mapAthleteRowToRecord(data)
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_id_fallback', { id, error })
+    if (!canUseLocalAthleteFallback()) throw error
     return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 }
@@ -641,6 +659,7 @@ export async function getAthleteRankLive(athleteId: string) {
 
 export async function createAthleteLive(input: AthleteInput) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(createAthlete(input))
   }
 
@@ -687,6 +706,7 @@ export async function createAthleteLive(input: AthleteInput) {
 
 export async function updateAthleteLive(id: string, input: AthleteInput) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(updateAthlete(id, input))
   }
 

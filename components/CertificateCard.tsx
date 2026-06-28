@@ -8,6 +8,9 @@ export interface CertificateConfig {
   beltLevel: string | null
   completionDate: string | null
   issuerName: string | null
+  certificateNumber?: string | null
+  verificationCode?: string | null
+  certificateType?: string | null
   unlocked: boolean
   skfId: string
   enrollmentId: string
@@ -69,6 +72,12 @@ export function CertificateCard({ cert }: { cert: CertificateConfig }) {
         <h3 style={{ margin: '0 0 0.5rem 0', color: isLocked ? '#666' : '#f39c12', fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
           {cert.programName}
         </h3>
+
+        {cert.certificateNumber && (
+          <span style={{ color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+            {cert.certificateNumber}
+          </span>
+        )}
 
         {cert.beltLevel && (
            <span style={{ display: 'inline-block', marginBottom: '1.5rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)', color: '#ccc', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

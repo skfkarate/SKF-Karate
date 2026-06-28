@@ -101,6 +101,14 @@ function cloneEventData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+function canUseLocalEventFallback() {
+  return process.env.NODE_ENV !== 'production'
+}
+
+function unavailableEventDatabaseError() {
+  return new ApiError(503, 'Event database is not available.')
+}
+
 function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
   return [...items].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -240,6 +248,7 @@ async function readAllStandaloneEventsFromDatabase(): Promise<EventRecord[]> {
 
 const getStandaloneEventDataset = cache(async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   if (!isSupabaseReady()) {
+    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
@@ -249,6 +258,7 @@ const getStandaloneEventDataset = cache(async function getStandaloneEventDataset
     return await readAllStandaloneEventsFromDatabase()
   } catch (error) {
     logger.warn('events_live.local_fallback', { error })
+    if (!canUseLocalEventFallback()) throw error
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
@@ -344,6 +354,7 @@ export async function getEventBySlugLive(slug: string) {
 
 async function createStandaloneEventLive(input: Partial<EventRecord>) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
     return cloneEventData(createEventRecord(input))
   }
 
@@ -372,6 +383,7 @@ async function createStandaloneEventLive(input: Partial<EventRecord>) {
 
 async function updateStandaloneEventLive(id: string, input: Partial<EventRecord>) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
     return cloneEventData(updateEventRecord(id, input))
   }
 
@@ -406,6 +418,7 @@ async function updateStandaloneEventLive(id: string, input: Partial<EventRecord>
 
 async function deleteStandaloneEventLive(id: string) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
     return deleteEventRecord(id)
   }
 

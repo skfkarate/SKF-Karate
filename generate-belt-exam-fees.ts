@@ -87,14 +87,14 @@ async function generateExistingBeltExamFees() {
     return defaultAmount
   }
 
-  console.log('Checking Supabase connection...')
+  console.info('Checking Supabase connection...')
   if (!isSupabaseReady()) {
     console.error('Supabase is not configured.')
     console.error('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET')
     console.error('Supabase service key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT SET')
     process.exit(1)
   }
-  console.log('Supabase connected.\n')
+  console.info('Supabase connected.\n')
 
   // Check what belt exam events exist
   const { data: beltEvents, error: beltEventsError } = await supabaseAdmin
@@ -104,13 +104,13 @@ async function generateExistingBeltExamFees() {
     .limit(20)
 
   if (!beltEventsError && beltEvents?.length) {
-    console.log(`Found ${beltEvents.length} potential belt exam events:`)
+    console.info(`Found ${beltEvents.length} potential belt exam events:`)
     for (const ev of beltEvents) {
       const participantsArr = (ev as Record<string, unknown>).participants
       const pCount = Array.isArray(participantsArr) ? participantsArr.length : '?'
-      console.log(`  - ${ev.id}: ${ev.name || 'Unnamed'} [participants: ${pCount}]`)
+      console.info(`  - ${ev.id}: ${ev.name || 'Unnamed'} [participants: ${pCount}]`)
     }
-    console.log('')
+    console.info('')
   }
 
   const { data: configs, error } = await supabaseAdmin
@@ -147,7 +147,7 @@ async function generateExistingBeltExamFees() {
   }
 
   if (!examEvents?.length) {
-    console.log('Belt exam events not found.')
+    console.info('Belt exam events not found.')
     return
   }
 
@@ -158,7 +158,7 @@ async function generateExistingBeltExamFees() {
 
   for (const event of examEvents) {
     if (configuredEventIds.has(event.id)) {
-      console.log(`Fee config already exists for ${event.id} (${event.name})`)
+      console.info(`Fee config already exists for ${event.id} (${event.name})`)
       continue
     }
 
@@ -193,7 +193,7 @@ async function generateExistingBeltExamFees() {
       console.error(`  ERR creating fee config for ${event.id}: ${upsertError.message}`)
       continue
     }
-    console.log(`  Fee config created for ${event.id} (${event.name})`)
+    console.info(`  Fee config created for ${event.id} (${event.name})`)
   }
 
   // Re-fetch configs to include newly created ones
@@ -204,16 +204,16 @@ async function generateExistingBeltExamFees() {
   if (refetchError) {
     console.error('Re-fetch error:', refetchError)
   }
-  console.log(`Re-fetched ${updatedConfigs?.length || 0} belt exam fee configs from DB`)
+  console.info(`Re-fetched ${updatedConfigs?.length || 0} belt exam fee configs from DB`)
   configsToUse = updatedConfigs || []
 
-  console.log(`Found ${configsToUse.length} belt exam fee configs.\n`)
+  console.info(`Found ${configsToUse.length} belt exam fee configs.\n`)
   let totalCreated = 0
   let totalSkipped = 0
   let totalErrors = 0
 
   for (const config of configsToUse) {
-    console.log(`--- Event: ${config.event_id} ---`)
+    console.info(`--- Event: ${config.event_id} ---`)
 
     const { data: event, error: eventError } = await supabaseAdmin
       .from('events')
@@ -222,20 +222,20 @@ async function generateExistingBeltExamFees() {
       .maybeSingle()
 
     if (eventError || !event) {
-      console.log(`  Event not found, skipping.\n`)
+      console.info(`  Event not found, skipping.\n`)
       totalSkipped += 1
       continue
     }
 
     const participants = (event.participants || []) as Array<{ skfId?: string; belt?: string; branchName?: string }>
     if (participants.length === 0) {
-      console.log(`  No participants, skipping.\n`)
+      console.info(`  No participants, skipping.\n`)
       totalSkipped += 1
       continue
     }
 
-    console.log(`  Event: ${event.name || 'Unnamed'}`)
-    console.log(`  Participants: ${participants.length}`)
+    console.info(`  Event: ${event.name || 'Unnamed'}`)
+    console.info(`  Participants: ${participants.length}`)
 
     const month = monthNameFromDate(config.due_date || event.date)
     const year = yearFromDate(config.due_date || event.date)
@@ -255,7 +255,7 @@ async function generateExistingBeltExamFees() {
       const tLabel = targetBeltLabel(participant.belt)
       const amount = calculateAmount(beltPrices, defaultAmount, tKey)
       if (amount <= 0) {
-        console.log(`  SKIP ${skfId} (${participant.belt || '?'} -> ${tLabel || '?'}): fee not configured`)
+        console.info(`  SKIP ${skfId} (${participant.belt || '?'} -> ${tLabel || '?'}): fee not configured`)
         skipped += 1
         continue
       }
@@ -289,24 +289,24 @@ async function generateExistingBeltExamFees() {
         console.error(`  ERR  ${skfId}: ${rpcError.message}`)
         errors += 1
       } else {
-        console.log(`  OK   ${skfId} (${participant.belt || '?'} -> ${tLabel || '?'}): INR ${amount}`)
+        console.info(`  OK   ${skfId} (${participant.belt || '?'} -> ${tLabel || '?'}): INR ${amount}`)
         created += 1
       }
     }
 
-    console.log(`  Result: ${created} created, ${skipped} skipped, ${errors} errors\n`)
+    console.info(`  Result: ${created} created, ${skipped} skipped, ${errors} errors\n`)
     totalCreated += created
     totalSkipped += skipped
     totalErrors += errors
   }
 
-  console.log('=== SUMMARY ===')
-  console.log(`Total fee records created: ${totalCreated}`)
-  console.log(`Total skipped: ${totalSkipped}`)
-  console.log(`Total errors: ${totalErrors}`)
-  console.log('')
+  console.info('=== SUMMARY ===')
+  console.info(`Total fee records created: ${totalCreated}`)
+  console.info(`Total skipped: ${totalSkipped}`)
+  console.info(`Total errors: ${totalErrors}`)
+  console.info('')
   if (totalCreated > 0) {
-    console.log('Done. Belt exam fees should now be visible in the athlete portal.')
+    console.info('Done. Belt exam fees should now be visible in the athlete portal.')
   }
 }
 

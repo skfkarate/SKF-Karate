@@ -11,6 +11,10 @@
   color: var(--text-light, #f8fafc);
 }
 
+.verify-page--wide {
+  align-items: flex-start;
+}
+
 .verify-container {
   width: 100%;
   max-width: 600px;
@@ -18,6 +22,10 @@
   flex-direction: column;
   gap: 2rem;
   animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.verify-container--wide {
+  max-width: 1280px;
 }
 
 @keyframes fadeUp {
@@ -84,6 +92,36 @@
 
 .verify-card--error {
   border-top: 3px solid #ef4444;
+}
+
+.verify-certificate-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.55fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.verify-preview-panel {
+  background: rgba(20, 25, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem;
+  overflow: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.verify-certificate-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 900px) {
+  .verify-certificate-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Status Banner */
@@ -242,6 +280,11 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
+}
+
+.verify-actions--stacked {
+  margin-top: 1.5rem;
+  flex-direction: column;
 }
 
 @media (max-width: 480px) {

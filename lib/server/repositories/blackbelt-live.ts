@@ -9,6 +9,44 @@ import { supabaseAdmin } from '@/lib/server/supabase'
 import { logger } from '@/src/server/lib/logger'
 import { normaliseSkfId } from '@/lib/utils/registration'
 
+export const BLACK_BELT_2026_CANDIDATE_IDS = [
+  'SKF13BL000',
+  'SKF20HE001',
+  'SKF20HE002',
+  'SKF20HE003',
+  'SKF21HE001',
+  'SKF21HE003',
+] as const
+
+const BLACK_BELT_2026_CANDIDATE_SET = new Set(BLACK_BELT_2026_CANDIDATE_IDS)
+
+function normaliseBBCandidateId(skfId?: string | null) {
+  return normaliseSkfId(String(skfId || ''))
+}
+
+function isOfficialBlackBeltCandidateId(skfId?: string | null) {
+  return BLACK_BELT_2026_CANDIDATE_SET.has(
+    normaliseBBCandidateId(skfId) as (typeof BLACK_BELT_2026_CANDIDATE_IDS)[number]
+  )
+}
+
+function dedupeCandidates(candidates: BBCandidate[]) {
+  const bySkfId = new Map<string, BBCandidate>()
+
+  for (const candidate of candidates) {
+    const normalized = normaliseBBCandidateId(candidate.skf_id)
+    if (!isOfficialBlackBeltCandidateId(normalized)) continue
+
+    const nextCandidate = { ...candidate, skf_id: normalized }
+    const existing = bySkfId.get(normalized)
+    if (!existing || Number(nextCandidate.sort_order || 0) < Number(existing.sort_order || 0)) {
+      bySkfId.set(normalized, nextCandidate)
+    }
+  }
+
+  return [...bySkfId.values()].sort((left, right) => Number(left.sort_order || 0) - Number(right.sort_order || 0))
+}
+
 /* ═══════════════════ Types ═══════════════════ */
 
 export interface BBProgram {
@@ -186,7 +224,7 @@ export async function getAllBBCandidates(programId: string): Promise<BBCandidate
     return []
   }
 
-  return (data || []) as BBCandidate[]
+  return dedupeCandidates((data || []) as BBCandidate[])
 }
 
 /**
@@ -238,7 +276,8 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
   const raw = String(skfId || '').trim()
   if (!raw) return null
 
-  const normalizedAthleteId = normaliseSkfId(raw)
+  const normalizedAthleteId = normaliseBBCandidateId(raw)
+  if (!isOfficialBlackBeltCandidateId(normalizedAthleteId)) return null
 
   const { data, error } = await supabaseAdmin
     .from('bb_candidates')
@@ -255,12 +294,12 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
     return null
   }
 
-  if (data?.[0]) return data[0] as BBCandidate
+  if (data?.[0]) return { ...(data[0] as BBCandidate), skf_id: normalizedAthleteId }
 
   // Fallback: normalize stored candidate IDs before comparison.
   const allCandidates = await getAllBBCandidatesAcrossPrograms()
   return (
-    allCandidates.find((candidate) => normaliseSkfId(candidate.skf_id) === normalizedAthleteId) ||
+    dedupeCandidates(allCandidates).find((candidate) => normaliseBBCandidateId(candidate.skf_id) === normalizedAthleteId) ||
     null
   )
 }
@@ -279,6 +318,7 @@ export async function getBBProgramForCandidate(skfId?: string | null): Promise<B
  * Used by both the portal navigation and the route guard so visibility matches access.
  */
 export async function isBBCandidate(skfId?: string | null): Promise<boolean> {
+  if (!isOfficialBlackBeltCandidateId(skfId)) return false
   return Boolean(await getBBCandidateBySkfIdAcrossPrograms(skfId))
 }
 
@@ -334,4 +374,20 @@ export async function getBBProgramForPortal(skfId?: string | null) {
     candidates,
     progressMap,
   }
+}
+
+export async function updateBBCandidateAdmin(candidateId: string, updates: Partial<BBCandidate>): Promise<BBCandidate | null> {
+  const { data, error } = await supabaseAdmin
+    .from('bb_candidates')
+    .update(updates)
+    .eq('id', candidateId)
+    .select('*')
+    .maybeSingle()
+
+  if (error) {
+    logger.error('blackbelt_live.update_candidate_failed', { candidateId, error })
+    return null
+  }
+
+  return data as BBCandidate | null
 }

@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import { CertificateData } from './CertificateRenderer'
+import type { CertificateData } from './CertificateRenderer'
 
 export async function renderCertificateToCanvas(
   data: CertificateData
@@ -27,16 +27,21 @@ export async function renderCertificateToCanvas(
     ctx.font = `${field.bold ? 'bold ' : ''}${scaledFontSize}px ${field.fontFamily || 'Helvetica'}`
     ctx.fillStyle = field.color || '#000000'
     ctx.textAlign = field.align as CanvasTextAlign || 'left'
-    ctx.fillText(field.value, xPx, yPx)
+    if (field.maxWidth) {
+      ctx.fillText(field.value, xPx, yPx, (field.maxWidth / 100) * 2480)
+    } else {
+      ctx.fillText(field.value, xPx, yPx)
+    }
   }
   
   // QR code if enabled
   if (data.useQrCode) {
-    const qrDataUrl = await QRCode.toDataURL(data.verifyUrl, { width: 200, margin: 1 })
+    const qrDataUrl = data.qrCodeDataUrl || await QRCode.toDataURL(data.verifyUrl, { width: 420, margin: 1 })
     const qrImg = new Image()
     qrImg.crossOrigin = 'anonymous'
     await new Promise(resolve => { qrImg.onload = resolve; qrImg.src = qrDataUrl })
-    ctx.drawImage(qrImg, 2480 - 260, 1754 - 260, 220, 220)
+    const qrSize = (data.qrSize / 100) * 2480
+    ctx.drawImage(qrImg, (data.qrX / 100) * 2480, (data.qrY / 100) * 1754, qrSize, qrSize)
   }
   
   return canvas

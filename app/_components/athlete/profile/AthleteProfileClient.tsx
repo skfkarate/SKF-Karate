@@ -107,7 +107,7 @@ function PublicCertificates({ skfId, onOpenCertificate }: { skfId: string, onOpe
     if (!skfId) return
     fetch(`/api/certificates/public?skfId=${skfId}`)
       .then(res => res.json())
-      .then(data => setCerts(data.certificates || []))
+      .then(data => setCerts(data.certificates || data.data?.certificates || []))
       .catch(() => undefined)
       .finally(() => setLoading(false))
   }, [skfId])

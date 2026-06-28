@@ -33,35 +33,16 @@ export const POST = withRoute(
       request.headers.get('x-forwarded-for') ||
       request.headers.get('x-real-ip') ||
       '127.0.0.1'
-
-    const { error: certificateEventError } = await supabaseAdmin
-      .from('certificate_events')
-      .insert([{
-        enrollment_id: enrollmentId,
-        skf_id: skfId,
-        event_type: eventType,
-        ip_address: ip,
-      }])
-
-    if (certificateEventError) {
-      logger.error('cert.event.failed', {
-        requestId,
-        error: certificateEventError,
-        enrollmentId,
-        skfId,
-        eventType,
-      })
-      throw certificateEventError
-    }
+    const now = new Date().toISOString()
 
     if (eventType === 'viewed') {
       const { error: certificateViewError } = await supabaseAdmin
         .from('certificate_views')
-        .insert([{
+        .upsert({
           skf_id: skfId,
           enrollment_id: enrollmentId,
-          viewed_at: new Date().toISOString(),
-        }])
+          viewed_at: now,
+        }, { onConflict: 'skf_id,enrollment_id' })
 
       if (certificateViewError) {
         logger.error('cert.view.failed', {
@@ -74,17 +55,35 @@ export const POST = withRoute(
       }
     } else {
       const format = eventType === 'downloaded_pdf' ? 'pdf' : 'png'
+      const { error: certificateEventError } = await supabaseAdmin
+        .from('certificate_events')
+        .insert([{
+          enrollment_id: enrollmentId,
+          skf_id: skfId,
+          event_type: eventType,
+          ip_address: ip,
+        }])
+
+      if (certificateEventError) {
+        logger.error('cert.event.failed', {
+          requestId,
+          error: certificateEventError,
+          enrollmentId,
+          skfId,
+          eventType,
+        })
+        throw certificateEventError
+      }
+
       const { error: certificateDownloadError } = await supabaseAdmin
         .from('certificate_views')
-        .update({
-          downloaded_at: new Date().toISOString(),
+        .upsert({
+          skf_id: skfId,
+          enrollment_id: enrollmentId,
+          viewed_at: now,
+          downloaded_at: now,
           download_format: format,
-        })
-        .eq('skf_id', skfId)
-        .eq('enrollment_id', enrollmentId)
-        .is('downloaded_at', null)
-        .order('viewed_at', { ascending: false })
-        .limit(1)
+        }, { onConflict: 'skf_id,enrollment_id' })
 
       if (certificateDownloadError) {
         logger.error('cert.download.failed', {

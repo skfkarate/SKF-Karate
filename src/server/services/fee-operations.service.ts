@@ -47,6 +47,7 @@ const BANGALORE_OPENING_RESERVE = 30000
 
 // Hardcoded Black Belt Candidates for 2026 examination installments
 const EXAM_CANDIDATES = [
+  'SKF13BL000', // Shriroshan P
   'SKF20HE001', // Sanjana S
   'SKF20HE003', // Ayush Kashyap G
   'SKF20HE002', // Tejashree S
