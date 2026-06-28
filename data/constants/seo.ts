@@ -456,6 +456,48 @@ export function buildHomeJsonLd() {
         parentOrganization: { '@id': `${homepageUrl}#organization` },
         keywords: 'karate Mallathahalli Bangalore, karate classes Ullal Nagar, martial arts Ullal Nagar, self-defense Ullal Nagar, SKF Ullal Nagar, karate near Ullal Nagar, karate Baby Colony',
       },
+
+      /* ── 6. Branch LocalBusiness — Anjanagar ── */
+      {
+        '@type': ['SportsActivityLocation', 'LocalBusiness'],
+        name: 'SKF Karate — Anjanagar Branch, Bangalore',
+        description:
+          "SKF Sports Karate Do Fitness and Self-Defense Association — Anjanagar, Bangalore. High-quality karate-do classes for kids, adults, and professional karateka in the heart of Anjanagar.",
+        url: absoluteSiteUrl('/classes/bangalore/anjanagar'),
+        telephone: CONTACT.PHONE,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Anjanagar',
+          addressLocality: 'Bengaluru',
+          addressRegion: 'Karnataka',
+          postalCode: '560091',
+          addressCountry: 'IN',
+        },
+        priceRange: '₹₹',
+        parentOrganization: { '@id': `${homepageUrl}#organization` },
+        keywords: 'karate Anjanagar Bangalore, karate classes Anjanagar, SKF Anjanagar',
+      },
+
+      /* ── 7. Branch LocalBusiness — Kunigal HQ ── */
+      {
+        '@type': ['SportsActivityLocation', 'LocalBusiness'],
+        name: 'SKF Karate — Kunigal Headquarters',
+        description:
+          "Headquarters of SKF Sports Karate Do Fitness and Self-Defense Association in Kunigal, Karnataka. Premier martial arts and karate training center serving Tumkur district.",
+        url: absoluteSiteUrl('/classes/kunigal/kunigal-main'),
+        telephone: CONTACT.PHONE,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Kunigal Main',
+          addressLocality: 'Kunigal',
+          addressRegion: 'Karnataka',
+          postalCode: '572130',
+          addressCountry: 'IN',
+        },
+        priceRange: '₹₹',
+        parentOrganization: { '@id': `${homepageUrl}#organization` },
+        keywords: 'karate Kunigal, best karate Kunigal, martial arts Kunigal, SKF Kunigal HQ',
+      },
     ],
   }
 }

@@ -216,9 +216,39 @@ export default async function HonoursPage() {
   const latestSpotlight = getLatestSpotlight(tournamentAchievements)
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Honours', '/honours')
 
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: "SKF Karate Champions & Top Performers",
+    description: "Top ranked SKF karate athletes and national gold medalists.",
+    itemListElement: [
+      ...top3.map((entry, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Person',
+          name: entry.athleteName,
+          description: `Top ranked SKF Karate Athlete with ${Number(entry.totalPoints || 0).toFixed(0)} points`,
+          url: `https://www.skfkarate.org/athlete/${entry.skfId}`,
+        }
+      })),
+      ...nationalGolds.slice(0, 10).map((achievement, index) => ({
+        '@type': 'ListItem',
+        position: top3.length + index + 1,
+        item: {
+          '@type': 'Person',
+          name: achievement.athleteName,
+          description: `National Gold Medalist in ${achievement.tournament} (${achievement.date})`,
+          url: `https://www.skfkarate.org/athlete/${achievement.skfId}`,
+        }
+      }))
+    ]
+  }
+
   return (
     <div className="hon-page">
       <JsonLdScript data={breadcrumbJsonLd} />
+      <JsonLdScript data={itemListSchema} />
 
       <div className="hon-orb hon-orb--1" />
       <div className="hon-orb hon-orb--2" />
