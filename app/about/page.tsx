@@ -37,10 +37,26 @@ export default async function AboutPage() {
     const jsonLd = buildOrgJsonLd()
     const breadcrumbJsonLd = buildBreadcrumbJsonLd('About', '/about')
 
+    const founderSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: founder.name,
+        jobTitle: founder.title,
+        description: `Founder and Chief Instructor at SKF Karate. ${founder.dan} grade in traditional karate.`,
+        image: `https://www.skfkarate.org${founder.imageUrl}`,
+        worksFor: {
+            '@type': 'Organization',
+            name: 'SKF – Sports Karate Do Fitness and Self-Defense Association',
+            sameAs: 'https://www.skfkarate.org'
+        },
+        knowsAbout: ['Karate', 'Martial Arts', 'Self-Defense', 'Kumite', 'Kata', 'WKF']
+    }
+
     return (
         <div className="abt-page">
             <JsonLdScript data={jsonLd} />
             <JsonLdScript data={breadcrumbJsonLd} />
+            <JsonLdScript data={founderSchema} />
             
             {/* ── AMBIENT ORBS ── */}
             <div className="abt-orb abt-orb--1" />
