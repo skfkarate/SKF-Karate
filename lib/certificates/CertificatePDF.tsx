@@ -20,6 +20,19 @@ export function CertificatePDF({ data }: { data: CertificateData }) {
             {field.value}
           </Text>
         ))}
+        {data.useQrCode && data.qrCodeDataUrl && (
+          // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image does not support alt text.
+          <Image
+            src={data.qrCodeDataUrl}
+            style={{
+              position: 'absolute',
+              left: (data.qrX / 100) * 2480,
+              top: (data.qrY / 100) * 1754,
+              width: (data.qrSize / 100) * 2480,
+              height: (data.qrSize / 100) * 2480,
+            }}
+          />
+        )}
       </Page>
     </Document>
   )

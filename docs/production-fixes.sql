@@ -56,3 +56,18 @@ WHERE skf_id = 'SKF26HE002';
 
 UPDATE fee_records SET amount = 0, updated_at = NOW()
 WHERE skf_id = 'SKF26HE002' AND fee_type = 'monthly' AND amount = 500;
+
+-- ============================================================
+-- 6. Cleanup legacy SKF17BL000 alias
+-- ============================================================
+DELETE FROM bb_candidates WHERE skf_id IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00');
+DELETE FROM fee_payment_proofs WHERE skf_id IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00');
+DELETE FROM fee_records WHERE skf_id IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00');
+DELETE FROM student_billing_profiles WHERE skf_id IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00');
+DELETE FROM athletes WHERE skf_id IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00');
+
+-- ============================================================
+-- 7. Add teaching_hours column to bb_candidates
+-- ============================================================
+ALTER TABLE bb_candidates ADD COLUMN IF NOT EXISTS teaching_hours INTEGER DEFAULT 0;
+NOTIFY pgrst, 'reload schema';

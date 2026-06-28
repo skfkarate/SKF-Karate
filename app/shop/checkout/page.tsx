@@ -1,11 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import ShopCheckoutSkeleton from '@/components/skeletons/ShopCheckoutSkeleton'
 import { useCart } from '@/lib/shop/cartState'
 import { SHOP_IMAGE_FALLBACK } from '@/lib/shop/productImages'
@@ -24,18 +21,55 @@ import { flushCheckoutQueue, queueCheckoutSubmission } from './checkoutQueue'
 import { useNonce } from '@/components/NonceProvider'
 import '../shop.css'
 
-const guestCheckoutSchema = z.object({
-    parentName: z.string().min(2, 'Parent name is required'),
-    studentName: z.string().min(2, 'Student name is required'),
-    age: z.string().min(1, 'Age is required'),
-    phone: z
-        .string()
-        .max(64, SHOP_PHONE_ERROR_MESSAGE)
-        .refine(isValidIndianMobileNumber, SHOP_PHONE_ERROR_MESSAGE)
-        .transform((value) => normalizeIndianMobileNumber(value) ?? value),
-})
+type GuestCheckoutFormData = {
+    parentName: string
+    studentName: string
+    age: string
+    phone: string
+}
 
-type GuestCheckoutFormData = z.infer<typeof guestCheckoutSchema>
+type GuestCheckoutErrors = Partial<Record<keyof GuestCheckoutFormData, string>>
+
+const initialGuestCheckoutForm: GuestCheckoutFormData = {
+    parentName: '',
+    studentName: '',
+    age: '',
+    phone: '+91',
+}
+
+function validateGuestCheckoutForm(data: GuestCheckoutFormData): {
+    values: GuestCheckoutFormData
+    errors: GuestCheckoutErrors
+} {
+    const values = {
+        parentName: data.parentName.trim(),
+        studentName: data.studentName.trim(),
+        age: data.age.trim(),
+        phone: normalizeIndianMobileNumber(data.phone.trim()) ?? data.phone.trim(),
+    }
+    const errors: GuestCheckoutErrors = {}
+
+    if (values.parentName.length < 2) {
+        errors.parentName = 'Parent name is required'
+    }
+
+    if (values.studentName.length < 2) {
+        errors.studentName = 'Student name is required'
+    }
+
+    const ageNumber = Number(values.age)
+    if (!values.age) {
+        errors.age = 'Age is required'
+    } else if (!Number.isFinite(ageNumber) || ageNumber < 1 || ageNumber > 99) {
+        errors.age = 'Enter a valid age'
+    }
+
+    if (data.phone.trim().length > 64 || !isValidIndianMobileNumber(data.phone)) {
+        errors.phone = SHOP_PHONE_ERROR_MESSAGE
+    }
+
+    return { values, errors }
+}
 
 type CheckoutAddressPayload = {
     fullName: string
@@ -65,6 +99,8 @@ export default function CheckoutPage() {
     const [step, setStep] = useState<CheckoutStep>('DELIVERY')
     const [submitting, setSubmitting] = useState(false)
 
+    const [guestForm, setGuestForm] = useState<GuestCheckoutFormData>(initialGuestCheckoutForm)
+    const [guestErrors, setGuestErrors] = useState<GuestCheckoutErrors>({})
     const [guestData, setGuestData] = useState<GuestCheckoutFormData | null>(null)
     const [paymentProofBase64, setPaymentProofBase64] = useState('')
     const [paymentProofName, setPaymentProofName] = useState('')
@@ -116,12 +152,22 @@ export default function CheckoutPage() {
     )
     const finalTotal = cartTotalPrice + shippingFee - pointsDiscount - promoDiscount
 
-    const { register, handleSubmit, formState: { errors } } = useForm<GuestCheckoutFormData>({
-        resolver: zodResolver(guestCheckoutSchema),
-        defaultValues: { phone: '+91' }
-    })
+    const updateGuestField =
+        (field: keyof GuestCheckoutFormData) =>
+        (event: ChangeEvent<HTMLInputElement>) => {
+            const value = event.target.value
+            setGuestForm((current) => ({ ...current, [field]: value }))
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            if (guestErrors[field]) {
+                setGuestErrors((current) => {
+                    const next = { ...current }
+                    delete next[field]
+                    return next
+                })
+            }
+        }
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
@@ -137,8 +183,18 @@ export default function CheckoutPage() {
         }
     }
 
-    const onDeliverySubmit = (data: GuestCheckoutFormData) => {
-        setGuestData(data)
+    const onDeliverySubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        const { values, errors } = validateGuestCheckoutForm(guestForm)
+        setGuestErrors(errors)
+
+        if (Object.keys(errors).length > 0) {
+            return
+        }
+
+        setGuestData(values)
+        setGuestForm(values)
         window.scrollTo({ top: 0, behavior: 'smooth' })
         setStep('PAYMENT')
     }
@@ -443,7 +499,7 @@ export default function CheckoutPage() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleSubmit(onDeliverySubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                                    <form onSubmit={onDeliverySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <strong style={{ color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', fontWeight: 700 }}>Training Camp Pickup</strong>
                                             <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', lineHeight: 1.6 }}>Orders are delivered directly to the training camp or class. No residential address is required.</span>
@@ -451,26 +507,26 @@ export default function CheckoutPage() {
 
                                         <div>
                                             <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, marginBottom: '0.75rem' }}>Parent / Guardian Name</label>
-                                            <input {...register('parentName')} className="checkout-input" placeholder="Enter full name" />
-                                            {errors.parentName && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{errors.parentName.message}</span>}
+                                            <input value={guestForm.parentName} onChange={updateGuestField('parentName')} className="checkout-input" placeholder="Enter full name" autoComplete="name" />
+                                            {guestErrors.parentName && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{guestErrors.parentName}</span>}
                                         </div>
 
                                         <div>
                                             <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, marginBottom: '0.75rem' }}>Student Name</label>
-                                            <input {...register('studentName')} className="checkout-input" placeholder="Enter student name" />
-                                            {errors.studentName && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{errors.studentName.message}</span>}
+                                            <input value={guestForm.studentName} onChange={updateGuestField('studentName')} className="checkout-input" placeholder="Enter student name" autoComplete="off" />
+                                            {guestErrors.studentName && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{guestErrors.studentName}</span>}
                                         </div>
 
                                         <div>
                                             <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, marginBottom: '0.75rem' }}>Student Age</label>
-                                            <input {...register('age')} type="number" min="1" max="99" className="checkout-input" placeholder="Enter student age" />
-                                            {errors.age && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{errors.age.message}</span>}
+                                            <input value={guestForm.age} onChange={updateGuestField('age')} type="number" min="1" max="99" className="checkout-input" placeholder="Enter student age" inputMode="numeric" />
+                                            {guestErrors.age && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{guestErrors.age}</span>}
                                         </div>
 
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, marginBottom: '0.75rem' }}>Contact Number</label>
-                                            <input {...register('phone')} placeholder="+91" className="checkout-input" />
-                                            {errors.phone && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{errors.phone.message}</span>}
+                                            <input value={guestForm.phone} onChange={updateGuestField('phone')} placeholder="+91" className="checkout-input" autoComplete="tel" inputMode="tel" />
+                                            {guestErrors.phone && <span style={{ color: 'var(--crimson, #d62828)', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block', fontWeight: 800, textTransform: 'uppercase' }}>{guestErrors.phone}</span>}
                                         </div>
 
                                         <button type="submit" className="shop-cta-pill" style={{ marginTop: '1rem' }}>

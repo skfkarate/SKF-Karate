@@ -6,6 +6,7 @@
 
 -- SECTION 1: Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ══════════════════════════════════════
 -- SECTION 2: Auth & Sessions
@@ -54,10 +55,15 @@ CREATE TABLE IF NOT EXISTS programs (
   name TEXT NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('camp', 'belt_exam', 'training', 'tournament')),
   branch TEXT,
+  source_event_id TEXT,
   has_belt_subtypes BOOLEAN DEFAULT false,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_programs_source_event_id
+  ON programs(source_event_id)
+  WHERE source_event_id IS NOT NULL;
 
 ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_read_active_programs" ON programs
@@ -100,6 +106,8 @@ CREATE TABLE IF NOT EXISTS enrollments (
 CREATE INDEX IF NOT EXISTS idx_enrollment_skf_id ON enrollments (skf_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_program ON enrollments (program_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_status ON enrollments (status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_enrollments_program_skf_unique
+  ON enrollments(program_id, skf_id);
 
 ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_read_unlocked_enrollments" ON enrollments
@@ -118,6 +126,8 @@ CREATE TABLE IF NOT EXISTS certificate_views (
 
 CREATE INDEX IF NOT EXISTS idx_cert_views_skf ON certificate_views (skf_id);
 CREATE INDEX IF NOT EXISTS idx_cert_views_date ON certificate_views (viewed_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cert_views_unique_certificate
+  ON certificate_views (skf_id, enrollment_id);
 
 ALTER TABLE certificate_views ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_views" ON certificate_views
@@ -133,9 +143,110 @@ CREATE TABLE IF NOT EXISTS certificate_events (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cert_events_skf ON certificate_events (skf_id);
+CREATE INDEX IF NOT EXISTS idx_cert_events_created_at
+  ON certificate_events (created_at);
 
 ALTER TABLE certificate_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_cert_events" ON certificate_events
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE OR REPLACE FUNCTION cleanup_certificate_telemetry(retention_days INTEGER DEFAULT 180)
+RETURNS INTEGER AS $$
+DECLARE
+  deleted_count INTEGER;
+BEGIN
+  DELETE FROM certificate_events
+  WHERE created_at < NOW() - make_interval(days => GREATEST(retention_days, 30));
+
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE SEQUENCE IF NOT EXISTS certificate_registration_seq START 1;
+
+CREATE TABLE IF NOT EXISTS certificates (
+  enrollment_id UUID PRIMARY KEY REFERENCES enrollments(id) ON DELETE CASCADE,
+  skf_id TEXT NOT NULL,
+  program_id UUID REFERENCES programs(id) ON DELETE SET NULL,
+  issued_at TIMESTAMPTZ DEFAULT NOW(),
+  verification_code TEXT UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(16), 'hex'),
+  certificate_serial BIGINT UNIQUE,
+  certificate_number TEXT UNIQUE,
+  certificate_type TEXT NOT NULL DEFAULT 'general',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'issued', 'revoked')),
+  template_id UUID REFERENCES certificate_templates(id) ON DELETE SET NULL,
+  issued_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+  render_hash TEXT,
+  pdf_storage_path TEXT,
+  preview_storage_path TEXT,
+  prepared_at TIMESTAMPTZ DEFAULT NOW(),
+  published_at TIMESTAMPTZ,
+  published_by TEXT,
+  revoked_at TIMESTAMPTZ,
+  revoked_reason TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_certificates_skf_id ON certificates(skf_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_verification_code ON certificates(verification_code);
+CREATE INDEX IF NOT EXISTS idx_certificates_number ON certificates(certificate_number);
+CREATE INDEX IF NOT EXISTS idx_certificates_status ON certificates(status);
+CREATE INDEX IF NOT EXISTS idx_certificates_type ON certificates(certificate_type);
+CREATE INDEX IF NOT EXISTS idx_certificates_program_status
+  ON certificates(program_id, status);
+CREATE INDEX IF NOT EXISTS idx_certificates_published_at
+  ON certificates(published_at)
+  WHERE published_at IS NOT NULL;
+
+ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role_full_certificates" ON certificates;
+
+CREATE POLICY "service_role_full_certificates" ON certificates
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE OR REPLACE FUNCTION assign_certificate_registration_number()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.certificate_serial IS NULL THEN
+    NEW.certificate_serial := nextval('certificate_registration_seq');
+  END IF;
+
+  IF NEW.certificate_number IS NULL OR btrim(NEW.certificate_number) = '' THEN
+    NEW.certificate_number := 'SKF-C-' || lpad(NEW.certificate_serial::text, 6, '0');
+  END IF;
+
+  IF NEW.verification_code IS NULL OR btrim(NEW.verification_code) = '' THEN
+    NEW.verification_code := encode(gen_random_bytes(16), 'hex');
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_assign_certificate_registration_number ON certificates;
+
+CREATE TRIGGER trg_assign_certificate_registration_number
+BEFORE INSERT OR UPDATE ON certificates
+FOR EACH ROW
+EXECUTE FUNCTION assign_certificate_registration_number();
+
+CREATE TABLE IF NOT EXISTS certificate_template_assignments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id UUID NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
+  belt_level TEXT NOT NULL,
+  template_id UUID NOT NULL REFERENCES certificate_templates(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(program_id, belt_level)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cert_template_assignments_program
+  ON certificate_template_assignments(program_id);
+
+ALTER TABLE certificate_template_assignments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "service_role_full_certificate_template_assignments" ON certificate_template_assignments
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ══════════════════════════════════════

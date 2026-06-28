@@ -46,6 +46,11 @@ import {
   syncStandaloneEventResultsToAthletes,
   syncTournamentResultsToAthletes,
 } from '@/lib/server/event-athlete-sync'
+import {
+  listEventCertificates,
+  prepareEventCertificates,
+  publishEventCertificates,
+} from '@/lib/certificates/CertificateWorkflow'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import {
   revalidateAthleteSitePaths,
@@ -53,6 +58,10 @@ import {
   revalidatePortalSitePaths,
   revalidateTournamentSitePaths,
 } from '@/lib/server/revalidation'
+import {
+  getAllBBCandidatesAcrossPrograms,
+  updateBBCandidateAdmin,
+} from '@/lib/server/repositories/blackbelt-live'
 import {
   validateEventPayload,
   validateTournamentPayload,
@@ -2167,6 +2176,77 @@ async function publishEventResultsFromFeeTrack(session: FeeTrackSession, body: A
   return { success: true, data: { event: mapEventForFeeTrack(published), syncSummary } }
 }
 
+function revalidateFeeTrackEventPaths(event: FeeTrackEvent) {
+  if (event.type === 'tournament') {
+    revalidateTournamentSitePaths(event)
+  } else {
+    revalidateEventSitePaths(event)
+  }
+}
+
+async function eventForCertificateWorkflow(session: FeeTrackSession, body: ActionBody) {
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const results = Array.isArray(body.results) ? body.results as FeeTrackEventResult[] : null
+
+  if (!results) return event
+
+  const updated = await updateEventResultsRecord(event, results)
+  revalidateFeeTrackEventPaths(updated)
+  return updated
+}
+
+async function getEventCertificatesFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const certificateSummary = await listEventCertificates(event)
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(event),
+      certificateSummary,
+    },
+  }
+}
+
+async function prepareEventCertificatesFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await eventForCertificateWorkflow(session, body)
+  const certificateSummary = await prepareEventCertificates(event, Array.isArray(event.results) ? event.results : [])
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(event),
+      certificateSummary,
+    },
+  }
+}
+
+async function publishEventCertificatesFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await eventForCertificateWorkflow(session, body)
+  const certificateSummary = await publishEventCertificates({
+    event,
+    results: Array.isArray(event.results) ? event.results : [],
+    publishedBy: session.user.name || session.user.id || 'FeeTrack',
+  })
+
+  for (const certificate of certificateSummary.certificates) {
+    revalidateAthleteSitePaths(certificate.skfId)
+  }
+  revalidateFeeTrackEventPaths(event)
+  revalidatePath('/verify')
+  revalidateTag('certificates', 'max')
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(event),
+      certificateSummary,
+    },
+  }
+}
+
 async function getEventCollections(session: FeeTrackSession, body: ActionBody) {
   const branch = normalizeBranch(body.branch, { allowOverall: true })
   const data = await EventFeesService.list(session, {
@@ -2440,6 +2520,20 @@ async function handleAction(body: ActionBody) {
         throw new ValidationError({ year: ['Year and month are required'] })
       }
       return { success: true, data: await FeeOperationsService.setExamMonth(session, body.year, body.month) }
+    case 'get_bb_candidates':
+      return { success: true, data: await getAllBBCandidatesAcrossPrograms() }
+    case 'update_bb_candidate': {
+      const candidateId = String(body.candidateId || '')
+      const updates = body.updates as Record<string, unknown>
+      if (!candidateId || !updates || typeof updates !== 'object') {
+        throw new ValidationError({ candidateId: ['Candidate ID and updates object are required'] })
+      }
+      const updated = await updateBBCandidateAdmin(candidateId, updates)
+      if (!updated) {
+        throw new AppError('UPDATE_FAILED', 'Failed to update candidate', 500)
+      }
+      return { success: true, data: updated }
+    }
     case 'add_student':
       throw new ValidationError({
         student: ['Add students from the SKF-Karate admin so DOB, portal login, belt, and billing data stay complete.'],
@@ -2506,6 +2600,12 @@ async function handleAction(body: ActionBody) {
       return saveEventResultsFromFeeTrack(session, body)
     case 'publish_event_results':
       return publishEventResultsFromFeeTrack(session, body)
+    case 'get_event_certificates':
+      return getEventCertificatesFromFeeTrack(session, body)
+    case 'prepare_event_certificates':
+      return prepareEventCertificatesFromFeeTrack(session, body)
+    case 'publish_event_certificates':
+      return publishEventCertificatesFromFeeTrack(session, body)
     case 'get_event_collections':
       return getEventCollections(session, body)
     case 'upsert_event_fee_config':

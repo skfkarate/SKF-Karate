@@ -51,6 +51,14 @@ function cloneTournamentData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+function canUseLocalTournamentFallback() {
+  return process.env.NODE_ENV !== 'production'
+}
+
+function unavailableTournamentDatabaseError() {
+  return new ApiError(503, 'Tournament database is not available.')
+}
+
 function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
   return [...items].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -193,6 +201,7 @@ async function readAllTournamentsFromDatabase(): Promise<TournamentRecord[]> {
 
 const getTournamentDataset = cache(async function getTournamentDataset(): Promise<TournamentRecord[]> {
   if (!isSupabaseReady()) {
+    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
     return cloneTournamentData(getAllTournamentsAdmin())
   }
 
@@ -200,6 +209,7 @@ const getTournamentDataset = cache(async function getTournamentDataset(): Promis
     return await readAllTournamentsFromDatabase()
   } catch (error) {
     logger.warn('tournaments_live.local_fallback', { error })
+    if (!canUseLocalTournamentFallback()) throw error
     return cloneTournamentData(getAllTournamentsAdmin())
   }
 })
@@ -312,6 +322,7 @@ export async function searchTournamentsLive(query: string) {
 
 export async function createTournamentLive(input: Partial<TournamentRecord>) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
     return cloneTournamentData(createTournament(input))
   }
 
@@ -336,6 +347,7 @@ export async function createTournamentLive(input: Partial<TournamentRecord>) {
 
 export async function updateTournamentLive(id: string, input: Partial<TournamentRecord>) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
     return cloneTournamentData(updateTournament(id, input))
   }
 
@@ -364,6 +376,7 @@ export async function updateTournamentLive(id: string, input: Partial<Tournament
 
 export async function deleteTournamentLive(id: string) {
   if (!isSupabaseReady()) {
+    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
     return deleteTournament(id)
   }
 

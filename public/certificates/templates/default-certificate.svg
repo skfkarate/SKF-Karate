@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2480" height="1754" viewBox="0 0 2480 1754">
+  <rect width="2480" height="1754" fill="#f8f3e6"/>
+  <rect x="78" y="78" width="2324" height="1598" fill="none" stroke="#1c1c1c" stroke-width="8"/>
+  <rect x="116" y="116" width="2248" height="1522" fill="none" stroke="#c79a32" stroke-width="6"/>
+  <rect x="155" y="155" width="2170" height="1444" fill="none" stroke="#1c1c1c" stroke-width="2" opacity="0.7"/>
+  <circle cx="1240" cy="335" r="86" fill="#111111"/>
+  <circle cx="1240" cy="335" r="70" fill="#c79a32"/>
+  <text x="1240" y="349" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="#111111">SKF</text>
+  <text x="1240" y="505" text-anchor="middle" font-family="Georgia, serif" font-size="88" font-weight="700" fill="#111111">Certificate of Achievement</text>
+  <line x1="600" y1="565" x2="1880" y2="565" stroke="#c79a32" stroke-width="4"/>
+  <text x="1240" y="725" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="#333333">This certificate is officially registered with SKF Karate.</text>
+  <text x="1240" y="1325" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#555555">Scan the QR code or search the certificate registration number for online verification.</text>
+  <path d="M365 1428h520" stroke="#111111" stroke-width="3"/>
+  <text x="625" y="1485" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#333333">Chief Instructor</text>
+  <path d="M1595 1428h520" stroke="#111111" stroke-width="3"/>
+  <text x="1855" y="1485" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#333333">SKF Karate</text>
+</svg>

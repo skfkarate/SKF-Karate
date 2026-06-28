@@ -216,7 +216,7 @@ async function verifyPortalJwt(token: string | undefined): Promise<PortalJwtPayl
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const nonce = generateNonce()
   const csp = buildContentSecurityPolicy(nonce)
   const requestHeaders = new Headers(request.headers)

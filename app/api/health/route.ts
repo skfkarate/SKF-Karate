@@ -1,7 +1,10 @@
+import { connection } from 'next/server'
+
 import { HealthService } from '@/src/server/services/health.service'
 
-
 export async function GET() {
+  await connection()
+
   const health = await HealthService.check()
 
   return Response.json(

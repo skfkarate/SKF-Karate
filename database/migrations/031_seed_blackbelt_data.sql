@@ -38,3 +38,9 @@ FROM (VALUES
   ('SKF21HE003', 'Shashank R',          'BB-06', 'bo_staff',   'group_b', 'saturday', 6)
 ) AS src(skf_id, display_name, display_code, weapon_group, bunkai_group, self_defense_day, sort_order)
 ON CONFLICT (program_id, skf_id) DO NOTHING;
+
+DELETE FROM bb_candidates legacy
+USING bb_candidates canonical
+WHERE legacy.program_id = canonical.program_id
+  AND upper(replace(replace(legacy.skf_id, ' ', ''), '-', '')) IN ('SKF17BL000', 'SKF17BL0000', 'SKF17BL00')
+  AND upper(replace(replace(canonical.skf_id, ' ', ''), '-', '')) = 'SKF13BL000';

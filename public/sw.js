@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'skf-runtime-v2'
+const CACHE_VERSION = 'skf-runtime-v3'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
 const PAGE_CACHE = `${CACHE_VERSION}-pages`
 const RECEIPT_CACHE = `${CACHE_VERSION}-receipts`
@@ -8,7 +8,7 @@ const PRECACHE_URLS = [
   OFFLINE_URL,
   '/manifest.json',
   '/icons/icon-192.png',
-  '/videos/august-4th-poster.jpg',
+  '/videos/august-4th-poster.webp',
 ]
 const STATIC_PREFIXES = [
   '/_next/static/',

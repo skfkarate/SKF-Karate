@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
 
@@ -37,6 +38,18 @@ export async function generateMetadata({ params }: { params: { skfId: string, en
 
 export default async function VerifyCertificatePage({ params }: { params: { skfId: string, enrollmentId: string } }) {
   const { skfId, enrollmentId } = await params
+
+  const { data: certificate } = await supabaseAdmin
+    .from('certificates')
+    .select('verification_code, status')
+    .eq('enrollment_id', enrollmentId)
+    .eq('skf_id', skfId)
+    .eq('status', 'issued')
+    .maybeSingle()
+
+  if (certificate?.verification_code) {
+    redirect(`/verify/c/${certificate.verification_code}`)
+  }
 
   const { data: cert } = await supabaseAdmin
     .from('enrollments')

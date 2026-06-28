@@ -77,7 +77,7 @@ export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: Certi
   }, [isOpen])
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/verify/${skfId}/${enrollmentId}`
+    const url = data?.verifyUrl || `${window.location.origin}/verify/${skfId}/${enrollmentId}`
     const shareText = `🥋 Check out my Karate Certificate!\n${data?.studentName || ''} has earned ${data?.programName || 'a certification'}\nView here: ${url}`
 
     if (navigator.share) {
@@ -98,7 +98,7 @@ export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: Certi
   }
 
   const handleWhatsAppShare = () => {
-    const url = `${window.location.origin}/verify/${skfId}/${enrollmentId}`
+    const url = data?.verifyUrl || `${window.location.origin}/verify/${skfId}/${enrollmentId}`
     const text = encodeURIComponent(`🥋 Check out my Karate Certificate!\n${data?.studentName || ''} has earned ${data?.programName || 'a certification'}\nView here: ${url}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }
