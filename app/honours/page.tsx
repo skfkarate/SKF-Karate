@@ -10,12 +10,13 @@ import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
 import JsonLdScript from '@/components/JsonLdScript'
-import { buildBreadcrumbJsonLd, buildNoIndexMetadata } from '@/data/constants/seo'
+import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './honours.css'
 
-export const metadata = buildNoIndexMetadata(
+export const metadata = buildSeoMetadata(
   '/honours',
-  'Celebrate SKF Karate black belts, champions, top performers, medal winners, instructors, and athletes recognized for karate excellence in Karnataka today.'
+  "SKF Karate champions, black belt graduates, medal winners, and top performers. Celebrate Karnataka's finest karate athletes from India's #1 karate association.",
+  { title: "SKF Honours | Karate Champions & Black Belts | Karnataka's Finest Athletes" }
 )
 
 function beltLabel(v: string) {

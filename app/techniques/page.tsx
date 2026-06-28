@@ -8,7 +8,8 @@ import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const metadata: Metadata = buildSeoMetadata(
     '/techniques',
-    'Watch SKF Karate technique videos for kata, kumite, kihon, bunkai, belt practice, self-defense drills, and traditional karate training by belt level now.'
+    "SKF Karate technique library — kata, kumite, kihon, bunkai, self-defense drills by belt level. India's #1 karate association training videos and curriculum.",
+    { title: "Karate Techniques | SKF | Kata, Kumite, Kihon Training Videos | Belt Level" }
 )
 
 export default async function TechniqueLibraryPage() {

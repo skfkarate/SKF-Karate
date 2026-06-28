@@ -12,7 +12,8 @@ import './rankings.css'
 
 export const metadata = buildSeoMetadata(
   '/rankings',
-  'View official SKF Karate athlete rankings by belt level, branches, tournament results, and performance divisions in Karnataka.'
+  "Live digital athlete rankings at SKF — India's only karate association with transparent, real-time student ranking by belt level, tournament performance, and branch across Karnataka.",
+  { title: "SKF Karate Rankings | Live Student Rankings | India's #1 Digital Karate Association" }
 )
 
 function beltLabel(v: string) {
