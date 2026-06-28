@@ -3,7 +3,8 @@ import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const metadata = buildSeoMetadata(
   '/grading',
-  'Explore the SKF Karate belt grading path from white belt to black belt with kyu, dan, kata, kumite, kihon, and traditional karate standards online today.'
+  "Explore the SKF Karate belt grading path from white belt to black belt. Digital grading records, dan levels, kata, kumite, kihon standards tracked in your personal profile.",
+  { title: "Karate Belt Grading | SKF | White Belt to Black Belt | India's Best Karate Academy" }
 )
 
 function JsonLd() {

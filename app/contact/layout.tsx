@@ -3,7 +3,8 @@ import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildSeoMetadata } from '@/data/
 
 export const metadata = buildSeoMetadata(
   '/contact',
-  'Contact SKF Karate for karate classes, trial bookings, kids martial arts, adult self-defense training, branch details, fees, and instructor guidance today.'
+  "Find your nearest SKF karate branch. Karate classes in Bangalore (Herohalli, Anjanagar, MPSC), Kunigal, Karnataka and across India. Contact India's #1 karate association – SKF – today.",
+  { title: "Contact SKF | Karate Classes Near You | Branches Across Karnataka & India" }
 )
 
 export default function ContactLayout({ children }: { children: React.ReactNode }) {

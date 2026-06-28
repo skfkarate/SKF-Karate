@@ -3,7 +3,8 @@ import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const metadata = buildSeoMetadata(
   '/gallery',
-  'Browse SKF Karate gallery photos from dojo training, kata practice, kumite tournaments, belt exams, camps, demonstrations, and student events in India.'
+  "Browse SKF Karate gallery — dojo training, kata practice, kumite tournaments, belt exams, camps, and student events across Karnataka and India. India's #1 karate association.",
+  { title: "SKF Karate Gallery | Training Photos | Tournaments & Events | Karnataka" }
 )
 
 export default function GalleryLayout({ children }: { children: React.ReactNode }) {
