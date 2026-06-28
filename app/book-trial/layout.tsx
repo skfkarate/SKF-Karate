@@ -5,7 +5,8 @@ import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const metadata = buildSeoMetadata(
   '/book-trial',
-  'Book a free SKF Karate trial class for kids or adults in Karnataka and start karate training, self-defense, kata, kumite, and fitness coaching nearby.'
+  "Book a free SKF Karate trial class in Bangalore (Herohalli, MPSC) or Kunigal. India's #1 karate association — karate for kids, adults, self-defense, kata, kumite, and fitness coaching.",
+  { title: "Book Free Trial | SKF Karate | Best Karate Classes in Bangalore & Karnataka" }
 )
 
 export default function BookTrialLayout({ children }: { children: ReactNode }) {

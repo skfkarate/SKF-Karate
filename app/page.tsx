@@ -7,7 +7,7 @@ import { buildHomeJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 
 export const metadata: Metadata = buildSeoMetadata(
   '/',
-  'SKF Karate offers professional karate classes in Karnataka with self-defense, kata, kumite, weapon training, kids programs, and adult coaching for all levels.'
+  "SKF (Sports Karate Do Fitness and Self-Defense Association) — India's #1 karate association and Karnataka's premier karate club. Unique digital student ranking & history tracking. Karate training, tournaments, self-defense in Bangalore (Herohalli, Anjanagar), Kunigal & all Karnataka."
 )
 
 export default function HomePage() {

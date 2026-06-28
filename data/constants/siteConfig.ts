@@ -7,9 +7,9 @@ import { CONTACT, SOCIAL_LINKS_LIST } from './contact'
 
 export const SITE_CONFIG = Object.freeze({
   ORG_NAME: 'SKF Karate',
-  ORG_FULL_NAME: 'Sports Karate-do Fitness & Self Defence Association®',
+  ORG_FULL_NAME: 'Sports Karate Do Fitness and Self-Defense Association',
   MOTTO: 'Nothing is Impossible',
-  TAGLINE: 'Sports Karate-do Fitness & Self Defence Association®',
+  TAGLINE: "India's #1 Digital Karate Association — Where Every Student's Journey is Tracked and Celebrated",
   FOUNDED_YEAR: 2011,
   SPORT: 'Karate',
   URL: process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org',
@@ -86,7 +86,9 @@ export function buildOrgJsonLd() {
   return {
     '@context': 'https://schema.org',
     '@type': ['SportsOrganization', 'LocalBusiness', 'SportsActivityLocation'],
-    name: SITE_CONFIG.ORG_NAME,
+    '@id': `${SITE_CONFIG.URL}/#organization`,
+    name: SITE_CONFIG.ORG_FULL_NAME,
+    alternateName: ['SKF', 'SKF Karate', 'SKF India', 'SKF Karnataka', 'SKF Bangalore', 'SKF Kunigal'],
     legalName: SITE_CONFIG.ORG_FULL_NAME,
     url: SITE_CONFIG.URL,
     logo: absoluteMediaUrl(SITE_CONFIG.LOGO_PATH),
@@ -98,7 +100,13 @@ export function buildOrgJsonLd() {
     openingHours: ['Mo-Su 06:00-21:00'],
     hasMap: MAP_URL,
     foundingDate: String(SITE_CONFIG.FOUNDED_YEAR),
-    description: 'WKF-affiliated karate federation in Bangalore',
+    foundingLocation: {
+      '@type': 'Place',
+      name: 'Karnataka, India',
+    },
+    description:
+      "Sports Karate Do Fitness and Self-Defense Association (SKF) is India's #1 karate association and Karnataka's premier karate organization. SKF is India's first fully digital karate association, providing every student with a personal digital profile, live association ranking, complete history tracking of tournaments and achievements, and belt grading records — all preserved digitally.",
+    slogan: SITE_CONFIG.TAGLINE,
     address: {
       '@type': 'PostalAddress',
       streetAddress: CONTACT.ADDRESS.full,
@@ -106,7 +114,24 @@ export function buildOrgJsonLd() {
       addressRegion: SITE_CONFIG.STATE,
       addressCountry: SITE_CONFIG.COUNTRY,
     },
-    areaServed: ['Bangalore', 'Kunigal'],
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: '12.9716',
+      longitude: '77.5186',
+    },
+    areaServed: [
+      { '@type': 'Country', name: 'India' },
+      { '@type': 'State', name: 'Karnataka' },
+      { '@type': 'City', name: 'Bangalore' },
+      { '@type': 'City', name: 'Bengaluru' },
+      { '@type': 'City', name: 'Kunigal' },
+      { '@type': 'City', name: 'Tumkur' },
+      { '@type': 'City', name: 'Hassan' },
+    ],
     sameAs: SOCIAL_LINKS_LIST,
+    knowsAbout: [
+      'Karate', 'Karate-Do', 'Kumite', 'Kata', 'Kihon', 'Self-Defense',
+      'Martial Arts', 'Karate Tournaments', 'Karate for Kids', 'Belt Grading',
+    ],
   }
 }

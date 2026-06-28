@@ -1,17 +1,58 @@
-# *
+# SKF Website robots.txt — Optimized for full crawlability by all search engines and LLMs
+
+# Default — Allow Everything Public
 User-agent: *
 Allow: /
-
-# *
-User-agent: *
 Disallow: /portal
+Disallow: /portal/
 Disallow: /admin
+Disallow: /admin/
 Disallow: /api
+Disallow: /api/
 Disallow: /athlete
+Disallow: /athlete/
 Disallow: /verify
+Disallow: /verify/
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /images/
+Allow: /gallery/
+Allow: /og-image.png
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# LLM Crawlers — Explicitly Allowed for AI Discovery
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
 
 # Host
-Host: https://skfkarate.org
+Host: https://www.skfkarate.org
 
 # Sitemaps
-Sitemap: https://skfkarate.org/sitemap.xml
+Sitemap: https://www.skfkarate.org/sitemap.xml
