@@ -268,7 +268,7 @@ export function buildHomeJsonLd() {
         hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.ADDRESS.full)}`,
       },
 
-      /* ── 2. WebSite + SearchAction ── */
+      /* ── 2. WebSite + SearchAction + Speakable ── */
       {
         '@type': 'WebSite',
         '@id': `${homepageUrl}#website`,
@@ -289,6 +289,10 @@ export function buildHomeJsonLd() {
         publisher: {
           '@id': `${homepageUrl}#organization`,
         },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['.abt-hero__title', '.abt-hero__subtitle', '.home-hero-text']
+        }
       },
 
       /* ── 3. FAQ Schema (V2 Enhanced) ── */

@@ -12,7 +12,7 @@ import {
 } from 'react-icons/fa'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import JsonLdScript from '@/components/JsonLdScript'
-import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import { buildBreadcrumbJsonLd, buildSeoMetadata, buildFaqJsonLd } from '@/data/constants/seo'
 import './obsidian.css' // Import the unified Obsidian styling instead of classes.css
 
 export const metadata = buildSeoMetadata(
@@ -29,6 +29,24 @@ export default async function ClassesPage() {
     const totalSchools = cities.reduce((sum, c) => sum + c.schools.length, 0)
     const totalCities = cities.length
     const breadcrumbJsonLd = buildBreadcrumbJsonLd('Classes', '/classes')
+    const faqJsonLd = buildFaqJsonLd([
+        {
+            question: "Where are SKF Karate classes located in Bangalore?",
+            answer: "SKF Karate has multiple branches across Bangalore including Herohalli, Anjanagar, M P Sports Club (Mallathahalli), Magadi Road, and Sunkadakatte. We also have our headquarters in Kunigal."
+        },
+        {
+            question: "Do you offer karate classes for beginners?",
+            answer: "Yes, we offer beginner batches tailored for all age groups. No prior martial arts experience is required."
+        },
+        {
+            question: "What is the fee for SKF Karate classes?",
+            answer: "The fees depend on the branch and program (group classes vs. personal training). We offer a free trial class so you can experience the training first-hand before discussing the fee structure."
+        },
+        {
+            question: "What types of karate training do you offer?",
+            answer: "We provide comprehensive WKF-standard training covering Kumite (sparring), Kata (forms), Kihon (basics), and self-defense for kids, adults, and professional athletes."
+        }
+    ])
 
     const courseSchema = {
         '@context': 'https://schema.org',
@@ -57,6 +75,7 @@ export default async function ClassesPage() {
         <div className="obs-page">
             <JsonLdScript data={breadcrumbJsonLd} />
             <JsonLdScript data={courseSchema} />
+            <JsonLdScript data={faqJsonLd} />
 
             {/* Ambient Watermark & Orbs */}
             <div className="obs-orb obs-orb--1" />
