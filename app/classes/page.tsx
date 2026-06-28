@@ -30,9 +30,33 @@ export default async function ClassesPage() {
     const totalCities = cities.length
     const breadcrumbJsonLd = buildBreadcrumbJsonLd('Classes', '/classes')
 
+    const courseSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: 'Professional Karate Training (White to Black Belt)',
+        description: 'Expert karate-do training for all levels including kata, kumite, kihon, and practical self-defense under nationally certified coaches.',
+        provider: {
+            '@type': 'Organization',
+            name: 'SKF – Sports Karate Do Fitness and Self-Defense Association',
+            sameAs: 'https://www.skfkarate.org'
+        },
+        hasCourseInstance: [
+            {
+                '@type': 'CourseInstance',
+                courseMode: 'Onsite',
+                courseWorkload: 'PT2H',
+                location: {
+                    '@type': 'Place',
+                    name: 'SKF Karate Bangalore Branches'
+                }
+            }
+        ]
+    }
+
     return (
         <div className="obs-page">
             <JsonLdScript data={breadcrumbJsonLd} />
+            <JsonLdScript data={courseSchema} />
 
             {/* Ambient Watermark & Orbs */}
             <div className="obs-orb obs-orb--1" />

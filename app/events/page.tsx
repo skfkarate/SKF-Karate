@@ -3,7 +3,7 @@ import EventsPageClient from './EventsPageClient'
 import './events.css'
 import { getEventLabel } from '@/data/constants/categories'
 import JsonLdScript from '@/components/JsonLdScript'
-import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
+import { buildBreadcrumbJsonLd, buildSeoMetadata, buildSportsEventJsonLd } from '@/data/constants/seo'
 
 function formatDisplayDate(date: string) {
     return new Date(date).toLocaleDateString('en-US', {
@@ -52,9 +52,23 @@ export default async function EventsPage() {
         ...Array.from(new Set(mappedEvents.map((event) => getEventLabel(event.type)))).sort((a, b) => a.localeCompare(b)),
     ]
 
+    const eventSchemas = events
+        .filter((event) => event.status !== 'archived' && new Date(event.date).getTime() >= today.getTime())
+        .map((event) => buildSportsEventJsonLd({
+            name: event.name,
+            description: event.description || event.name,
+            startDate: event.date,
+            venue: event.venue,
+            city: event.city || 'Bangalore',
+            url: event.type === 'tournament' ? `/results/${event.slug}` : `/events/${event.slug}`
+        }))
+
     return (
         <>
             <JsonLdScript data={breadcrumbJsonLd} />
+            {eventSchemas.map((schema, i) => (
+                <JsonLdScript key={i} data={schema} />
+            ))}
             <EventsPageClient
                 upcomingEvents={upcomingEvents}
                 pastEvents={pastEvents}
