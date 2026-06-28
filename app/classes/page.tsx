@@ -17,7 +17,8 @@ import './obsidian.css' // Import the unified Obsidian styling instead of classe
 
 export const metadata = buildSeoMetadata(
     '/classes',
-    'Find SKF Karate classes near you in Bangalore and Kunigal for kids, adults, self-defense, kata, kumite, fitness, and black belt training.'
+    "Find SKF Karate classes near you in Bangalore — Herohalli, Anjanagar, MPSC, Magadi Road, Sunkadakatte, and Kunigal. India's #1 karate academy for kids, adults, self-defense, and tournament training.",
+    { title: "SKF Karate Classes | Best Karate Training Bangalore & Karnataka | Near You" }
 )
 
 export default async function ClassesPage() {

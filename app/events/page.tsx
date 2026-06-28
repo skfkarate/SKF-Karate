@@ -15,7 +15,8 @@ function formatDisplayDate(date: string) {
 
 export const metadata = buildSeoMetadata(
     '/events',
-    'View SKF Karate events, seminars, camps, gradings, and tournaments for karate students training in kata, kumite, self-defense, and competition skills.'
+    "SKF hosts India's top karate tournaments — open, district, state, and national championships. Upcoming karate events, kumite & kata competitions in Karnataka and across India.",
+    { title: "SKF Karate Tournaments & Events | Open Championships | State & National Karate Events India" }
 )
 
 export default async function EventsPage() {

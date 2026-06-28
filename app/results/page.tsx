@@ -6,7 +6,8 @@ import '@/app/results/results.css'
 
 export const metadata = buildSeoMetadata(
     '/results',
-    'See SKF Karate tournament results, medals, champions, kata and kumite performance, competition records, and official karate achievements across India.'
+    "SKF Karate tournament results — medals, champions, kata and kumite performance at district, state, and national level. India's #1 karate association official records.",
+    { title: "SKF Karate Tournament Results | Champions & Medals | Karnataka & India" }
 )
 
 export default async function ResultsPage() {
