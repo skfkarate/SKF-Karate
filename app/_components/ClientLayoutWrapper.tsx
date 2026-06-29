@@ -3,6 +3,7 @@
 import { ReactNode, Suspense } from "react"
 import { usePathname } from "next/navigation"
 import GlobalRouteProgress from "@/components/navigation/GlobalRouteProgress"
+import RouteScrollReset from "@/components/navigation/RouteScrollReset"
 import RouteTransitionClickCapture from "@/components/navigation/RouteTransitionClickCapture"
 import ClientErrorReporter from "@/app/_components/ClientErrorReporter"
 
@@ -32,6 +33,7 @@ export default function ClientLayoutWrapper({
     <>
       {/* Top-of-page route-transition progress bar */}
       <ClientErrorReporter />
+      <RouteScrollReset />
 
       <Suspense fallback={null}>
         <GlobalRouteProgress />

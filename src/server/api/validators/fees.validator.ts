@@ -244,6 +244,16 @@ export const feeExtraIncomeSchema = z.object({
   amount: z.coerce.number().min(1).max(1000000),
 })
 
+export const manualStudentFeeSchema = z.object({
+  skfId: skfIdSchema,
+  month: monthSchema,
+  year: yearSchema,
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(500).optional(),
+  amount: z.coerce.number().min(1).max(1000000),
+  dueDate: z.string().trim().max(40).optional(),
+})
+
 const eventFeeCategorySchema = z.enum(['belt_exam', 'tournament', 'event', 'other'])
 const eventFeeTargetingModeSchema = z.enum(['branch_and_eligibility', 'participants_only', 'manual_selection'])
 const eventFeePricingModeSchema = z.enum(['fixed', 'branch', 'belt', 'branch_belt', 'student'])
@@ -337,6 +347,7 @@ export type PortalFeeProofInput = z.infer<typeof portalFeeProofSchema>
 export type FeeCreditCreateInput = z.infer<typeof feeCreditCreateSchema>
 export type DevelopmentFundExpenseInput = z.infer<typeof developmentFundExpenseSchema>
 export type FeeExtraIncomeInput = z.infer<typeof feeExtraIncomeSchema>
+export type ManualStudentFeeInput = z.infer<typeof manualStudentFeeSchema>
 export type EventFeeConfigInput = z.infer<typeof eventFeeConfigSchema>
 export type EventFeePreviewInput = z.infer<typeof eventFeePreviewSchema>
 export type EventFeeGenerateInput = z.infer<typeof eventFeeGenerateSchema>

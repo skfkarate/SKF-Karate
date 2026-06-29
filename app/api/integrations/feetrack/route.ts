@@ -80,6 +80,7 @@ import {
   eventFeeGenerateSchema,
   eventFeePreviewSchema,
   feeTypeSchema,
+  manualStudentFeeSchema,
 } from '@/src/server/api/validators/fees.validator'
 import { AppError, AuthenticationError, AuthorizationError, NotFoundError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
 import { logger } from '@/src/server/lib/logger'
@@ -872,6 +873,21 @@ async function allocateExamFee(session: FeeTrackSession, body: ActionBody) {
   })
 
   return { success: true, branch, data: result }
+}
+
+async function createManualStudentFee(session: FeeTrackSession, body: ActionBody) {
+  const input = manualStudentFeeSchema.parse({
+    skfId: String(body.id || body.skfId || ''),
+    month: monthName(body.month),
+    year: targetYear(body.year),
+    title: body.title,
+    description: body.description,
+    amount: body.amount,
+    dueDate: body.dueDate,
+  })
+
+  const result = await FeeOperationsService.createManualStudentFee(session, input)
+  return { success: true, data: result }
 }
 
 async function runStatusAction(session: FeeTrackSession, body: ActionBody, action: 'mark_break' | 'mark_discontinued') {
@@ -2513,6 +2529,8 @@ async function handleAction(body: ActionBody) {
       return markNonRecurringPaid(session, body)
     case 'allocate_exam_fee':
       return allocateExamFee(session, body)
+    case 'create_manual_student_fee':
+      return createManualStudentFee(session, body)
     case 'get_exam_months':
       return { success: true, data: await FeeOperationsService.getExamMonths(session) }
     case 'set_exam_month':

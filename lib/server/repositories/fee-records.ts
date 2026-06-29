@@ -181,6 +181,7 @@ export async function ensureFeeRowsForStudent(
     enrolledDate?: string
     year: number
     overwriteAmount?: boolean
+    monthIndexes?: number[]
   }
 ): Promise<{ created: number; updated: number }> {
   const normalizedSkfId = normalizeSkfId(skfId)
@@ -207,8 +208,14 @@ export async function ensureFeeRowsForStudent(
   const now = new Date().toISOString()
   const rowsToInsert = []
   const rowsToUpdate = []
+  const targetMonthIndexes = Array.isArray(options.monthIndexes) && options.monthIndexes.length
+    ? Array.from(new Set(options.monthIndexes))
+      .map((index) => Number(index))
+      .filter((index) => Number.isInteger(index) && index >= startMonth && index < MONTHS.length)
+      .sort((a, b) => a - b)
+    : MONTHS.map((_, index) => index).filter((index) => index >= startMonth)
 
-  for (let index = startMonth; index < MONTHS.length; index += 1) {
+  for (const index of targetMonthIndexes) {
     const month = MONTHS[index]
     const existingAmount = existingByMonth.get(month)
 
@@ -221,6 +228,7 @@ export async function ensureFeeRowsForStudent(
         amount: Number(options.monthlyFee || 0),
         status: 'due',
         source_key: '',
+        due_date: `${year}-${String(index + 1).padStart(2, '0')}-01`,
         updated_at: now,
       })
       continue
