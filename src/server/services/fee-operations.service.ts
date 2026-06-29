@@ -1,5 +1,5 @@
 import type { Session } from 'next-auth'
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 
 import { getAllAthletesLive, getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 import { ensureFeeRowsForStudent } from '@/lib/server/repositories/fee-records'
@@ -22,6 +22,7 @@ import type {
   FeeReminderSendInput,
   PortalFeeProofInput,
   FeeExtraIncomeInput,
+  ManualStudentFeeInput,
 } from '@/src/server/api/validators/fees.validator'
 
 const MONTHS = [
@@ -352,6 +353,25 @@ function monthFromDateValue(value?: string | null) {
   const parsed = value ? new Date(`${String(value).split('T')[0]}T00:00:00.000Z`) : null
   if (!parsed || !Number.isFinite(parsed.getTime())) return currentPeriod().month
   return MONTHS[parsed.getUTCMonth()]
+}
+
+function dateOnly(value?: string | null) {
+  const raw = String(value || '').trim().split('T')[0]
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null
+  const parsed = new Date(`${raw}T00:00:00.000Z`)
+  if (!Number.isFinite(parsed.getTime())) return null
+  return raw
+}
+
+function todayDateOnly() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const values = new Map(parts.map((part) => [part.type, part.value]))
+  return `${values.get('year')}-${values.get('month')}-${values.get('day')}`
 }
 
 function currentPeriod() {
@@ -1394,6 +1414,89 @@ export class FeeOperationsService {
     })
 
     return { success: true, skipped: false as const, entry: rowToEntry(after, athlete), receipt }
+  }
+
+  static async createManualStudentFee(session: Session, input: ManualStudentFeeInput) {
+    assertWrite(session)
+    requireFeeDatabase()
+
+    const skfId = normaliseSkfId(input.skfId)
+    const amount = normalizeAmount(input.amount)
+    const title = String(input.title || '').trim()
+    const description = String(input.description || '').trim()
+    const month = normalizeMonth(input.month)
+    const year = Number(input.year || new Date().getFullYear())
+
+    if (!skfId) throw new ValidationError({ skfId: ['SKF ID is required.'] })
+    if (!title) throw new ValidationError({ title: ['Fee title is required.'] })
+    if (amount <= 0) throw new ValidationError({ amount: ['Amount must be greater than zero.'] })
+
+    const athlete = await getAthleteBySkfIdLive(skfId)
+    if (!athlete) throw new NotFoundError('Student')
+
+    const sourceId = `manual_${randomUUID()}`
+    const sourceKey = `manual_fee:${sourceId}`
+    const dueDate = dateOnly(input.dueDate) || todayDateOnly()
+    const now = new Date().toISOString()
+    const metadata = {
+      manualFee: true,
+      title,
+      description: description || null,
+      createdBy: actorName(session),
+      createdAt: now,
+    }
+
+    const before = await ensureFeeRecord({
+      skfId,
+      feeType: 'other',
+      month,
+      year,
+      amount,
+      metadata,
+      sourceKey,
+      sourceType: 'manual_student_fee',
+      sourceId,
+      sourceLabel: title,
+      dueDate,
+      branchSnapshot: String(athlete.branchName || '').trim() || undefined,
+    })
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_records')
+      .update({
+        status: 'due',
+        amount,
+        paid_date: null,
+        receipt_id: null,
+        payment_method: null,
+        verified_by: null,
+        verified_at: null,
+        rejected_reason: null,
+        notes: description || `Manual student fee: ${title}`,
+        metadata,
+        source_type: 'manual_student_fee',
+        source_id: sourceId,
+        source_label: title,
+        due_date: dueDate,
+        branch_snapshot: String(athlete.branchName || '').trim() || null,
+        updated_at: now,
+      })
+      .eq('id', before.id)
+      .select('*')
+      .single()
+    if (error) throwFeeDatabaseError(error)
+
+    const after = normalizeFeeRecord(data)
+    await logAudit(session, {
+      action: 'manual_student_fee_created',
+      skfId,
+      feeRecordId: after.id,
+      before,
+      after,
+      metadata: { title, amount, dueDate, month, year },
+    })
+
+    return { success: true, entry: rowToEntry(after, athlete) }
   }
 
   static async getStudents(session: Session, query: FeeConsoleQueryInput) {

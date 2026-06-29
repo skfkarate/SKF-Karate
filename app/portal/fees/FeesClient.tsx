@@ -63,6 +63,30 @@ function canDownloadReceipt(fee: FeeLedgerEntry) {
   return true
 }
 
+function dateOnlyKey(input?: string | null) {
+  const value = String(input || '').trim().split('T')[0]
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+  return Number(`${match[1]}${match[2]}${match[3]}`)
+}
+
+function todayKey() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const values = new Map(parts.map((part) => [part.type, part.value]))
+  return Number(`${values.get('year')}${values.get('month')}${values.get('day')}`)
+}
+
+function isUpcomingMonthlyFee(fee: FeeLedgerEntry) {
+  if (fee.feeType !== 'monthly' || fee.status !== 'due') return false
+  const dueKey = dateOnlyKey(fee.dueDate)
+  return dueKey !== null && dueKey > todayKey()
+}
+
 interface CreditsData {
   available: PortalCreditEntry[]
   totalAvailable: number
@@ -133,6 +157,8 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
 
   const dueRecords = visibleFeeRecords.filter(f => !isPendingVerification(f) && (f.status === 'due' || f.status === 'overdue' || f.status === 'rejected'))
   const pendingRecords = visibleFeeRecords.filter(f => isPendingVerification(f))
+  const upcomingDueRecords = dueRecords.filter(isUpcomingMonthlyFee)
+  const currentDueRecords = dueRecords.filter((fee) => !isUpcomingMonthlyFee(fee))
   const [selectedFeeKeys, setSelectedFeeKeys] = useState<Set<string>>(() => {
     const oldestDueRecord = dueRecords[dueRecords.length - 1]
     return oldestDueRecord ? new Set([oldestDueRecord.key]) : new Set()
@@ -145,6 +171,10 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
   // Status booleans
   const isClear = totalDue === 0
   const hasPending = pendingRecords.length > 0
+  const hasOnlyUpcoming = !isClear && currentDueRecords.length === 0 && upcomingDueRecords.length > 0
+  const cardStatusColor = isClear ? (hasPending ? 'var(--gold, #ffb703)' : '#2dd4bf') : (hasOnlyUpcoming ? 'var(--gold, #ffb703)' : '#ff6b6b')
+  const cardStatusText = isClear ? (hasPending ? 'Pending' : 'Clear') : (hasOnlyUpcoming ? 'Upcoming' : 'Unpaid')
+  const cardBalanceLabel = isClear ? (hasPending ? 'Pending Verification' : 'All Paid') : (hasOnlyUpcoming ? 'Upcoming Balance' : 'Payable Balance')
   const hasAvailableCredits = credits.totalAvailable > 0
   const creditDiscount = useCredits ? Math.min(credits.totalAvailable, selectedTotalDue) : 0
   const amountAfterCredits = Math.max(0, selectedTotalDue - creditDiscount)
@@ -360,7 +390,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 10 }}>
             <div>
               <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                {isClear ? (hasPending ? 'Pending Verification' : 'All Paid') : 'Current Balance'}
+                {cardBalanceLabel}
               </span>
               <div className="fees-balance" style={{
                 fontFamily: 'var(--font-heading, "Outfit")', fontSize: '3.5rem', fontWeight: 900,
@@ -377,10 +407,10 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
           <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 10 }}>
             <div style={{ textAlign: 'right' }}>
               <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Status</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: isClear ? (hasPending ? 'var(--gold, #ffb703)' : '#2dd4bf') : '#ff6b6b' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isClear ? (hasPending ? 'var(--gold, #ffb703)' : '#2dd4bf') : '#ff6b6b', boxShadow: `0 0 10px ${isClear ? (hasPending ? 'var(--gold, #ffb703)' : '#2dd4bf') : '#ff6b6b'}` }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: cardStatusColor }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: cardStatusColor, boxShadow: `0 0 10px ${cardStatusColor}` }} />
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  {isClear ? (hasPending ? 'Pending' : 'Clear') : 'Unpaid'}
+                  {cardStatusText}
                 </span>
               </div>
             </div>
@@ -599,20 +629,28 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                             {feeTypeLabel(type)}
                           </div>
                           <div style={{ display: 'grid', gap: '0.45rem' }}>
-                            {fees.map((fee) => (
-                              <label key={fee.key} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: '0.8rem', padding: '0.8rem', borderRadius: 12, border: selectedFeeKeys.has(fee.key) ? '1px solid rgba(255,183,3,0.35)' : '1px solid rgba(255,255,255,0.08)', background: selectedFeeKeys.has(fee.key) ? 'rgba(255,183,3,0.08)' : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedFeeKeys.has(fee.key)}
-                                  disabled={isSubmitting}
-                                  onChange={() => toggleFeeSelection(fee.key)}
-                                />
-                                <span style={{ color: '#fff', fontWeight: 700, textTransform: 'capitalize', wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
-                                  {feeDisplayLabel(fee)}
-                                </span>
-                                <strong style={{ color: 'var(--gold, #ffb703)' }}>₹{Number(fee.amount || 0).toLocaleString()}</strong>
-                              </label>
-                            ))}
+                            {fees.map((fee) => {
+                              const isUpcoming = isUpcomingMonthlyFee(fee)
+                              return (
+                                <label key={fee.key} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: '0.8rem', padding: '0.8rem', borderRadius: 12, border: selectedFeeKeys.has(fee.key) ? '1px solid rgba(255,183,3,0.35)' : '1px solid rgba(255,255,255,0.08)', background: selectedFeeKeys.has(fee.key) ? 'rgba(255,183,3,0.08)' : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedFeeKeys.has(fee.key)}
+                                    disabled={isSubmitting}
+                                    onChange={() => toggleFeeSelection(fee.key)}
+                                  />
+                                  <span style={{ color: '#fff', fontWeight: 700, textTransform: 'capitalize', wordBreak: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>
+                                    {feeDisplayLabel(fee)}
+                                    {isUpcoming && (
+                                      <span style={{ display: 'inline-flex', marginLeft: '0.45rem', color: 'var(--gold, #ffb703)', background: 'rgba(255,183,3,0.1)', border: '1px solid rgba(255,183,3,0.22)', borderRadius: 6, padding: '0.12rem 0.4rem', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', verticalAlign: 'middle' }}>
+                                        Upcoming
+                                      </span>
+                                    )}
+                                  </span>
+                                  <strong style={{ color: 'var(--gold, #ffb703)' }}>₹{Number(fee.amount || 0).toLocaleString()}</strong>
+                                </label>
+                              )
+                            })}
                           </div>
                         </div>
                       ))
@@ -752,7 +790,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                   onMouseLeave={e => { if (!isClear) e.currentTarget.style.transform = 'scale(1) translateY(0)' }}
                 >
                   <Wallet size={20} />
-                  {isClear ? 'All Dues Clear' : 'Make Payment'}
+                  {isClear ? 'All Dues Clear' : (hasOnlyUpcoming ? 'Pay Early' : 'Make Payment')}
                 </button>
               </motion.div>
             )}
@@ -773,11 +811,19 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
             const isRejected = tx.status === 'rejected'
             const isPending = isPendingVerification(tx)
             const isOverdue = tx.status === 'overdue'
+            const isUpcoming = isUpcomingMonthlyFee(tx)
 
             let statusIcon = <AlertCircle size={24} color="var(--crimson, #d62828)" />
             let statusColor = '#ff6b6b'
             let statusBg = 'rgba(214,40,40,0.1)'
             let statusLabel = isOverdue ? 'Overdue' : 'Due'
+
+            if (isUpcoming) {
+              statusIcon = <Clock size={24} color="var(--gold, #ffb703)" />
+              statusColor = 'var(--gold, #ffb703)'
+              statusBg = 'rgba(255,183,3,0.1)'
+              statusLabel = 'Upcoming'
+            }
 
             if (isPaid) {
               statusIcon = <CheckCircle2 size={24} color="#2dd4bf" />

@@ -38,6 +38,24 @@ const MONTHS = [
   'December',
 ] as const
 
+const BUSINESS_TIME_ZONE = 'Asia/Kolkata'
+const MONTHLY_FEE_DUE_DAY = 1
+const MONTHLY_FEE_CLEAR_BY_DAY = 5
+const MONTHLY_FEE_PREVIEW_DAYS = 7
+
+type BusinessDate = {
+  year: number
+  monthIndex: number
+  day: number
+}
+
+const businessDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: BUSINESS_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
 type LedgerStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
 type LedgerFeeType =
   | 'monthly'
@@ -109,18 +127,84 @@ function getMonthIndex(input: string): number {
   return MONTHS.findIndex((month) => month === normalizedName)
 }
 
-function deriveLedgerStatus(row: FeeRow): LedgerStatus {
+function getBusinessToday(now = new Date()): BusinessDate {
+  const parts = businessDateFormatter.formatToParts(now)
+  const values = new Map(parts.map((part) => [part.type, part.value]))
+  const year = Number(values.get('year') || now.getUTCFullYear())
+  const month = Number(values.get('month') || now.getUTCMonth() + 1)
+  const day = Number(values.get('day') || now.getUTCDate())
+
+  return {
+    year,
+    monthIndex: Math.min(Math.max(month - 1, 0), 11),
+    day,
+  }
+}
+
+function businessDateKey(date: BusinessDate) {
+  return date.year * 10000 + (date.monthIndex + 1) * 100 + date.day
+}
+
+function addBusinessDays(date: BusinessDate, days: number): BusinessDate {
+  const shifted = new Date(Date.UTC(date.year, date.monthIndex, date.day + days))
+  return {
+    year: shifted.getUTCFullYear(),
+    monthIndex: shifted.getUTCMonth(),
+    day: shifted.getUTCDate(),
+  }
+}
+
+function formatDateOnly(date: BusinessDate) {
+  return [
+    String(date.year).padStart(4, '0'),
+    String(date.monthIndex + 1).padStart(2, '0'),
+    String(date.day).padStart(2, '0'),
+  ].join('-')
+}
+
+function parseDateOnly(input?: string | null): BusinessDate | null {
+  const value = String(input || '').trim().split('T')[0]
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  return { year, monthIndex: month - 1, day }
+}
+
+function monthlyFeeDueYmd(year: number, monthIndex: number): BusinessDate | null {
+  if (!Number.isFinite(year) || monthIndex < 0 || monthIndex > 11) return null
+  return { year: Math.trunc(year), monthIndex, day: MONTHLY_FEE_DUE_DAY }
+}
+
+function monthlyFeeDueDate(year: number, monthIndex: number) {
+  const dueDate = monthlyFeeDueYmd(year, monthIndex)
+  return dueDate ? formatDateOnly(dueDate) : ''
+}
+
+function deriveLedgerStatus(row: FeeRow, now = new Date()): LedgerStatus {
   if (['paid', 'overdue', 'pending_verification', 'break', 'waived', 'rejected'].includes(row.status)) {
     return row.status as LedgerStatus
   }
 
   const monthIndex = getMonthIndex(row.month)
-  const now = new Date()
-  const currentMonth = now.getMonth()
-  const currentYear = now.getFullYear()
+  const feeType = row.feeType || 'monthly'
+  const today = getBusinessToday(now)
+  const dueDate = parseDateOnly(row.dueDate) || (feeType === 'monthly' ? monthlyFeeDueYmd(row.year, monthIndex) : null)
 
-  if (row.year < currentYear) return 'overdue'
-  if (row.year === currentYear && monthIndex >= 0 && monthIndex < currentMonth) return 'overdue'
+  if (dueDate) {
+    const overdueFrom = feeType === 'monthly'
+      ? addBusinessDays(dueDate, MONTHLY_FEE_CLEAR_BY_DAY)
+      : addBusinessDays(dueDate, 1)
+    return businessDateKey(today) >= businessDateKey(overdueFrom) ? 'overdue' : 'due'
+  }
+
+  if (row.year < today.year) return 'overdue'
+  if (row.year === today.year && monthIndex >= 0 && monthIndex < today.monthIndex) return 'overdue'
   return 'due'
 }
 
@@ -181,14 +265,14 @@ function isDiscontinuedBillingProfile(profile?: BillingProfileLike | null) {
   return String(profile?.billing_status || '').trim().toLowerCase() === 'discontinued'
 }
 
-function shouldGenerateCurrentMonth(profile: BillingProfileLike | null, currentYear: number, currentMonth: number) {
+function shouldGenerateMonthlyPeriod(profile: BillingProfileLike | null, year: number, monthIndex: number) {
   if (!isDiscontinuedBillingProfile(profile)) return true
 
   const endPeriod = billingEndPeriod(profile)
   if (endPeriod === null) return false
 
-  const currentPeriod = periodValue(currentYear, currentMonth)
-  return currentPeriod !== null && currentPeriod < endPeriod
+  const targetPeriod = periodValue(year, monthIndex)
+  return targetPeriod !== null && targetPeriod < endPeriod
 }
 
 function shouldHideFromPortalFees(entry: FeeLedgerEntry, profile: BillingProfileLike | null) {
@@ -202,6 +286,45 @@ function shouldHideFromPortalFees(entry: FeeLedgerEntry, profile: BillingProfile
   if (endPeriod === null) return true
 
   return entryPeriod >= endPeriod
+}
+
+function isPortalMonthlyEntryVisible(entry: FeeLedgerEntry, now = new Date()) {
+  if (entry.feeType !== 'monthly') return true
+
+  const entryPeriod = periodValue(entry.year, entry.monthIndex)
+  if (entryPeriod === null) return false
+
+  const today = getBusinessToday(now)
+  const currentPeriod = periodValue(today.year, today.monthIndex)
+  if (currentPeriod === null) return true
+  if (entryPeriod <= currentPeriod) return true
+  if (entryPeriod !== currentPeriod + 1) return false
+
+  const dueDate = parseDateOnly(entry.dueDate) || monthlyFeeDueYmd(entry.year, entry.monthIndex)
+  if (!dueDate) return false
+
+  const visibleFrom = addBusinessDays(dueDate, -MONTHLY_FEE_PREVIEW_DAYS)
+  return businessDateKey(today) >= businessDateKey(visibleFrom)
+}
+
+function getPortalSyncMonthIndexes(year: number, now = new Date()) {
+  const today = getBusinessToday(now)
+  const currentPeriod = periodValue(today.year, today.monthIndex)
+  if (currentPeriod === null) return []
+
+  return MONTHS
+    .map((_, monthIndex) => monthIndex)
+    .filter((monthIndex) => {
+      const entryPeriod = periodValue(year, monthIndex)
+      if (entryPeriod === null) return false
+      if (entryPeriod === currentPeriod) return true
+      if (entryPeriod !== currentPeriod + 1) return false
+
+      const dueDate = monthlyFeeDueYmd(year, monthIndex)
+      if (!dueDate) return false
+      const visibleFrom = addBusinessDays(dueDate, -MONTHLY_FEE_PREVIEW_DAYS)
+      return businessDateKey(today) >= businessDateKey(visibleFrom)
+    })
 }
 
 export interface PortalCreditEntry {
@@ -257,33 +380,56 @@ export class FeeLedgerService {
   static async getPortalLedger(skfId: string, year?: number) {
     const normalizedSkfId = String(skfId || '').trim().toUpperCase()
     const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth()
+    const today = getBusinessToday(now)
+    const currentYear = today.year
+    const previewCutoff = addBusinessDays(today, MONTHLY_FEE_PREVIEW_DAYS)
+    const maxVisibleYear = Math.max(currentYear, previewCutoff.year)
     const requestedYear = Number(year || currentYear)
     const targetYear = Number.isFinite(requestedYear)
-      ? Math.min(Math.max(2020, Math.trunc(requestedYear)), currentYear)
+      ? Math.min(Math.max(2020, Math.trunc(requestedYear)), maxVisibleYear)
       : currentYear
+    const yearsToLoad = Array.from(new Set([
+      targetYear,
+      ...(!year && maxVisibleYear > targetYear ? [maxVisibleYear] : []),
+    ]))
 
-    const [athlete, initialFeeRows, billingProfile, creditData] = await Promise.all([
+    const [athlete, initialFeeRowsByYear, billingProfile, creditData] = await Promise.all([
       getAthleteBySkfIdLive(normalizedSkfId),
-      getFeesBySkfIdLive(normalizedSkfId, targetYear),
+      Promise.all(yearsToLoad.map((yearToLoad) => getFeesBySkfIdLive(normalizedSkfId, yearToLoad))),
       getPortalBillingProfile(normalizedSkfId),
       getPortalCreditBalance(normalizedSkfId),
     ])
     let student: Awaited<ReturnType<typeof getStudentBySkfId>> | null = null
-    let feeRows = initialFeeRows
+    let feeRows = initialFeeRowsByYear.flat()
 
-    // Sync only when needed for the current year to avoid expensive work on every request.
-    if (targetYear === currentYear && shouldGenerateCurrentMonth(billingProfile, currentYear, currentMonth)) {
-      const hasCurrentMonthRow = feeRows.some((row) => getMonthIndex(row.month) === currentMonth)
-      if (!hasCurrentMonthRow) {
+    // Sync only the portal-visible monthly rows so early previews do not create unnecessary future rows.
+    const yearsToRefresh = new Set<number>()
+    for (const yearToLoad of yearsToLoad) {
+      const syncMonthIndexes = getPortalSyncMonthIndexes(yearToLoad, now)
+        .filter((monthIndex) => shouldGenerateMonthlyPeriod(billingProfile, yearToLoad, monthIndex))
+      if (!syncMonthIndexes.length) continue
+
+      const missingVisibleMonth = syncMonthIndexes.some((monthIndex) =>
+        !feeRows.some((row) =>
+          row.year === yearToLoad &&
+          (!row.feeType || row.feeType === 'monthly') &&
+          getMonthIndex(row.month) === monthIndex
+        )
+      )
+
+      if (missingVisibleMonth) {
         await ensureFeeRowsForStudent(normalizedSkfId, {
           monthlyFee: normalizeRupees(athlete?.monthlyFee || 0),
           enrolledDate: String(athlete?.joinDate || '').trim() || undefined,
-          year: currentYear,
+          year: yearToLoad,
+          monthIndexes: syncMonthIndexes,
         })
-        feeRows = await getFeesBySkfIdLive(normalizedSkfId, targetYear)
+        yearsToRefresh.add(yearToLoad)
       }
+    }
+
+    if (yearsToRefresh.size) {
+      feeRows = (await Promise.all(yearsToLoad.map((yearToLoad) => getFeesBySkfIdLive(normalizedSkfId, yearToLoad)))).flat()
     }
 
     const athleteName = buildAthleteDisplayName(athlete)
@@ -321,6 +467,8 @@ export class FeeLedgerService {
           amount = 11000
           sourceLabel = 'Black Belt Exam Fee'
         }
+        const feeType = (row.feeType || 'monthly') as LedgerFeeType
+        const dueDate = row.dueDate || (feeType === 'monthly' ? monthlyFeeDueDate(row.year, monthIndex) : '')
 
         return {
           id: row.id || null,
@@ -332,8 +480,8 @@ export class FeeLedgerService {
           monthIndex,
           year: row.year,
           amount,
-          status: deriveLedgerStatus(row),
-          feeType: (row.feeType || 'monthly') as LedgerFeeType,
+          status: deriveLedgerStatus({ ...row, dueDate }, now),
+          feeType,
           paidDate: row.paidDate || null,
           receiptId: row.receiptId || null,
           paymentMethod: row.paymentMethod || null,
@@ -342,12 +490,12 @@ export class FeeLedgerService {
           sourceType: row.sourceType || '',
           sourceId: row.sourceId || '',
           sourceLabel,
-          dueDate: row.dueDate || '',
+          dueDate,
           branchSnapshot: row.branchSnapshot || '',
           metadata: row.metadata || {},
         }
       })
-      .filter((entry) => (targetYear === currentYear && entry.feeType === 'monthly' ? entry.monthIndex <= currentMonth : true))
+      .filter((entry) => isPortalMonthlyEntryVisible(entry, now))
       .filter((entry) => !shouldHideFromPortalFees(entry, billingProfile))
       .sort((a, b) => (b.year - a.year) || (b.monthIndex - a.monthIndex))
 
