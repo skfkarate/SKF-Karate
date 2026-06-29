@@ -196,4 +196,15 @@ describe('black belt portal access', () => {
 
     await expect(isBBCandidate('SKF20HE001')).resolves.toBe(false)
   })
+
+  it('keeps the shared nav allowlist limited to the six assigned candidates', async () => {
+    const {
+      BLACK_BELT_2026_CANDIDATE_IDS,
+      isOfficialBlackBeltCandidateId,
+    } = await import('@/data/constants/blackbelt')
+
+    expect(BLACK_BELT_2026_CANDIDATE_IDS).toHaveLength(6)
+    expect(isOfficialBlackBeltCandidateId('skf20he001')).toBe(true)
+    expect(isOfficialBlackBeltCandidateId('SKF25MP001')).toBe(false)
+  })
 })

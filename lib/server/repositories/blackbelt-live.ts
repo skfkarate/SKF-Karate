@@ -7,34 +7,18 @@
 
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { logger } from '@/src/server/lib/logger'
-import { normaliseSkfId } from '@/lib/utils/registration'
+import {
+  isOfficialBlackBeltCandidateId,
+  normaliseBlackBeltCandidateId,
+} from '@/data/constants/blackbelt'
 
-export const BLACK_BELT_2026_CANDIDATE_IDS = [
-  'SKF13BL000',
-  'SKF20HE001',
-  'SKF20HE002',
-  'SKF20HE003',
-  'SKF21HE001',
-  'SKF21HE003',
-] as const
-
-const BLACK_BELT_2026_CANDIDATE_SET = new Set(BLACK_BELT_2026_CANDIDATE_IDS)
-
-function normaliseBBCandidateId(skfId?: string | null) {
-  return normaliseSkfId(String(skfId || ''))
-}
-
-function isOfficialBlackBeltCandidateId(skfId?: string | null) {
-  return BLACK_BELT_2026_CANDIDATE_SET.has(
-    normaliseBBCandidateId(skfId) as (typeof BLACK_BELT_2026_CANDIDATE_IDS)[number]
-  )
-}
+export { BLACK_BELT_2026_CANDIDATE_IDS } from '@/data/constants/blackbelt'
 
 function dedupeCandidates(candidates: BBCandidate[]) {
   const bySkfId = new Map<string, BBCandidate>()
 
   for (const candidate of candidates) {
-    const normalized = normaliseBBCandidateId(candidate.skf_id)
+    const normalized = normaliseBlackBeltCandidateId(candidate.skf_id)
     if (!isOfficialBlackBeltCandidateId(normalized)) continue
 
     const nextCandidate = { ...candidate, skf_id: normalized }
@@ -276,7 +260,7 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
   const raw = String(skfId || '').trim()
   if (!raw) return null
 
-  const normalizedAthleteId = normaliseBBCandidateId(raw)
+  const normalizedAthleteId = normaliseBlackBeltCandidateId(raw)
   if (!isOfficialBlackBeltCandidateId(normalizedAthleteId)) return null
 
   const { data, error } = await supabaseAdmin
@@ -299,7 +283,7 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
   // Fallback: normalize stored candidate IDs before comparison.
   const allCandidates = await getAllBBCandidatesAcrossPrograms()
   return (
-    dedupeCandidates(allCandidates).find((candidate) => normaliseBBCandidateId(candidate.skf_id) === normalizedAthleteId) ||
+    dedupeCandidates(allCandidates).find((candidate) => normaliseBlackBeltCandidateId(candidate.skf_id) === normalizedAthleteId) ||
     null
   )
 }
