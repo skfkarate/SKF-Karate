@@ -30,6 +30,10 @@ function DojoLoginInner({ fallbackCallbackUrl }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const handleSkfIdChange = (e) => {
+    setSkfId(e.target.value.toUpperCase())
+  }
+
   const handleDobChange = (e) => {
     const input = e.target.value
     if (input.length < dob.length) {
@@ -132,7 +136,10 @@ function DojoLoginInner({ fallbackCallbackUrl }) {
               className="dojo-input"
               placeholder="SKFXXXXXXX"
               value={skfId}
-              onChange={(e) => setSkfId(e.target.value)}
+              onChange={handleSkfIdChange}
+              autoCapitalize="characters"
+              autoComplete="username"
+              spellCheck={false}
               required
             />
             <label htmlFor="skfId">SKF ID</label>
