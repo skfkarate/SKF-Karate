@@ -1,6 +1,7 @@
 import type { FeeRow } from '@/types'
 import { ApiError } from '@/lib/server/api'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { BLACK_BELT_INSTALLMENT_SOURCE, getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
 import {
   ensureFeeRowsForStudent as ensureSheetFeeRowsForStudent,
   findFeeByReceiptIdLive as findSheetFeeByReceiptIdLive,
@@ -195,19 +196,25 @@ export async function ensureFeeRowsForStudent(
   const startMonth = startMonthForYear(options.enrolledDate, year)
   const { data: existingRows, error: existingError } = await supabaseAdmin
     .from('fee_records')
-    .select('month, amount')
+    .select('month, amount, status')
     .eq('skf_id', normalizedSkfId)
     .eq('fee_type', 'monthly')
     .eq('year', year)
 
   if (existingError) throwFeeRepositoryError(existingError)
 
-  const existingByMonth = new Map(
-    (existingRows || []).map((row) => [String(row.month || '').trim(), Number(row.amount || 0)])
+  const existingByMonth = new Map<string, { amount: number; status: string }>(
+    (existingRows || []).map((row) => [
+      String(row.month || '').trim(),
+      {
+        amount: Number(row.amount || 0),
+        status: String(row.status || 'due'),
+      },
+    ])
   )
   const now = new Date().toISOString()
   const rowsToInsert = []
-  const rowsToUpdate = []
+  const rowsToUpdate: Array<{ month: string; amount: number; label: string | null; allowPending: boolean }> = []
   const targetMonthIndexes = Array.isArray(options.monthIndexes) && options.monthIndexes.length
     ? Array.from(new Set(options.monthIndexes))
       .map((index) => Number(index))
@@ -217,25 +224,39 @@ export async function ensureFeeRowsForStudent(
 
   for (const index of targetMonthIndexes) {
     const month = MONTHS[index]
-    const existingAmount = existingByMonth.get(month)
+    const override = getBlackBeltOverride(normalizedSkfId, index, year)
+    const targetAmount = override?.amount ?? Number(options.monthlyFee || 0)
+    const existing = existingByMonth.get(month)
 
-    if (existingAmount === undefined) {
+    if (existing === undefined) {
       rowsToInsert.push({
         skf_id: normalizedSkfId,
         fee_type: 'monthly',
         month,
         year,
-        amount: Number(options.monthlyFee || 0),
+        amount: targetAmount,
         status: 'due',
         source_key: '',
+        source_label: override?.label || null,
         due_date: `${year}-${String(index + 1).padStart(2, '0')}-01`,
+        metadata: override
+          ? {
+              temporaryOverride: BLACK_BELT_INSTALLMENT_SOURCE,
+              baseMonthlyFee: Number(options.monthlyFee || 0),
+            }
+          : {},
         updated_at: now,
       })
       continue
     }
 
-    if (options.overwriteAmount && existingAmount !== Number(options.monthlyFee || 0)) {
-      rowsToUpdate.push(month)
+    if (options.overwriteAmount && existing.amount !== targetAmount) {
+      rowsToUpdate.push({
+        month,
+        amount: targetAmount,
+        label: override?.label || null,
+        allowPending: Boolean(override),
+      })
     }
   }
 
@@ -249,15 +270,22 @@ export async function ensureFeeRowsForStudent(
     if (error) throwFeeRepositoryError(error)
   }
 
-  for (const month of rowsToUpdate) {
+  for (const row of rowsToUpdate) {
+    const billableStatuses = row.allowPending
+      ? ['due', 'overdue', 'rejected', 'pending_verification']
+      : ['due', 'overdue', 'rejected']
     const { error } = await supabaseAdmin
       .from('fee_records')
-      .update({ amount: Number(options.monthlyFee || 0), updated_at: now })
+      .update({
+        amount: row.amount,
+        ...(row.label ? { source_label: row.label } : {}),
+        updated_at: now,
+      })
       .eq('skf_id', normalizedSkfId)
       .eq('fee_type', 'monthly')
-      .eq('month', month)
+      .eq('month', row.month)
       .eq('year', year)
-      .in('status', ['due', 'overdue', 'rejected'])
+      .in('status', billableStatuses)
 
     if (error) throwFeeRepositoryError(error)
   }

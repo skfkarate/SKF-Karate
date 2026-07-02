@@ -5,6 +5,7 @@ import { getAllAthletesLive, getAthleteBySkfIdLive } from '@/lib/server/reposito
 import { ensureFeeRowsForStudent } from '@/lib/server/repositories/fee-records'
 import { getLocalProfilePhotoFile, resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { BLACK_BELT_INSTALLMENT_SOURCE, getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
 import { normaliseSkfId } from '@/lib/utils/registration'
 import { env } from '@/src/server/config/env'
 import { AuthorizationError, ExternalServiceError, NotFoundError, ValidationError } from '@/src/server/lib/errors'
@@ -45,16 +46,6 @@ const FEE_ACCESS_ROLES = ['admin', 'instructor', 'fee_manager', 'fee_viewer']
 const PROOF_BUCKET = 'fee-payment-proofs'
 const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024
 const BANGALORE_OPENING_RESERVE = 30000
-
-// Hardcoded Black Belt Candidates for 2026 examination installments
-const EXAM_CANDIDATES = [
-  'SKF13BL000', // Shriroshan P
-  'SKF20HE001', // Sanjana S
-  'SKF20HE003', // Ayush Kashyap G
-  'SKF20HE002', // Tejashree S
-  'SKF21HE001', // Ishaan Gowda B S
-  'SKF21HE003'  // Shashank
-]
 
 type FeeStatus = 'paid' | 'due' | 'overdue' | 'pending_verification' | 'break' | 'waived' | 'rejected'
 type FeeType =
@@ -463,6 +454,59 @@ function normalizeFeeRecord(row: Record<string, unknown>): FeeRecord {
   }
 }
 
+function temporaryMonthlyFeeOverride(skfId: string, feeType: FeeType, month: string, year: number) {
+  if (feeType !== 'monthly') return null
+
+  const installment = getBlackBeltOverride(skfId, monthIndex(month), year)
+  if (installment) {
+    return {
+      ...installment,
+      source: BLACK_BELT_INSTALLMENT_SOURCE,
+    }
+  }
+
+  return null
+}
+
+function effectiveFeeRecordAmount(row: FeeRecord) {
+  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)?.amount ?? normalizeAmount(row.amount)
+}
+
+function effectiveFeeRecordSourceLabel(row: FeeRecord) {
+  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)?.label || row.source_label
+}
+
+async function alignFeeRecordAmountWithTemporaryOverride(row: FeeRecord): Promise<FeeRecord> {
+  if (row.status === 'paid') return row
+
+  const override = temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)
+  if (!override) return row
+
+  const currentAmount = normalizeAmount(row.amount)
+  const currentLabel = String(row.source_label || '')
+  if (currentAmount === override.amount && currentLabel === override.label) return row
+
+  const metadata = {
+    ...(row.metadata || {}),
+    temporaryOverride: override.source,
+    baseAmountBeforeOverride: row.metadata?.baseAmountBeforeOverride ?? currentAmount,
+  }
+  const { data, error } = await supabaseAdmin
+    .from('fee_records')
+    .update({
+      amount: override.amount,
+      source_label: override.label,
+      metadata,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', row.id)
+    .select('*')
+    .single()
+  if (error) throwFeeDatabaseError(error)
+
+  return normalizeFeeRecord(data)
+}
+
 async function getFeeRows(filters: {
   year?: number
   month?: string
@@ -617,15 +661,22 @@ function buildReceiptId(skfId: string, feeType: FeeType, month: string, year: nu
   return `SKF-FEE-${year}-${receiptMonthNumber(month)}-${receiptTypeCode(feeType)}-${normaliseSkfId(skfId)}${receiptSourceToken(sourceKey, rowId)}`
 }
 
-function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?: string) {
+function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?: string, month?: string, year?: number) {
   if (feeType === 'credit_adjustment' || feeType === 'belt_exam') return false
-  if (feeType === 'monthly' && Number(amount) === 2000 && skfId && EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))) return false
-  if (feeType === 'monthly' && Number(amount) === 11000 && skfId && skfId.replace(/\s+/g, '') === 'SKF13BL000') return false
+  if (
+    feeType === 'monthly' &&
+    skfId &&
+    month &&
+    year &&
+    temporaryMonthlyFeeOverride(skfId, feeType, month, year)
+  ) {
+    return false
+  }
   return true
 }
 
 function receiptIdForPaidFee(row: FeeRecord, skfId = row.skf_id, feeType: FeeType = row.fee_type, month = row.month, year = row.year) {
-  if (!shouldIssueReceiptForFeeType(feeType, normalizeAmount(row.amount), skfId)) return null
+  if (!shouldIssueReceiptForFeeType(feeType, normalizeAmount(row.amount), skfId, month, year)) return null
   return row.receipt_id || buildReceiptId(skfId, feeType, month, year, row.source_key, row.id)
 }
 
@@ -634,7 +685,12 @@ async function ensureReceiptForPaidRow(input: {
   athlete: AthleteRecord
   issuedAt?: string
 }) {
-  if (input.row.status !== 'paid' || !shouldIssueReceiptForFeeType(input.row.fee_type, input.row.amount)) return null
+  if (
+    input.row.status !== 'paid' ||
+    !shouldIssueReceiptForFeeType(input.row.fee_type, input.row.amount, input.row.skf_id, input.row.month, input.row.year)
+  ) {
+    return null
+  }
 
   let row = input.row
   let receiptId = String(row.receipt_id || '').trim()
@@ -926,6 +982,7 @@ function buildCitySummary<T extends { branch?: string; amount?: number; status?:
 function rowToEntry(row: FeeRecord, athlete?: AthleteRecord | null) {
   const branch = String(row.branch_snapshot || athlete?.branchName || '').trim() || 'Unknown'
   const city = cityLabelForBranch(branch)
+  const sourceLabel = effectiveFeeRecordSourceLabel(row)
   return {
     id: row.id,
     key: `${row.skf_id}:${row.fee_type}:${row.month}:${row.year}:${row.source_key || ''}`,
@@ -938,7 +995,7 @@ function rowToEntry(row: FeeRecord, athlete?: AthleteRecord | null) {
     month: row.month,
     monthIndex: monthIndex(row.month),
     year: row.year,
-    amount: row.amount,
+    amount: effectiveFeeRecordAmount(row),
     status: row.status,
     paidDate: row.paid_date,
     receiptId: row.receipt_id,
@@ -949,7 +1006,7 @@ function rowToEntry(row: FeeRecord, athlete?: AthleteRecord | null) {
     sourceKey: row.source_key || '',
     sourceType: row.source_type,
     sourceId: row.source_id,
-    sourceLabel: row.source_label,
+    sourceLabel,
     dueDate: row.due_date,
     branchSnapshot: row.branch_snapshot,
   }
@@ -962,6 +1019,42 @@ function formatFeeTypeLabel(input?: string | null) {
     .filter(Boolean)
     .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
     .join(' ')
+}
+
+function reminderFeeTypeLabel(row: FeeRecord) {
+  const sourceLabel = effectiveFeeRecordSourceLabel(row)
+  if (sourceLabel) return sourceLabel
+  if (row.fee_type === 'monthly') return 'Monthly Fee'
+  if (row.fee_type === 'belt_exam') return 'Belt Examination Fee'
+  if (row.fee_type === 'tournament') return 'Tournament Fee'
+  if (row.fee_type === 'event') return 'Event Fee'
+  return formatFeeTypeLabel(row.fee_type)
+}
+
+function reminderFeeLine(row: FeeRecord) {
+  const amount = effectiveFeeRecordAmount(row)
+  const label = reminderFeeTypeLabel(row)
+  const period = [row.month, row.year].filter(Boolean).join(' ')
+  return `${label}${period ? ` - ${period}` : ''}: ₹${amount.toLocaleString('en-IN')}`
+}
+
+function buildFeeReminderMessage(input: {
+  parentName: string
+  studentName: string
+  skfId: string
+  rows: FeeRecord[]
+  portalUrl: string
+}) {
+  const total = input.rows.reduce((sum, row) => sum + effectiveFeeRecordAmount(row), 0)
+  const feeLines = input.rows.map((row, index) => `${index + 1}. ${reminderFeeLine(row)}`)
+  return [
+    `Namaste${input.parentName ? ` ${input.parentName}` : ''},`,
+    `The following SKF Karate fee${input.rows.length === 1 ? ' is' : 's are'} pending for ${input.studentName} (${input.skfId}):`,
+    feeLines.join('\n'),
+    `Total pending: ₹${total.toLocaleString('en-IN')}.`,
+    `Please clear it as soon as possible and submit the payment proof from the Athlete Portal: ${input.portalUrl}`,
+    'If already paid, please ignore this reminder.',
+  ].join('\n')
 }
 
 function dojoAddressForBranch(branch?: string | null) {
@@ -1610,17 +1703,10 @@ export class FeeOperationsService {
         )
         let baseAmount = row?.amount ?? normalizeAmount(athlete.monthlyFee)
 
-        const isBlackBeltCandidate = EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))
-
         const mIndex = MONTHS.indexOf(targetMonth)
-        if (isBlackBeltCandidate && targetYear === 2026 && mIndex >= 5 && mIndex <= 9) {
-          baseAmount = 2000
-        }
-
-        // Special logic for Shri Roshan (SKF 13 BL 000)
-        // Maintains standard monthly fee from June-September, but pays 11,000 in October.
-        if (skfId.replace(/\s+/g, '') === 'SKF13BL000' && targetYear === 2026 && targetMonth === 'October') {
-          baseAmount = 11000
+        const monthlyOverride = temporaryMonthlyFeeOverride(skfId, 'monthly', targetMonth, targetYear)
+        if (monthlyOverride) {
+          baseAmount = monthlyOverride.amount
         }
 
         const creditApplied = creditBySkfId.get(skfId) || 0
@@ -1662,7 +1748,7 @@ export class FeeOperationsService {
           trainingMonths,
           trainingExperience: formatTrainingExperience(trainingMonths),
           health: buildFeeHealth(history, targetMonth),
-          isExamInstallment: isBlackBeltCandidate && targetYear === 2026 && mIndex >= 5 && mIndex <= 9
+          isExamInstallment: Boolean(monthlyOverride) && mIndex >= 0
         }
       })
       .filter((student) => {
@@ -1877,7 +1963,7 @@ export class FeeOperationsService {
           .filter((entry) => ['belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType))
           .reduce((sum, entry) => sum + normalizeAmount(entry.amount), 0)
         const grossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome + eventIncome
-        const developmentAllocation = Math.round(Math.max(0, monthlyCash) * 0.3)
+        const developmentAllocation = Math.round(Math.max(0, grossIncome) * 0.3)
         const developmentExpenses = sourceExpenses
           .filter((expense) => normalizeMonth(expense.month) === month)
           .reduce((sum, expense) => sum + normalizeAmount(expense.amount), 0)
@@ -3113,40 +3199,83 @@ export class FeeOperationsService {
       const skfId = normaliseSkfId(target.skfId)
       try {
         const athlete = await assertCanAccessSkfId(session, skfId)
-        const month = normalizeMonth(target.month)
-        const year = Number(target.year)
-        const feeType = target.feeType || 'monthly'
-        const rows = await getFeeRows({ skfId, feeType, month, year })
-        const row = target.feeRecordId
-          ? rows.find((candidate) => candidate.id === target.feeRecordId)
-          : rows[0]
-        if (!row) throw new NotFoundError('Fee record')
+        const selectedFeeRecordIds = Array.from(new Set([
+          ...(target.feeRecordIds || []),
+          ...(target.feeRecordId ? [target.feeRecordId] : []),
+        ].filter(Boolean)))
+        const rows = selectedFeeRecordIds.length
+          ? (await getFeeRows({ skfId }))
+            .filter((candidate) => selectedFeeRecordIds.includes(candidate.id))
+          : await getFeeRows({
+              skfId,
+              feeType: target.feeType || 'monthly',
+              month: normalizeMonth(target.month),
+              year: Number(target.year || currentPeriod().year),
+            })
+        if (selectedFeeRecordIds.length && rows.length !== selectedFeeRecordIds.length) {
+          throw new NotFoundError('Selected pending fee record')
+        }
+        const selectedRows = selectedFeeRecordIds.length
+          ? rows
+          : rows.slice(0, 1)
+        const payableRows = selectedRows
+          .filter((row) => outstandingStatus(row.status))
+          .map((row) => ({
+            ...row,
+            amount: target.amount !== undefined && selectedRows.length === 1
+              ? normalizeAmount(target.amount)
+              : effectiveFeeRecordAmount(row),
+          }))
+        if (!payableRows.length) throw new NotFoundError('Pending fee record')
 
-        const amount = normalizeAmount(target.amount ?? row.amount)
+        const primaryRow = payableRows[0]
+        const amount = payableRows.reduce((sum, row) => sum + effectiveFeeRecordAmount(row), 0)
         const parentName = String(athlete.parentName || '').trim()
         const studentName = athleteName(athlete)
         const phone = normalizeIndianPhone(athlete.phone)
         const portalUrl = `${siteUrl}/portal/fees`
-        const message = [
-          `Namaste${parentName ? ` ${parentName}` : ''},`,
-          `SKF Karate fee of ₹${amount.toLocaleString('en-IN')} for ${studentName} (${skfId}) is pending for ${month} ${year}.`,
-          `Please submit the payment proof from the Athlete Portal: ${portalUrl}`,
-          'If already paid, please ignore this reminder.',
-        ].join(' ')
+        const message = buildFeeReminderMessage({
+          parentName,
+          studentName,
+          skfId,
+          rows: payableRows,
+          portalUrl,
+        })
         const messageUrl = input.channel === 'whatsapp' ? buildWhatsAppUrl(phone, message) : ''
         const status = input.channel === 'whatsapp' && !messageUrl ? 'skipped' : 'prepared'
+        const selectedFees = payableRows.map((row) => ({
+          feeRecordId: row.id,
+          feeType: row.fee_type,
+          month: row.month,
+          year: row.year,
+          amount: effectiveFeeRecordAmount(row),
+          label: reminderFeeTypeLabel(row),
+        }))
+
+        if (input.previewOnly) {
+          results.push({
+            success: true,
+            skfId,
+            reminder: null,
+            messageUrl,
+            message,
+            selectedFees,
+            status,
+          })
+          continue
+        }
 
         const { data, error } = await supabaseAdmin
           .from('fee_reminder_logs')
           .insert({
             skf_id: skfId,
-            fee_record_id: row.id,
-            fee_type: feeType,
-            month,
-            year,
+            fee_record_id: primaryRow.id,
+            fee_type: primaryRow.fee_type,
+            month: primaryRow.month,
+            year: primaryRow.year,
             amount,
             channel: input.channel,
-            template_key: input.templateKey || 'monthly_due',
+            template_key: input.templateKey || (payableRows.length > 1 ? 'selected_pending_fees' : 'fee_due'),
             recipient_name: parentName || studentName,
             recipient_phone: phone || null,
             message_body: message,
@@ -3158,6 +3287,7 @@ export class FeeOperationsService {
             metadata: {
               branch: athlete.branchName || null,
               note: input.note || null,
+              selectedFees,
             },
           })
           .select('*')
@@ -3165,22 +3295,29 @@ export class FeeOperationsService {
         if (error) throwFeeDatabaseError(error)
 
         if (input.markFollowup) {
-          await this.createFollowup(session, {
-            skfId,
-            feeType,
-            month,
-            year,
-            contactMethod: input.channel === 'whatsapp' ? 'whatsapp' : 'other',
-            note: input.note || `Reminder prepared using ${input.channel}.`,
-          })
+          for (const row of payableRows) {
+            await this.createFollowup(session, {
+              skfId,
+              feeType: row.fee_type,
+              month: row.month,
+              year: row.year,
+              contactMethod: input.channel === 'whatsapp' ? 'whatsapp' : 'other',
+              note: input.note || `Reminder prepared using ${input.channel}.`,
+            })
+          }
         }
 
         await logAudit(session, {
           action: 'fee_reminder_prepared',
           skfId,
-          feeRecordId: row.id,
+          feeRecordId: primaryRow.id,
           after: data,
-          metadata: { channel: input.channel, templateKey: input.templateKey, status },
+          metadata: {
+            channel: input.channel,
+            templateKey: input.templateKey,
+            status,
+            selectedFeeRecordIds: payableRows.map((row) => row.id),
+          },
         })
 
         results.push({
@@ -3188,6 +3325,8 @@ export class FeeOperationsService {
           skfId,
           reminder: data,
           messageUrl,
+          message,
+          selectedFees,
           status,
         })
       } catch (error) {
@@ -3295,8 +3434,11 @@ export class FeeOperationsService {
     })
     const existingCreditAmount = existingCreditRows.reduce((sum, row) => sum + normalizeAmount(row.amount), 0)
     const targetRows = await getFeeRows({ skfId: normalizedSkfId, feeType, month, year })
-    const targetRow = targetRows[0]
-    const targetAmount = targetRow ? normalizeAmount(targetRow.amount) : normalizeAmount(athlete.monthlyFee)
+    let targetRow = targetRows[0]
+    if (targetRow) {
+      targetRow = await alignFeeRecordAmountWithTemporaryOverride(targetRow)
+    }
+    const targetAmount = targetRow ? effectiveFeeRecordAmount(targetRow) : normalizeAmount(athlete.monthlyFee)
     const remainingDue = Math.max(0, targetAmount - existingCreditAmount)
 
     if (targetRow && existingCreditAmount >= targetAmount) {
@@ -3353,13 +3495,17 @@ export class FeeOperationsService {
       throw new ValidationError({ fee: ['This fee is already marked paid.'] })
     }
 
-    const row = existingRow || await ensureFeeRecord({
+    let row = existingRow || await ensureFeeRecord({
       skfId: normalizedSkfId,
       feeType,
       month,
       year: input.year,
       amount: input.amount || normalizeAmount(athlete.monthlyFee),
     })
+    row = await alignFeeRecordAmountWithTemporaryOverride(row)
+    const paymentAmount = temporaryMonthlyFeeOverride(normalizedSkfId, feeType, month, input.year)
+      ? effectiveFeeRecordAmount(row)
+      : normalizeAmount(input.amount)
     const { data: replacedProofs, error: replacedProofsError } = await supabaseAdmin
       .from('fee_payment_proofs')
       .select('id, proof_path')
@@ -3375,7 +3521,7 @@ export class FeeOperationsService {
     const paymentIntent = await createManualPaymentIntent({
       skfId: normalizedSkfId,
       row,
-      amount: input.amount,
+      amount: paymentAmount,
       paymentReference,
       proofName: input.paymentProofName,
     })
@@ -3396,7 +3542,7 @@ export class FeeOperationsService {
       fee_record_id: row.id,
       payment_intent_id: paymentIntent?.id || null,
       skf_id: normalizedSkfId,
-      amount: input.amount,
+      amount: paymentAmount,
       payment_reference: paymentReference || null,
       proof_path: path,
       proof_filename: input.paymentProofName || null,
@@ -3424,7 +3570,7 @@ export class FeeOperationsService {
           .insert({
             fee_record_id: row.id,
             skf_id: normalizedSkfId,
-            amount: input.amount,
+            amount: paymentAmount,
             proof_path: path,
             proof_filename: input.paymentProofName || null,
           })
@@ -3532,7 +3678,7 @@ export class FeeOperationsService {
       feeType,
       month,
       year: input.year,
-      amount: normalizeAmount(input.amount),
+      amount: paymentAmount,
       proofId: String(proofRow.id || ''),
       paymentReference,
       proofBuffer: proof.buffer,
@@ -3632,13 +3778,14 @@ export class FeeOperationsService {
       throw new ValidationError({ proof: ['This payment proof has already been reviewed.'] })
     }
     if (!proof.fee_record_id) throw new NotFoundError('Fee record')
-    const [row] = await getFeeRows({ skfId: proof.skf_id })
+    const [loadedRow] = await getFeeRows({ skfId: proof.skf_id })
       .then((rows) => rows.filter((candidate) => candidate.id === proof.fee_record_id))
-    if (!row) throw new NotFoundError('Fee record')
+    if (!loadedRow) throw new NotFoundError('Fee record')
+    const row = await alignFeeRecordAmountWithTemporaryOverride(loadedRow)
     if (String(row.metadata?.latestProofId || '') && String(row.metadata.latestProofId) !== proofId) {
       throw new ValidationError({ proof: ['A newer payment proof was submitted for this fee.'] })
     }
-    const expectedAmount = normalizeAmount(row.amount)
+    const expectedAmount = effectiveFeeRecordAmount(row)
     const submittedAmount = normalizeAmount(proof.amount)
     if (expectedAmount > 0 && submittedAmount > 0 && Math.abs(expectedAmount - submittedAmount) > 1) {
       throw new ValidationError({
