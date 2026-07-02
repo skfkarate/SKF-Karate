@@ -215,4 +215,47 @@ describe('portal fee ledger', () => {
     }))
     expect(ledger.summary.totalDue).toBe(1000)
   })
+
+  it('keeps a historical paid monthly row at the paid amount and shows the black belt balance separately', async () => {
+    vi.setSystemTime(new Date('2026-06-10T00:00:00.000Z'))
+    state.feeRows = [
+      {
+        ...monthlyFeeRow('June', 'paid', 500),
+        skfId: 'SKF21HE003',
+      },
+      {
+        id: 'black-belt-balance',
+        skfId: 'SKF21HE003',
+        feeType: 'other',
+        month: 'June',
+        year: 2026,
+        amount: 1500,
+        status: 'due',
+        sourceKey: 'black_belt_balance:SKF21HE003:2026:June',
+        sourceLabel: 'Black Belt Exam Installment Balance',
+        dueDate: '2026-06-01',
+      },
+    ]
+
+    const ledger = await FeeLedgerService.getPortalLedger('SKF21HE003', 2026)
+
+    expect(ledger.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        feeType: 'monthly',
+        month: 'June',
+        status: 'paid',
+        amount: 500,
+      }),
+      expect.objectContaining({
+        feeType: 'other',
+        month: 'June',
+        status: 'overdue',
+        amount: 1500,
+        sourceLabel: 'Black Belt Exam Installment Balance',
+      }),
+    ]))
+    expect(ledger.summary.totalExpected).toBe(2000)
+    expect(ledger.summary.totalPaid).toBe(500)
+    expect(ledger.summary.totalDue).toBe(1500)
+  })
 })

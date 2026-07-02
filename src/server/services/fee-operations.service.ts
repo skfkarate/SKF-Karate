@@ -454,8 +454,16 @@ function normalizeFeeRecord(row: Record<string, unknown>): FeeRecord {
   }
 }
 
-function temporaryMonthlyFeeOverride(skfId: string, feeType: FeeType, month: string, year: number) {
+function temporaryMonthlyFeeOverride(
+  skfId: string,
+  feeType: FeeType,
+  month: string,
+  year: number,
+  options?: { status?: FeeStatus | null; sourceKey?: string | null }
+) {
   if (feeType !== 'monthly') return null
+  if (options?.status === 'paid') return null
+  if (String(options?.sourceKey || '').trim()) return null
 
   const installment = getBlackBeltOverride(skfId, monthIndex(month), year)
   if (installment) {
@@ -469,17 +477,26 @@ function temporaryMonthlyFeeOverride(skfId: string, feeType: FeeType, month: str
 }
 
 function effectiveFeeRecordAmount(row: FeeRecord) {
-  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)?.amount ?? normalizeAmount(row.amount)
+  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
+    status: row.status,
+    sourceKey: row.source_key,
+  })?.amount ?? normalizeAmount(row.amount)
 }
 
 function effectiveFeeRecordSourceLabel(row: FeeRecord) {
-  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)?.label || row.source_label
+  return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
+    status: row.status,
+    sourceKey: row.source_key,
+  })?.label || row.source_label
 }
 
 async function alignFeeRecordAmountWithTemporaryOverride(row: FeeRecord): Promise<FeeRecord> {
   if (row.status === 'paid') return row
 
-  const override = temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year)
+  const override = temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
+    status: row.status,
+    sourceKey: row.source_key,
+  })
   if (!override) return row
 
   const currentAmount = normalizeAmount(row.amount)
@@ -668,7 +685,10 @@ function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?:
     skfId &&
     month &&
     year &&
-    temporaryMonthlyFeeOverride(skfId, feeType, month, year)
+    (() => {
+      const override = temporaryMonthlyFeeOverride(skfId, feeType, month, year)
+      return override && normalizeAmount(amount) === override.amount
+    })()
   ) {
     return false
   }
@@ -1704,7 +1724,9 @@ export class FeeOperationsService {
         let baseAmount = row?.amount ?? normalizeAmount(athlete.monthlyFee)
 
         const mIndex = MONTHS.indexOf(targetMonth)
-        const monthlyOverride = temporaryMonthlyFeeOverride(skfId, 'monthly', targetMonth, targetYear)
+        const monthlyOverride = temporaryMonthlyFeeOverride(skfId, 'monthly', targetMonth, targetYear, row
+          ? { status: row.status, sourceKey: row.source_key }
+          : undefined)
         if (monthlyOverride) {
           baseAmount = monthlyOverride.amount
         }
@@ -3503,7 +3525,10 @@ export class FeeOperationsService {
       amount: input.amount || normalizeAmount(athlete.monthlyFee),
     })
     row = await alignFeeRecordAmountWithTemporaryOverride(row)
-    const paymentAmount = temporaryMonthlyFeeOverride(normalizedSkfId, feeType, month, input.year)
+    const paymentAmount = temporaryMonthlyFeeOverride(normalizedSkfId, feeType, month, input.year, {
+      status: row.status,
+      sourceKey: row.source_key,
+    })
       ? effectiveFeeRecordAmount(row)
       : normalizeAmount(input.amount)
     const { data: replacedProofs, error: replacedProofsError } = await supabaseAdmin
