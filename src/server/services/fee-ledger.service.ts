@@ -13,15 +13,8 @@ import {
   getAthleteBySkfIdLive,
 } from '@/lib/server/repositories/athletes-live'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
 import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
-
-const EXAM_CANDIDATES = [
-  'SKF20HE001', // Sanjana S
-  'SKF20HE003', // Ayush Kashyap G
-  'SKF20HE002', // Tejashree S
-  'SKF21HE001', // Ishaan Gowda B S
-  'SKF21HE003', // Shashank
-]
 
 const MONTHS = [
   'January',
@@ -82,6 +75,7 @@ type AthleteLike = {
 type BillingProfileLike = {
   billing_status?: string | null
   billing_end_date?: string | null
+  monthly_fee?: number | string | null
 }
 
 export interface FeeLedgerEntry {
@@ -239,12 +233,16 @@ async function getPortalBillingProfile(skfId: string): Promise<BillingProfileLik
 
   const { data, error } = await supabaseAdmin
     .from('student_billing_profiles')
-    .select('billing_status, billing_end_date')
+    .select('billing_status, billing_end_date, monthly_fee')
     .eq('skf_id', skfId)
     .maybeSingle()
 
   if (error) return null
   return data || null
+}
+
+function billingProfileMonthlyFee(athlete?: AthleteLike | null, profile?: BillingProfileLike | null) {
+  return normalizeRupees(profile?.monthly_fee ?? athlete?.monthlyFee ?? 0)
 }
 
 function periodValue(year: number, monthIndex: number) {
@@ -419,7 +417,7 @@ export class FeeLedgerService {
 
       if (missingVisibleMonth) {
         await ensureFeeRowsForStudent(normalizedSkfId, {
-          monthlyFee: normalizeRupees(athlete?.monthlyFee || 0),
+          monthlyFee: billingProfileMonthlyFee(athlete, billingProfile),
           enrolledDate: String(athlete?.joinDate || '').trim() || undefined,
           year: yearToLoad,
           monthIndexes: syncMonthIndexes,
@@ -439,9 +437,6 @@ export class FeeLedgerService {
     }
     const branch = athleteBranch || String(student?.branch || '').trim() || 'SKF Branch'
 
-    const isBlackBeltCandidate = EXAM_CANDIDATES.includes(normalizedSkfId.replace(/\s+/g, ''))
-    const isShriRoshan = normalizedSkfId.replace(/\s+/g, '') === 'SKF13BL000'
-
     const entries: FeeLedgerEntry[] = feeRows
       .map((row) => {
         const month = toMonthName(row.month)
@@ -449,23 +444,11 @@ export class FeeLedgerService {
         
         let amount = normalizeRupees(row.amount)
         let sourceLabel = row.sourceLabel || ''
+        const override = getBlackBeltOverride(normalizedSkfId, monthIndex, row.year)
         
-        if (
-          isBlackBeltCandidate && 
-          (!row.feeType || row.feeType === 'monthly') &&
-          row.year === 2026 && 
-          monthIndex >= 5 && monthIndex <= 9
-        ) {
-          amount = 2000
-          sourceLabel = 'Black Belt Exam Installment'
-        } else if (
-          isShriRoshan && 
-          (!row.feeType || row.feeType === 'monthly') &&
-          row.year === 2026 && 
-          month === 'October'
-        ) {
-          amount = 11000
-          sourceLabel = 'Black Belt Exam Fee'
+        if (override && (!row.feeType || row.feeType === 'monthly')) {
+          amount = override.amount
+          sourceLabel = override.label
         }
         const feeType = (row.feeType || 'monthly') as LedgerFeeType
         const dueDate = row.dueDate || (feeType === 'monthly' ? monthlyFeeDueDate(row.year, monthIndex) : '')
@@ -619,28 +602,13 @@ export class FeeLedgerService {
         const monthIndex = getMonthIndex(month)
         const status = deriveLedgerStatus(row)
 
-        const isBlackBeltCandidate = EXAM_CANDIDATES.includes(skfId.replace(/\s+/g, ''))
-        const isShriRoshan = skfId.replace(/\s+/g, '') === 'SKF13BL000'
-
         let amount = normalizeRupees(row.amount)
         let sourceLabel = row.sourceLabel || ''
+        const override = getBlackBeltOverride(skfId, monthIndex, row.year)
         
-        if (
-          isBlackBeltCandidate && 
-          (!row.feeType || row.feeType === 'monthly') &&
-          row.year === 2026 && 
-          monthIndex >= 5 && monthIndex <= 9
-        ) {
-          amount = 2000
-          sourceLabel = 'Black Belt Exam Installment'
-        } else if (
-          isShriRoshan && 
-          (!row.feeType || row.feeType === 'monthly') &&
-          row.year === 2026 && 
-          month === 'October'
-        ) {
-          amount = 11000
-          sourceLabel = 'Black Belt Exam Fee'
+        if (override && (!row.feeType || row.feeType === 'monthly')) {
+          amount = override.amount
+          sourceLabel = override.label
         }
 
         return {

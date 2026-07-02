@@ -324,9 +324,10 @@ export const eventFeeDepositSchema = z.object({
 const feeReminderTargetSchema = z.object({
   skfId: skfIdSchema,
   feeRecordId: z.string().uuid().optional(),
-  feeType: feeTypeSchema,
-  month: monthSchema,
-  year: yearSchema,
+  feeRecordIds: z.array(z.string().uuid()).max(20).optional(),
+  feeType: feeTypeSchema.optional(),
+  month: monthSchema.optional(),
+  year: yearSchema.optional(),
   amount: z.coerce.number().min(0).max(1000000).optional(),
 })
 
@@ -336,6 +337,7 @@ export const feeReminderSendSchema = z.object({
   targets: z.array(feeReminderTargetSchema).min(1).max(50),
   note: z.string().trim().max(500).optional(),
   markFollowup: z.boolean().default(true),
+  previewOnly: z.boolean().default(false),
 })
 
 export type FeeConsoleQueryInput = z.infer<typeof feeConsoleQuerySchema>

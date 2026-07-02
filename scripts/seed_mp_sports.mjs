@@ -213,6 +213,7 @@ function feePayload(student, month, monthIndex) {
     year: TARGET_YEAR,
     amount: student.monthlyFee,
     status,
+    source_key: '',
     paid_date: date,
     receipt_id: isPaid ? receiptId(student.skfId, month, TARGET_YEAR) : null,
     payment_method: isPaid ? 'Seeded fee table' : null,
@@ -255,6 +256,7 @@ function creditAdjustmentPayload(credit, creditRow) {
     year: TARGET_YEAR,
     amount: credit.amount,
     status: 'paid',
+    source_key: credit.creditCode,
     paid_date: credit.usedAt,
     receipt_id: null,
     payment_method: 'credit adjustment',
@@ -371,7 +373,7 @@ async function main() {
     for (let index = 0; index < MONTHS.length; index += 1) {
       const month = MONTHS[index]
       const feeRow = await upsertOrThrow('fee_records', feePayload(student, month, index), {
-        onConflict: 'skf_id,fee_type,month,year',
+        onConflict: 'skf_id,fee_type,month,year,source_key',
       })
       summary.feeRecords += 1
       summary[feeRow.status] += 1
@@ -389,7 +391,7 @@ async function main() {
       onConflict: 'credit_code',
     })
     const adjustmentRow = await upsertOrThrow('fee_records', creditAdjustmentPayload(credit, creditRow), {
-      onConflict: 'skf_id,fee_type,month,year',
+      onConflict: 'skf_id,fee_type,month,year,source_key',
     })
     const { error: creditUpdateError } = await supabase
       .from('fee_credits')

@@ -133,7 +133,7 @@ describe('portal fee ledger', () => {
     const ledger = await FeeLedgerService.getPortalLedger('skf26mp001', 2026)
 
     expect(ledger.entries.map((entry) => `${entry.month}:${entry.status}`)).toEqual([
-      'May:due',
+      'May:overdue',
       'March:overdue',
       'January:paid',
     ])
@@ -161,5 +161,58 @@ describe('portal fee ledger', () => {
     ])
     expect(ledger.summary.totalDue).toBe(0)
     expect(ledger.nextDue).toBeNull()
+  })
+
+  it('uses billing profile monthly fee when generating upcoming portal months', async () => {
+    vi.setSystemTime(new Date('2026-06-30T00:00:00.000Z'))
+    state.billingProfile = {
+      billing_status: 'active',
+      monthly_fee: 0,
+    }
+    state.feeRows = []
+
+    await FeeLedgerService.getPortalLedger('SKF26MP001', 2026)
+
+    expect(state.ensureFeeRowsForStudent).toHaveBeenCalledWith('SKF26MP001', expect.objectContaining({
+      monthlyFee: 0,
+      year: 2026,
+      monthIndexes: [5, 6],
+    }))
+  })
+
+  it('shows the temporary black belt installment amount for assigned candidates', async () => {
+    vi.setSystemTime(new Date('2026-06-10T00:00:00.000Z'))
+    state.feeRows = [
+      {
+        ...monthlyFeeRow('June', 'due', 400),
+        skfId: 'SKF20HE001',
+      },
+    ]
+
+    const ledger = await FeeLedgerService.getPortalLedger('SKF20HE001', 2026)
+
+    expect(ledger.entries[0]).toEqual(expect.objectContaining({
+      amount: 2000,
+      sourceLabel: 'Black Belt Exam Installment',
+    }))
+    expect(ledger.summary.totalDue).toBe(2000)
+  })
+
+  it('keeps Roshan on the regular monthly amount during black belt installment months', async () => {
+    vi.setSystemTime(new Date('2026-10-10T00:00:00.000Z'))
+    state.feeRows = [
+      {
+        ...monthlyFeeRow('October', 'due', 1000),
+        skfId: 'SKF13BL000',
+      },
+    ]
+
+    const ledger = await FeeLedgerService.getPortalLedger('SKF13BL000', 2026)
+
+    expect(ledger.entries[0]).toEqual(expect.objectContaining({
+      amount: 1000,
+      sourceLabel: '',
+    }))
+    expect(ledger.summary.totalDue).toBe(1000)
   })
 })

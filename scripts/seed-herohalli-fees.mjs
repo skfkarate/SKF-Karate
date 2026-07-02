@@ -36,6 +36,16 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 const BRANCH_NAME = 'Herohalli'
 const TARGET_YEAR = 2026
+const BLACK_BELT_INSTALLMENT_SOURCE = 'black_belt_exam_installment_2026'
+const BLACK_BELT_INSTALLMENT_LABEL = 'Black Belt Exam Installment'
+const BLACK_BELT_INSTALLMENT_AMOUNT = 2000
+const BLACK_BELT_INSTALLMENT_IDS = new Set([
+  'SKF20HE001',
+  'SKF20HE002',
+  'SKF20HE003',
+  'SKF21HE001',
+  'SKF21HE003',
+])
 const MONTHS = [
   'January',
   'February',
@@ -351,13 +361,21 @@ function feePayload(student, month, monthIndex) {
   const status = normalizeStatus(student.statuses[monthIndex])
   const isPaid = status === 'paid'
   const date = isPaid ? paidDate(student.year, monthIndex) : null
+  const isBlackBeltInstallment =
+    student.year === 2026 &&
+    monthIndex >= 5 &&
+    monthIndex <= 9 &&
+    BLACK_BELT_INSTALLMENT_IDS.has(student.skfId)
+  const amount = isBlackBeltInstallment ? BLACK_BELT_INSTALLMENT_AMOUNT : student.monthlyFee
   return {
     skf_id: student.skfId,
     fee_type: 'monthly',
     month,
     year: student.year,
-    amount: student.monthlyFee,
+    amount,
     status,
+    source_key: '',
+    source_label: isBlackBeltInstallment ? BLACK_BELT_INSTALLMENT_LABEL : null,
     paid_date: date,
     receipt_id: isPaid ? receiptId(student.skfId, 'monthly', month, student.year) : null,
     payment_method: isPaid ? 'Seeded fee table' : null,
@@ -368,6 +386,12 @@ function feePayload(student, month, monthIndex) {
     metadata: {
       seededFrom: 'scripts/seed-herohalli-fees.mjs',
       source: 'manual Herohalli 2026 table',
+      ...(isBlackBeltInstallment
+        ? {
+            temporaryOverride: BLACK_BELT_INSTALLMENT_SOURCE,
+            baseMonthlyFee: student.monthlyFee,
+          }
+        : {}),
     },
     updated_at: new Date().toISOString(),
   }
@@ -497,7 +521,7 @@ async function main() {
     for (let index = 0; index < MONTHS.length; index += 1) {
       const month = MONTHS[index]
       const feeRow = await upsertOrThrow('fee_records', feePayload(student, month, index), {
-        onConflict: 'skf_id,fee_type,month,year',
+        onConflict: 'skf_id,fee_type,month,year,source_key',
       })
       summary.feeRecords += 1
       summary[feeRow.status] += 1

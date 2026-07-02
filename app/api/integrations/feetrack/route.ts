@@ -79,6 +79,7 @@ import {
   eventFeeExpenseSchema,
   eventFeeGenerateSchema,
   eventFeePreviewSchema,
+  feeReminderSendSchema,
   feeTypeSchema,
   manualStudentFeeSchema,
 } from '@/src/server/api/validators/fees.validator'
@@ -577,6 +578,14 @@ function hasAmount(value: unknown) {
   return value !== undefined && value !== null && value !== ''
 }
 
+function stringArray(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry || '').trim()).filter(Boolean)
+  }
+  const single = String(value || '').trim()
+  return single ? [single] : []
+}
+
 function compactDate(value: unknown) {
   return String(value || '').split('T')[0] || ''
 }
@@ -602,7 +611,11 @@ async function getNonRecurringRows(session: FeeTrackSession, year: number, branc
   return bySkfId
 }
 
-function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerEntry; dress?: LedgerEntry; eventDues?: LedgerEntry[] }) {
+function mapStudent(
+  row: Record<string, unknown>,
+  extras?: { admission?: LedgerEntry; dress?: LedgerEntry; eventDues?: LedgerEntry[] },
+  period?: { month: string; year: number }
+) {
   const rawStatus = String(row.status || 'due')
   const billingStatus = normalizeKey(row.billingStatus)
   const status = billingStatus === 'discontinued' && rawStatus === 'waived'
@@ -626,6 +639,69 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
     proofId: String(due.metadata?.latestProofId || '') || null,
   }))
   const monthStatus = statusToMonthStatus(status)
+  const pendingFees: Array<Record<string, unknown>> = []
+
+  if (row.feeRecordId && isReminderPayableStatus(status) && period) {
+    const label = row.isExamInstallment
+      ? 'Black Belt Exam Installment'
+      : ledgerCategoryLabel('monthly')
+    pendingFees.push({
+      id: String(row.feeRecordId),
+      feeRecordId: String(row.feeRecordId),
+      feeType: 'monthly',
+      label: pendingFeeLabel({ feeType: 'monthly', sourceLabel: label, month: period.month, year: period.year }),
+      amount: readAmount(row.amount),
+      status,
+      month: period.month,
+      monthIndex: monthIndex(period.month),
+      year: period.year,
+    })
+  }
+
+  if (admission && isReminderPayableStatus(admission.status)) {
+    pendingFees.push({
+      id: String(admission.id || ''),
+      feeRecordId: String(admission.id || ''),
+      feeType: 'admission',
+      label: pendingFeeLabel({ feeType: 'admission', sourceLabel: admission.sourceLabel, month: admission.month, year: admission.year }),
+      amount: readAmount(admission.amount),
+      status: admission.status,
+      month: admission.month || '',
+      monthIndex: admission.month ? monthIndex(admission.month) : null,
+      year: admission.year || 0,
+    })
+  }
+
+  if (dress && isReminderPayableStatus(dress.status)) {
+    pendingFees.push({
+      id: String(dress.id || ''),
+      feeRecordId: String(dress.id || ''),
+      feeType: 'dress',
+      label: pendingFeeLabel({ feeType: 'dress', sourceLabel: dress.sourceLabel, month: dress.month, year: dress.year }),
+      amount: readAmount(dress.amount),
+      status: dress.status,
+      month: dress.month || '',
+      monthIndex: dress.month ? monthIndex(dress.month) : null,
+      year: dress.year || 0,
+    })
+  }
+
+  for (const due of eventDues) {
+    if (!isReminderPayableStatus(due.status)) continue
+    pendingFees.push({
+      id: due.id,
+      feeRecordId: due.id,
+      feeType: due.feeType,
+      label: pendingFeeLabel({ feeType: due.feeType, sourceLabel: due.label, month: due.month, year: due.year }),
+      amount: due.amount,
+      status: due.status,
+      month: due.month,
+      monthIndex: due.month ? monthIndex(due.month) : null,
+      year: due.year,
+      eventId: due.eventId,
+      dueDate: due.dueDate,
+    })
+  }
 
   return {
     id: row.skfId,
@@ -661,6 +737,8 @@ function mapStudent(row: Record<string, unknown>, extras?: { admission?: LedgerE
     dressStatus: dress?.status === 'paid' ? 'Paid' : dress ? 'Pending' : undefined,
     dressReceiptId: dress?.receiptId || null,
     eventDues,
+    pendingFees,
+    pendingFeeTotal: pendingFees.reduce((sum, fee) => sum + readAmount(fee.amount), 0),
   }
 }
 
@@ -800,7 +878,7 @@ async function getStudents(session: FeeTrackSession, body: ActionBody) {
   return {
     success: true,
     students: Array.from(bySkfId.values()).map((student: Record<string, unknown>) =>
-      mapStudent(student, nonRecurring.get(String(student.skfId || '')))
+      mapStudent(student, nonRecurring.get(String(student.skfId || '')), { month, year })
     ),
   }
 }
@@ -926,6 +1004,64 @@ async function markNonRecurringPaid(session: FeeTrackSession, body: ActionBody) 
     paymentReference: 'FeeTrack',
   })
   return { success: true, data: result }
+}
+
+function normalizeReminderTarget(target: Record<string, unknown>, fallback: ActionBody) {
+  const feeRecordIds = [
+    ...stringArray(target.feeRecordIds),
+    ...stringArray(target.selectedFeeRecordIds),
+    ...stringArray(target.pendingFeeIds),
+  ]
+  const singleFeeRecordId = String(target.feeRecordId || '').trim()
+  const hasSelectedRows = feeRecordIds.length > 0 || Boolean(singleFeeRecordId)
+
+  return {
+    skfId: String(target.skfId || target.studentId || target.id || fallback.skfId || fallback.studentId || fallback.id || ''),
+    feeRecordId: singleFeeRecordId || undefined,
+    feeRecordIds: feeRecordIds.length ? feeRecordIds : undefined,
+    feeType: target.feeType ? String(target.feeType) : fallback.feeType ? String(fallback.feeType) : undefined,
+    month: target.month
+      ? monthName(target.month)
+      : !hasSelectedRows
+        ? monthName(fallback.month)
+        : undefined,
+    year: target.year
+      ? targetYear(target.year)
+      : !hasSelectedRows
+        ? targetYear(fallback.year)
+        : undefined,
+    amount: hasAmount(target.amount) ? readAmount(target.amount) : undefined,
+  }
+}
+
+async function sendWhatsappReminder(session: FeeTrackSession, body: ActionBody, previewOnly = false) {
+  const rawTargets = Array.isArray(body.targets)
+    ? body.targets as Array<Record<string, unknown>>
+    : [body]
+  const targets = rawTargets.map((target) => normalizeReminderTarget(target, body))
+  const parsed = feeReminderSendSchema.parse({
+    channel: body.channel || 'whatsapp',
+    templateKey: body.templateKey || (targets.some((target) => (target.feeRecordIds || []).length > 1) ? 'selected_pending_fees' : 'fee_due'),
+    targets,
+    note: body.note ? String(body.note) : undefined,
+    markFollowup: previewOnly ? false : body.markFollowup === undefined ? true : Boolean(body.markFollowup),
+    previewOnly,
+  })
+  const result = await FeeOperationsService.sendReminders(session, parsed)
+
+  return {
+    success: true,
+    data: result,
+    messages: result.results
+      .filter((entry: Record<string, unknown>) => entry.success)
+      .map((entry: Record<string, unknown>) => ({
+        studentId: String(entry.skfId || ''),
+        status: String(entry.status || ''),
+        message: String(entry.message || ''),
+        messageUrl: String(entry.messageUrl || ''),
+        selectedFees: entry.selectedFees || [],
+      })),
+  }
 }
 
 async function getBranchCounts(session: FeeTrackSession) {
@@ -1151,6 +1287,16 @@ function ledgerFormulaKey(feeType: string) {
   if (['belt_exam', 'tournament', 'event', 'other'].includes(feeType)) return 'eventIncome'
   if (feeType === 'credit_adjustment') return 'creditsApplied'
   return 'grossIncome'
+}
+
+function isReminderPayableStatus(status: unknown) {
+  return ['due', 'overdue', 'rejected'].includes(String(status || '').toLowerCase())
+}
+
+function pendingFeeLabel(input: { feeType: string; sourceLabel?: string | null; month?: string; year?: number }) {
+  const base = input.sourceLabel || ledgerCategoryLabel(input.feeType)
+  const period = input.month && input.year ? ` - ${input.month} ${input.year}` : ''
+  return `${base}${period}`
 }
 
 async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBody) {
@@ -2527,6 +2673,10 @@ async function handleAction(body: ActionBody) {
       return resumeStudent(session, body)
     case 'mark_non_recurring_paid':
       return markNonRecurringPaid(session, body)
+    case 'preview_whatsapp_reminder':
+      return sendWhatsappReminder(session, body, true)
+    case 'send_whatsapp_reminder':
+      return sendWhatsappReminder(session, body)
     case 'allocate_exam_fee':
       return allocateExamFee(session, body)
     case 'create_manual_student_fee':

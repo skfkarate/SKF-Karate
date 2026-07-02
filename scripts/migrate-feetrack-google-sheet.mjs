@@ -23,6 +23,16 @@ const MONTHS = [
 ]
 
 const MONTH_COLUMNS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const BLACK_BELT_INSTALLMENT_SOURCE = 'black_belt_exam_installment_2026'
+const BLACK_BELT_INSTALLMENT_LABEL = 'Black Belt Exam Installment'
+const BLACK_BELT_INSTALLMENT_AMOUNT = 2000
+const BLACK_BELT_INSTALLMENT_IDS = new Set([
+  'SKF20HE001',
+  'SKF20HE002',
+  'SKF20HE003',
+  'SKF21HE001',
+  'SKF21HE003',
+])
 
 const BRANCHES = [
   {
@@ -292,7 +302,7 @@ async function upsertFeeRecord(supabase, row) {
   return writeOrDry('feeRecords', async () => {
     const { data, error } = await supabase
       .from('fee_records')
-      .upsert(row, { onConflict: 'skf_id,fee_type,month,year' })
+      .upsert(row, { onConflict: 'skf_id,fee_type,month,year,source_key' })
       .select('*')
       .single()
     if (error) throw error
@@ -405,19 +415,36 @@ async function migrateFees(supabase, sheets, studentsBySkfId) {
         const status = feeStatus(cell(row, 4 + index))
         const paid = status === 'paid'
         const id = receiptId(skfId, 'monthly', month, year)
+        const isBlackBeltInstallment =
+          year === 2026 &&
+          index >= 5 &&
+          index <= 9 &&
+          BLACK_BELT_INSTALLMENT_IDS.has(skfId)
+        const rowAmount = isBlackBeltInstallment ? BLACK_BELT_INSTALLMENT_AMOUNT : amount
         const feeRow = await upsertFeeRecord(supabase, {
           skf_id: skfId,
           fee_type: 'monthly',
           month,
           year,
-          amount,
+          amount: rowAmount,
           status,
+          source_key: '',
+          source_label: isBlackBeltInstallment ? BLACK_BELT_INSTALLMENT_LABEL : null,
           paid_date: paid ? new Date(Date.UTC(year, index, 10)).toISOString() : null,
           receipt_id: paid ? id : null,
           payment_method: paid ? 'Migrated Sheet' : null,
           verified_by: paid ? 'Migration' : null,
           verified_at: paid ? new Date(Date.UTC(year, index, 10)).toISOString() : null,
-          metadata: { migratedFrom: branch.feesSheet, sourceColumn: MONTH_COLUMNS[index] },
+          metadata: {
+            migratedFrom: branch.feesSheet,
+            sourceColumn: MONTH_COLUMNS[index],
+            ...(isBlackBeltInstallment
+              ? {
+                  temporaryOverride: BLACK_BELT_INSTALLMENT_SOURCE,
+                  baseMonthlyFee: amount,
+                }
+              : {}),
+          },
           updated_at: new Date().toISOString(),
         })
         await ensureReceipt(supabase, feeRow, student.name, student.branchName)
