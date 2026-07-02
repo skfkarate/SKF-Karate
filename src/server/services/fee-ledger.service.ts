@@ -446,7 +446,12 @@ export class FeeLedgerService {
         let sourceLabel = row.sourceLabel || ''
         const override = getBlackBeltOverride(normalizedSkfId, monthIndex, row.year)
         
-        if (override && (!row.feeType || row.feeType === 'monthly')) {
+        if (
+          override &&
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.status !== 'paid' &&
+          !String(row.sourceKey || '').trim()
+        ) {
           amount = override.amount
           sourceLabel = override.label
         }
@@ -606,7 +611,12 @@ export class FeeLedgerService {
         let sourceLabel = row.sourceLabel || ''
         const override = getBlackBeltOverride(skfId, monthIndex, row.year)
         
-        if (override && (!row.feeType || row.feeType === 'monthly')) {
+        if (
+          override &&
+          (!row.feeType || row.feeType === 'monthly') &&
+          row.status !== 'paid' &&
+          !String(row.sourceKey || '').trim()
+        ) {
           amount = override.amount
           sourceLabel = override.label
         }
