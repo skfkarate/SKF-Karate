@@ -5,7 +5,7 @@ import FeesClient from './FeesClient'
 
 
 export default async function FeesPage() {
-  const { session } = await requirePortalAthlete()
+  const { session } = await requirePortalAthlete({ callbackUrl: '/portal/fees' })
 
   // Use the smart ledger service which auto-generates missing months based on the student's personal fee amount
   // It handles customized/decremented fees per student securely.

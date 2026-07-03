@@ -4,6 +4,6 @@ import VideosClient from './VideosClient'
 
 
 export default async function PortalVideosPage() {
-  await requirePortalAthlete()
+  await requirePortalAthlete({ callbackUrl: '/portal/videos' })
   return <VideosClient />
 }

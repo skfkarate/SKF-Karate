@@ -35,6 +35,12 @@ function beltTransitionLabel(meta: Record<string, unknown> | undefined) {
   return null
 }
 
+function canApplyBlackBeltMonthlyOverride(fee: FeeLedgerEntry) {
+  const status = String(fee.status || '')
+  const eligibleStatus = status === 'due' || status === 'overdue' || status === 'rejected' || status === 'pending_verification'
+  return fee.feeType === 'monthly' && eligibleStatus && !String(fee.sourceKey || '').trim()
+}
+
 function feeDisplayLabel(fee: FeeLedgerEntry) {
   if (fee.feeType === 'belt_exam') {
     const eventName = typeof fee.metadata?.eventName === 'string' ? fee.metadata.eventName : 'Belt Examination'
@@ -43,7 +49,7 @@ function feeDisplayLabel(fee: FeeLedgerEntry) {
   }
   if (fee.sourceLabel) return fee.sourceLabel
   if (fee.feeType === 'monthly') {
-    const override = getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year)
+    const override = canApplyBlackBeltMonthlyOverride(fee) ? getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year) : null
     if (override) return override.label
     return `${fee.month} ${fee.year}`
   }
@@ -58,7 +64,7 @@ function feeCategoryLabel(fee: FeeLedgerEntry) {
 
 function canDownloadReceipt(fee: FeeLedgerEntry) {
   if (fee.feeType !== 'monthly' || !fee.receiptId) return false
-  const override = getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year)
+  const override = canApplyBlackBeltMonthlyOverride(fee) ? getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year) : null
   if (override) return false
   return true
 }
@@ -139,7 +145,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
 
   const effectiveFeeRecords = feeRecords.map((fee) => {
     const base = locallySubmittedFeeKeys.has(fee.key) ? { ...fee, status: 'pending_verification' as const } : fee
-    if (base.feeType !== 'monthly') return base
+    if (!canApplyBlackBeltMonthlyOverride(base)) return base
     const override = athleteSkfId ? getBlackBeltOverride(athleteSkfId, base.monthIndex, base.year) : null
     if (override) return { ...base, amount: override.amount }
     return base
@@ -163,9 +169,15 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
     const oldestDueRecord = dueRecords[dueRecords.length - 1]
     return oldestDueRecord ? new Set([oldestDueRecord.key]) : new Set()
   })
+  const validDueFeeKeys = new Set(dueRecords.map((fee) => fee.key))
+  const selectedFeeKeySet = new Set(Array.from(selectedFeeKeys).filter((key) => validDueFeeKeys.has(key)))
+  if (selectedFeeKeySet.size === 0) {
+    const oldestDueRecord = dueRecords[dueRecords.length - 1]
+    if (oldestDueRecord) selectedFeeKeySet.add(oldestDueRecord.key)
+  }
 
   const totalDue = dueRecords.reduce((sum, f) => sum + (Number(f.amount) || 0), 0)
-  const selectedDueRecords = dueRecords.filter((fee) => selectedFeeKeys.has(fee.key))
+  const selectedDueRecords = dueRecords.filter((fee) => selectedFeeKeySet.has(fee.key))
   const selectedTotalDue = selectedDueRecords.reduce((sum, f) => sum + (Number(f.amount) || 0), 0)
 
   // Status booleans
@@ -228,7 +240,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
       setUiError('Payment screenshot must be 5 MB or smaller.')
       return
     }
-    if (selectedFeeKeys.size === 0) {
+    if (selectedDueRecords.length === 0) {
       setUiError('Please select at least one fee record.')
       return
     }
@@ -266,7 +278,11 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
   function toggleFeeSelection(key: string) {
     if (isSubmitting) return
     setSelectedFeeKeys((current) => {
-      const next = new Set(current)
+      const next = new Set(Array.from(current).filter((candidateKey) => validDueFeeKeys.has(candidateKey)))
+      if (next.size === 0) {
+        const oldestDueRecord = dueRecords[dueRecords.length - 1]
+        if (oldestDueRecord) next.add(oldestDueRecord.key)
+      }
       if (next.has(key)) next.delete(key)
       else next.add(key)
       return next
@@ -632,10 +648,10 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                             {fees.map((fee) => {
                               const isUpcoming = isUpcomingMonthlyFee(fee)
                               return (
-                                <label key={fee.key} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: '0.8rem', padding: '0.8rem', borderRadius: 12, border: selectedFeeKeys.has(fee.key) ? '1px solid rgba(255,183,3,0.35)' : '1px solid rgba(255,255,255,0.08)', background: selectedFeeKeys.has(fee.key) ? 'rgba(255,183,3,0.08)' : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
+                                <label key={fee.key} style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', alignItems: 'center', gap: '0.8rem', padding: '0.8rem', borderRadius: 12, border: selectedFeeKeySet.has(fee.key) ? '1px solid rgba(255,183,3,0.35)' : '1px solid rgba(255,255,255,0.08)', background: selectedFeeKeySet.has(fee.key) ? 'rgba(255,183,3,0.08)' : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
                                   <input
                                     type="checkbox"
-                                    checked={selectedFeeKeys.has(fee.key)}
+                                    checked={selectedFeeKeySet.has(fee.key)}
                                     disabled={isSubmitting}
                                     onChange={() => toggleFeeSelection(fee.key)}
                                   />
@@ -763,7 +779,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                   <button type="button" onClick={() => setIsPaying(false)} disabled={isSubmitting} style={{ flex: 1, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '1rem', borderRadius: '12px', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.6 : 1 }}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0} style={{ flex: 2, background: 'linear-gradient(135deg, var(--crimson, #d62828), #b31b1b)', color: '#fff', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 700, cursor: isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0 ? 'not-allowed' : 'pointer', opacity: isSubmitting || !hasScreenshot || selectedFeeKeys.size === 0 ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <button type="submit" disabled={isSubmitting || !hasScreenshot || selectedDueRecords.length === 0} style={{ flex: 2, background: 'linear-gradient(135deg, var(--crimson, #d62828), #b31b1b)', color: '#fff', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 700, cursor: isSubmitting || !hasScreenshot || selectedDueRecords.length === 0 ? 'not-allowed' : 'pointer', opacity: isSubmitting || !hasScreenshot || selectedDueRecords.length === 0 ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                     {isSubmitting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Submitting...</> : <><Upload size={16} /> Submit Proof</>}
                   </button>
                 </div>

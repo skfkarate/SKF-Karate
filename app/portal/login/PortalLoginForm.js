@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
 import { FaSpinner } from 'react-icons/fa'
+import { sanitizePortalCallbackUrl } from '@/lib/portal/portal-callback'
 import './login.css'
 
 function getPortalLoginErrorMessage(payload) {
@@ -19,23 +20,6 @@ function getPortalLoginErrorMessage(payload) {
     return payload.message
   }
   return 'Authentication failed'
-}
-
-function sanitizePortalCallbackUrl(value) {
-  if (typeof value !== 'string') return '/portal/dashboard'
-  const trimmed = value.trim()
-  if (!trimmed || !trimmed.startsWith('/') || trimmed.startsWith('//')) return '/portal/dashboard'
-
-  try {
-    const url = new URL(trimmed, window.location.origin)
-    const pathname = url.pathname || ''
-    if (!pathname.startsWith('/portal') || pathname === '/portal/login' || pathname.startsWith('/portal/login/')) {
-      return '/portal/dashboard'
-    }
-    return `${pathname}${url.search}`
-  } catch {
-    return '/portal/dashboard'
-  }
 }
 
 function DojoLoginInner({ fallbackCallbackUrl }) {

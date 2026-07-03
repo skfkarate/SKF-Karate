@@ -4,6 +4,6 @@ import NoticesClient from './NoticesClient'
 
 
 export default async function NoticesPage() {
-  await requirePortalAthlete()
+  await requirePortalAthlete({ callbackUrl: '/portal/notices' })
   return <NoticesClient />
 }

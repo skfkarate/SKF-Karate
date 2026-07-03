@@ -8,7 +8,7 @@ import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
 
 export default async function DojoDashboard() {
-  const { athlete } = await requirePortalAthlete()
+  const { athlete } = await requirePortalAthlete({ callbackUrl: '/portal/dashboard' })
 
   const [rankInfo, allEvents, branchCoachMap] = await Promise.all([
     getAthleteRankLive(athlete.id),
