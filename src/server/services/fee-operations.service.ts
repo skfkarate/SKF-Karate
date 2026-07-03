@@ -107,7 +107,7 @@ type PaymentProofRow = {
   skf_id: string
   amount: number
   payment_reference?: string | null
-  proof_path: string
+  proof_path: string | null
   proof_filename: string | null
   status: 'submitted' | 'approved' | 'rejected'
   submitted_at: string
@@ -812,9 +812,47 @@ async function markPaymentIntentStatus(input: {
   return data
 }
 
+async function clearProofFileReferences(proofIds: string[], context: {
+  action: 'approved' | 'rejected' | 'replaced'
+  skfId?: string | null
+  feeRecordId?: string | null
+}) {
+  const ids = Array.from(new Set(proofIds.map((id) => String(id || '').trim()).filter(Boolean)))
+  if (!ids.length) return null
+
+  const { data, error } = await supabaseAdmin
+    .from('fee_payment_proofs')
+    .update({
+      proof_path: '',
+      proof_filename: null,
+    })
+    .in('id', ids)
+    .select('*')
+
+  if (error) {
+    logger.warn('fee.payment_proof_file_reference_cleanup_failed', {
+      action: context.action,
+      proofIds: ids,
+      skfId: context.skfId || null,
+      feeRecordId: context.feeRecordId || null,
+      error,
+    })
+    return null
+  }
+
+  return (data || []) as PaymentProofRow[]
+}
+
 async function cleanupReviewedProofStorage(proof: PaymentProofRow, action: 'approved' | 'rejected') {
   const proofPath = String(proof.proof_path || '').trim()
-  if (!proofPath) return
+  if (!proofPath) {
+    const [cleaned] = await clearProofFileReferences([proof.id], {
+      action,
+      skfId: proof.skf_id,
+      feeRecordId: proof.fee_record_id,
+    }) || []
+    return cleaned || proof
+  }
 
   try {
     const { error } = await supabaseAdmin.storage.from(PROOF_BUCKET).remove([proofPath])
@@ -827,6 +865,7 @@ async function cleanupReviewedProofStorage(proof: PaymentProofRow, action: 'appr
         proofPath,
         error,
       })
+      return proof
     }
   } catch (error) {
     logger.warn('fee.payment_proof_storage_cleanup_failed', {
@@ -837,7 +876,15 @@ async function cleanupReviewedProofStorage(proof: PaymentProofRow, action: 'appr
       proofPath,
       error,
     })
+    return proof
   }
+
+  const [cleaned] = await clearProofFileReferences([proof.id], {
+    action,
+    skfId: proof.skf_id,
+    feeRecordId: proof.fee_record_id,
+  }) || []
+  return cleaned || proof
 }
 
 function outstandingStatus(status: FeeStatus) {
@@ -3639,13 +3686,21 @@ export class FeeOperationsService {
           error: replaceError,
         })
       } else if (oldProofPaths.length) {
-        await supabaseAdmin.storage.from(PROOF_BUCKET).remove(oldProofPaths).catch((error) => {
+        const { error: oldStorageError } = await supabaseAdmin.storage.from(PROOF_BUCKET).remove(oldProofPaths).catch((error) => {
           logger.warn('fee.payment_proof_old_storage_cleanup_failed', {
             skfId: normalizedSkfId,
             feeRecordId: row.id,
             error,
           })
+          return { error }
         })
+        if (!oldStorageError) {
+          await clearProofFileReferences((replacedProofs || []).map((oldProof) => String(oldProof.id || '')), {
+            action: 'replaced',
+            skfId: normalizedSkfId,
+            feeRecordId: row.id,
+          })
+        }
       }
     }
 
@@ -3776,7 +3831,10 @@ export class FeeOperationsService {
 
     const result = []
     for (const { proof, athlete } of scopedProofs) {
-      const signed = await supabaseAdmin.storage.from(PROOF_BUCKET).createSignedUrl(proof.proof_path, 10 * 60)
+      const proofPath = String(proof.proof_path || '').trim()
+      const signed = proofPath
+        ? await supabaseAdmin.storage.from(PROOF_BUCKET).createSignedUrl(proofPath, 10 * 60)
+        : null
       const city = cityLabelForBranch(athlete?.branchName)
       result.push({
         ...proof,
@@ -3784,7 +3842,7 @@ export class FeeOperationsService {
         branch: athlete?.branchName || 'Unknown',
         city: city.city,
         citySlug: city.citySlug,
-        signedUrl: signed.data?.signedUrl || '',
+        signedUrl: signed?.data?.signedUrl || '',
       })
     }
 
@@ -3857,6 +3915,7 @@ export class FeeOperationsService {
       .select('*')
       .single()
     if (proofError) throwFeeDatabaseError(proofError)
+    let reviewedProof = updatedProof as PaymentProofRow
 
 
     await markPaymentIntentStatus({
@@ -3870,7 +3929,7 @@ export class FeeOperationsService {
       },
     })
 
-    await cleanupReviewedProofStorage(proof, 'approved')
+    reviewedProof = await cleanupReviewedProofStorage(reviewedProof, 'approved')
 
     await logAudit(session, {
       action: 'payment_proof_approved',
@@ -3894,7 +3953,7 @@ export class FeeOperationsService {
       `*Approved By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
 
-    return { success: true, proof: updatedProof, entry: normalizedUpdatedRow, receipt }
+    return { success: true, proof: reviewedProof, entry: normalizedUpdatedRow, receipt }
   }
 
   static async rejectPaymentProof(session: Session, proofId: string, note?: string) {
@@ -3920,6 +3979,7 @@ export class FeeOperationsService {
       .select('*')
       .single()
     if (proofError) throwFeeDatabaseError(proofError)
+    let reviewedProof = updatedProof as PaymentProofRow
 
     await markPaymentIntentStatus({
       intentId: proof.payment_intent_id,
@@ -3953,13 +4013,13 @@ export class FeeOperationsService {
       updatedRow = data
     }
 
-    await cleanupReviewedProofStorage(proof, 'rejected')
+    reviewedProof = await cleanupReviewedProofStorage(reviewedProof, 'rejected')
 
     await logAudit(session, {
       action: 'payment_proof_rejected',
       skfId: proof.skf_id,
       feeRecordId: proof.fee_record_id || undefined,
-      after: updatedRow || updatedProof,
+      after: updatedRow || reviewedProof,
       metadata: {
         proofId,
         note,
@@ -3974,7 +4034,7 @@ export class FeeOperationsService {
       `*Rejected By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
 
-    return { success: true, proof: updatedProof, entry: updatedRow ? normalizeFeeRecord(updatedRow) : null }
+    return { success: true, proof: reviewedProof, entry: updatedRow ? normalizeFeeRecord(updatedRow) : null }
   }
 
   private static async getPaymentProofRowForReview(session: Session, proofId: string): Promise<PaymentProofRow> {
