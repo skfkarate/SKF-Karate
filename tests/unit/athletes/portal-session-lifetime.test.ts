@@ -17,6 +17,12 @@ describe('portal session lifetime', () => {
     expect(buildPortalCookie('signed-token')).toContain(`Max-Age=${PORTAL_SESSION_SECONDS}`)
   })
 
+  it('allows portal cookies on normal link opens from apps like WhatsApp', async () => {
+    const { buildPortalCookie } = await import('@/lib/server/auth/portal')
+
+    expect(buildPortalCookie('signed-token')).toContain('SameSite=Lax')
+  })
+
   it('signs portal JWTs for 30 days', async () => {
     vi.stubEnv('JWT_SECRET', TEST_JWT_SECRET)
     const { createJWT } = await import('@/lib/server/auth/portal')

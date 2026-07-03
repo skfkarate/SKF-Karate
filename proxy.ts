@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+import { sanitizePortalCallbackUrl } from '@/lib/server/auth/portal-callback'
+
 const PORTAL_COOKIE_NAME = 'skf_portal_token'
 const FEETRACK_HOST = 'fees.skfkarate.org'
 const DEFAULT_CANONICAL_HOST = 'www.skfkarate.org'
@@ -99,7 +101,7 @@ function attachSecurityHeaders(
       path: '/',
       maxAge: 0,
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
     })
   }
@@ -154,6 +156,13 @@ function buildFeeTrackRedirectUrl(request: NextRequest) {
     target.pathname = target.pathname.slice('/fee'.length) || '/'
   }
 
+  return target
+}
+
+function buildPortalLoginRedirectUrl(request: NextRequest) {
+  const target = new URL('/portal/login', request.url)
+  const callbackUrl = sanitizePortalCallbackUrl(`${request.nextUrl.pathname}${request.nextUrl.search}`)
+  target.searchParams.set('callbackUrl', callbackUrl)
   return target
 }
 
@@ -247,13 +256,14 @@ export async function proxy(request: NextRequest) {
 
   if (isPortalRoute) {
     if (!portalSession && !isPortalLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(new URL('/portal/login', request.url)), csp, {
+      return attachSecurityHeaders(NextResponse.redirect(buildPortalLoginRedirectUrl(request)), csp, {
         clearPortalCookie,
       })
     }
 
     if (portalSession && isPortalLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(new URL('/portal/dashboard', request.url)), csp)
+      const callbackUrl = sanitizePortalCallbackUrl(request.nextUrl.searchParams.get('callbackUrl'))
+      return attachSecurityHeaders(NextResponse.redirect(new URL(callbackUrl, request.url)), csp)
     }
   }
 
