@@ -43,7 +43,7 @@ type PortalAthlete = {
 }
 
 export default async function JourneyPage() {
-  const { athlete: rawAthlete } = await requirePortalAthlete()
+  const { athlete: rawAthlete } = await requirePortalAthlete({ callbackUrl: '/portal/journey' })
   const athlete = rawAthlete as PortalAthlete
   const [allEvents] = await Promise.all([
     getAllEventsLive(),

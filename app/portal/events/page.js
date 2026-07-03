@@ -151,7 +151,7 @@ function EventSection({ title, events }) {
 
 export default async function PortalEventsPage() {
   const nonce = (await headers()).get('x-nonce') || undefined
-  const { athlete } = await requirePortalAthlete()
+  const { athlete } = await requirePortalAthlete({ callbackUrl: '/portal/events' })
   const allEvents = await getAllEventsLive()
   const assignedEvents = getAssignedPortalEvents(allEvents, athlete.skfId)
   const upcoming = assignedEvents.filter((event) => isUpcomingPortalEvent(event))

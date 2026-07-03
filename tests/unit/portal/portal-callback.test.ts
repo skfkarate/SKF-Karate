@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { sanitizePortalCallbackUrl } from '@/lib/server/auth/portal-callback'
+import { buildPortalLoginUrl, sanitizePortalCallbackUrl } from '@/lib/server/auth/portal-callback'
 
 describe('portal login callback sanitizer', () => {
   it('keeps safe portal-relative callback URLs', () => {
@@ -22,5 +22,12 @@ describe('portal login callback sanitizer', () => {
   it('does not redirect authenticated athletes back into the login flow', () => {
     expect(sanitizePortalCallbackUrl('/portal/login')).toBe('/portal/dashboard')
     expect(sanitizePortalCallbackUrl('/portal/login/reset')).toBe('/portal/dashboard')
+  })
+
+  it('builds encoded login URLs for protected portal pages', () => {
+    expect(buildPortalLoginUrl('/portal/fees?month=July&year=2026')).toBe(
+      '/portal/login?callbackUrl=%2Fportal%2Ffees%3Fmonth%3DJuly%26year%3D2026'
+    )
+    expect(buildPortalLoginUrl('/admin')).toBe('/portal/login?callbackUrl=%2Fportal%2Fdashboard')
   })
 })

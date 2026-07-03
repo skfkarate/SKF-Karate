@@ -9,6 +9,7 @@ import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
 import YouTubeThumbnail from '@/components/video/YouTubeThumbnail'
 import { VideosPageSkeleton } from '../_components/skeletons/VideosPageSkeleton'
 import { useNonce } from '@/components/NonceProvider'
+import { redirectToCurrentPortalLogin } from '@/app/_components/portal/portalClientRedirect'
 
 function normalizeVideo(video) {
   return {
@@ -50,7 +51,7 @@ export default function VideosClient() {
         ])
 
         if (videosRes.status === 401 || progressRes.status === 401) {
-          window.location.href = '/portal/login'
+          redirectToCurrentPortalLogin()
           return
         }
 

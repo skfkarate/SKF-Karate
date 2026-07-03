@@ -5,7 +5,7 @@ import TimetableClient from './TimetableClient'
 
 
 export default async function TimetablePage() {
-  const { athlete, session } = await requirePortalAthlete()
+  const { athlete, session } = await requirePortalAthlete({ callbackUrl: '/portal/timetable' })
   const branchName = athlete.branchName || session.branch || 'SKF Karate'
   const timetable = await getActiveTimetableForBranchName(branchName)
 

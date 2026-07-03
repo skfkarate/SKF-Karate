@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Award, Gift, Clock, ShieldCheck } from 'lucide-react'
 import { CreditsPageSkeleton } from '../_components/skeletons/CreditsPageSkeleton'
+import { redirectToCurrentPortalLogin } from '@/app/_components/portal/portalClientRedirect'
 
 type CreditEntry = {
   id: string
@@ -39,7 +40,7 @@ export default function CreditsClient() {
       try {
         const res = await fetch('/api/portal/credits', { cache: 'no-store' })
         if (res.status === 401) {
-          window.location.href = '/portal/login'
+          redirectToCurrentPortalLogin()
           return
         }
         if (!res.ok) throw new Error('Unable to load student credits.')

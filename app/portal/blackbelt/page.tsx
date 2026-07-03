@@ -6,7 +6,7 @@ import BlackBeltClient from './BlackBeltClient'
 
 
 export default async function BlackBeltPage() {
-  const { athlete } = await requirePortalAthlete()
+  const { athlete } = await requirePortalAthlete({ callbackUrl: '/portal/blackbelt' })
   const data = await getBBProgramForPortal(athlete.skfId)
 
   const normalizedAthleteId = normaliseSkfId(athlete.skfId)

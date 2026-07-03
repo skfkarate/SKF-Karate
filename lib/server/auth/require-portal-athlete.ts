@@ -7,6 +7,7 @@ import {
   buildCanonicalPortalSession,
   isEligiblePortalAthlete,
 } from '@/lib/server/auth/portal-athlete'
+import { buildPortalLoginUrl } from '@/lib/server/auth/portal-callback'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
 
@@ -33,10 +34,10 @@ export const getPortalAthleteFromCookies = cache(async function getPortalAthlete
   }
 })
 
-export async function requirePortalAthlete(options: { redirectTo?: string } = {}) {
+export async function requirePortalAthlete(options: { redirectTo?: string; callbackUrl?: string } = {}) {
   const result = await getPortalAthleteFromCookies()
   if (!result) {
-    redirect(options.redirectTo || '/portal/login')
+    redirect(options.redirectTo || (options.callbackUrl ? buildPortalLoginUrl(options.callbackUrl) : '/portal/login'))
   }
   return result
 }
