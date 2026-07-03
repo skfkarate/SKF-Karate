@@ -21,10 +21,27 @@ function getPortalLoginErrorMessage(payload) {
   return 'Authentication failed'
 }
 
+function sanitizePortalCallbackUrl(value) {
+  if (typeof value !== 'string') return '/portal/dashboard'
+  const trimmed = value.trim()
+  if (!trimmed || !trimmed.startsWith('/') || trimmed.startsWith('//')) return '/portal/dashboard'
+
+  try {
+    const url = new URL(trimmed, window.location.origin)
+    const pathname = url.pathname || ''
+    if (!pathname.startsWith('/portal') || pathname === '/portal/login' || pathname.startsWith('/portal/login/')) {
+      return '/portal/dashboard'
+    }
+    return `${pathname}${url.search}`
+  } catch {
+    return '/portal/dashboard'
+  }
+}
+
 function DojoLoginInner({ fallbackCallbackUrl }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || fallbackCallbackUrl || '/portal/dashboard'
+  const callbackUrl = sanitizePortalCallbackUrl(searchParams.get('callbackUrl') || fallbackCallbackUrl)
   const [skfId, setSkfId] = useState('')
   const [dob, setDob] = useState('')
   const [error, setError] = useState('')

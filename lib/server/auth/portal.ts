@@ -28,11 +28,11 @@ export function verifyJWT(token: string): JWTPayload | null {
 export function buildPortalCookie(token: string): string {
   const isSecure = env.NODE_ENV === 'production'
   const secureFlag = isSecure ? '; Secure' : ''
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}${secureFlag}`
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}${secureFlag}`
 }
 
 export function buildPortalCookieClear(): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
 }
 
 export function getPortalToken(request: Request): string | null {
