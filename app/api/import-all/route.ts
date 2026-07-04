@@ -97,9 +97,9 @@ SKF23HE005	PRITHVI RAJ B N	Herohalli	2024-09-29	Belt Exam	Orange Belt	SKF Progre
 SKF23HE005	PRITHVI RAJ B N	Herohalli	2025-06-01	Belt Exam	Green II Belt	SKF Progressive Kyu Examination – June 2025	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
 SKF23HE005	PRITHVI RAJ B N	Herohalli	2025-12-07	Belt Exam	Green I Belt	SKF Progressive Kyu Examination – December 2025	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
 SKF23HE006	KUSHAL K	Herohalli	2023-01-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Green I Belt	Source order normalized from the recorded history
-SKF23HE006	KUSHAL K	Herohalli	2024-09-29	Belt Exam	Green I Belt	SKF Progressive Kyu Examination – September 2024	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
+SKF23HE006	KUSHAL K	Herohalli	2024-09-29	Belt Exam	Orange Belt	SKF Progressive Kyu Examination – September 2024	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
 SKF23HE006	KUSHAL K	Herohalli	2025-06-01	Belt Exam	Green II Belt	SKF Progressive Kyu Examination – June 2025	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
-SKF23HE006	KUSHAL K	Herohalli	2025-12-07	Belt Exam	Orange Belt	SKF Progressive Kyu Examination – December 2025	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
+SKF23HE006	KUSHAL K	Herohalli	2025-12-07	Belt Exam	Green I Belt	SKF Progressive Kyu Examination – December 2025	Pass	A	Dr. Renshi Channegowda UC	No	Green I Belt	
 SKF24HE001	KUSHIL V	Herohalli	2025-01-01	White Belt Issued	White Belt	Joining / White Belt Issued	Issued			No	Orange Belt	White belt issued / joining date
 SKF24HE001	KUSHIL V	Herohalli	2025-06-01	Belt Exam	Yellow Belt	SKF Progressive Kyu Examination – June 2025	Pass	A	Dr. Renshi Channegowda UC	No	Orange Belt	
 SKF24HE001	KUSHIL V	Herohalli	2025-12-07	Belt Exam	Orange Belt	SKF Progressive Kyu Examination – December 2025	Pass	A	Dr. Renshi Channegowda UC	No	Orange Belt	
@@ -149,11 +149,11 @@ export async function POST(request: NextRequest) {
       groups.set(skf_id, [])
     }
     
-    // Correct Kushal K's sequence
+    // Correct Kushal K's historical sequence before the June 2026 Blue Belt promotion.
     if (skf_id === 'SKF23HE006') {
-      if (date === '2024-09-29') belt = 'Yellow Belt'
-      if (date === '2025-06-01') belt = 'Orange Belt'
-      if (date === '2025-12-07') belt = 'Green II Belt'
+      if (date === '2024-09-29') belt = 'Orange Belt'
+      if (date === '2025-06-01') belt = 'Green II Belt'
+      if (date === '2025-12-07') belt = 'Green I Belt'
     }
 
     groups.get(skf_id)!.push({

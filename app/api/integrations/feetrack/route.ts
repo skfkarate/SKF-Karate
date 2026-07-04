@@ -47,9 +47,11 @@ import {
   syncTournamentResultsToAthletes,
 } from '@/lib/server/event-athlete-sync'
 import {
+  assignEventCertificateNumbers,
   listEventCertificates,
   prepareEventCertificates,
   publishEventCertificates,
+  type CertificateNumberAssignment,
 } from '@/lib/certificates/CertificateWorkflow'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import {
@@ -193,6 +195,7 @@ type FeeTrackEventResult = Record<string, unknown> & {
   daysAttended?: number | string
   specialAward?: string
   award?: string
+  awardRank?: number | string
   notes?: string
 }
 
@@ -2227,6 +2230,115 @@ function deriveTournamentWinners(results: FeeTrackEventResult[]) {
     })
 }
 
+function promotedBeltAssignmentsFromBody(body: ActionBody) {
+  const source = body.promotions || body.beltAwards || body.promotedBelts || body.promotedTo
+  const assignments = new Map<string, string>()
+
+  if (Array.isArray(source)) {
+    for (const item of source) {
+      if (!item || typeof item !== 'object') continue
+      const entry = item as Record<string, unknown>
+      const skfId = normaliseSkfId(String(entry.skfId || entry.studentId || ''))
+      const belt = String(entry.beltAwarded || entry.promotion || entry.promotedTo || entry.belt || '').trim()
+      if (skfId && belt) assignments.set(skfId, belt)
+    }
+  } else if (source && typeof source === 'object') {
+    for (const [skfId, belt] of Object.entries(source as Record<string, unknown>)) {
+      const normalizedSkfId = normaliseSkfId(skfId)
+      const beltValue = String(belt || '').trim()
+      if (normalizedSkfId && beltValue) assignments.set(normalizedSkfId, beltValue)
+    }
+  }
+
+  return assignments
+}
+
+function topPerformerAward(rank: number) {
+  return `Top Performer #${rank}`
+}
+
+function topPerformerNotes(rank: number) {
+  const labels: Record<number, string> = {
+    1: 'First top performer in this belt examination.',
+    2: 'Second top performer in this belt examination.',
+    3: 'Third top performer in this belt examination.',
+    4: 'Fourth top performer in this belt examination.',
+    5: 'Fifth top performer in this belt examination.',
+  }
+  return labels[rank] || `Top performer rank ${rank} in this belt examination.`
+}
+
+function topPerformerAssignmentsFromBody(body: ActionBody) {
+  const source = body.topPerformers || body.bestPerformers || body.performers
+  const assignments = new Map<string, {
+    rank: number
+    award: string
+    notes: string
+  }>()
+
+  if (!Array.isArray(source)) return assignments
+
+  source.forEach((item, index) => {
+    const rankFallback = index + 1
+    if (typeof item === 'string') {
+      const skfId = normaliseSkfId(item)
+      if (skfId) {
+        assignments.set(skfId, {
+          rank: rankFallback,
+          award: topPerformerAward(rankFallback),
+          notes: topPerformerNotes(rankFallback),
+        })
+      }
+      return
+    }
+
+    if (!item || typeof item !== 'object') return
+    const entry = item as Record<string, unknown>
+    const skfId = normaliseSkfId(String(entry.skfId || entry.studentId || entry.id || ''))
+    if (!skfId) return
+
+    const rank = Math.max(1, Number(entry.rank || entry.position || entry.place || rankFallback) || rankFallback)
+    assignments.set(skfId, {
+      rank,
+      award: String(entry.specialAward || entry.award || topPerformerAward(rank)),
+      notes: String(entry.notes || topPerformerNotes(rank)),
+    })
+  })
+
+  return assignments
+}
+
+function applyWorkflowAnnotationsToResults(results: FeeTrackEventResult[], body: ActionBody) {
+  const topPerformers = topPerformerAssignmentsFromBody(body)
+  const promotions = promotedBeltAssignmentsFromBody(body)
+
+  return results.map((result) => {
+    const skfId = normaliseSkfId(String(result.skfId || ''))
+    const topPerformer = topPerformers.get(skfId)
+    const promotion = promotions.get(skfId)
+    const next: FeeTrackEventResult = {
+      ...result,
+      result: String(result.result || 'pass'),
+    }
+
+    if (promotion) {
+      next.beltAwarded = String(result.beltAwarded || promotion)
+      next.promotion = String(result.promotion || promotion)
+    }
+
+    if (topPerformer) {
+      next.specialAward = topPerformer.award
+      next.award = topPerformer.award
+      next.awardRank = topPerformer.rank
+      next.notes = result.notes
+        ? `${result.notes} • ${topPerformer.notes}`
+        : topPerformer.notes
+    }
+
+    return next
+  })
+}
+
 async function updateEventResultsRecord(
   event: FeeTrackEvent,
   results: FeeTrackEventResult[],
@@ -2282,7 +2394,10 @@ async function updateEventResultsRecord(
 async function saveEventResultsFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
   assertEventWrite(session)
   const event = await getFeeTrackEvent(session, body.eventId || body.id)
-  const results = Array.isArray(body.results) ? body.results as FeeTrackEventResult[] : []
+  const results = applyWorkflowAnnotationsToResults(
+    Array.isArray(body.results) ? body.results as FeeTrackEventResult[] : [],
+    body
+  )
   const updated = await updateEventResultsRecord(event, results)
 
   if (updated.type === 'tournament') {
@@ -2302,11 +2417,12 @@ async function publishEventResultsFromFeeTrack(session: FeeTrackSession, body: A
     : Array.isArray(event.results)
       ? event.results
       : []
-  if (sourceResults.length === 0) {
+  const annotatedResults = applyWorkflowAnnotationsToResults(sourceResults, body)
+  if (annotatedResults.length === 0) {
     throw new ValidationError({ results: ['Record at least one outcome before publishing.'] })
   }
 
-  const saved = await updateEventResultsRecord(event, sourceResults, {
+  const saved = await updateEventResultsRecord(event, annotatedResults, {
     status: 'completed',
     isPublished: true,
     isResultsPublished: true,
@@ -2355,6 +2471,190 @@ async function eventForCertificateWorkflow(session: FeeTrackSession, body: Actio
   const updated = await updateEventResultsRecord(event, results)
   revalidateFeeTrackEventPaths(updated)
   return updated
+}
+
+function participantCertificateResults(
+  event: FeeTrackEvent,
+  promotions = new Map<string, string>()
+): FeeTrackEventResult[] {
+  return (event.participants || []).map((participant, index) => {
+    const skfId = normaliseSkfId(String(participant.skfId || ''))
+    const promotedBelt = promotions.get(skfId) || ''
+    return {
+      id: `cert_res_${event.id}_${skfId || index + 1}`,
+      participantId: String(participant.id || ''),
+      athleteId: String(participant.athleteId || ''),
+      athleteName: String(participant.athleteName || skfId || 'SKF Athlete'),
+      skfId,
+      branchName: String(participant.branchName || ''),
+      belt: String(participant.belt || ''),
+      photoUrl: resolvedProfilePhoto(participant),
+      beltAwarded: promotedBelt,
+      promotion: promotedBelt,
+      result: 'pass',
+      examiner: String(event.affiliatedBody || 'SKF Karate'),
+    }
+  })
+}
+
+function certificateResultsForQrWorkflow(event: FeeTrackEvent, body: ActionBody): FeeTrackEventResult[] {
+  if (Array.isArray(body.results)) return body.results as FeeTrackEventResult[]
+  if (Array.isArray(event.results) && event.results.length > 0) return event.results
+  if (body.fromParticipants === false) return []
+  return participantCertificateResults(event, promotedBeltAssignmentsFromBody(body))
+}
+
+function certificateNumberAssignmentsFromBody(body: ActionBody): CertificateNumberAssignment[] {
+  const source = body.certificateNumbers || body.certificateNumberAssignments || body.certificateAssignments
+
+  if (Array.isArray(source)) {
+    return source.flatMap((item) => {
+      if (!item || typeof item !== 'object') return []
+      const entry = item as Record<string, unknown>
+      return [{
+        skfId: String(entry.skfId || entry.studentId || ''),
+        certificateNumber: String(entry.certificateNumber || entry.number || ''),
+      }]
+    })
+  }
+
+  if (source && typeof source === 'object') {
+    return Object.entries(source as Record<string, unknown>).map(([skfId, certificateNumber]) => ({
+      skfId,
+      certificateNumber: String(certificateNumber || ''),
+    }))
+  }
+
+  return []
+}
+
+async function prepareEventCertificateQrsFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const results = certificateResultsForQrWorkflow(event, body)
+
+  if (results.length === 0) {
+    throw new ValidationError({
+      results: ['Add event results or keep event participants assigned before generating certificate QR codes.'],
+    })
+  }
+
+  let certificateSummary = await prepareEventCertificates(event, results)
+  const assignments = certificateNumberAssignmentsFromBody(body)
+  if (assignments.length > 0) {
+    certificateSummary = await assignEventCertificateNumbers(event, assignments)
+  }
+
+  if (body.publish === true || body.issue === true || body.publishNow === true) {
+    certificateSummary = await publishEventCertificates({
+      event,
+      results,
+      publishedBy: session.user.name || session.user.id || 'FeeTrack',
+    })
+  }
+
+  for (const certificate of certificateSummary.certificates) {
+    revalidateAthleteSitePaths(certificate.skfId)
+  }
+  revalidateFeeTrackEventPaths(event)
+  revalidatePath('/verify')
+  revalidateTag('certificates', 'max')
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(event),
+      certificateSummary,
+    },
+  }
+}
+
+function finalizationResultsForEvent(event: FeeTrackEvent, body: ActionBody) {
+  if (Array.isArray(body.results) && body.results.length > 0) {
+    return applyWorkflowAnnotationsToResults(body.results as FeeTrackEventResult[], body)
+  }
+
+  if (Array.isArray(event.results) && event.results.length > 0) {
+    return applyWorkflowAnnotationsToResults(event.results, body)
+  }
+
+  if (body.fromParticipants === false) return []
+
+  return applyWorkflowAnnotationsToResults(
+    participantCertificateResults(event, promotedBeltAssignmentsFromBody(body)),
+    body
+  )
+}
+
+async function finalizeEventWorkflowFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertEventWrite(session)
+  const event = await getFeeTrackEvent(session, body.eventId || body.id)
+  const results = finalizationResultsForEvent(event, body)
+
+  if (results.length === 0) {
+    throw new ValidationError({
+      results: ['Record results or keep event participants assigned before finalizing the event workflow.'],
+    })
+  }
+
+  const published = await updateEventResultsRecord(event, results, {
+    status: 'completed',
+    isPublished: true,
+    isResultsPublished: true,
+    showInJourney: true,
+    resultsAppliedAt: new Date().toISOString(),
+  })
+
+  const syncSummary = published.type === 'tournament'
+    ? await syncTournamentResultsToAthletes(published as Parameters<typeof syncTournamentResultsToAthletes>[0])
+    : await syncStandaloneEventResultsToAthletes(published as Parameters<typeof syncStandaloneEventResultsToAthletes>[0])
+
+  let certificateSummary = null
+  const shouldHandleCertificates = body.certificates !== false && body.skipCertificates !== true
+  if (shouldHandleCertificates) {
+    const publishedResults = Array.isArray(published.results) ? published.results : results
+    certificateSummary = await prepareEventCertificates(published, publishedResults)
+
+    const assignments = certificateNumberAssignmentsFromBody(body)
+    if (assignments.length > 0) {
+      certificateSummary = await assignEventCertificateNumbers(published, assignments)
+    }
+
+    const shouldPublishCertificates = body.publishCertificates !== false &&
+      body.issueCertificates !== false &&
+      body.publishCertificate !== false
+
+    if (shouldPublishCertificates) {
+      certificateSummary = await publishEventCertificates({
+        event: published,
+        results: publishedResults,
+        publishedBy: session.user.name || session.user.id || 'FeeTrack',
+      })
+    }
+  }
+
+  const affectedSkfIds = new Set([
+    ...Array.from(collectParticipantSkfIds(published)),
+    ...results
+      .map((result) => normaliseSkfId(String(result.skfId || '')))
+      .filter(Boolean),
+  ])
+
+  for (const skfId of affectedSkfIds) {
+    revalidateAthleteSitePaths(skfId)
+  }
+  revalidateFeeTrackEventPaths(published)
+  revalidatePath('/verify')
+  revalidateTag('certificates', 'max')
+
+  return {
+    success: true,
+    data: {
+      event: mapEventForFeeTrack(published),
+      syncSummary,
+      certificateSummary,
+    },
+  }
 }
 
 async function getEventCertificatesFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
@@ -2768,6 +3068,13 @@ async function handleAction(body: ActionBody) {
       return saveEventResultsFromFeeTrack(session, body)
     case 'publish_event_results':
       return publishEventResultsFromFeeTrack(session, body)
+    case 'finalize_event_workflow':
+    case 'finalize_event_results':
+    case 'publish_event_workflow':
+      return finalizeEventWorkflowFromFeeTrack(session, body)
+    case 'prepare_event_certificate_qrs':
+    case 'generate_event_certificate_qrs':
+      return prepareEventCertificateQrsFromFeeTrack(session, body)
     case 'get_event_certificates':
       return getEventCertificatesFromFeeTrack(session, body)
     case 'prepare_event_certificates':

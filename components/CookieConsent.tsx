@@ -1,16 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { getCookieConsent, saveCookieConsent } from '../lib/cookies/consent'
 import { FaTimes, FaCookieBite } from 'react-icons/fa'
 import './CookieConsent.css'
 
 export default function CookieConsent() {
+  const pathname = usePathname()
   const [hasConsented, setHasConsented] = useState<boolean>(true) // default true to avoid hydration mismatch, then check
   const [showModal, setShowModal] = useState(false)
   const [preferences, setPreferences] = useState({ analytics: false, marketing: false })
+  const suppressForVerification = pathname?.startsWith('/verify/c/')
 
   useEffect(() => {
+    if (suppressForVerification) {
+      setHasConsented(true)
+      setShowModal(false)
+      return
+    }
+
     const id = window.setTimeout(() => {
       const consent = getCookieConsent()
       if (!consent) {
@@ -21,7 +30,7 @@ export default function CookieConsent() {
       }
     }, 0)
     return () => window.clearTimeout(id)
-  }, [])
+  }, [suppressForVerification])
 
   const handleAcceptAll = () => {
     saveCookieConsent(true, true)
@@ -41,7 +50,7 @@ export default function CookieConsent() {
     setShowModal(false)
   }
 
-  if (hasConsented && !showModal) return null
+  if (suppressForVerification || (hasConsented && !showModal)) return null
 
   return (
     <>

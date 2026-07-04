@@ -118,6 +118,11 @@ export type EventCertificateSummary = {
   skipped: EventCertificateSkippedRecord[]
 }
 
+export type CertificateNumberAssignment = {
+  skfId: string
+  certificateNumber: string
+}
+
 const CERTIFICATE_SELECT = [
   'enrollment_id',
   'skf_id',
@@ -243,7 +248,7 @@ export function certificateVerifyUrl(verificationCode: string) {
 }
 
 export function certificateQrDownloadUrl(verificationCode: string, size = 1600) {
-  return buildAppUrl(`/api/certificates/qr/${encodeURIComponent(verificationCode)}?size=${size}`)
+  return buildAppUrl(`/api/certificates/qr/${encodeURIComponent(verificationCode)}?size=${size}&label=1`)
 }
 
 function safeText(value: unknown) {
@@ -388,6 +393,24 @@ function sourceResults(event: CertificateWorkflowEvent, results?: CertificateWor
     .map((result, index) => resultWithDefaults(event, result, index))
 }
 
+function participantLookupResults(event: CertificateWorkflowEvent) {
+  return (event.participants || []).map((participant, index) => resultWithDefaults(event, {
+    id: safeText(participant.id) || `participant_${event.id}_${index + 1}`,
+    participantId: safeText(participant.id),
+    athleteId: safeText(participant.athleteId),
+    athleteName: safeText(participant.athleteName),
+    skfId: safeText(participant.skfId),
+    branchName: safeText(participant.branchName),
+    belt: safeText(participant.belt),
+    result: 'assigned',
+  }, index))
+}
+
+function lookupResultsForEvent(event: CertificateWorkflowEvent) {
+  const results = sourceResults(event)
+  return results.length > 0 ? results : participantLookupResults(event)
+}
+
 function certificateRecordFromRows(
   program: ProgramRow,
   enrollment: EnrollmentWorkflowRow,
@@ -431,6 +454,12 @@ function summarize(
     certificates,
     skipped,
   }
+}
+
+function normalizeCertificateNumber(value: unknown) {
+  const certificateNumber = safeText(value).toUpperCase()
+  if (!CERTIFICATE_NUMBER_PATTERN.test(certificateNumber)) return null
+  return certificateNumber
 }
 
 async function findProgramForEvent(event: CertificateWorkflowEvent): Promise<ProgramRow | null> {
@@ -738,10 +767,63 @@ export async function publishEventCertificates(input: {
   return summarize(program, allResults.length, certificates, prepared.skipped)
 }
 
+export async function assignEventCertificateNumbers(
+  event: CertificateWorkflowEvent,
+  assignments: CertificateNumberAssignment[]
+): Promise<EventCertificateSummary> {
+  const program = await findProgramForEvent(event)
+  if (!program || assignments.length === 0) {
+    return listEventCertificates(event)
+  }
+
+  const normalizedAssignments = assignments
+    .map((assignment) => ({
+      skfId: normaliseSkfId(safeText(assignment.skfId)),
+      certificateNumber: normalizeCertificateNumber(assignment.certificateNumber),
+    }))
+    .filter((assignment): assignment is { skfId: string; certificateNumber: string } => (
+      Boolean(assignment.skfId && assignment.certificateNumber)
+    ))
+
+  if (normalizedAssignments.length === 0) return listEventCertificates(event)
+
+  const enrollmentBySkfId = new Map<string, EnrollmentWorkflowRow>()
+  const { data, error } = await supabaseAdmin
+    .from('enrollments')
+    .select('id, skf_id, program_id, belt_level, status, completion_date, issuer_name, certificate_unlocked')
+    .eq('program_id', program.id)
+    .in('skf_id', normalizedAssignments.map((assignment) => assignment.skfId))
+
+  if (error) throw error
+
+  for (const enrollment of (data || []) as EnrollmentWorkflowRow[]) {
+    enrollmentBySkfId.set(normaliseSkfId(enrollment.skf_id), enrollment)
+  }
+
+  for (const assignment of normalizedAssignments) {
+    const enrollment = enrollmentBySkfId.get(assignment.skfId)
+    if (!enrollment) continue
+
+    const { error: updateError } = await supabaseAdmin
+      .from('certificates')
+      .update({
+        certificate_number: assignment.certificateNumber,
+        issued_snapshot: {},
+        render_hash: null,
+      })
+      .eq('enrollment_id', enrollment.id)
+
+    if (updateError) throw updateError
+  }
+
+  return listEventCertificates(event)
+}
+
 export async function listEventCertificates(event: CertificateWorkflowEvent): Promise<EventCertificateSummary> {
   const program = await findProgramForEvent(event)
   const allResults = sourceResults(event)
-  const resultBySkfId = new Map(allResults.map((result) => [normaliseSkfId(safeText(result.skfId)), result]))
+  const lookupResults = lookupResultsForEvent(event)
+  const resultBySkfId = new Map(lookupResults.map((result) => [normaliseSkfId(safeText(result.skfId)), result]))
 
   if (!program) {
     return summarize(null, allResults.length, [], [])
@@ -765,7 +847,7 @@ export async function listEventCertificates(event: CertificateWorkflowEvent): Pr
     return [certificateRecordFromRows(program, enrollment, certificate, resultBySkfId.get(enrollment.skf_id))]
   })
 
-  return summarize(program, allResults.length, certificates, [])
+  return summarize(program, allResults.length || lookupResults.length, certificates, [])
 }
 
 export async function getCertificateQrPayload(lookup: string) {
@@ -788,6 +870,7 @@ export async function getCertificateQrPayload(lookup: string) {
 
   return {
     certificateNumber: certificate.certificate_number || 'SKF-C-PENDING',
+    skfId: certificate.skf_id,
     verificationCode: certificate.verification_code,
     status: certificate.status,
     verifyUrl: certificateVerifyUrl(certificate.verification_code),
