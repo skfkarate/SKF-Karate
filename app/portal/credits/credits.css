@@ -1,0 +1,460 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   CREDITS PAGE — Responsive Layout
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Page Container ── */
+.credits-page {
+  padding: 2rem 1rem 6rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 70vh;
+}
+
+/* ── Header ── */
+.credits-header {
+  padding-top: 3rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.credits-header h1 {
+  font-family: var(--font-heading, "Outfit");
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.4) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.credits-header p {
+  color: rgba(255,255,255,0.5);
+  font-size: 1.1rem;
+  margin: 0 auto;
+  max-width: 620px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* ── Error ── */
+.credits-error {
+  padding: 3rem 2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(214,40,40,0.25);
+  background: rgba(214,40,40,0.08);
+  color: #ffb4b4;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ── Content Grid ── */
+.credits-content {
+  display: grid;
+  gap: 2rem;
+}
+
+/* ── Summary Cards Row ── */
+.credits-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.credits-summary-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.credits-summary-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.credits-summary-icon--available {
+  background: rgba(74, 222, 128, 0.11);
+  color: #4ade80;
+}
+
+.credits-summary-icon--redeemed {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+}
+
+.credits-summary-label {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+
+.credits-summary-value {
+  color: #fff;
+  font-family: var(--font-heading, "Outfit");
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+/* ── Ledger Section ── */
+.credits-ledger {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 24px;
+  padding: 1.5rem;
+}
+
+.credits-ledger-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.credits-ledger-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 850;
+}
+
+/* ── Filter Tabs ── */
+.credits-filter-group {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  padding: 0.3rem;
+  border-radius: 1rem;
+}
+
+.credits-filter-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 0.8rem;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  cursor: pointer;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  transition: all 0.2s;
+}
+
+.credits-filter-btn--active {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* ── Empty State ── */
+.credits-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: rgba(255,255,255,0.4);
+}
+
+.credits-empty svg {
+  opacity: 0.2;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.credits-empty p {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ── Credit Entry List ── */
+.credits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* ── Credit Entry Card ── */
+.credit-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.credit-entry__info {
+  min-width: 0;
+}
+
+.credit-entry__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.credit-entry__reason {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.credit-entry__badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.credit-entry__badge--available {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.credit-entry__badge--used {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+}
+
+.credit-entry__meta {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.85rem;
+}
+
+.credit-entry__used-info {
+  margin-left: 0.5rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.credit-entry__description {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.5rem;
+  border-left: 2px solid rgba(255,255,255,0.1);
+}
+
+.credit-entry__amount-col {
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.credit-entry__amount {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: var(--font-heading, "Outfit");
+}
+
+.credit-entry__amount--available {
+  color: #4ade80;
+}
+
+.credit-entry__amount--used {
+  color: rgba(255,255,255,0.4);
+}
+
+.credit-entry__code {
+  color: rgba(255,255,255,0.3);
+  font-size: 0.75rem;
+  font-family: monospace;
+  margin-top: 0.2rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  /* ── Page spacing ── */
+  .credits-page {
+    padding: 1rem 0.75rem 5rem;
+  }
+
+  .credits-header {
+    padding-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .credits-header p {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .credits-content {
+    gap: 1.25rem;
+  }
+
+  /* ── Summary cards: side-by-side compact ── */
+  .credits-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .credits-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .credits-summary-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .credits-summary-value {
+    font-size: 1.4rem;
+  }
+
+  .credits-summary-label {
+    font-size: 0.65rem;
+  }
+
+  /* ── Ledger ── */
+  .credits-ledger {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .credits-ledger-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .credits-ledger-title {
+    font-size: 1.15rem;
+  }
+
+  /* ── Filter tabs: full width ── */
+  .credits-filter-group {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .credits-filter-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* ── Credit entries: single column stack ── */
+  .credit-entry {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+  }
+
+  .credit-entry__title-row {
+    gap: 0.5rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .credit-entry__reason {
+    font-size: 0.95rem;
+  }
+
+  .credit-entry__meta {
+    font-size: 0.8rem;
+  }
+
+  .credit-entry__used-info {
+    display: block;
+    margin-left: 0;
+    margin-top: 0.15rem;
+  }
+
+  .credit-entry__description {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  /* Amount row on mobile — horizontal layout with code */
+  .credit-entry__amount-col {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    text-align: left;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .credit-entry__amount {
+    font-size: 1.2rem;
+  }
+
+  .credit-entry__code {
+    margin-top: 0;
+    font-size: 0.7rem;
+  }
+
+  /* ── Empty state ── */
+  .credits-empty {
+    padding: 2.5rem 1rem;
+  }
+
+  .credits-list {
+    gap: 0.6rem;
+  }
+}
+
+/* Extra small screens (under 380px) */
+@media (max-width: 380px) {
+  .credits-page {
+    padding: 0.75rem 0.5rem 5rem;
+  }
+
+  .credits-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .credits-summary-card {
+    padding: 0.75rem;
+  }
+
+  .credits-summary-value {
+    font-size: 1.2rem;
+  }
+
+  .credit-entry {
+    padding: 0.75rem;
+  }
+
+  .credit-entry__reason {
+    font-size: 0.9rem;
+  }
+
+  .credit-entry__amount {
+    font-size: 1.1rem;
+  }
+}
