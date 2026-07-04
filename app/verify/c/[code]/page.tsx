@@ -1,52 +1,63 @@
 import Link from 'next/link'
-import { CheckCircle2, Download, ShieldCheck, XCircle } from 'lucide-react'
+import {
+  BadgeCheck,
+  CalendarClock,
+  Clock3,
+  IdCard,
+  ShieldCheck,
+  UserRound,
+  XCircle,
+} from 'lucide-react'
 
-import { CertificateCanvas } from '@/components/CertificateCanvas'
 import type { CertificateData } from '@/lib/certificates/CertificateRenderer'
 import { CertificateRenderer } from '@/lib/certificates/CertificateRenderer'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
-import '../../[skfId]/[enrollmentId]/verify.css'
+import { CertificatePublishingCountdown } from './CertificatePublishingCountdown'
+import './certificate-publishing.css'
+
+const CERTIFICATE_PUBLISH_TARGET_ISO = '2026-07-11T00:00:00+05:30'
 
 export const metadata = buildNoIndexMetadata(
   '/verify/c',
   'Official SKF Karate certificate verification with certificate registration number, QR code, student identity, and program authenticity.'
 )
 
+/* ─── Invalid / Not Found State ─── */
 function InvalidCertificate({ reason }: { reason?: string }) {
   return (
-    <div className="verify-page verify-page--wide">
-      <div className="verify-container">
-        <div className="verify-header">
-          <div className="verify-seal">
-            <XCircle size={44} className="text-red-500" />
-          </div>
-          <h1>Certificate Not Verified</h1>
-          <p className="verify-subtitle">SKF Karate official registry</p>
-        </div>
+    <div className="cv-page">
+      <div className="cv-orb cv-orb--1" />
+      <div className="cv-orb cv-orb--2" />
+      <div className="cv-orb cv-orb--3" />
+      <div className="cv-card">
+        <div className="cv-card__shine" />
 
-        <div className="verify-card verify-card--error">
-          <div className="verify-status-banner">
-            <XCircle size={24} />
-            <h2>Invalid or unavailable certificate</h2>
+        <div style={{ textAlign: 'center' }}>
+          <div className="cv-seal" style={{ background: 'linear-gradient(135deg, #fca5a5, #ef4444)' }}>
+            <XCircle size={32} />
           </div>
-          <div className="verify-card-body">
-            <div className="verify-error">
-              <p>
-                {reason || 'We could not verify this certificate in the official SKF Karate registry.'}
-              </p>
-              <div className="verify-help-box">
-                <p>Please check:</p>
-                <ul>
-                  <li>The QR code was scanned completely.</li>
-                  <li>The certificate has not been revoked.</li>
-                  <li>The certificate has been officially issued by SKF Karate.</li>
-                </ul>
-              </div>
-              <div className="verify-actions">
-                <Link href="/verify" className="verify-btn verify-btn--outline">Try Manual Search</Link>
-                <Link href="/contact" className="verify-btn verify-btn--primary">Contact SKF</Link>
+
+          <div className="cv-hero">
+            <h1 className="cv-hero__title">Certificate Not Verified</h1>
+            <p className="cv-hero__subtitle">
+              {reason || 'We could not verify this certificate in the official SKF Karate registry.'}
+            </p>
+          </div>
+
+          <div className="cv-divider" />
+
+          <div className="cv-details">
+            <div className="cv-detail-row">
+              <ShieldCheck size={18} />
+              <div className="cv-detail-row__content">
+                <span className="cv-detail-row__label">What to check</span>
+                <span className="cv-detail-row__value">The QR code was scanned completely and the certificate has been officially issued by SKF Karate.</span>
               </div>
             </div>
+          </div>
+
+          <div className="cv-actions" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+            <Link href="/verify" className="cv-btn cv-btn--primary">Try Manual Search</Link>
           </div>
         </div>
       </div>
@@ -54,6 +65,7 @@ function InvalidCertificate({ reason }: { reason?: string }) {
   )
 }
 
+/* ─── Data Loader ─── */
 async function loadCertificate(code: string) {
   const renderer = new CertificateRenderer()
 
@@ -63,115 +75,122 @@ async function loadCertificate(code: string) {
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     return {
-	      data: null,
-	      reason: message === 'CERTIFICATE_REVOKED'
-	        ? 'This certificate exists, but it has been revoked by SKF Karate.'
-	        : message === 'CERTIFICATE_NOT_ISSUED'
-	          ? 'This certificate is registered with SKF Karate, but it has not been published for public verification yet.'
-	        : undefined,
-	    }
-	  }
+      data: null,
+      reason: message === 'CERTIFICATE_REVOKED'
+        ? 'This certificate exists, but it has been revoked by SKF Karate.'
+        : message === 'CERTIFICATE_NOT_ISSUED'
+          ? 'This certificate is registered with SKF Karate, but it has not been published for public verification yet.'
+          : undefined,
+    }
+  }
 }
 
-function VerifiedCertificate({ code, data }: { code: string; data: CertificateData }) {
+/* ─── Verified Certificate (Publishing Hold) ─── */
+function VerifiedCertificate({ data }: { data: CertificateData }) {
+  const firstName = data.studentName.split(/\s+/).filter(Boolean)[0] || 'Student'
+  const publishDate = new Date(CERTIFICATE_PUBLISH_TARGET_ISO).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
   return (
-    <div className="verify-page verify-page--wide">
-      <div className="verify-container verify-container--wide">
-        <div className="verify-header">
-          <div className="verify-seal">
-            <ShieldCheck size={44} className="text-green-500" />
+    <div className="cv-page">
+      <div className="cv-orb cv-orb--1" />
+      <div className="cv-orb cv-orb--2" />
+      <div className="cv-orb cv-orb--3" />
+      <div className="cv-card">
+        <div className="cv-card__shine" />
+
+        {/* Seal */}
+        <div style={{ textAlign: 'center' }}>
+          <div className="cv-seal" aria-hidden="true">
+            <ShieldCheck size={32} />
           </div>
-          <h1>Certificate Verified</h1>
-          <p className="verify-subtitle">Official SKF Karate registry</p>
+
+          {/* Status Chip */}
+          <div className="cv-chip">
+            <BadgeCheck size={13} />
+            <span>Verified &bull; SKF Registry</span>
+          </div>
         </div>
 
-        <div className="verify-certificate-layout">
-          <div className="verify-preview-panel">
-            <CertificateCanvas
-              data={data}
-              className="verify-certificate-canvas"
-            />
+        {/* Hero */}
+        <div className="cv-hero">
+          <h1 className="cv-hero__title">
+            {firstName}, your certificate is verified
+          </h1>
+          <p className="cv-hero__subtitle">
+            The online certificate view is being prepared and will be published here soon.
+          </p>
+
+          <div className="cv-date-chip" style={{ display: 'inline-flex' }}>
+            <Clock3 size={13} />
+            <span>Expected: {publishDate}</span>
           </div>
+        </div>
 
-          <div className="verify-card verify-card--success">
-            <div className="verify-status-banner">
-              <CheckCircle2 size={24} />
-              <h2>Authentic Certificate</h2>
-            </div>
-            <div className="verify-card-body">
-              <div className="verify-details">
-                <div className="verify-col">
-                  <span className="verify-label">Certificate Registration No.</span>
-                  <span className="verify-value verify-highlight">{data.certificateNumber}</span>
-                </div>
+        {/* Countdown */}
+        <div className="cv-countdown-section">
+          <CertificatePublishingCountdown targetIso={CERTIFICATE_PUBLISH_TARGET_ISO} />
+        </div>
 
-                <div className="verify-divider" />
+        <div className="cv-divider" />
 
-                <div className="verify-col">
-                  <span className="verify-label">Student Name</span>
-                  <span className="verify-value">{data.studentName}</span>
-                </div>
-
-                <div className="verify-row">
-                  <div className="verify-col">
-                    <span className="verify-label">SKF ID</span>
-                    <span className="verify-value">{data.skfId}</span>
-                  </div>
-                  <div className="verify-col text-right">
-                    <span className="verify-label">Certificate Type</span>
-                    <span className="verify-value">{data.certificateType.replace(/_/g, ' ')}</span>
-                  </div>
-                </div>
-
-                <div className="verify-col">
-                  <span className="verify-label">Program</span>
-                  <span className="verify-value">{data.programName}</span>
-                </div>
-
-                {data.beltLevel && (
-                  <div className="verify-col">
-                    <span className="verify-label">Rank / Belt</span>
-                    <span className="verify-value">{data.beltLevel}</span>
-                  </div>
-                )}
-
-                <div className="verify-row">
-                  <div className="verify-col">
-                    <span className="verify-label">Date</span>
-                    <span className="verify-value">{data.completionDate}</span>
-                  </div>
-                  <div className="verify-col text-right">
-                    <span className="verify-label">Issuer</span>
-                    <span className="verify-value">{data.issuerName || 'SKF Karate'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="verify-actions verify-actions--stacked">
-                <a href={`/api/certificates/verify/${encodeURIComponent(code)}/pdf`} className="verify-btn verify-btn--primary">
-                  <Download size={16} /> Download PDF
-                </a>
-                <Link href={`/athlete/${data.skfId}`} className="verify-btn verify-btn--outline">
-                  View Athlete Profile
-                </Link>
-              </div>
-
-              <p className="verify-footer-note">
-                This certificate was verified directly against the official SKF Karate certificate registry.
-              </p>
+        {/* Details */}
+        <div className="cv-details">
+          <div className="cv-detail-row">
+            <UserRound size={17} />
+            <div className="cv-detail-row__content">
+              <span className="cv-detail-row__label">Student</span>
+              <span className="cv-detail-row__value">{data.studentName}</span>
             </div>
           </div>
+
+          <div className="cv-detail-row">
+            <IdCard size={17} />
+            <div className="cv-detail-row__content">
+              <span className="cv-detail-row__label">Certificate</span>
+              <span className="cv-detail-row__value">{data.certificateNumber}</span>
+            </div>
+          </div>
+
+          {data.beltLevel && (
+            <div className="cv-detail-row">
+              <BadgeCheck size={17} />
+              <div className="cv-detail-row__content">
+                <span className="cv-detail-row__label">Promoted Rank</span>
+                <span className="cv-detail-row__value">{data.beltLevel}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="cv-detail-row">
+            <CalendarClock size={17} />
+            <div className="cv-detail-row__content">
+              <span className="cv-detail-row__label">Date</span>
+              <span className="cv-detail-row__value">{data.completionDate}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="cv-actions">
+          <Link href={`/athlete/${data.skfId}`} className="cv-btn cv-btn--primary">
+            View Athlete Profile
+          </Link>
         </div>
       </div>
     </div>
   )
 }
 
+/* ─── Route Handler ─── */
 export default async function VerifyCodePage({ params }: { params: Promise<{ code: string }> | { code: string } }) {
   const { code } = await Promise.resolve(params)
   const result = await loadCertificate(code)
 
   if (!result.data) return <InvalidCertificate reason={result.reason} />
 
-  return <VerifiedCertificate code={code} data={result.data} />
+  return <VerifiedCertificate data={result.data} />
 }
