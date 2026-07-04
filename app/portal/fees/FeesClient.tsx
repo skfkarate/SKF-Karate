@@ -12,6 +12,7 @@ import type { PortalCreditEntry } from '@/src/server/services/fee-ledger.service
 import { submitManualFeePayment, applyPortalCredit } from './actions'
 import { useNonce } from '@/components/NonceProvider'
 import { getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
+import './fees.css'
 
 const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 const ALLOWED_SCREENSHOT_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
@@ -946,99 +947,6 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
           )}
         </div>
       </motion.div>
-
-
-      <style nonce={nonce} dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) {
-          .fees-black-card {
-            aspect-ratio: auto !important;
-            padding: 1.75rem !important;
-            border-radius: 20px !important;
-            gap: 1.5rem !important;
-          }
-          .fees-black-card > div {
-            gap: 0.75rem !important;
-          }
-          .fees-black-card .fees-balance {
-            font-size: 2.2rem !important;
-            margin-top: 0.5rem !important;
-          }
-          .fees-black-card .fees-currency {
-            font-size: 1.3rem !important;
-          }
-          .fees-grid-top {
-            grid-template-columns: 1fr !important;
-            gap: 1.25rem !important;
-          }
-          .fees-ledger-row {
-            padding: 1rem !important;
-            border-radius: 14px !important;
-          }
-          .fees-ledger-row > div:first-child {
-            flex-wrap: wrap !important;
-            gap: 0.75rem !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child {
-            gap: 0.75rem !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:first-child {
-            width: 36px !important;
-            height: 36px !important;
-            border-radius: 10px !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:first-child svg {
-            width: 18px !important;
-            height: 18px !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:last-child > div:first-child > span:first-child {
-            font-size: 0.95rem !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:last-child > div:first-child > span:last-child {
-            font-size: 0.55rem !important;
-            padding: 0.1rem 0.35rem !important;
-          }
-          .fees-ledger-amount {
-            gap: 0.5rem !important;
-          }
-          .fees-ledger-amount > div:first-child {
-            font-size: 1.1rem !important;
-          }
-          .fees-ledger-amount button {
-            width: 28px !important;
-            height: 28px !important;
-            border-radius: 6px !important;
-          }
-          .fees-ledger-amount button svg {
-            width: 14px !important;
-            height: 14px !important;
-          }
-        }
-
-        @media (max-width: 400px) {
-          .fees-black-card {
-            padding: 1.25rem !important;
-          }
-          .fees-black-card .fees-balance {
-            font-size: 1.8rem !important;
-          }
-          .fees-black-card .fees-currency {
-            font-size: 1.1rem !important;
-          }
-          .fees-ledger-row {
-            padding: 0.85rem !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:first-child {
-            width: 32px !important;
-            height: 32px !important;
-          }
-          .fees-ledger-row > div:first-child > div:first-child > div:last-child > div:first-child > span:first-child {
-            font-size: 0.85rem !important;
-          }
-          .fees-ledger-amount > div:first-child {
-            font-size: 1rem !important;
-          }
-        }
-      `}} />
     </div>
   )
 }
