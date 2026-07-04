@@ -1,25 +1,41 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { Award, DatabaseBackup, Fingerprint, LoaderCircle, Search, ShieldCheck } from 'lucide-react'
 import './verify.css'
 
+const CERTIFICATE_NUMBER_PATTERN = /^SKF-C-\d{6,}$/i
+const VERIFICATION_CODE_PATTERN = /^[a-f0-9]{32}$/i
+
 export default function CertificateSearchPage() {
     const router = useRouter()
+    const pathname = usePathname()
     const [query, setQuery] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
 
+    /* Reset scanning state whenever this page becomes active again
+       (e.g. user navigated to a certificate and pressed back). */
+    useEffect(() => {
+        setIsLoading(false)
+    }, [pathname])
+
     async function handleSearch(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        if (!query.trim()) return
+        const lookup = query.trim()
+        if (!lookup) return
 
         setIsLoading(true)
         setError('')
+
+        if (CERTIFICATE_NUMBER_PATTERN.test(lookup) || VERIFICATION_CODE_PATTERN.test(lookup)) {
+            router.push(`/verify/c/${encodeURIComponent(lookup)}`)
+            return
+        }
         
         try {
-            const apiReq = fetch(`/api/certificates/search?id=${encodeURIComponent(query.trim())}`)
+            const apiReq = fetch(`/api/certificates/search?id=${encodeURIComponent(lookup)}`)
             const res = await apiReq
             
             if (!res.ok) {
@@ -58,8 +74,8 @@ export default function CertificateSearchPage() {
                         Certificate <span className="text-gradient">Verification</span>
                     </h1>
                     <p className="verify-subtitle">
-                        SKF Karate issues mathematically paired certificates linked directly
-                        to student identity. Enter your document ID below to authenticate.
+                        Enter a certificate number or QR verification code. Verified records open the same
+                        official SKF certificate status page used by QR scans.
                     </p>
                 </div>
 
