@@ -7,6 +7,7 @@ import {
   FaArrowRight,
   FaArrowLeft,
   FaMedal,
+  FaStar,
 } from "react-icons/fa"
 import { getEventBySlugLive } from "@/lib/server/repositories/events-live"
 import { getEventLabel } from "@/data/constants/categories"
@@ -15,7 +16,7 @@ import { absoluteMediaUrl, absoluteSiteUrl } from "@/data/constants/siteConfig"
 import Image from "next/image"
 import JsonLdScript from "@/components/JsonLdScript"
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from "@/data/constants/seo"
-import { getBeltOrder } from "@/data/constants/belts"
+import { getBelt, getBeltOrder } from "@/data/constants/belts"
 import "./event-detail.css"
 
 type EventParticipant = {
@@ -37,6 +38,7 @@ type EventResult = EventParticipant & {
   score?: string | number
   doublePromotion?: boolean
   promotionType?: string
+  awardRank?: number
   notes?: string
   beltAwarded?: string
   promotion?: string
@@ -73,6 +75,18 @@ function formatDate(date: string) {
   })
 }
 
+function formatBeltAwarded(value?: string) {
+  const raw = (value || '').trim()
+  if (!raw) return ''
+
+  const belt = getBelt(raw)
+  if (belt) return `${belt.label} (${belt.kyuOrDan})`
+
+  return raw
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
 function getResultLabel(result: EventResult) {
   if (result.promotionType === 'triple') return 'Triple Promotion'
   if (result.promotionType === 'double' || result.doublePromotion) return 'Double Promotion'
@@ -82,13 +96,13 @@ function getResultLabel(result: EventResult) {
     if (result.medal === 'bronze') return 'Bronze Medal'
     if (result.medal === 'participation') return 'Participation'
   }
-  if (result.specialAward) return result.specialAward
-  if (result.award) return result.award
   if (result.result === "completed") return "Completed"
   if (result.result === "attended") return "Attended"
   if (result.result === "absent") return "Absent"
   if (result.result === "pass") return "Passed"
   if (result.result === "fail") return "Failed"
+  if (result.specialAward) return result.specialAward
+  if (result.award) return result.award
   return result.result || "Recorded"
 }
 
@@ -189,7 +203,9 @@ export default async function EventDetailPage({ params }: EventPageProps) {
     }
   })
   const unifiedRosterUnsorted = Array.from(unifiedRosterMap.values())
-  const recognitions = results.filter((result) => result.specialAward || result.award)
+  const recognitions = results
+    .filter((result) => result.specialAward || result.award)
+    .sort((a, b) => Number(a.awardRank || 999) - Number(b.awardRank || 999))
 
   // Sort: for grading events, sort by belt rank (highest belt first)
   const isGrading = isGradingEvent(event.type)
@@ -207,7 +223,15 @@ export default async function EventDetailPage({ params }: EventPageProps) {
         }
         const promotionDiff = promotionRank(b) - promotionRank(a)
         if (promotionDiff !== 0) return promotionDiff
-        return 0
+
+        const awardRank = (entry: RosterEntry) => {
+          const rank = Number(entry.result?.awardRank)
+          return Number.isFinite(rank) ? rank : 999
+        }
+        const awardDiff = awardRank(a) - awardRank(b)
+        if (awardDiff !== 0) return awardDiff
+
+        return (a.athleteName || a.skfId).localeCompare(b.athleteName || b.skfId)
       })
     : unifiedRosterUnsorted
 
@@ -314,34 +338,30 @@ export default async function EventDetailPage({ params }: EventPageProps) {
       )}
 
       {event.isResultsPublished && recognitions.length > 0 && (
-        <div className="container" style={{ marginTop: '2rem' }}>
-          <div className="evd-card">
-            <h2 style={{ margin: '0 0 1rem', color: '#fff', fontSize: '1.45rem' }}>
-              Event Recognition
-            </h2>
-            <div className="evd-lb-rows">
-              {recognitions.map((item, idx) => (
-                <Link key={`${item.skfId}-${idx}`} href={`/athlete/${item.skfId}`} className="evd-lb-row">
-                  <div className="evd-lb-cell evd-lb-cell--rank">
-                    <span className="evd-lb-rank">{idx + 1}</span>
-                  </div>
-                  <div className="evd-lb-cell evd-lb-cell--name">
-                    <span className="evd-lb-name">{item.athleteName || item.skfId}</span>
-                  </div>
-                  <div className="evd-lb-cell evd-lb-cell--branch">
-                    <span className="evd-lb-text">{item.branchName || '\u2014'}</span>
-                  </div>
-                  <div className="evd-lb-cell evd-lb-cell--result">
-                    <span className="evd-badge evd-badge--success">
-                      <FaMedal className="evd-badge__icon" />
-                      {item.specialAward || item.award}
+        <div className="evd-section evd-section--recognition">
+          <div className="evd-card evd-recognition">
+            <div className="evd-recognition__header">
+              <div>
+                <span className="evd-recognition__eyebrow">Best Performers</span>
+                <h2 className="evd-recognition__title">Event Recognition</h2>
+              </div>
+              <FaStar className="evd-recognition__header-icon" />
+            </div>
+            <div className="evd-recognition__grid">
+              {recognitions.map((item, idx) => {
+                const rank = Number(item.awardRank || idx + 1)
+                return (
+                  <Link key={`${item.skfId}-${idx}`} href={`/athlete/${item.skfId}`} className="evd-recognition__item">
+                    <span className="evd-recognition__rank">
+                      <FaStar />
+                      #{rank}
                     </span>
-                  </div>
-                  <div className="evd-lb-cell evd-lb-cell--action">
-                    <FaArrowRight className="evd-lb-arrow" />
-                  </div>
-                </Link>
-              ))}
+                    <span className="evd-recognition__name">{item.athleteName || item.skfId}</span>
+                    <span className="evd-recognition__meta">{item.skfId} • {item.branchName || 'SKF Karate'}</span>
+                    <span className="evd-recognition__award">{item.specialAward || item.award}</span>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -350,9 +370,9 @@ export default async function EventDetailPage({ params }: EventPageProps) {
 
       {/* ═══════ PARTICIPANTS LIST (camp / seminar / fun events) ═══════ */}
       {isParticipantsOnlyEvent(event.type) && hasParticipants && (
-        <div className="evd-board-section">
+        <div className="evd-section evd-board-section">
           <div className="evd-card">
-            <div className="evd-table-container">
+            <div className="evd-table-container evd-table-container--participants">
               {/* ── Table Header ── */}
               <div className="evd-lb-thead">
                 <div className="evd-lb-th evd-lb-th--rank">#</div>
@@ -395,9 +415,9 @@ export default async function EventDetailPage({ params }: EventPageProps) {
 
       {/* ═══════ RESULTS TABLE (grading / exam events) ═══════ */}
       {!isParticipantsOnlyEvent(event.type) && event.isResultsPublished && (hasParticipants || hasResults) && (
-        <div className="evd-board-section">
+        <div className="evd-section evd-board-section">
           <div className="evd-card">
-            <div className="evd-table-container">
+            <div className="evd-table-container evd-table-container--results">
               {/* ── Table Header ── */}
               <div className="evd-lb-thead">
                 <div className="evd-lb-th evd-lb-th--rank">#</div>
@@ -413,7 +433,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
               <div className="evd-lb-rows">
                 {unifiedRoster.map((item, idx) => {
                   const r = item.result
-                  const beltLabel = r ? (r.beltAwarded || r.promotion || '').replace(/-/g, ' ') : ''
+                  const beltLabel = r ? formatBeltAwarded(r.beltAwarded || r.promotion) : ''
                   return (
                     <Link key={item.skfId} href={`/athlete/${item.skfId}`} className="evd-lb-row">
                       <div className="evd-lb-cell evd-lb-cell--rank">
@@ -421,7 +441,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                       </div>
                       
                       <div className="evd-lb-cell evd-lb-cell--name">
-                        <span className="evd-lb-name">{item.athleteName}</span>
+                        <span className="evd-lb-name">{item.athleteName || item.skfId}</span>
                       </div>
                       
                       <div className="evd-lb-cell evd-lb-cell--id">
