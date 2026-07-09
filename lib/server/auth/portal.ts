@@ -2,10 +2,9 @@ import jwt from 'jsonwebtoken'
 
 import type { JWTPayload } from '@/types'
 import { env, requireEnv } from '@/src/server/config/env'
+import { PORTAL_JWT_EXPIRY, PORTAL_SESSION_SECONDS } from '@/lib/server/auth/session-lifetime'
 
-const PORTAL_SESSION_DAYS = 30
-const JWT_EXPIRY = `${PORTAL_SESSION_DAYS}d`
-const COOKIE_MAX_AGE = PORTAL_SESSION_DAYS * 24 * 60 * 60
+const COOKIE_MAX_AGE = PORTAL_SESSION_SECONDS
 
 export const COOKIE_NAME = 'skf_portal_token'
 
@@ -14,7 +13,7 @@ function getJwtSecret(): string {
 }
 
 export function createJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: JWT_EXPIRY, issuer: 'skf-portal', audience: 'skf-athlete' })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: PORTAL_JWT_EXPIRY, issuer: 'skf-portal', audience: 'skf-athlete' })
 }
 
 export function verifyJWT(token: string): JWTPayload | null {
