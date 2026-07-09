@@ -3,6 +3,14 @@ import QRCode from 'qrcode'
 
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { getAthleteBySkfIdLive } from '@/lib/server/repositories/athletes-live'
+import {
+  certificateVerifyPath,
+  isPublicCertificateStatus,
+  normalizeCertificateNumber,
+  normalizeVerificationCode,
+  PENDING_CERTIFICATE_NUMBER,
+  type CertificateStatus,
+} from '@/lib/certificates/registration'
 
 export interface TemplateField {
   id: string
@@ -24,7 +32,7 @@ export interface CertificateData {
   certificateNumber: string
   verificationCode: string
   certificateType: string
-  status: 'draft' | 'issued' | 'revoked'
+  status: CertificateStatus
   issuedAt: string
   studentName: string
   programName: string
@@ -76,7 +84,7 @@ type CertificateRecordRow = {
   verification_code: string
   certificate_number: string | null
   certificate_type: string
-  status: 'draft' | 'issued' | 'revoked'
+  status: CertificateStatus
   template_id: string | null
   issued_snapshot: Record<string, unknown> | null
   render_hash: string | null
@@ -118,9 +126,6 @@ const DEFAULT_QR = {
   size: 8.8,
 }
 
-const CERTIFICATE_NUMBER_PATTERN = /^SKF-C-\d{6,}$/i
-const VERIFICATION_CODE_PATTERN = /^[a-f0-9]{32}$/i
-
 function singleProgram(programs: ProgramRow | ProgramRow[] | null | undefined): ProgramRow {
   return Array.isArray(programs) ? programs[0] || {} : programs || {}
 }
@@ -160,9 +165,13 @@ function classifyCertificateType(programType: string | undefined, programName: s
     return 'black_belt_exam'
   }
   if (programType === 'belt_exam') return 'belt_exam'
+  if (programType === 'seminar') return 'seminar'
   if (programType === 'camp' || name.includes('camp')) return 'camp'
   if (name.includes('seminar')) return 'seminar'
   if (programType === 'tournament') return 'tournament'
+  if (programType === 'special_program') return 'special_program'
+  if (programType === 'participation') return 'participation'
+  if (programType === 'achievement') return 'achievement'
   if (programType === 'training') return 'special_program'
 
   return 'general'
@@ -240,7 +249,8 @@ export class CertificateRenderer {
     const certificate = await this.getCertificateByLookup(lookup)
     if (!certificate) throw new Error('CERTIFICATE_NOT_FOUND')
     if (certificate.status === 'revoked') throw new Error('CERTIFICATE_REVOKED')
-    if (certificate.status !== 'issued') throw new Error('CERTIFICATE_NOT_ISSUED')
+    if (certificate.status === 'void') throw new Error('CERTIFICATE_VOID')
+    if (!isPublicCertificateStatus(certificate.status)) throw new Error('CERTIFICATE_NOT_ISSUED')
 
     return this.buildDataForEnrollment(certificate.enrollment_id, certificate.skf_id, {
       isAdmin: true,
@@ -277,12 +287,14 @@ export class CertificateRenderer {
 
     if (!options.isAdmin) {
       if (certificate.status === 'revoked') throw new Error('CERTIFICATE_REVOKED')
-      if (certificate.status !== 'issued') throw new Error('CERTIFICATE_NOT_ISSUED')
+      if (certificate.status === 'void') throw new Error('CERTIFICATE_VOID')
+      if (!isPublicCertificateStatus(certificate.status)) throw new Error('CERTIFICATE_NOT_ISSUED')
     }
 
     if (options.publicIssued) {
       if (certificate.status === 'revoked') throw new Error('CERTIFICATE_REVOKED')
-      if (certificate.status !== 'issued') throw new Error('CERTIFICATE_NOT_ISSUED')
+      if (certificate.status === 'void') throw new Error('CERTIFICATE_VOID')
+      if (!isPublicCertificateStatus(certificate.status)) throw new Error('CERTIFICATE_NOT_ISSUED')
       if (enrollmentRow.status !== 'completed' || !enrollmentRow.certificate_unlocked) {
         throw new Error('CERTIFICATE_NOT_ISSUED')
       }
@@ -318,7 +330,8 @@ export class CertificateRenderer {
       value: this.valueForField(field, fieldValues)
     }))
 
-    const verifyUrl = buildAppUrl(`/verify/c/${certificate.verification_code}`)
+    const verifyLookup = certificate.certificate_number || certificate.verification_code
+    const verifyUrl = buildAppUrl(certificateVerifyPath(verifyLookup))
     const qrCodeDataUrl = snapshot.useQrCode
       ? await QRCode.toDataURL(verifyUrl, {
         width: 420,
@@ -330,7 +343,7 @@ export class CertificateRenderer {
     return {
       enrollmentId,
       skfId: enrollmentRow.skf_id,
-      certificateNumber: certificate.certificate_number || 'SKF-C-PENDING',
+      certificateNumber: certificate.certificate_number || PENDING_CERTIFICATE_NUMBER,
       verificationCode: certificate.verification_code,
       certificateType: certificate.certificate_type,
       status: certificate.status,
@@ -354,25 +367,27 @@ export class CertificateRenderer {
   private async getCertificateByLookup(lookup: string): Promise<CertificateRecordRow | null> {
     const normalized = lookup.trim()
 
-    if (CERTIFICATE_NUMBER_PATTERN.test(normalized)) {
+    const certificateNumber = normalizeCertificateNumber(normalized)
+    if (certificateNumber) {
       const { data, error } = await supabaseAdmin
         .from('certificates')
         .select(CERTIFICATE_SELECT)
-        .eq('certificate_number', normalized.toUpperCase())
+        .eq('certificate_number', certificateNumber)
         .maybeSingle()
 
       if (error) throw error
       return data as unknown as CertificateRecordRow | null
     }
 
-    if (!VERIFICATION_CODE_PATTERN.test(normalized)) {
+    const verificationCode = normalizeVerificationCode(normalized)
+    if (!verificationCode) {
       return null
     }
 
     const { data: byCode, error: codeError } = await supabaseAdmin
       .from('certificates')
       .select(CERTIFICATE_SELECT)
-      .eq('verification_code', normalized.toLowerCase())
+      .eq('verification_code', verificationCode)
       .maybeSingle()
 
     if (codeError) throw codeError
@@ -509,7 +524,7 @@ export class CertificateRenderer {
     programType: string
     studentName: string
   }): Record<string, string> {
-    const certificateNumber = input.certificate.certificate_number || 'SKF-C-PENDING'
+    const certificateNumber = input.certificate.certificate_number || PENDING_CERTIFICATE_NUMBER
     const beltLevel = input.enrollment.belt_level || ''
     const typeLabel = certificateTypeLabel(input.certificate.certificate_type)
 

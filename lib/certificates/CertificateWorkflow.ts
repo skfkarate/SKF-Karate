@@ -1,8 +1,24 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { normaliseSkfId } from '@/lib/utils/registration'
+import {
+  certificateSerialFromNumber,
+  certificateVerifyPath,
+  isPublicCertificateStatus,
+  normalizeCertificateNumber,
+  normalizeVerificationCode,
+  PENDING_CERTIFICATE_NUMBER,
+  type CertificateStatus,
+} from '@/lib/certificates/registration'
 
-type CertificateStatus = 'draft' | 'issued' | 'revoked'
-type CertificateProgramType = 'camp' | 'belt_exam' | 'training' | 'tournament'
+type CertificateProgramType =
+  | 'camp'
+  | 'belt_exam'
+  | 'training'
+  | 'tournament'
+  | 'seminar'
+  | 'special_program'
+  | 'participation'
+  | 'achievement'
 
 export type CertificateWorkflowParticipant = {
   id?: string | null
@@ -235,16 +251,13 @@ const DEFAULT_TEMPLATE_FIELDS = [
   },
 ]
 
-const CERTIFICATE_NUMBER_PATTERN = /^SKF-C-\d{6,}$/i
-const VERIFICATION_CODE_PATTERN = /^[a-f0-9]{32}$/i
-
 function buildAppUrl(path: string) {
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://www.skfkarate.org'
   return `${origin.replace(/\/+$/, '')}${path}`
 }
 
-export function certificateVerifyUrl(verificationCode: string) {
-  return buildAppUrl(`/verify/c/${encodeURIComponent(verificationCode)}`)
+export function certificateVerifyUrl(lookup: string) {
+  return buildAppUrl(certificateVerifyPath(lookup))
 }
 
 export function certificateQrDownloadUrl(verificationCode: string, size = 1600) {
@@ -281,7 +294,11 @@ function programTypeForEvent(event: CertificateWorkflowEvent): CertificateProgra
   const text = eventText(event)
   if (text.includes('tournament')) return 'tournament'
   if (text.includes('camp')) return 'camp'
+  if (text.includes('seminar')) return 'seminar'
   if (isBeltEvent(event)) return 'belt_exam'
+  if (text.includes('participation')) return 'participation'
+  if (text.includes('achievement') || text.includes('award')) return 'achievement'
+  if (text.includes('special')) return 'special_program'
   return 'training'
 }
 
@@ -292,6 +309,8 @@ function certificateTypeForEvent(event: CertificateWorkflowEvent, result: Certif
   if (text.includes('camp')) return 'camp'
   if (text.includes('seminar')) return 'seminar'
   if (isTournamentEvent(event)) return 'tournament'
+  if (text.includes('participation')) return 'participation'
+  if (text.includes('achievement') || text.includes('award')) return 'achievement'
   return 'special_program'
 }
 
@@ -421,13 +440,13 @@ function certificateRecordFromRows(
     enrollmentId: enrollment.id,
     skfId: enrollment.skf_id,
     studentName: safeText(result?.athleteName) || enrollment.skf_id,
-    certificateNumber: certificate.certificate_number || 'SKF-C-PENDING',
+    certificateNumber: certificate.certificate_number || PENDING_CERTIFICATE_NUMBER,
     verificationCode: certificate.verification_code,
     certificateType: certificate.certificate_type,
     status: certificate.status,
     programName: program.name,
     beltLevel: enrollment.belt_level,
-    verifyUrl: certificateVerifyUrl(certificate.verification_code),
+    verifyUrl: certificateVerifyUrl(certificate.certificate_number || certificate.verification_code),
     qrDownloadUrl: certificateQrDownloadUrl(certificate.verification_code),
     result: resultOutcome(result || {}),
     preparedAt: certificate.prepared_at || null,
@@ -447,19 +466,13 @@ function summarize(
     totalResults,
     eligibleCount: certificates.length,
     preparedCount: certificates.length,
-    issuedCount: certificates.filter((certificate) => certificate.status === 'issued').length,
+    issuedCount: certificates.filter((certificate) => isPublicCertificateStatus(certificate.status)).length,
     draftCount: certificates.filter((certificate) => certificate.status === 'draft').length,
     skippedCount: skipped.length,
     revokedCount: certificates.filter((certificate) => certificate.status === 'revoked').length,
     certificates,
     skipped,
   }
-}
-
-function normalizeCertificateNumber(value: unknown) {
-  const certificateNumber = safeText(value).toUpperCase()
-  if (!CERTIFICATE_NUMBER_PATTERN.test(certificateNumber)) return null
-  return certificateNumber
 }
 
 async function findProgramForEvent(event: CertificateWorkflowEvent): Promise<ProgramRow | null> {
@@ -617,7 +630,7 @@ async function ensureDraftCertificate(
   const existing = await getCertificateForEnrollment(enrollment.id)
 
   if (existing) {
-    if (existing.status === 'revoked') return existing
+    if (existing.status === 'revoked' || existing.status === 'void') return existing
 
     const { data, error } = await supabaseAdmin
       .from('certificates')
@@ -662,7 +675,7 @@ async function publishCertificate(
   certificate: CertificateWorkflowRow,
   publishedBy: string
 ) {
-  if (certificate.status === 'revoked') return certificate
+  if (certificate.status === 'revoked' || certificate.status === 'void') return certificate
 
   const publishedAt = new Date().toISOString()
 
@@ -808,6 +821,7 @@ export async function assignEventCertificateNumbers(
       .from('certificates')
       .update({
         certificate_number: assignment.certificateNumber,
+        certificate_serial: certificateSerialFromNumber(assignment.certificateNumber),
         issued_snapshot: {},
         render_hash: null,
       })
@@ -858,22 +872,25 @@ export async function getCertificateQrPayload(lookup: string) {
     .from('certificates')
     .select(CERTIFICATE_SELECT)
 
-  const { data, error } = CERTIFICATE_NUMBER_PATTERN.test(normalized)
-    ? await query.eq('certificate_number', normalized.toUpperCase()).maybeSingle()
-    : VERIFICATION_CODE_PATTERN.test(normalized)
-      ? await query.eq('verification_code', normalized.toLowerCase()).maybeSingle()
+  const certificateNumber = normalizeCertificateNumber(normalized)
+  const verificationCode = normalizeVerificationCode(normalized)
+
+  const { data, error } = certificateNumber
+    ? await query.eq('certificate_number', certificateNumber).maybeSingle()
+    : verificationCode
+      ? await query.eq('verification_code', verificationCode).maybeSingle()
       : { data: null, error: null }
 
   if (error) throw error
   const certificate = data as CertificateWorkflowRow | null
-  if (!certificate || certificate.status === 'revoked') return null
+  if (!certificate || certificate.status === 'revoked' || certificate.status === 'void') return null
 
   return {
-    certificateNumber: certificate.certificate_number || 'SKF-C-PENDING',
+    certificateNumber: certificate.certificate_number || PENDING_CERTIFICATE_NUMBER,
     skfId: certificate.skf_id,
     verificationCode: certificate.verification_code,
     status: certificate.status,
-    verifyUrl: certificateVerifyUrl(certificate.verification_code),
+    verifyUrl: certificateVerifyUrl(certificate.certificate_number || certificate.verification_code),
     qrDownloadUrl: certificateQrDownloadUrl(certificate.verification_code),
   }
 }

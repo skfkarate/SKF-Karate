@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-flags'
+import { isPublicCertificateStatus } from '@/lib/certificates/registration'
 import { publicCertificatesQuerySchema } from '@/src/server/api/validators/certificates.validator'
 import { AuthorizationError } from '@/src/server/lib/errors'
 import { ok } from '@/src/server/lib/response'
@@ -52,7 +53,7 @@ export const GET = withRoute(
           beltLevel: enrollment.belt_level,
           completionDate: enrollment.completion_date,
           issuerName: enrollment.issuer_name,
-          unlocked: enrollment.certificate_unlocked && certificate?.status === 'issued',
+          unlocked: enrollment.certificate_unlocked && isPublicCertificateStatus(certificate?.status),
         }
       }).filter((certificate) => certificate.verificationCode),
     })

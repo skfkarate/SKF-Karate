@@ -1,6 +1,7 @@
 'use server'
 
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
+import { recordSiteAnalyticsEvent } from '@/lib/server/site-analytics'
 import { FeeLedgerService } from '@/src/server/services/fee-ledger.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 import { AppError } from '@/src/server/lib/errors'
@@ -141,6 +142,18 @@ export async function submitManualFeePayment(formData: FormData): Promise<Manual
     if (!submittedFeeKeys.length) {
       return { ok: false, message: friendlyPaymentError(lastError) }
     }
+
+    void recordSiteAnalyticsEvent({
+      eventType: 'portal_fee_payment_submitted',
+      path: '/portal/fees',
+      pageTitle: 'Athlete Portal Fees',
+      skfId: portal.session.skfId,
+      metadata: {
+        count: submittedFeeKeys.length,
+        months: submittedFeeKeys,
+        totalAmount: dueRecords.reduce((sum, f) => sum + f.amount, 0),
+      },
+    })
 
     revalidatePath('/portal/fees')
     return { ok: true, submittedFeeKeys: [...alreadyPendingKeys, ...submittedFeeKeys] }

@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   incomes: [] as Array<Record<string, unknown>>,
   eventExpenses: [] as Array<Record<string, unknown>>,
   eventDeposits: [] as Array<Record<string, unknown>>,
+  removals: [] as Array<Record<string, unknown>>,
   supabaseFrom: vi.fn(),
 }))
 
@@ -73,7 +74,8 @@ function setupSupabaseMock() {
       table !== 'development_fund_expenses' &&
       table !== 'fee_extra_incomes' &&
       table !== 'event_fee_expenses' &&
-      table !== 'event_fee_deposits'
+      table !== 'event_fee_deposits' &&
+      table !== 'fee_removals'
     ) {
       throw new Error(`Unexpected table ${table}`)
     }
@@ -82,6 +84,7 @@ function setupSupabaseMock() {
       fee_extra_incomes: state.incomes,
       event_fee_expenses: state.eventExpenses,
       event_fee_deposits: state.eventDeposits,
+      fee_removals: state.removals,
     }
     const rows = rowsByTable[table] || []
 
@@ -116,6 +119,7 @@ describe('fee finance calculations', () => {
     state.incomes = []
     state.eventExpenses = []
     state.eventDeposits = []
+    state.removals = []
     state.supabaseFrom.mockReset()
     setupSupabaseMock()
     vi.spyOn(FeeOperationsService, 'getDataQuality').mockResolvedValue({ groups: [] } as never)
@@ -197,7 +201,7 @@ describe('fee finance calculations', () => {
     })
   })
 
-  it('includes extra income in gross income and development allocation', async () => {
+  it('includes extra income in gross income but not development allocation', async () => {
     vi.spyOn(FeeOperationsService, 'getLedger').mockResolvedValue({
       entries: [feeEntry('monthly', 1000)],
       citySummary: [],
@@ -219,15 +223,15 @@ describe('fee finance calculations', () => {
       monthlyCash: 1000,
       extraIncome: 400,
       grossIncome: 1400,
-      developmentAllocation: 420,
+      developmentAllocation: 300,
       bankMovement: 1400,
     })
     expect(finance.bankPosition).toMatchObject({
       grossIncome: 1400,
-      developmentAllocation: 420,
+      developmentAllocation: 300,
       calculatedBankPosition: 1400,
       actualBankBalance: 31400,
-      developmentFundBalance: 420,
+      developmentFundBalance: 300,
     })
   })
 })

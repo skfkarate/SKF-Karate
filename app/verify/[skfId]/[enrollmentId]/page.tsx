@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
+import { PUBLIC_CERTIFICATE_STATUSES } from '@/lib/certificates/registration'
 
 function getProgramRelation<T extends { name?: string }>(programs: T | T[] | null | undefined) {
   return Array.isArray(programs) ? programs[0] : programs
@@ -41,14 +42,14 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
 
   const { data: certificate } = await supabaseAdmin
     .from('certificates')
-    .select('verification_code, status')
+    .select('certificate_number, verification_code, status')
     .eq('enrollment_id', enrollmentId)
     .eq('skf_id', skfId)
-    .eq('status', 'issued')
+    .in('status', [...PUBLIC_CERTIFICATE_STATUSES])
     .maybeSingle()
 
-  if (certificate?.verification_code) {
-    redirect(`/verify/c/${certificate.verification_code}`)
+  if (certificate?.certificate_number || certificate?.verification_code) {
+    redirect(`/verify/c/${encodeURIComponent(certificate.certificate_number || certificate.verification_code)}`)
   }
 
   const { data: cert } = await supabaseAdmin

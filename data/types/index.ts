@@ -8,13 +8,21 @@
 
 /* ═══════ ENUMS ═══════ */
 
-export type ProgramType = 'camp' | 'belt_exam' | 'training' | 'tournament'
+export type ProgramType =
+  | 'camp'
+  | 'belt_exam'
+  | 'training'
+  | 'tournament'
+  | 'seminar'
+  | 'special_program'
+  | 'participation'
+  | 'achievement'
 export type EnrollmentStatus = 'enrolled' | 'completed' | 'revoked'
 export type BeltLevel = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'purple' | 'brown' | 'black'
 export type FieldAlignment = 'left' | 'center' | 'right'
 export type DownloadFormat = 'pdf' | 'png'
 export type CertificateEventType = 'viewed' | 'downloaded_pdf' | 'downloaded_png' | 'verified' | 'shared'
-export type CertificateStatus = 'draft' | 'issued' | 'revoked'
+export type CertificateStatus = 'draft' | 'issued' | 'reissued' | 'void' | 'revoked'
 export type CertificateType =
   | 'general'
   | 'belt_exam'

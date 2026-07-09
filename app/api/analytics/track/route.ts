@@ -6,6 +6,7 @@ import {
   recordSiteAnalyticsEvent,
   SITE_ANALYTICS_EVENT_TYPES,
 } from '@/lib/server/site-analytics'
+import { getPortalSession } from '@/lib/server/auth/portal'
 import { logger } from '@/src/server/lib/logger'
 import { withRoute } from '@/src/server/lib/route'
 
@@ -27,8 +28,18 @@ export const POST = withRoute(
   },
   async ({ request, body: payload, requestId }) => {
   try {
+    let skfId = payload.skfId
+
+    if (!skfId) {
+      const session = getPortalSession(request)
+      if (session?.skfId) {
+        skfId = session.skfId
+      }
+    }
+
     const result = await recordSiteAnalyticsEvent({
       ...payload,
+      skfId: skfId || undefined,
       userAgent: request.headers.get('user-agent'),
       ipAddress: extractClientIp(request.headers),
     })

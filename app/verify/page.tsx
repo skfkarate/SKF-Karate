@@ -1,16 +1,13 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Award, DatabaseBackup, Fingerprint, LoaderCircle, Search, ShieldCheck } from 'lucide-react'
+import { isCertificateNumber, isVerificationCode } from '@/lib/certificates/registration'
 import './verify.css'
-
-const CERTIFICATE_NUMBER_PATTERN = /^SKF-C-\d{6,}$/i
-const VERIFICATION_CODE_PATTERN = /^[a-f0-9]{32}$/i
 
 export default function CertificateSearchPage() {
     const router = useRouter()
-    const pathname = usePathname()
     const [query, setQuery] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
@@ -18,8 +15,10 @@ export default function CertificateSearchPage() {
     /* Reset scanning state whenever this page becomes active again
        (e.g. user navigated to a certificate and pressed back). */
     useEffect(() => {
-        setIsLoading(false)
-    }, [pathname])
+        const handlePageShow = () => setIsLoading(false)
+        window.addEventListener('pageshow', handlePageShow)
+        return () => window.removeEventListener('pageshow', handlePageShow)
+    }, [])
 
     async function handleSearch(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -29,7 +28,7 @@ export default function CertificateSearchPage() {
         setIsLoading(true)
         setError('')
 
-        if (CERTIFICATE_NUMBER_PATTERN.test(lookup) || VERIFICATION_CODE_PATTERN.test(lookup)) {
+        if (isCertificateNumber(lookup) || isVerificationCode(lookup)) {
             router.push(`/verify/c/${encodeURIComponent(lookup)}`)
             return
         }

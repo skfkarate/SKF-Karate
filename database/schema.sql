@@ -53,7 +53,7 @@ CREATE POLICY "service_role_full_otp_attempts" ON otp_attempts
 CREATE TABLE IF NOT EXISTS programs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('camp', 'belt_exam', 'training', 'tournament')),
+  type TEXT NOT NULL CHECK (type IN ('camp', 'belt_exam', 'training', 'tournament', 'seminar', 'special_program', 'participation', 'achievement')),
   branch TEXT,
   source_event_id TEXT,
   has_belt_subtypes BOOLEAN DEFAULT false,
@@ -163,7 +163,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE SEQUENCE IF NOT EXISTS certificate_registration_seq START 1;
+-- SKF-C-000001 through SKF-C-010000 are reserved for historically distributed
+-- SKF certificates. SKF-C-010001 through SKF-C-010015 have already been
+-- distributed, so fresh databases continue at SKF-C-010016.
+CREATE SEQUENCE IF NOT EXISTS certificate_registration_seq START 10016;
 
 CREATE TABLE IF NOT EXISTS certificates (
   enrollment_id UUID PRIMARY KEY REFERENCES enrollments(id) ON DELETE CASCADE,
@@ -174,7 +177,7 @@ CREATE TABLE IF NOT EXISTS certificates (
   certificate_serial BIGINT UNIQUE,
   certificate_number TEXT UNIQUE,
   certificate_type TEXT NOT NULL DEFAULT 'general',
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'issued', 'revoked')),
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'issued', 'reissued', 'void', 'revoked')),
   template_id UUID REFERENCES certificate_templates(id) ON DELETE SET NULL,
   issued_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
   render_hash TEXT,
@@ -207,9 +210,26 @@ CREATE POLICY "service_role_full_certificates" ON certificates
 
 CREATE OR REPLACE FUNCTION assign_certificate_registration_number()
 RETURNS TRIGGER AS $$
+DECLARE
+  visible_serial BIGINT;
 BEGIN
+  IF NEW.certificate_number IS NOT NULL AND btrim(NEW.certificate_number) <> '' THEN
+    NEW.certificate_number := upper(btrim(NEW.certificate_number));
+
+    IF NEW.certificate_number !~ '^SKF-C-[0-9]{6,}$' THEN
+      RAISE EXCEPTION 'Invalid SKF certificate number: %', NEW.certificate_number;
+    END IF;
+
+    visible_serial := substring(NEW.certificate_number FROM '^SKF-C-([0-9]{6,})$')::BIGINT;
+    NEW.certificate_serial := visible_serial;
+  END IF;
+
   IF NEW.certificate_serial IS NULL THEN
     NEW.certificate_serial := nextval('certificate_registration_seq');
+  END IF;
+
+  IF NEW.certificate_serial <= 10000 THEN
+    RAISE EXCEPTION 'Certificate serials 1 through 10000 are reserved for historical SKF certificates.';
   END IF;
 
   IF NEW.certificate_number IS NULL OR btrim(NEW.certificate_number) = '' THEN
@@ -277,6 +297,18 @@ CREATE TABLE IF NOT EXISTS site_analytics_events (
   ip_address TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Allow fee payment submitted events
+ALTER TABLE site_analytics_events DROP CONSTRAINT IF EXISTS site_analytics_events_event_type_check;
+ALTER TABLE site_analytics_events ADD CONSTRAINT site_analytics_events_event_type_check
+  CHECK (event_type IN (
+    'page_view',
+    'lead_submit_success',
+    'lead_submit_failed',
+    'portal_login_success',
+    'portal_login_failed',
+    'portal_fee_payment_submitted'
+  ));
 
 CREATE INDEX IF NOT EXISTS idx_site_analytics_created_at
   ON site_analytics_events (created_at DESC);

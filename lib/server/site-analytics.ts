@@ -7,6 +7,7 @@ export const SITE_ANALYTICS_EVENT_TYPES = [
   'lead_submit_failed',
   'portal_login_success',
   'portal_login_failed',
+  'portal_fee_payment_submitted',
 ] as const
 
 export type SiteAnalyticsEventType =
@@ -489,6 +490,8 @@ function buildRecentVisitors(pageViews: AnalyticsEventRow[], limit = 24) {
       const device = parseDevice(last?.user_agent || first?.user_agent)
       const sessions = new Set(ordered.map((row) => row.session_id).filter(Boolean))
 
+      const skfIds = new Set(ordered.map((r) => r.skf_id).filter(Boolean))
+
       return {
         visitorId: shortId(visitorId) || 'Unknown',
         firstSeen: first?.created_at || '',
@@ -502,6 +505,7 @@ function buildRecentVisitors(pageViews: AnalyticsEventRow[], limit = 24) {
         browser: device.browser,
         os: device.os,
         ipLabel: maskedIp(last?.ip_address || first?.ip_address),
+        skfId: skfIds.size === 1 ? [...skfIds][0] : skfIds.size > 1 ? `${skfIds.size} users` : null,
       }
     })
     .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen))
@@ -832,6 +836,7 @@ export async function getWebsiteAnalyticsSummary(input: {
               title: sanitizeText(row.page_title, 120) || canonicalPath(row.path),
               visitorId: shortId(row.visitor_id),
               sessionId: shortId(row.session_id),
+              skfId: row.skf_id || null,
               source: sourceLabel(row.referrer),
               device: device.device,
               browser: device.browser,
