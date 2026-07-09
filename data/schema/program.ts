@@ -3,7 +3,7 @@ import type { EntitySchema } from './types'
 /**
  * Schema: programs
  * Source: SUPABASE_SCHEMA.sql (table 2) + database/supabase_certificates.sql
- * Purpose: Certificate program categories (camp, belt_exam, training, tournament)
+ * Purpose: Certificate program categories for all official association-issued certificates
  */
 export const programSchema: EntitySchema = {
   entity: 'Program',
@@ -14,7 +14,7 @@ export const programSchema: EntitySchema = {
   fields: {
     id:                { type: 'uuid',    supabaseType: 'UUID',    required: true,  default: 'gen_random_uuid()' },
     name:              { type: 'string',  supabaseType: 'TEXT',    required: true },
-    type:              { type: 'enum',    supabaseType: 'TEXT',    required: true,  enumValues: ['camp', 'belt_exam', 'training', 'tournament'] },
+    type:              { type: 'enum',    supabaseType: 'TEXT',    required: true,  enumValues: ['camp', 'belt_exam', 'training', 'tournament', 'seminar', 'special_program', 'participation', 'achievement'] },
     branch:            { type: 'string',  supabaseType: 'TEXT',    required: false },
     has_belt_subtypes: { type: 'boolean', supabaseType: 'BOOLEAN', required: false, default: false, description: 'From supabase_certificates.sql — not in main schema' },
     is_active:         { type: 'boolean', supabaseType: 'BOOLEAN', required: false, default: true },

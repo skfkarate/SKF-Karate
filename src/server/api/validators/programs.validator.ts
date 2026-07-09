@@ -1,6 +1,15 @@
 import { z } from 'zod'
 
-export const programTypeSchema = z.enum(['camp', 'belt_exam', 'training', 'tournament'])
+export const programTypeSchema = z.enum([
+  'camp',
+  'belt_exam',
+  'training',
+  'tournament',
+  'seminar',
+  'special_program',
+  'participation',
+  'achievement',
+])
 
 export const adminProgramCreateSchema = z.object({
   name: z.string().trim().min(2).max(160),

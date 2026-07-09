@@ -1245,9 +1245,39 @@ async function deleteExtraIncome(session: FeeTrackSession, body: ActionBody) {
   return { success: true, data: result }
 }
 
+async function addRemoval(session: FeeTrackSession, body: ActionBody) {
+  const result = await FeeOperationsService.createRemoval(session, {
+    month: monthName(body.month),
+    year: targetYear(body.year),
+    title: String(body.title || ''),
+    description: String(body.description || ''),
+    scope: normalizeScope(body.scope),
+    amount: readAmount(body.amount),
+  })
+  return { success: true, data: mapRemoval(result as Record<string, unknown>) }
+}
+
+async function deleteRemoval(session: FeeTrackSession, body: ActionBody) {
+  const result = await FeeOperationsService.deleteRemoval(session, String(body.removalId || ''))
+  return { success: true, data: result }
+}
+
 function mapExtraIncome(row: Record<string, unknown>) {
   return {
     id: String(row.id || row.income_code || ''),
+    month: monthIndex(row.month),
+    year: String(row.year || new Date().getFullYear()),
+    title: String(row.title || ''),
+    description: String(row.description || ''),
+    scope: feeTrackScope(row.scope),
+    amount: readAmount(row.amount),
+    dateAdded: compactDate(row.created_at),
+  }
+}
+
+function mapRemoval(row: Record<string, unknown>) {
+  return {
+    id: String(row.id || row.removal_code || ''),
     month: monthIndex(row.month),
     year: String(row.year || new Date().getFullYear()),
     title: String(row.title || ''),
@@ -1266,7 +1296,7 @@ function financeFormulae() {
     grossIncome: 'Monthly fee cash + admission collected + dress profit + extra income + event income.',
     developmentFundContribution: '30% of monthly fee cash only. Admission, dress, extra income, and event income are excluded.',
     developmentFundBalance: 'Total development fund contributions minus development expenses.',
-    availableBalance: 'Opening reserve + gross income - development expenses - event expenses through the selected month.',
+    availableBalance: 'Opening reserve + gross income - development expenses - event expenses - custom removals through the selected month.',
     pending: 'Monthly fees still due or rejected. Submitted proofs awaiting verification stay in the action inbox until approved.',
   }
 }
@@ -1348,6 +1378,7 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
   const developmentFundContribution = readAmount(monthRow.developmentAllocation)
   const developmentFundBalance = readSignedAmount(bankPosition.developmentFundBalance)
   const availableBalance = readSignedAmount(bankPosition.actualBankBalance)
+  const customRemovals = readAmount(monthRow.customRemovals) || 0
   const creditsApplied = readAmount(monthRow.creditsApplied)
   const expected = readAmount(dashboard.summary.expected)
   const collected = readAmount(dashboard.summary.collected)
@@ -1476,6 +1507,25 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
       formulaKey: 'eventDeposits',
     })))
 
+  const removalLedgerRows = (((finance.removals as Record<string, unknown>[]) || [])
+    .filter((removal) => monthName(removal.month) === month)
+    .map((removal) => ({
+      id: String(removal.id || removal.removal_code || ''),
+      date: compactDate(removal.created_at),
+      month: selectedMonth,
+      year,
+      branch: feeTrackScope(removal.scope),
+      label: String(removal.title || removal.description || 'Custom removal'),
+      category: 'custom_removal',
+      type: 'expense',
+      amount: -readAmount(removal.amount),
+      studentId: '',
+      studentName: '',
+      receiptId: '',
+      status: 'recorded',
+      formulaKey: 'customRemovals',
+    })))
+
   return {
     success: true,
     data: {
@@ -1500,6 +1550,7 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
         developmentFundContribution,
         developmentExpenses,
         eventExpenses,
+        customRemovals,
         eventSurplus,
         eventDeposits,
         developmentFundBalance,
@@ -1546,6 +1597,12 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
           formula: 'Recorded development fund expenses for the selected month.',
         },
         {
+          key: 'customRemovals',
+          label: 'Custom removals',
+          amount: customRemovals,
+          formula: 'Recorded custom removals (withdrawals from master ledger) for the selected month.',
+        },
+        {
           key: 'eventExpenses',
           label: 'Event expenses',
           amount: eventExpenses,
@@ -1555,19 +1612,19 @@ async function getFinanceCommandCenter(session: FeeTrackSession, body: ActionBod
       cashFlowByMonth: financeRows.map((row) => {
         const income = hasAmount(row.grossIncome)
           ? readSignedAmount(row.grossIncome)
-          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.eventIncome)
+          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.extraIncome) + readAmount(row.eventIncome)
         return {
           month: monthIndex(row.month),
           year: readAmount(row.year) || year,
           income,
           developmentFundContribution: readAmount(row.developmentAllocation),
-          expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses),
+          expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses) + readAmount(row.customRemovals),
           net: readSignedAmount(row.bankMovement),
           balance: readSignedAmount(row.cumulativeBank),
           developmentFundBalance: readSignedAmount(row.cumulativeDevelopmentFund),
         }
       }),
-      ledgerRows: [...feeLedgerRows, ...expenseLedgerRows, ...extraIncomeLedgerRows, ...eventExpenseLedgerRows, ...eventDepositLedgerRows].sort((a, b) =>
+      ledgerRows: [...feeLedgerRows, ...expenseLedgerRows, ...extraIncomeLedgerRows, ...eventExpenseLedgerRows, ...eventDepositLedgerRows, ...removalLedgerRows].sort((a, b) =>
         b.date.localeCompare(a.date) || a.label.localeCompare(b.label)
       ),
       warnings,
@@ -1604,9 +1661,7 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
   const monthRow = finance.monthlyBreakdown.find((row: Record<string, unknown>) => row.month === month) || {} as Record<string, unknown>
   const isOverall = !branch
   const reserveAmount = isOverall ? readAmount(finance.bankPosition?.reserveAmount) : 0
-  const actualBankBalance = isOverall
-    ? readSignedAmount(finance.bankPosition?.actualBankBalance)
-    : readSignedAmount(monthRow.bankMovement)
+  const actualBankBalance = readSignedAmount(finance.bankPosition?.actualBankBalance)
   const creditDetails = ledger.entries
     .filter((entry: Record<string, unknown>) => entry.feeType === 'credit_adjustment' && entry.status === 'paid')
     .map((entry: Record<string, unknown>) => ({
@@ -1641,9 +1696,9 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
         month: String(row.month || '').slice(0, 3),
         revenue: hasAmount(row.grossIncome)
           ? readSignedAmount(row.grossIncome)
-          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.eventIncome),
+          : readAmount(row.monthlyCash) + readAmount(row.admissionCollected) + readSignedAmount(row.dressProfit) + readAmount(row.extraIncome) + readAmount(row.eventIncome),
         devFund: readAmount(row.developmentAllocation),
-        expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses),
+        expenses: readAmount(row.developmentExpenses) + readAmount(row.eventExpenses) + readAmount(row.customRemovals),
         net: readSignedAmount(row.bankMovement),
         cumulativeRevenue: readSignedAmount(row.cumulativeBank),
         cumulativeBank: readSignedAmount(row.cumulativeBank),
@@ -1652,7 +1707,7 @@ async function getFinancialSummary(session: FeeTrackSession, body: ActionBody) {
       dressProfit: readSignedAmount(monthRow.dressProfit),
       grossIncome: hasAmount(monthRow.grossIncome)
         ? readSignedAmount(monthRow.grossIncome)
-        : readAmount(monthRow.monthlyCash) + readAmount(monthRow.admissionCollected) + readSignedAmount(monthRow.dressProfit) + readAmount(monthRow.eventIncome),
+        : readAmount(monthRow.monthlyCash) + readAmount(monthRow.admissionCollected) + readSignedAmount(monthRow.dressProfit) + readAmount(monthRow.extraIncome) + readAmount(monthRow.eventIncome),
       eventIncome: readAmount(monthRow.eventIncome),
       eventExpenses: readAmount(monthRow.eventExpenses),
       eventSurplus: readSignedAmount(monthRow.eventSurplus),
@@ -3034,6 +3089,10 @@ async function handleAction(body: ActionBody) {
       return addExtraIncome(session, body)
     case 'delete_extra_income':
       return deleteExtraIncome(session, body)
+    case 'add_removal':
+      return addRemoval(session, body)
+    case 'delete_removal':
+      return deleteRemoval(session, body)
     case 'get_finance_command_center':
       return getFinanceCommandCenter(session, body)
     case 'get_financial_summary':

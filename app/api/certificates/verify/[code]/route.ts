@@ -12,6 +12,7 @@ const certificateVerifyParamsSchema = z.object({
 
 function statusFromCertificateError(message: string) {
   if (message === 'CERTIFICATE_REVOKED') return { code: 'CERTIFICATE_REVOKED', status: 410 }
+  if (message === 'CERTIFICATE_VOID') return { code: 'CERTIFICATE_VOID', status: 404 }
   if (message === 'CERTIFICATE_NOT_FOUND' || message === 'ENROLLMENT_NOT_FOUND') {
     return { code: 'CERTIFICATE_NOT_FOUND', status: 404 }
   }

@@ -108,6 +108,10 @@ export const PROGRAM_TYPES = Object.freeze({
   BELT_EXAM: 'belt_exam',
   TRAINING: 'training',
   TOURNAMENT: 'tournament',
+  SEMINAR: 'seminar',
+  SPECIAL_PROGRAM: 'special_program',
+  PARTICIPATION: 'participation',
+  ACHIEVEMENT: 'achievement',
 } as const)
 
 export type ProgramType = (typeof PROGRAM_TYPES)[keyof typeof PROGRAM_TYPES]

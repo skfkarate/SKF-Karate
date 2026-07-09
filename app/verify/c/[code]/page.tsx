@@ -11,11 +11,12 @@ import {
 
 import type { CertificateData } from '@/lib/certificates/CertificateRenderer'
 import { CertificateRenderer } from '@/lib/certificates/CertificateRenderer'
+import { publicCertificateStatusLabel } from '@/lib/certificates/registration'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
 import { CertificatePublishingCountdown } from './CertificatePublishingCountdown'
 import './certificate-publishing.css'
 
-const CERTIFICATE_PUBLISH_TARGET_ISO = '2026-07-11T00:00:00+05:30'
+const CERTIFICATE_PUBLISH_TARGET_ISO = '2026-07-19T00:00:00+05:30'
 
 export const metadata = buildNoIndexMetadata(
   '/verify/c',
@@ -78,7 +79,9 @@ async function loadCertificate(code: string) {
       data: null,
       reason: message === 'CERTIFICATE_REVOKED'
         ? 'This certificate exists, but it has been revoked by SKF Karate.'
-        : message === 'CERTIFICATE_NOT_ISSUED'
+        : message === 'CERTIFICATE_VOID'
+          ? 'This certificate registration has been voided by SKF Karate.'
+          : message === 'CERTIFICATE_NOT_ISSUED'
           ? 'This certificate is registered with SKF Karate, but it has not been published for public verification yet.'
           : undefined,
     }
@@ -93,6 +96,7 @@ function VerifiedCertificate({ data }: { data: CertificateData }) {
     month: 'long',
     year: 'numeric',
   })
+  const statusLabel = publicCertificateStatusLabel(data.status)
 
   return (
     <div className="cv-page">
@@ -111,7 +115,7 @@ function VerifiedCertificate({ data }: { data: CertificateData }) {
           {/* Status Chip */}
           <div className="cv-chip">
             <BadgeCheck size={13} />
-            <span>Verified &bull; SKF Registry</span>
+            <span>{statusLabel} &bull; SKF Registry</span>
           </div>
         </div>
 
@@ -152,6 +156,14 @@ function VerifiedCertificate({ data }: { data: CertificateData }) {
             <div className="cv-detail-row__content">
               <span className="cv-detail-row__label">Certificate</span>
               <span className="cv-detail-row__value">{data.certificateNumber}</span>
+            </div>
+          </div>
+
+          <div className="cv-detail-row">
+            <ShieldCheck size={17} />
+            <div className="cv-detail-row__content">
+              <span className="cv-detail-row__label">Certificate Status</span>
+              <span className="cv-detail-row__value">{statusLabel}</span>
             </div>
           </div>
 

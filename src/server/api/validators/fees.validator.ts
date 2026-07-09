@@ -347,8 +347,18 @@ export type FeeDataQualityFixInput = z.infer<typeof feeDataQualityFixSchema>
 export type FeeFollowupCreateInput = z.infer<typeof feeFollowupCreateSchema>
 export type PortalFeeProofInput = z.infer<typeof portalFeeProofSchema>
 export type FeeCreditCreateInput = z.infer<typeof feeCreditCreateSchema>
+export const feeRemovalSchema = z.object({
+  month: monthSchema,
+  year: yearSchema,
+  title: z.string().trim().min(1).max(160),
+  description: z.string().trim().max(500).optional(),
+  scope: z.string().trim().min(1).max(160).default('Both'),
+  amount: z.coerce.number().min(1).max(1000000),
+})
+
 export type DevelopmentFundExpenseInput = z.infer<typeof developmentFundExpenseSchema>
 export type FeeExtraIncomeInput = z.infer<typeof feeExtraIncomeSchema>
+export type FeeRemovalInput = z.infer<typeof feeRemovalSchema>
 export type ManualStudentFeeInput = z.infer<typeof manualStudentFeeSchema>
 export type EventFeeConfigInput = z.infer<typeof eventFeeConfigSchema>
 export type EventFeePreviewInput = z.infer<typeof eventFeePreviewSchema>

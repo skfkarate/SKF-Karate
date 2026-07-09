@@ -484,6 +484,7 @@ export class FeeLedgerService {
         }
       })
       .filter((entry) => isPortalMonthlyEntryVisible(entry, now))
+      .filter((entry) => entry.feeType !== 'credit_adjustment')
       .filter((entry) => !shouldHideFromPortalFees(entry, billingProfile))
       .sort((a, b) => (b.year - a.year) || (b.monthIndex - a.monthIndex))
 

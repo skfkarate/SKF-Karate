@@ -14,6 +14,7 @@ import { hasTelegramChannel, sendTelegramMessage, sendTelegramPhoto } from '@/sr
 import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
 import type {
   DevelopmentFundExpenseInput,
+  FeeRemovalInput,
   FeeConsoleBulkActionInput,
   FeeConsoleLedgerActionInput,
   FeeConsoleQueryInput,
@@ -948,7 +949,7 @@ function periodStartDate(year: number, month: string) {
   return new Date(Date.UTC(year, safeMonth, 1)).toISOString().slice(0, 10)
 }
 
-function buildBranchSummary<T extends { branch?: string; amount?: number; status?: FeeStatus }>(rows: T[]) {
+function buildBranchSummary<T extends { branch?: string; amount?: number; status?: FeeStatus; feeType?: string }>(rows: T[]) {
   const byBranch = new Map<string, {
     branch: string
     rows: number
@@ -972,6 +973,10 @@ function buildBranchSummary<T extends { branch?: string; amount?: number; status
     }
     const amount = normalizeAmount(row.amount)
     current.rows += 1
+    if (row.feeType === 'credit_adjustment' || nonBillableStatus(row.status || 'due')) {
+      byBranch.set(branch, current)
+      continue
+    }
     if (row.status === 'paid') {
       current.paidCount += 1
       current.collected += amount
@@ -987,7 +992,7 @@ function buildBranchSummary<T extends { branch?: string; amount?: number; status
   return Array.from(byBranch.values()).sort((a, b) => a.branch.localeCompare(b.branch))
 }
 
-function buildCitySummary<T extends { branch?: string; amount?: number; status?: FeeStatus }>(rows: T[]) {
+function buildCitySummary<T extends { branch?: string; amount?: number; status?: FeeStatus; feeType?: string }>(rows: T[]) {
   const base = new Map<string, {
     city: string
     citySlug: string
@@ -1027,6 +1032,10 @@ function buildCitySummary<T extends { branch?: string; amount?: number; status?:
     }
     const amount = normalizeAmount(row.amount)
     current.rows += 1
+    if (row.feeType === 'credit_adjustment' || nonBillableStatus(row.status || 'due')) {
+      base.set(key, current)
+      continue
+    }
     if (row.status === 'paid') {
       current.paidCount += 1
       current.collected += amount
@@ -1947,6 +1956,7 @@ export class FeeOperationsService {
       { data: incomeRows, error: incomeError },
       eventExpenseRows,
       eventDepositRows,
+      { data: removalRows, error: removalError },
     ] = await Promise.all([
       supabaseAdmin
         .from('development_fund_expenses')
@@ -1974,11 +1984,18 @@ export class FeeOperationsService {
         .lte('deposit_date', `${targetYear}-12-31`)
         .is('deleted_at', null)
         .order('deposit_date', { ascending: false }),
+      supabaseAdmin
+        .from('fee_removals')
+        .select('*')
+        .eq('year', targetYear)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false }),
     ])
     if (expenseError) throwFeeDatabaseError(expenseError)
     if (incomeError && !isOptionalWorkflowSchemaError(incomeError)) throwFeeDatabaseError(incomeError)
     if (eventExpenseRows.error && !isOptionalWorkflowSchemaError(eventExpenseRows.error)) throwFeeDatabaseError(eventExpenseRows.error)
     if (eventDepositRows.error && !isOptionalWorkflowSchemaError(eventDepositRows.error)) throwFeeDatabaseError(eventDepositRows.error)
+    if (removalError && !isOptionalWorkflowSchemaError(removalError)) throwFeeDatabaseError(removalError)
 
     const relevantExpenses = (expenseRows || [])
       .filter((expense) => expenseMatchesLocation(expense.scope, 'bangalore', query.branch))
@@ -1996,13 +2013,18 @@ export class FeeOperationsService {
       .filter((deposit) => expenseMatchesLocation(deposit.branch_scope, 'bangalore', query.branch))
       .filter((deposit) => withinMonthLimit(monthFromDateValue(deposit.deposit_date), monthLimit))
 
+    const relevantRemovals = (removalRows || [])
+      .filter((removal) => expenseMatchesLocation(removal.scope, 'bangalore', query.branch))
+      .filter((removal) => withinMonthLimit(normalizeMonth(removal.month), monthLimit))
+
     const buildFinanceBreakdown = (
       year: number,
       sourceEntries: typeof ledger.entries,
       sourceExpenses: typeof relevantExpenses,
       sourceIncomes: typeof relevantIncomes,
       sourceEventExpenses: typeof relevantEventExpenses,
-      sourceEventDeposits: typeof relevantEventDeposits
+      sourceEventDeposits: typeof relevantEventDeposits,
+      sourceRemovals: typeof relevantRemovals
     ) => {
       const entries = sourceEntries.filter((entry) => withinMonthLimit(entry.month, monthLimit))
       const paidEntries = entries.filter((entry) => entry.status === 'paid')
@@ -2032,7 +2054,7 @@ export class FeeOperationsService {
           .filter((entry) => ['belt_exam', 'tournament', 'event', 'other'].includes(entry.feeType))
           .reduce((sum, entry) => sum + normalizeAmount(entry.amount), 0)
         const grossIncome = monthlyCash + admissionCollected + dressProfit + extraIncome + eventIncome
-        const developmentAllocation = Math.round(Math.max(0, grossIncome) * 0.3)
+        const developmentAllocation = Math.round(Math.max(0, monthlyCash) * 0.3)
         const developmentExpenses = sourceExpenses
           .filter((expense) => normalizeMonth(expense.month) === month)
           .reduce((sum, expense) => sum + normalizeAmount(expense.amount), 0)
@@ -2042,8 +2064,11 @@ export class FeeOperationsService {
         const eventDeposits = sourceEventDeposits
           .filter((deposit) => monthFromDateValue(deposit.deposit_date) === month)
           .reduce((sum, deposit) => sum + normalizeAmount(deposit.amount), 0)
+        const customRemovals = sourceRemovals
+          .filter((removal) => normalizeMonth(removal.month) === month)
+          .reduce((sum, removal) => sum + normalizeAmount(removal.amount), 0)
         const eventSurplus = eventIncome - eventExpenses
-        const bankMovement = grossIncome - developmentExpenses - eventExpenses
+        const bankMovement = grossIncome - developmentExpenses - eventExpenses - customRemovals
 
         return {
           month,
@@ -2061,6 +2086,7 @@ export class FeeOperationsService {
           developmentAllocation,
           developmentExpenses,
           eventExpenses,
+          customRemovals,
           eventSurplus,
           eventDeposits,
           bankMovement,
@@ -2087,7 +2113,8 @@ export class FeeOperationsService {
       relevantExpenses,
       relevantIncomes,
       relevantEventExpenses,
-      relevantEventDeposits
+      relevantEventDeposits,
+      relevantRemovals
     )
 
     const visibleBreakdown = monthlyBreakdown.filter((row) => withinMonthLimit(row.month, monthLimit))
@@ -2106,6 +2133,7 @@ export class FeeOperationsService {
         developmentAllocation: sum.developmentAllocation + row.developmentAllocation,
         developmentExpenses: sum.developmentExpenses + row.developmentExpenses,
         eventExpenses: sum.eventExpenses + row.eventExpenses,
+        customRemovals: sum.customRemovals + row.customRemovals,
         eventSurplus: sum.eventSurplus + row.eventSurplus,
         eventDeposits: sum.eventDeposits + row.eventDeposits,
         calculatedBankPosition: sum.calculatedBankPosition + row.bankMovement,
@@ -2124,6 +2152,7 @@ export class FeeOperationsService {
         developmentAllocation: 0,
         developmentExpenses: 0,
         eventExpenses: 0,
+        customRemovals: 0,
         eventSurplus: 0,
         eventDeposits: 0,
         calculatedBankPosition: 0,
@@ -2146,6 +2175,7 @@ export class FeeOperationsService {
         previousIncomeRows,
         previousEventExpenseRows,
         previousEventDepositRows,
+        { data: previousRemovalRows, error: previousRemovalError },
       ] = await Promise.all([
         this.getLedger(session, {
           year: previousYear,
@@ -2180,11 +2210,18 @@ export class FeeOperationsService {
           .lte('deposit_date', `${previousYear}-12-31`)
           .is('deleted_at', null)
           .order('deposit_date', { ascending: false }),
+        supabaseAdmin
+          .from('fee_removals')
+          .select('*')
+          .eq('year', previousYear)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false }),
       ])
       if (previousExpenseRows.error) throwFeeDatabaseError(previousExpenseRows.error)
       if (previousIncomeRows.error && !isOptionalWorkflowSchemaError(previousIncomeRows.error)) throwFeeDatabaseError(previousIncomeRows.error)
       if (previousEventExpenseRows.error && !isOptionalWorkflowSchemaError(previousEventExpenseRows.error)) throwFeeDatabaseError(previousEventExpenseRows.error)
       if (previousEventDepositRows.error && !isOptionalWorkflowSchemaError(previousEventDepositRows.error)) throwFeeDatabaseError(previousEventDepositRows.error)
+      if (previousRemovalError && !isOptionalWorkflowSchemaError(previousRemovalError)) throwFeeDatabaseError(previousRemovalError)
       const previousExpenses = (previousExpenseRows.data || [])
         .filter((expense) => expenseMatchesLocation(expense.scope, 'bangalore', query.branch))
         .filter((expense) => withinMonthLimit(normalizeMonth(expense.month), monthLimit))
@@ -2197,13 +2234,17 @@ export class FeeOperationsService {
       const previousEventDeposits = (previousEventDepositRows.data || [])
         .filter((deposit) => expenseMatchesLocation(deposit.branch_scope, 'bangalore', query.branch))
         .filter((deposit) => withinMonthLimit(monthFromDateValue(deposit.deposit_date), monthLimit))
+      const previousRemovals = (previousRemovalRows || [])
+        .filter((removal) => expenseMatchesLocation(removal.scope, 'bangalore', query.branch))
+        .filter((removal) => withinMonthLimit(normalizeMonth(removal.month), monthLimit))
       previousYearBreakdown = buildFinanceBreakdown(
         previousYear,
         previousLedger.entries,
         previousExpenses,
         previousIncomes,
         previousEventExpenses,
-        previousEventDeposits
+        previousEventDeposits,
+        previousRemovals
       )
         .filter((row) => withinMonthLimit(row.month, monthLimit))
 
@@ -2246,7 +2287,7 @@ export class FeeOperationsService {
         developmentFundBalance:
           totals.developmentAllocation - totals.developmentExpenses,
         formula:
-          'Opening reserve + monthly fee cash after credits + admission collected + dress profit + extra income + event income - development expenses - event expenses',
+          'Opening reserve + monthly fee cash after credits + admission collected + dress profit + extra income + event income - development expenses - event expenses - custom removals',
       },
       monthlyBreakdown: visibleBreakdown,
       previousYearBreakdown,
@@ -2255,6 +2296,7 @@ export class FeeOperationsService {
       extraIncomes: relevantIncomes,
       eventExpenses: relevantEventExpenses,
       eventDeposits: relevantEventDeposits,
+      removals: relevantRemovals,
       dataQuality: await this.getDataQuality(session, { ...query, city: 'bangalore', year: targetYear, month: targetMonth || query.month }),
     }
   }
@@ -4431,6 +4473,86 @@ export class FeeOperationsService {
       `*Deleted By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return { success: true, income: data }
+  }
+
+  static async createRemoval(session: Session, input: FeeRemovalInput) {
+    assertWrite(session)
+    requireFeeDatabase()
+
+    const code = `RMV-${Date.now().toString(36).toUpperCase()}`
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_removals')
+      .insert({
+        removal_code: code,
+        month: normalizeMonth(input.month),
+        year: input.year,
+        title: input.title,
+        description: input.description || null,
+        scope: input.scope || 'Both',
+        amount: input.amount,
+        created_by: actorName(session),
+      })
+      .select('*')
+      .single()
+    if (error) throwFeeDatabaseError(error)
+    await logAudit(session, { action: 'fee_removal_created', after: data })
+    notifyTreasuryAction('Custom Removal Recorded', [
+      `*Amount:* ₹${input.amount}`,
+      `*Source:* ${input.title}`,
+      `*Note:* ${input.description || 'N/A'}`,
+      `*Recorded By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
+    return data
+  }
+
+  static async deleteRemoval(session: Session, removalId: string) {
+    assertWrite(session)
+    requireFeeDatabase()
+    const normalizedId = String(removalId || '').trim()
+    if (!normalizedId) {
+      throw new ValidationError({ removalId: ['Removal ID is required.'] })
+    }
+
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from('fee_removals')
+      .select('*')
+      .eq('id', normalizedId)
+      .is('deleted_at', null)
+      .maybeSingle()
+    if (existingError) throwFeeDatabaseError(existingError)
+    if (!existing) throw new NotFoundError('Custom removal')
+
+    const createdAt = new Date(String(existing.created_at || ''))
+    const ageMs = Date.now() - createdAt.getTime()
+    if (!Number.isFinite(ageMs) || ageMs > 24 * 60 * 60 * 1000) {
+      throw new ValidationError({
+        removalId: ['Removals can only be deleted within 24 hours of creation.'],
+      })
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_removals')
+      .update({
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', normalizedId)
+      .select('*')
+      .single()
+    if (error) throwFeeDatabaseError(error)
+
+    await logAudit(session, {
+      action: 'fee_removal_deleted',
+      before: existing,
+      after: data,
+    })
+    notifyTreasuryAction('Custom Removal Deleted', [
+      `*Title:* ${existing.title}`,
+      `*Amount:* ₹${existing.amount}`,
+      `*Deleted By:* ${actorName(session)}`
+    ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
+    return { success: true, removal: data }
   }
 
   static async getExamMonths(session: Session) {
