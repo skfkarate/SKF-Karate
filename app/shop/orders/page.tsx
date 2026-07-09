@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { COOKIE_NAME, verifyStudentJWT } from '@/lib/server/auth/student'
+import { buildPortalLoginUrl } from '@/lib/portal/portal-callback'
 import { getShopOrdersBySkfId } from '@/lib/server/repositories/shop'
 import '../shop.css'
 
@@ -12,7 +13,7 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<{ su
     const session = token ? verifyStudentJWT(token) : null
 
     if (!session || !session.skfId) {
-        redirect('/portal/login?callbackUrl=/shop/orders')
+        redirect(buildPortalLoginUrl('/shop/orders'))
     }
 
     const orders = await getShopOrdersBySkfId(session.skfId)

@@ -9,6 +9,8 @@ describe('portal login callback sanitizer', () => {
     expect(sanitizePortalCallbackUrl('/portal/fees?month=July&year=2026')).toBe('/portal/fees?month=July&year=2026')
     expect(sanitizePortalCallbackUrl('/portal/points?page=2')).toBe('/portal/points?page=2')
     expect(sanitizePortalCallbackUrl(['/portal/journey?tab=belts', '/portal/dashboard'])).toBe('/portal/journey?tab=belts')
+    expect(sanitizePortalCallbackUrl('/shop/orders?success=true')).toBe('/shop/orders?success=true')
+    expect(sanitizePortalCallbackUrl('/shop/karate-gi')).toBe('/shop/karate-gi')
   })
 
   it('falls back for missing, external, and non-portal callback URLs', () => {
@@ -27,6 +29,9 @@ describe('portal login callback sanitizer', () => {
   it('builds encoded login URLs for protected portal pages', () => {
     expect(buildPortalLoginUrl('/portal/fees?month=July&year=2026')).toBe(
       '/portal/login?callbackUrl=%2Fportal%2Ffees%3Fmonth%3DJuly%26year%3D2026'
+    )
+    expect(buildPortalLoginUrl('/shop/orders?success=true')).toBe(
+      '/portal/login?callbackUrl=%2Fshop%2Forders%3Fsuccess%3Dtrue'
     )
     expect(buildPortalLoginUrl('/admin')).toBe('/portal/login?callbackUrl=%2Fportal%2Fdashboard')
   })

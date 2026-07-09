@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Package, Lock, Ruler, X, User, ShoppingCart, Check } from 'lucide-react'
 import { useCart } from '@/lib/shop/cartState'
 import { getShopProductImages, getShopProductPrimaryImage } from '@/lib/shop/productImages'
+import { buildPortalLoginUrl } from '@/lib/portal/portal-callback'
 import type { ShopProduct } from '@/lib/shop/types'
 import { BELT_HIERARCHY } from '@/lib/shop/types'
 import ShopProductSkeleton from '@/components/skeletons/ShopProductSkeleton'
@@ -111,7 +112,7 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         if (!product.is_public && !isAuthenticated) {
-            router.push('/portal/login?callbackUrl=/shop/' + product.id)
+            router.push(buildPortalLoginUrl(`/shop/${product.id}`))
             return
         }
 

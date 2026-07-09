@@ -1,5 +1,11 @@
 export const DEFAULT_PORTAL_CALLBACK = '/portal/dashboard'
 
+const ALLOWED_CALLBACK_PREFIXES = ['/portal', '/shop']
+
+function pathMatchesPrefix(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
 export function sanitizePortalCallbackUrl(value: unknown): string {
   const raw = Array.isArray(value) ? value[0] : value
   if (typeof raw !== 'string') return DEFAULT_PORTAL_CALLBACK
@@ -13,7 +19,10 @@ export function sanitizePortalCallbackUrl(value: unknown): string {
     const url = new URL(trimmed, 'https://www.skfkarate.org')
     const pathname = url.pathname || ''
 
-    if (!pathname.startsWith('/portal') || pathname === '/portal/login' || pathname.startsWith('/portal/login/')) {
+    const isAllowedCallback = ALLOWED_CALLBACK_PREFIXES.some((prefix) => pathMatchesPrefix(pathname, prefix))
+    const isLoginCallback = pathMatchesPrefix(pathname, '/portal/login')
+
+    if (!isAllowedCallback || isLoginCallback) {
       return DEFAULT_PORTAL_CALLBACK
     }
 
