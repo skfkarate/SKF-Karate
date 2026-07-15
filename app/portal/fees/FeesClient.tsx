@@ -7,10 +7,11 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wallet, CreditCard, ShieldCheck, CheckCircle2, History, AlertCircle, QrCode, Upload, Info, Clock, Download, Loader2, Gift, Sparkles } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
+import PaymentCopyButton from '@/components/payment/PaymentCopyButton'
+import { PAYMENT_DETAILS } from '@/data/constants/payment'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import type { PortalCreditEntry } from '@/src/server/services/fee-ledger.service'
 import { submitManualFeePayment, applyPortalCredit } from './actions'
-import { useNonce } from '@/components/NonceProvider'
 import { getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
 import './fees.css'
 
@@ -102,7 +103,6 @@ interface CreditsData {
 }
 
 export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeRecords: FeeLedgerEntry[]; credits: CreditsData; athleteSkfId?: string }) {
-  const nonce = useNonce()
   usePortalAuth()
   const router = useRouter()
 
@@ -557,13 +557,13 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                       marginBottom: '0.75rem',
                       maxWidth: '100%',
                     }}>
-                      <Image src="/scanner-to-pay.jpeg" alt="UPI QR Code" width={200} height={200} style={{ display: 'block', borderRadius: '8px', maxWidth: '100%', height: 'auto' }} />
+                      <Image src={PAYMENT_DETAILS.scannerPath} alt="UPI QR Code" width={200} height={200} style={{ display: 'block', borderRadius: '8px', maxWidth: '100%', height: 'auto' }} />
                     </div>
                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
                       Scan with any UPI app
                     </p>
                     <a
-                      href="/scanner-to-pay.jpeg"
+                      href={PAYMENT_DETAILS.scannerPath}
                       download="SKF_Karate_QR.jpeg"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
@@ -600,15 +600,21 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                 <div style={{ background: 'rgba(0,0,0,0.5)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600 }}>Account Holder:</span>
-                    <span style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600 }}>Krishna C</span>
+                    <span style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 600 }}>{PAYMENT_DETAILS.accountHolder}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600 }}>Phone Number:</span>
-                    <span style={{ color: '#fff', fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>9611990869</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', minWidth: 0 }}>
+                      <span style={{ color: '#fff', fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>{PAYMENT_DETAILS.phoneNumber}</span>
+                      <PaymentCopyButton label="phone number" value={PAYMENT_DETAILS.phoneNumber} />
+                    </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600 }}>UPI ID:</span>
-                    <span style={{ color: 'var(--gold, #ffb703)', fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>skfkarate@axl</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', minWidth: 0 }}>
+                      <span style={{ color: 'var(--gold, #ffb703)', fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>{PAYMENT_DETAILS.upiId}</span>
+                      <PaymentCopyButton label="UPI ID" value={PAYMENT_DETAILS.upiId} />
+                    </span>
                   </div>
                 </div>
 

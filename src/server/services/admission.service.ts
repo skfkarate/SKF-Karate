@@ -1,4 +1,5 @@
 import type { Session } from 'next-auth'
+import sharp from 'sharp'
 
 import { buildAthletePayloadFromForm } from '@/lib/athletes/athlete-records'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
@@ -32,6 +33,8 @@ const ADMISSION_PHOTO_BUCKET = 'admission-photos'
 const PAYMENT_PROOF_BUCKET = 'fee-payment-proofs'
 const MAX_ADMISSION_PHOTO_BYTES = 8 * 1024 * 1024
 const MAX_ADMISSION_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024
+const FINAL_PROFILE_PHOTO_MIME_TYPE = 'image/webp'
+const FINAL_PROFILE_PHOTO_MAX_DIMENSION = 1200
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const BELTS = new Set(['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black'])
 const MONTHS = [
@@ -89,7 +92,7 @@ export type FeeQuote = {
   promoCode: string
 }
 
-type PhotoUpload = {
+export type PhotoUpload = {
   buffer: Buffer
   filename: string
   mimeType: string
@@ -619,11 +622,11 @@ async function findDuplicateWarnings(input: {
 }
 
 async function uploadFinalProfilePhoto(skfId: string, photo: PhotoUpload) {
-  const extension = admissionImageExtension(photo.mimeType)
+  const webpPhoto = await convertFinalProfilePhotoToWebp(photo)
   const normalizedSkfId = normaliseSkfId(skfId)
-  const path = `${normalizedSkfId}/${normalizedSkfId}.${extension}`
-  const { error } = await supabaseAdmin.storage.from(PROFILE_PHOTO_BUCKET).upload(path, photo.buffer, {
-    contentType: photo.mimeType,
+  const path = `${normalizedSkfId}/${normalizedSkfId}.webp`
+  const { error } = await supabaseAdmin.storage.from(PROFILE_PHOTO_BUCKET).upload(path, webpPhoto.buffer, {
+    contentType: webpPhoto.mimeType,
     upsert: true,
   })
 
@@ -631,6 +634,34 @@ async function uploadFinalProfilePhoto(skfId: string, photo: PhotoUpload) {
 
   const { data } = supabaseAdmin.storage.from(PROFILE_PHOTO_BUCKET).getPublicUrl(path)
   return data.publicUrl
+}
+
+export async function convertFinalProfilePhotoToWebp(photo: PhotoUpload): Promise<PhotoUpload> {
+  try {
+    const buffer = await sharp(photo.buffer, { failOn: 'none' })
+      .rotate()
+      .resize({
+        width: FINAL_PROFILE_PHOTO_MAX_DIMENSION,
+        height: FINAL_PROFILE_PHOTO_MAX_DIMENSION,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: 82, effort: 4 })
+      .toBuffer()
+
+    const filename = `${cleanText(photo.filename).replace(/\.[^/.]+$/, '') || 'profile-photo'}.webp`
+
+    return {
+      buffer,
+      filename,
+      mimeType: FINAL_PROFILE_PHOTO_MIME_TYPE,
+      size: buffer.length,
+    }
+  } catch {
+    throw new ValidationError({
+      finalPhoto: ['Profile photo could not be converted to WebP. Upload a JPG, PNG, or WebP image.'],
+    })
+  }
 }
 
 async function readSubmittedAdmissionPhoto(application: AdmissionApplicationMapped): Promise<PhotoUpload> {

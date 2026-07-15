@@ -19,6 +19,8 @@ import {
 import { ArrowLeft, MapPin, UserCheck, Check, UploadCloud, ShoppingBag, ArrowRight } from 'lucide-react'
 import { flushCheckoutQueue, queueCheckoutSubmission } from './checkoutQueue'
 import { useNonce } from '@/components/NonceProvider'
+import PaymentCopyButton from '@/components/payment/PaymentCopyButton'
+import { PAYMENT_DETAILS } from '@/data/constants/payment'
 import '../shop.css'
 
 type GuestCheckoutFormData = {
@@ -552,9 +554,9 @@ export default function CheckoutPage() {
                                     {/* Left: QR Code */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         <div style={{ width: '250px', background: '#fff', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                                            <Image src="/scanner-to-pay.jpeg" alt="UPI QR Code" width={400} height={400} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                                            <Image src={PAYMENT_DETAILS.scannerPath} alt="UPI QR Code" width={400} height={400} style={{ width: '100%', height: 'auto', display: 'block' }} />
                                         </div>
-                                        <a href="/scanner-to-pay.jpeg" download="skf-qr-code.jpeg" style={{ width: '250px', textAlign: 'center', display: 'block', background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', padding: '1rem', borderRadius: '50px', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '2px', fontWeight: 800, textDecoration: 'none', transition: 'all 0.2s' }} onMouseEnter={e => {e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000';}} onMouseLeave={e => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff';}}>
+                                        <a href={PAYMENT_DETAILS.scannerPath} download="skf-qr-code.jpeg" style={{ width: '250px', textAlign: 'center', display: 'block', background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', padding: '1rem', borderRadius: '50px', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '2px', fontWeight: 800, textDecoration: 'none', transition: 'all 0.2s' }} onMouseEnter={e => {e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000';}} onMouseLeave={e => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff';}}>
                                             Download QR
                                         </a>
                                     </div>
@@ -563,11 +565,17 @@ export default function CheckoutPage() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', justifyContent: 'center' }}>
                                         <div>
                                             <div style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '2px', fontSize: '0.75rem', fontWeight: 700 }}>UPI ID</div>
-                                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '1.2rem' }}>skfkarate@axl</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                                <div style={{ color: '#fff', fontWeight: 600, fontSize: '1.2rem' }}>{PAYMENT_DETAILS.upiId}</div>
+                                                <PaymentCopyButton label="UPI ID" value={PAYMENT_DETAILS.upiId} />
+                                            </div>
                                         </div>
                                         <div>
                                             <div style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '2px', fontSize: '0.75rem', fontWeight: 700 }}>Phone Number</div>
-                                            <div style={{ color: '#fff', fontWeight: 600, fontSize: '1.2rem' }}>9611990869</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                                <div style={{ color: '#fff', fontWeight: 600, fontSize: '1.2rem' }}>{PAYMENT_DETAILS.phoneNumber}</div>
+                                                <PaymentCopyButton label="phone number" value={PAYMENT_DETAILS.phoneNumber} />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

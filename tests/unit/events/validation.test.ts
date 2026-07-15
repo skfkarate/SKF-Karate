@@ -172,6 +172,23 @@ describe('validateTournamentPayload', () => {
 })
 
 describe('validateAthletePayload', () => {
+  it('allows single-name athletes with a blank last name', () => {
+    const result = validateAthletePayload({
+      firstName: 'Neshu',
+      lastName: '',
+      dateOfBirth: '2012-05-09',
+      gender: 'male',
+      branchName: 'M P Sports Club',
+      currentBelt: 'white',
+      joinDate: '2026-01-10',
+      status: 'active',
+      monthlyFee: 2500,
+    })
+
+    expect(result.firstName).toBe('Neshu')
+    expect(result.lastName).toBe('')
+  })
+
   it('preserves profile-linked tournament metadata in athlete achievements', () => {
     const result = validateAthletePayload({
       firstName: 'Asha',
