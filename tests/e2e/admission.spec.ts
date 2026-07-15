@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { expect, test } from '@playwright/test'
 
-const uploadImage = path.join(process.cwd(), 'public/scanner-to-pay.jpeg')
+const uploadImage = path.join(process.cwd(), 'public/ScanToPay.jpeg')
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {

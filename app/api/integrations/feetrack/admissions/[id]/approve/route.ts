@@ -8,6 +8,7 @@ import { timingSafeStringEqual } from '@/src/server/lib/security'
 import { AdmissionService } from '@/src/server/services/admission.service'
 import { FeeOperationsService } from '@/src/server/services/fee-operations.service'
 import type { AuthUser } from '@/lib/server/auth/staff'
+import { ApiError } from '@/lib/server/api'
 
 const FEE_TRACK_ROLES = new Set(FeeOperationsService.roles)
 const MAX_APPROVAL_BODY_BYTES = 10 * 1024 * 1024
@@ -104,6 +105,29 @@ export async function POST(
     const result = await AdmissionService.approveApplication(session, fields, finalPhoto)
     return json({ success: true, data: result })
   } catch (error) {
+    if (error instanceof ApiError) {
+      const payload = {
+        applicationId,
+        code: 'VALIDATION_ERROR',
+        status: error.status,
+        details: error.details,
+        error,
+      }
+
+      if (error.status >= 500) {
+        logger.error('feetrack.admission_approval_failed', payload)
+      } else {
+        logger.info('feetrack.admission_approval_rejected', { ...payload, systemAlert: false })
+      }
+
+      return json({
+        success: false,
+        error: error.message,
+        code: 'VALIDATION_ERROR',
+        details: error.details,
+      }, error.status)
+    }
+
     if (error instanceof AppError) {
       const payload = {
         applicationId,

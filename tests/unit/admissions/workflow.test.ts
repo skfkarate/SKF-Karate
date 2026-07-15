@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import sharp from 'sharp'
 
+import { buildAthletePayloadFromForm } from '@/lib/athletes/athlete-records'
+import { validateAthletePayload } from '@/lib/server/validation'
 import {
   buildAdmissionApplicationInsertPayload,
   buildAdmissionPhotoStoragePath,
@@ -7,6 +10,7 @@ import {
   buildAdmissionPaymentProofInsertPayload,
   buildAdmissionPaymentProofStoragePath,
   buildAdmissionPaymentProofStoredMeta,
+  convertFinalProfilePhotoToWebp,
   parsePublicAdmissionFormData,
   type FeeQuote,
 } from '@/src/server/services/admission.service'
@@ -68,6 +72,55 @@ const quote: FeeQuote = {
 }
 
 describe('admission workflow helpers', () => {
+  it('converts final approved profile photos to WebP', async () => {
+    const input = await sharp({
+      create: {
+        width: 32,
+        height: 24,
+        channels: 3,
+        background: '#d62828',
+      },
+    }).jpeg().toBuffer()
+
+    const result = await convertFinalProfilePhotoToWebp({
+      buffer: input,
+      filename: 'parent-upload.jpg',
+      mimeType: 'image/jpeg',
+      size: input.length,
+    })
+    const metadata = await sharp(result.buffer).metadata()
+
+    expect(result.filename).toBe('parent-upload.webp')
+    expect(result.mimeType).toBe('image/webp')
+    expect(result.size).toBe(result.buffer.length)
+    expect(metadata.format).toBe('webp')
+  })
+
+  it('builds a valid athlete payload for an approved single-name admission', () => {
+    const payload = validateAthletePayload(
+      buildAthletePayloadFromForm({
+        name: 'Neshu',
+        dob: '2014-01-15',
+        gender: 'male',
+        branch: 'M P Sports Club',
+        batch: '5:00 PM - 6:30 PM',
+        belt: 'white',
+        enrolledDate: '2026-05-27',
+        status: 'Active',
+        parentName: 'Ravi Kumar',
+        phone: '9876543210',
+        email: 'ravi@example.com',
+        monthlyFee: 2500,
+        photoConsent: true,
+        dataConsent: true,
+        isPublic: true,
+      })
+    )
+
+    expect(payload.firstName).toBe('Neshu')
+    expect(payload.lastName).toBe('')
+  })
+
   it('parses multipart public admission data without leaking missing optional fields as null', () => {
     const formData = validAdmissionFormData()
     formData.delete('preferredBatch')

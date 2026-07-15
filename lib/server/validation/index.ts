@@ -745,7 +745,7 @@ export function validateAthletePayload(payload: unknown) {
       max: 40,
     }),
     firstName: requiredString(value.firstName, 'First name', { max: 80 }),
-    lastName: requiredString(value.lastName, 'Last name', { max: 80 }),
+    lastName: optionalString(value.lastName, 'Last name', { max: 80 }),
     dateOfBirth,
     gender: enumValue(value.gender || 'male', 'Gender', ATHLETE_GENDERS),
     photoUrl: optionalUrl(value.photoUrl, 'Photo URL'),

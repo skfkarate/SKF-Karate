@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, UploadCloud, Clock, Download, Copy, AtSign, Phone, Tag, User, Loader2 } from 'lucide-react'
+import { PAYMENT_DETAILS } from '@/data/constants/payment'
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -683,14 +684,14 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                 {showPaymentQr && (
                   <div className="adm-qr-card__left">
                     <div className="adm-qr-scanner">
-                      <Image src="/scanner-to-pay.jpeg" alt="UPI QR" width={220} height={220} className="adm-qr-scanner__img" />
+                      <Image src={PAYMENT_DETAILS.scannerPath} alt="UPI QR" width={220} height={220} className="adm-qr-scanner__img" />
                       <div className="adm-qr-scanner__laser"></div>
                       <div className="adm-qr-scanner__corner adm-qr-scanner__corner--tl"></div>
                       <div className="adm-qr-scanner__corner adm-qr-scanner__corner--tr"></div>
                       <div className="adm-qr-scanner__corner adm-qr-scanner__corner--bl"></div>
                       <div className="adm-qr-scanner__corner adm-qr-scanner__corner--br"></div>
                     </div>
-                    <a href="/scanner-to-pay.jpeg" download="SKF_Karate_QR.jpeg" className="adm-btn-download">
+                    <a href={PAYMENT_DETAILS.scannerPath} download="SKF_Karate_QR.jpeg" className="adm-btn-download">
                       <Download size={14} /> Download QR
                     </a>
                   </div>
@@ -716,23 +717,23 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                       <div className="adm-qr-pay-method__icon"><AtSign size={18} /></div>
                       <div className="adm-qr-pay-method__info">
                         <span className="adm-qr-pay-method__label">UPI ID</span>
-                        <span className="adm-qr-pay-method__value">skfkarate@axl</span>
+                        <span className="adm-qr-pay-method__value">{PAYMENT_DETAILS.upiId}</span>
                       </div>
-                      <CopyButton text="skfkarate@axl" />
+                      <CopyButton text={PAYMENT_DETAILS.upiId} />
                     </div>
 
                     <div className="adm-qr-pay-method">
                       <div className="adm-qr-pay-method__icon"><Phone size={18} /></div>
                       <div className="adm-qr-pay-method__info">
                         <span className="adm-qr-pay-method__label">Phone Number</span>
-                        <span className="adm-qr-pay-method__value">9611990869</span>
+                        <span className="adm-qr-pay-method__value">{PAYMENT_DETAILS.phoneNumber}</span>
                       </div>
-                      <CopyButton text="9611990869" />
+                      <CopyButton text={PAYMENT_DETAILS.phoneNumber} />
                     </div>
 
                     <div className="adm-qr-verified">
                       <Check size={16} />
-                      <span>Verified Name: <strong>Krishna C</strong></span>
+                      <span>Verified Name: <strong>{PAYMENT_DETAILS.accountHolder}</strong></span>
                     </div>
 
                   </div>
