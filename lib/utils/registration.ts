@@ -105,7 +105,10 @@ export function normaliseSkfId(input: string): string {
 
   // Legacy SKF format without a branch: SKF20240042 or SKF-2024-0042.
   // Keep the ID in the current public shape by assigning MP as the default branch.
-  const legacyMatch = cleaned.match(/^SKF(\d{4})(\d{1,4})$/)
+  // Only convert actual historical IDs. Requiring a 20xx year avoids turning
+  // deliberately reserved/test IDs such as SKF0000000 into a different ID
+  // (SKF00MP000), which would invalidate a portal session immediately after login.
+  const legacyMatch = cleaned.match(/^SKF(20\d{2})(\d{1,4})$/)
   if (legacyMatch) {
     const [, year, num] = legacyMatch
     return `SKF${year.slice(-2)}MP${String(Number(num)).padStart(3, '0')}`

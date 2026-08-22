@@ -7,19 +7,13 @@
 
 import { supabaseAdmin } from '@/lib/server/supabase'
 import { logger } from '@/src/server/lib/logger'
-import {
-  isOfficialBlackBeltCandidateId,
-  normaliseBlackBeltCandidateId,
-} from '@/data/constants/blackbelt'
-
-export { BLACK_BELT_2026_CANDIDATE_IDS } from '@/data/constants/blackbelt'
+import { normaliseBlackBeltCandidateId } from '@/data/constants/blackbelt'
 
 function dedupeCandidates(candidates: BBCandidate[]) {
   const bySkfId = new Map<string, BBCandidate>()
 
   for (const candidate of candidates) {
     const normalized = normaliseBlackBeltCandidateId(candidate.skf_id)
-    if (!isOfficialBlackBeltCandidateId(normalized)) continue
 
     const nextCandidate = { ...candidate, skf_id: normalized }
     const existing = bySkfId.get(normalized)
@@ -261,7 +255,6 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
   if (!raw) return null
 
   const normalizedAthleteId = normaliseBlackBeltCandidateId(raw)
-  if (!isOfficialBlackBeltCandidateId(normalizedAthleteId)) return null
 
   const { data, error } = await supabaseAdmin
     .from('bb_candidates')
@@ -302,7 +295,6 @@ export async function getBBProgramForCandidate(skfId?: string | null): Promise<B
  * Used by both the portal navigation and the route guard so visibility matches access.
  */
 export async function isBBCandidate(skfId?: string | null): Promise<boolean> {
-  if (!isOfficialBlackBeltCandidateId(skfId)) return false
   return Boolean(await getBBCandidateBySkfIdAcrossPrograms(skfId))
 }
 
@@ -337,10 +329,17 @@ export async function getBBCandidateProgress(
 
 /**
  * Full portal data bundle: program + all candidates + their public progress.
+ *
+ * Strictly candidate-scoped: the caller must be an assigned candidate whose
+ * enrollment row exists in `bb_candidates`. There is deliberately NO fallback
+ * to the active program — a non-candidate must never be served program data.
  * This is the single query used by the portal page.
  */
 export async function getBBProgramForPortal(skfId?: string | null) {
-  const program = (skfId ? await getBBProgramForCandidate(skfId) : null) || await getActiveBBProgram()
+  const candidate = skfId ? await getBBCandidateBySkfIdAcrossPrograms(skfId) : null
+  if (!candidate?.program_id) return null
+
+  const program = await getBBProgramById(candidate.program_id)
   if (!program) return null
 
   const candidates = await getAllBBCandidates(program.id)

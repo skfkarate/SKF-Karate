@@ -117,7 +117,7 @@ export const admissionApprovalFieldsSchema = z.object({
   batch: optionalText(120),
   belt: z.enum(['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']).default('white'),
   isPublic: z.boolean().default(true),
-  paymentVerified: z.boolean().refine(Boolean, 'Payment verification is required before approval.'),
+  paymentVerified: z.boolean().default(false),
   photoAction: z.enum(['use_submitted', 'upload_new']).default('use_submitted'),
   reviewNote: optionalText(500),
 })

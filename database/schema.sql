@@ -581,6 +581,7 @@ CREATE TABLE IF NOT EXISTS video_progress (
 );
 
 CREATE INDEX IF NOT EXISTS idx_video_progress_skf ON video_progress (skf_id);
+CREATE INDEX IF NOT EXISTS idx_video_progress_last_watched ON video_progress (last_watched DESC);
 
 ALTER TABLE video_progress ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_video_progress" ON video_progress
@@ -741,9 +742,11 @@ CREATE TABLE IF NOT EXISTS portal_videos (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT DEFAULT '',
+  lesson_note TEXT NOT NULL DEFAULT '',
   category TEXT NOT NULL DEFAULT 'techniques',
   duration_label TEXT DEFAULT '',
   youtube_id TEXT NOT NULL CHECK (youtube_id ~ '^[A-Za-z0-9_-]{11}$'),
+  content_format TEXT NOT NULL DEFAULT 'landscape' CHECK (content_format IN ('landscape', 'short')),
   branch_slugs JSONB DEFAULT '[]',
   batch_names JSONB DEFAULT '[]',
   belt_levels JSONB DEFAULT '[]',
@@ -754,6 +757,67 @@ CREATE TABLE IF NOT EXISTS portal_videos (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS portal_practice_folders (
+  id TEXT PRIMARY KEY,
+  parent_folder_id TEXT REFERENCES portal_practice_folders(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  cover_image_url TEXT DEFAULT '',
+  branch_slugs JSONB NOT NULL DEFAULT '[]',
+  batch_names JSONB NOT NULL DEFAULT '[]',
+  belt_levels JSONB NOT NULL DEFAULT '[]',
+  is_featured BOOLEAN NOT NULL DEFAULT false,
+  is_published BOOLEAN NOT NULL DEFAULT true,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE portal_videos
+  ADD COLUMN IF NOT EXISTS folder_id TEXT REFERENCES portal_practice_folders(id) ON DELETE SET NULL;
+
+ALTER TABLE portal_videos
+  ADD COLUMN IF NOT EXISTS content_format TEXT NOT NULL DEFAULT 'landscape';
+
+ALTER TABLE portal_practice_folders
+  ADD COLUMN IF NOT EXISTS parent_folder_id TEXT REFERENCES portal_practice_folders(id) ON DELETE SET NULL;
+
+
+CREATE TABLE IF NOT EXISTS portal_practice_photos (
+  id TEXT PRIMARY KEY,
+  folder_id TEXT REFERENCES portal_practice_folders(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  storage_path TEXT NOT NULL,
+  branch_slugs JSONB NOT NULL DEFAULT '[]',
+  batch_names JSONB NOT NULL DEFAULT '[]',
+  belt_levels JSONB NOT NULL DEFAULT '[]',
+  is_published BOOLEAN NOT NULL DEFAULT true,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE portal_practice_folders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "service_role_full_portal_practice_folders" ON portal_practice_folders;
+CREATE POLICY "service_role_full_portal_practice_folders" ON portal_practice_folders
+  FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+ALTER TABLE portal_practice_photos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "service_role_full_portal_practice_photos" ON portal_practice_photos;
+CREATE POLICY "service_role_full_portal_practice_photos" ON portal_practice_photos
+  FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+INSERT INTO storage.buckets (id, name, public, allowed_mime_types)
+VALUES ('portal-practice-images', 'portal-practice-images', false, ARRAY['image/jpeg', 'image/png', 'image/webp'])
+ON CONFLICT (id) DO UPDATE SET public = false, allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "service_role_full_portal_practice_images" ON storage.objects;
+CREATE POLICY "service_role_full_portal_practice_images" ON storage.objects
+  FOR ALL TO service_role
+  USING (bucket_id = 'portal-practice-images')
+  WITH CHECK (bucket_id = 'portal-practice-images');
 
 ALTER TABLE portal_videos
   ADD COLUMN IF NOT EXISTS show_in_techniques BOOLEAN DEFAULT false;
@@ -1360,6 +1424,18 @@ VALUES
     0,
     '["6:00 AM - 7:00 AM"]'::jsonb,
     'Admission payment is Rs. 2,000 and includes dress. Monthly fee is collected in FeeTrack.'
+  ),
+  (
+    'kunigal-main',
+    'Kunigal',
+    true,
+    true,
+    0,
+    0,
+    0,
+    0,
+    '[]'::jsonb,
+    'Student information is collected here. Fees are handled directly by the Kunigal branch.'
   )
 ON CONFLICT (branch_slug) DO NOTHING;
 

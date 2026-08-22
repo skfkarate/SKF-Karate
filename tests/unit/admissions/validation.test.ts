@@ -141,9 +141,8 @@ describe('admission validators', () => {
     expect(parsed.reviewNote).toBeUndefined()
   })
 
-  it('requires staff payment verification before approval', () => {
-    expect(() =>
-      admissionApprovalFieldsSchema.parse({
+  it('accepts an unverified approval for branch-specific service validation', () => {
+    const parsed = admissionApprovalFieldsSchema.parse({
         applicationId: '11111111-1111-4111-8111-111111111111',
         monthlyFee: '2500',
         admissionFee: '1500',
@@ -157,6 +156,6 @@ describe('admission validators', () => {
         photoAction: 'upload_new',
         reviewNote: '',
       })
-    ).toThrow('Payment verification is required before approval.')
+    expect(parsed.paymentVerified).toBe(false)
   })
 })

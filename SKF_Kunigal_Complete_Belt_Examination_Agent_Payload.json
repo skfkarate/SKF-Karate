@@ -1,0 +1,1585 @@
+{
+  "importInstructions": {
+    "processingOrder": "Process beltExaminations in the order listed, from oldest to newest.",
+    "joinDateRule": "Only the joining year is known. First try the four-digit year in joinDate. If the portal requires YYYY-MM-DD, generate a valid random date within that joining year, ensure it is earlier than the athlete's first examination date, and use the same generated date for the athlete's White Belt enrollment journey record.",
+    "currentBeltRule": "currentBelt is the athlete's current belt as of 2026-07-26, after the listed promotion.",
+    "examinerRule": "Use Dr. Renshi Channegowda UC for every grading examination.",
+    "gradeRule": "Use Grade A, Result Pass, and Promoted for every listed examination assignment.",
+    "locationRule": "Use Kunigal for branchName, hostingBranch, venue, city, and dojo.",
+    "monthlyFeeRule": "Use 400 as the default monthly fee for every new athlete.",
+    "photoRule": "photoUrl is intentionally blank. When the profile-picture folder is uploaded, match each image to the athlete by exact or closest full-name filename and then populate photoUrl. Do not change photoConsent from false unless consent is separately confirmed.",
+    "eventRule": "Create each examination as a separate event and link only the athletes listed in that event.",
+    "preranRule": "Preran A must not be linked to the 2026-07-26 Summer Belt Examination in any way. He is included only in his earlier historical events and remains brown-i.",
+    "historicalDataRule": "Use the listed reconstructed examination dates as the actual event dates for this import."
+  },
+  "enrollmentRecords": [
+    {
+      "skfId": "SKF21KL001",
+      "date": "2021",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF22KL001",
+      "date": "2022",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF22KL002",
+      "date": "2022",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL001",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL002",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL003",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL004",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL005",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF23KL006",
+      "date": "2023",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF24KL001",
+      "date": "2024",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF24KL002",
+      "date": "2024",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF24KL003",
+      "date": "2024",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL001",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL002",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL003",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL004",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL005",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL006",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL007",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL008",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL009",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL010",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL011",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF25KL012",
+      "date": "2025",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    },
+    {
+      "skfId": "SKF26KL001",
+      "date": "2026",
+      "belt": "white",
+      "grade": "Enrollment",
+      "examiner": "SKF Admissions",
+      "dojo": "Kunigal",
+      "result": "Pass"
+    }
+  ],
+  "beltExaminations": [
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2021-10-22",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "create",
+            "skfId": "SKF21KL001",
+            "firstName": "Preran",
+            "lastName": "A",
+            "dateOfBirth": "2014-02-19",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "brown-i",
+            "joinDate": "2021",
+            "parentName": "Ashok M R",
+            "phone": "9379858233",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2022-01-01",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2022-04-14",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2022-07-03",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF22KL001",
+            "firstName": "Trigun",
+            "lastName": "G",
+            "dateOfBirth": "2013-10-07",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "brown-ii",
+            "joinDate": "2022",
+            "parentName": "Gopal K",
+            "phone": "7899208687",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF22KL002",
+            "firstName": "Dhanyanth",
+            "lastName": "S Naik",
+            "dateOfBirth": "2017-09-02",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "brown-iii",
+            "joinDate": "2022",
+            "parentName": "Shivakumar S",
+            "phone": "8431280180",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2023-01-03",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "blue",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2023-04-14",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "purple",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2023-10-01",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "brown-iii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2024-04-14",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL001",
+            "firstName": "Bhuvan",
+            "lastName": "Gowda C",
+            "dateOfBirth": "2017-02-11",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "blue",
+            "joinDate": "2023",
+            "parentName": "Chethan M N",
+            "phone": "9141363684",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "brown-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "blue",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "blue",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2024-09-29",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF21KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL001"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF24KL001",
+            "firstName": "Lasya",
+            "lastName": "S C",
+            "dateOfBirth": "2012-02-27",
+            "gender": "female",
+            "branchName": "Kunigal",
+            "currentBelt": "green-i",
+            "joinDate": "2024",
+            "parentName": "Chamegowda S K",
+            "phone": "9008563328",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF24KL002",
+            "firstName": "Saqibulla",
+            "lastName": "",
+            "dateOfBirth": "2013-06-15",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-i",
+            "joinDate": "2024",
+            "parentName": "Ameenulla",
+            "phone": "9108288946",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF24KL003",
+            "firstName": "Joyel",
+            "lastName": "Mariyan U",
+            "dateOfBirth": "2017-04-07",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-i",
+            "joinDate": "2024",
+            "parentName": "Uday Kumar G",
+            "phone": "9080033463",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF21KL001",
+            "examiningForBelt": "brown-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "purple",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL001",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL002",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL003",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2025-07-12",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF23KL001"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL002",
+            "firstName": "Ratnan",
+            "lastName": "M",
+            "dateOfBirth": "2014-08-29",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-ii",
+            "joinDate": "2023",
+            "parentName": "Manju Gowda",
+            "phone": "8050142650",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL003",
+            "firstName": "Pruthvik",
+            "lastName": "K",
+            "dateOfBirth": "2019-04-17",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-ii",
+            "joinDate": "2023",
+            "parentName": "Keshava K C",
+            "phone": "9902284034",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL004",
+            "firstName": "Rochan",
+            "lastName": "T.B",
+            "dateOfBirth": "2014-09-27",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-ii",
+            "joinDate": "2023",
+            "parentName": "Basavaraju T.N",
+            "phone": "9901504814",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL005",
+            "firstName": "Parikshith",
+            "lastName": "Gowda K.S",
+            "dateOfBirth": "2019-09-21",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-ii",
+            "joinDate": "2023",
+            "parentName": "Srinivasa K.Y",
+            "phone": "9448664080",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF23KL006",
+            "firstName": "Purushottama",
+            "lastName": "T.B",
+            "dateOfBirth": "2017-10-18",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "green-ii",
+            "joinDate": "2023",
+            "parentName": "Basavaraju T.N",
+            "phone": "9901504814",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL003"
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF23KL001",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL002",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL003",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL004",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL005",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL006",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL001",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL002",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL003",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "SKF Progressive Examination",
+          "shortName": "",
+          "date": "2025-12-07",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "SKF Progressive Examination conducted for assigned Kunigal branch students. All assigned students passed and were promoted to their awarded belt ranks.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL003"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL004"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL005"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL006"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL003"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL001",
+            "firstName": "Manoj",
+            "lastName": "Kumar Y M",
+            "dateOfBirth": "2012-02-01",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Manjunath",
+            "phone": "9164030981",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL002",
+            "firstName": "Dhanvin",
+            "lastName": "V Gowda",
+            "dateOfBirth": "2018-05-31",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Vinod Kumar J K",
+            "phone": "8722575713",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL003",
+            "firstName": "Bhavya",
+            "lastName": "Darshini S",
+            "dateOfBirth": "2017-03-13",
+            "gender": "female",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Sudakar V",
+            "phone": "9036217057",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL004",
+            "firstName": "Harshini",
+            "lastName": "S",
+            "dateOfBirth": "2016-01-22",
+            "gender": "female",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Sudakar",
+            "phone": "9036217057",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL005",
+            "firstName": "Nithin",
+            "lastName": "T S",
+            "dateOfBirth": "2016-03-31",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Shrinivas T",
+            "phone": "9980071668",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL006",
+            "firstName": "Rajath",
+            "lastName": "K Gowda",
+            "dateOfBirth": "2012-06-28",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Kempegowda A T",
+            "phone": "8884123607",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL007",
+            "firstName": "Mithun",
+            "lastName": "Gowda N",
+            "dateOfBirth": "2012-05-01",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Narayan R",
+            "phone": "8553000330",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL008",
+            "firstName": "Arjuna",
+            "lastName": "M M",
+            "dateOfBirth": "2013-10-21",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Manjunath S",
+            "phone": "9036711589",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL009",
+            "firstName": "Kruthi",
+            "lastName": "S",
+            "dateOfBirth": "2014-07-23",
+            "gender": "female",
+            "branchName": "Kunigal",
+            "currentBelt": "orange",
+            "joinDate": "2025",
+            "parentName": "Shivakumar S",
+            "phone": "9538720404",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "brown-iii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "purple",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL001",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL002",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL003",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL004",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL005",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL006",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL001",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL002",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL003",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL002",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL003",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL004",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL005",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL006",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL007",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL008",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL009",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    },
+    {
+      "beltExamination": {
+        "event": {
+          "name": "Summer Belt Examination 2026",
+          "shortName": "",
+          "date": "2026-07-26",
+          "endDate": "",
+          "venue": "Kunigal",
+          "city": "Kunigal",
+          "state": "Karnataka",
+          "hostingBranch": "Kunigal",
+          "description": "Summer belt examination results published. All assigned students passed and were promoted to their awarded belt ranks. Top five performers are highlighted in the event recognition section.",
+          "examiner": "Dr. Renshi Channegowda UC",
+          "isPublished": true,
+          "showInJourney": true
+        },
+        "athletes": [
+          {
+            "action": "existing",
+            "skfId": "SKF22KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF22KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL003"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL004"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL005"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF23KL006"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF24KL003"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL001"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL002"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL003"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL004"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL005"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL006"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL007"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL008"
+          },
+          {
+            "action": "existing",
+            "skfId": "SKF25KL009"
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL010",
+            "firstName": "Rohan",
+            "lastName": "K R",
+            "dateOfBirth": "2015-12-08",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "yellow",
+            "joinDate": "2025",
+            "parentName": "Ravi Kumar K",
+            "phone": "9035656485",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL011",
+            "firstName": "Thanush",
+            "lastName": "K R",
+            "dateOfBirth": "2019-09-03",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "yellow",
+            "joinDate": "2025",
+            "parentName": "Ravi Kumar K",
+            "phone": "9035656485",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF25KL012",
+            "firstName": "Snehith",
+            "lastName": "Gowda K L",
+            "dateOfBirth": "2015-02-10",
+            "gender": "male",
+            "branchName": "Kunigal",
+            "currentBelt": "yellow",
+            "joinDate": "2025",
+            "parentName": "Lokesh Gowda K R",
+            "phone": "8750875032",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          },
+          {
+            "action": "create",
+            "skfId": "SKF26KL001",
+            "firstName": "Sudeeksha",
+            "lastName": "A S",
+            "dateOfBirth": "2014-09-09",
+            "gender": "female",
+            "branchName": "Kunigal",
+            "currentBelt": "yellow",
+            "joinDate": "2026",
+            "parentName": "Siddalingya A R",
+            "phone": "9901127534",
+            "email": "",
+            "batch": "",
+            "monthlyFee": 400,
+            "photoUrl": "",
+            "photoConsent": false,
+            "isPublic": true
+          }
+        ],
+        "assignments": [
+          {
+            "skfId": "SKF22KL001",
+            "examiningForBelt": "brown-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF22KL002",
+            "examiningForBelt": "brown-iii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL001",
+            "examiningForBelt": "blue",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL002",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL003",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL004",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL005",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF23KL006",
+            "examiningForBelt": "green-ii",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL001",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL002",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF24KL003",
+            "examiningForBelt": "green-i",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL001",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL002",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL003",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL004",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL005",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL006",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL007",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL008",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL009",
+            "examiningForBelt": "orange",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL010",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL011",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF25KL012",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          },
+          {
+            "skfId": "SKF26KL001",
+            "examiningForBelt": "yellow",
+            "notes": "Grade A. Passed and promoted."
+          }
+        ]
+      }
+    }
+  ]
+}

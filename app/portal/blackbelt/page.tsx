@@ -1,5 +1,5 @@
 import { requirePortalAthlete } from '@/lib/server/auth/require-portal-athlete'
-import { getBBProgramForPortal, isBBCandidate, getBBCandidateBySkfIdAcrossPrograms } from '@/lib/server/repositories/blackbelt-live'
+import { getBBProgramForPortal, getBBCandidateBySkfIdAcrossPrograms } from '@/lib/server/repositories/blackbelt-live'
 import { normaliseSkfId } from '@/lib/utils/registration'
 import { redirect } from 'next/navigation'
 import BlackBeltClient from './BlackBeltClient'
@@ -7,25 +7,27 @@ import BlackBeltClient from './BlackBeltClient'
 
 export default async function BlackBeltPage() {
   const { athlete } = await requirePortalAthlete({ callbackUrl: '/portal/blackbelt' })
-  const data = await getBBProgramForPortal(athlete.skfId)
 
   const normalizedAthleteId = normaliseSkfId(athlete.skfId)
 
-  if (!data?.program || !await isBBCandidate(normalizedAthleteId)) {
+  // Only assigned Black Belt candidates may ever access this page. Verify the
+  // enrollment row FIRST so no program data is ever fetched for non-candidates.
+  const candidateRecord = await getBBCandidateBySkfIdAcrossPrograms(normalizedAthleteId)
+  if (!candidateRecord) {
     redirect('/portal/dashboard')
   }
 
-  // Fetch the candidate record to get the fully resolved canonical ID from the database
-  // This ensures the current ID exactly matches the database representation.
-  const candidateRecord = await getBBCandidateBySkfIdAcrossPrograms(normalizedAthleteId)
-  const finalSkfId = candidateRecord ? candidateRecord.skf_id : normalizedAthleteId
+  const data = await getBBProgramForPortal(candidateRecord.skf_id)
+  if (!data?.program) {
+    redirect('/portal/dashboard')
+  }
 
   return (
     <BlackBeltClient
       program={data.program}
       candidates={data.candidates}
       progressMap={data.progressMap}
-      currentSkfId={finalSkfId}
+      currentSkfId={candidateRecord.skf_id}
       renderedAt={new Date().toISOString()}
     />
   )

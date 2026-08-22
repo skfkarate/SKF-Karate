@@ -35,34 +35,6 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-// Helper to run raw SQL via fetch to the Supabase REST API
-async function runRawSql(sql) {
-  const url = `${supabaseUrl}/rest/v1/rpc/`
-  // Try using the pg_query function if it exists, otherwise use fetch
-  const response = await fetch(`${supabaseUrl}/rest/v1/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': serviceRoleKey,
-      'Authorization': `Bearer ${serviceRoleKey}`,
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ query: sql }),
-  })
-  // If that doesn't work, try direct SQL via the management API
-  if (!response.ok) {
-    // Try with the pgquery endpoint
-    const resp2 = await fetch(`${supabaseUrl}/pg/${encodeURIComponent(btoa(sql))}`, {
-      headers: {
-        'apikey': serviceRoleKey,
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-    })
-    return resp2
-  }
-  return response
-}
-
 const MONTH_MAP = {
   January: 'Jan', February: 'Feb', March: 'Mar', April: 'Apr',
   May: 'May', June: 'Jun', July: 'Jul', August: 'Aug',

@@ -13,15 +13,49 @@ type PortalVideoRow = {
   id?: unknown
   title?: unknown
   description?: unknown
+  lesson_note?: unknown
   category?: unknown
   duration_label?: unknown
   youtube_id?: unknown
+  content_format?: unknown
+  folder_id?: unknown
   branch_slugs?: unknown
   batch_names?: unknown
   belt_levels?: unknown
   is_featured?: unknown
   is_published?: unknown
   show_in_techniques?: unknown
+  sort_order?: unknown
+  created_at?: unknown
+  updated_at?: unknown
+}
+
+type PracticeFolderRow = {
+  id?: unknown
+  parent_folder_id?: unknown
+  title?: unknown
+  description?: unknown
+  cover_image_url?: unknown
+  branch_slugs?: unknown
+  batch_names?: unknown
+  belt_levels?: unknown
+  is_featured?: unknown
+  is_published?: unknown
+  sort_order?: unknown
+  created_at?: unknown
+  updated_at?: unknown
+}
+
+type PracticePhotoRow = {
+  id?: unknown
+  folder_id?: unknown
+  title?: unknown
+  description?: unknown
+  storage_path?: unknown
+  branch_slugs?: unknown
+  batch_names?: unknown
+  belt_levels?: unknown
+  is_published?: unknown
   sort_order?: unknown
   created_at?: unknown
   updated_at?: unknown
@@ -46,6 +80,8 @@ type PortalVideoPayload = {
   id?: unknown
   title?: unknown
   description?: unknown
+  lessonNote?: unknown
+  lesson_note?: unknown
   category?: unknown
   durationLabel?: unknown
   duration_label?: unknown
@@ -53,6 +89,10 @@ type PortalVideoPayload = {
   youtube_id?: unknown
   youtubeInput?: unknown
   youtube_input?: unknown
+  contentFormat?: unknown
+  content_format?: unknown
+  folderId?: unknown
+  folder_id?: unknown
   branchSlugs?: unknown
   branch_slugs?: unknown
   batchNames?: unknown
@@ -63,6 +103,43 @@ type PortalVideoPayload = {
   isPublished?: unknown
   showInTechniques?: unknown
   show_in_techniques?: unknown
+  sortOrder?: unknown
+}
+
+type PracticeFolderPayload = {
+  id?: unknown
+  parentFolderId?: unknown
+  parent_folder_id?: unknown
+  title?: unknown
+  description?: unknown
+  coverImageUrl?: unknown
+  cover_image_url?: unknown
+  branchSlugs?: unknown
+  branch_slugs?: unknown
+  batchNames?: unknown
+  batch_names?: unknown
+  beltLevels?: unknown
+  belt_levels?: unknown
+  isFeatured?: unknown
+  isPublished?: unknown
+  sortOrder?: unknown
+}
+
+type PracticePhotoPayload = {
+  id?: unknown
+  folderId?: unknown
+  folder_id?: unknown
+  title?: unknown
+  description?: unknown
+  storagePath?: unknown
+  storage_path?: unknown
+  branchSlugs?: unknown
+  branch_slugs?: unknown
+  batchNames?: unknown
+  batch_names?: unknown
+  beltLevels?: unknown
+  belt_levels?: unknown
+  isPublished?: unknown
   sortOrder?: unknown
 }
 
@@ -94,9 +171,12 @@ export type PortalVideoRecord = {
   id: string
   title: string
   description: string
+  lessonNote: string
   category: string
   durationLabel: string
   youtubeId: string
+  contentFormat: 'landscape' | 'short'
+  folderId: string
   thumbnailUrl: string
   branchSlugs: string[]
   batchNames: string[]
@@ -108,6 +188,43 @@ export type PortalVideoRecord = {
   createdAt: string
   updatedAt: string
 }
+
+export type PracticeFolderRecord = {
+  id: string
+  parentFolderId: string
+  title: string
+  description: string
+  coverImageUrl: string
+  branchSlugs: string[]
+  batchNames: string[]
+  beltLevels: string[]
+  isFeatured: boolean
+  isPublished: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AthletePracticeFolderRecord = PracticeFolderRecord & {
+  videos: PortalVideoRecord[]
+}
+
+export type PracticePhotoRecord = {
+  id: string
+  folderId: string
+  title: string
+  description: string
+  storagePath: string
+  branchSlugs: string[]
+  batchNames: string[]
+  beltLevels: string[]
+  isPublished: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AthletePracticePhotoRecord = PracticePhotoRecord & { imageUrl: string }
 
 export type AthletePortalVideoRecord = PortalVideoRecord
 
@@ -146,7 +263,25 @@ function normalizeTextList(values: unknown): string[] {
 function normalizeBeltLevel(value?: string | null) {
   const normalized = String(value || '').trim().toLowerCase()
   if (!normalized) return ''
-  return normalized.startsWith('black') ? 'black' : normalized
+  const key = normalized
+    .replace(/\bbelt\b/g, '')
+    .trim()
+    .replace(/[\s_]+/g, '-')
+  if (key.startsWith('black')) return 'black'
+
+  const aliases: Record<string, string> = {
+    white: 'white',
+    yellow: 'yellow',
+    orange: 'orange',
+    'green-ii': 'green-ii',
+    'green-i': 'green-i',
+    blue: 'blue',
+    purple: 'purple',
+    'brown-iii': 'brown-iii',
+    'brown-ii': 'brown-ii',
+    'brown-i': 'brown-i',
+  }
+  return aliases[key] || key
 }
 
 function mapPortalVideoRow(row: PortalVideoRow): PortalVideoRecord {
@@ -156,9 +291,12 @@ function mapPortalVideoRow(row: PortalVideoRow): PortalVideoRecord {
     id: String(row.id),
     title: String(row.title || '').trim(),
     description: String(row.description || '').trim(),
+    lessonNote: String(row.lesson_note || '').trim(),
     category: String(row.category || 'techniques').trim().toLowerCase(),
     durationLabel: String(row.duration_label || '').trim(),
     youtubeId,
+    contentFormat: String(row.content_format || '').trim().toLowerCase() === 'short' ? 'short' : 'landscape',
+    folderId: String(row.folder_id || '').trim(),
     thumbnailUrl: youtubeId ? getYouTubeThumbnailUrl(youtubeId) : '',
     branchSlugs: normalizeTextList(row.branch_slugs),
     batchNames: normalizeTextList(row.batch_names),
@@ -166,6 +304,41 @@ function mapPortalVideoRow(row: PortalVideoRow): PortalVideoRecord {
     isFeatured: Boolean(row.is_featured),
     isPublished: Boolean(row.is_published),
     showInTechniques: Boolean(row.show_in_techniques),
+    sortOrder: Number(row.sort_order || 0),
+    createdAt: String(row.created_at || new Date().toISOString()),
+    updatedAt: String(row.updated_at || new Date().toISOString()),
+  }
+}
+
+function mapPracticeFolderRow(row: PracticeFolderRow): PracticeFolderRecord {
+  return {
+    id: String(row.id || '').trim(),
+    parentFolderId: String(row.parent_folder_id || '').trim(),
+    title: String(row.title || '').trim(),
+    description: String(row.description || '').trim(),
+    coverImageUrl: String(row.cover_image_url || '').trim(),
+    branchSlugs: normalizeTextList(row.branch_slugs),
+    batchNames: normalizeTextList(row.batch_names),
+    beltLevels: normalizeTextList(row.belt_levels).map((belt) => normalizeBeltLevel(belt)),
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    sortOrder: Number(row.sort_order || 0),
+    createdAt: String(row.created_at || new Date().toISOString()),
+    updatedAt: String(row.updated_at || new Date().toISOString()),
+  }
+}
+
+function mapPracticePhotoRow(row: PracticePhotoRow): PracticePhotoRecord {
+  return {
+    id: String(row.id || '').trim(),
+    folderId: String(row.folder_id || '').trim(),
+    title: String(row.title || '').trim(),
+    description: String(row.description || '').trim(),
+    storagePath: String(row.storage_path || '').trim(),
+    branchSlugs: normalizeTextList(row.branch_slugs),
+    batchNames: normalizeTextList(row.batch_names),
+    beltLevels: normalizeTextList(row.belt_levels).map((belt) => normalizeBeltLevel(belt)),
+    isPublished: Boolean(row.is_published),
     sortOrder: Number(row.sort_order || 0),
     createdAt: String(row.created_at || new Date().toISOString()),
     updatedAt: String(row.updated_at || new Date().toISOString()),
@@ -191,9 +364,12 @@ function mapTimetableRow(row: TimetableRow): BranchTimetableRecord {
 
 function handlePortalContentError(error: DatabaseWriteError, entityLabel: string): never {
   if (error?.code === 'PGRST205') {
+    const migrationHint = entityLabel.startsWith('portal_practice_')
+      ? ' Run database/migrations/043_portal_practice_folders.sql in the connected Supabase project.'
+      : ' Run database/schema.sql in the connected Supabase project.'
     throw new ApiError(
       500,
-      `Supabase schema is incomplete: missing "${entityLabel}" table. Run database/schema.sql in the connected Supabase project.`
+      `Supabase schema is incomplete: missing "${entityLabel}" table.${migrationHint}`
     )
   }
 
@@ -229,6 +405,11 @@ function normalisePortalVideoPayload(payload: PortalVideoPayload) {
   const branchSlugs = normalizeTextList(payload.branchSlugs || payload.branch_slugs)
   const batchNames = normalizeTextList(payload.batchNames || payload.batch_names)
   const showInTechniques = Boolean(payload.showInTechniques ?? payload.show_in_techniques)
+  const youtubeInput = String(payload.youtubeInput || payload.youtube_input || '')
+  const requestedFormat = String(payload.contentFormat || payload.content_format || '').trim().toLowerCase()
+  const contentFormat = requestedFormat === 'short' || (!requestedFormat && /youtube\.com\/shorts\//i.test(youtubeInput))
+    ? 'short'
+    : 'landscape'
 
   if (showInTechniques && (branchSlugs.length || batchNames.length)) {
     throw new ApiError(
@@ -237,19 +418,64 @@ function normalisePortalVideoPayload(payload: PortalVideoPayload) {
     )
   }
 
+  const folderId = String(payload.folderId || payload.folder_id || '').trim()
+
   return {
     id: String(payload.id || `${slugify(title) || 'video'}-${randomUUID().slice(0, 8)}`).trim(),
     title,
     description: String(payload.description || '').trim(),
+    lesson_note: String(payload.lessonNote || payload.lesson_note || '').trim().slice(0, 3000),
     category: String(payload.category || 'techniques').trim().toLowerCase() || 'techniques',
     duration_label: String(payload.durationLabel || payload.duration_label || '').trim(),
     youtube_id: youtubeId,
+    content_format: contentFormat,
+    folder_id: folderId || null,
     branch_slugs: branchSlugs,
     batch_names: batchNames,
     belt_levels: normalizeTextList(payload.beltLevels || payload.belt_levels).map((belt) => normalizeBeltLevel(belt)),
     is_featured: Boolean(payload.isFeatured),
     is_published: payload.isPublished === undefined ? true : Boolean(payload.isPublished),
     show_in_techniques: showInTechniques,
+    sort_order: Number(payload.sortOrder || 0),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function normalisePracticeFolderPayload(payload: PracticeFolderPayload) {
+  const title = String(payload.title || '').trim()
+  if (!title) throw new ApiError(400, 'Folder title is required.')
+
+  return {
+    id: String(payload.id || `${slugify(title) || 'practice'}-${randomUUID().slice(0, 8)}`).trim(),
+    parent_folder_id: String(payload.parentFolderId || payload.parent_folder_id || '').trim() || null,
+    title,
+    description: String(payload.description || '').trim(),
+    cover_image_url: String(payload.coverImageUrl || payload.cover_image_url || '').trim(),
+    branch_slugs: normalizeTextList(payload.branchSlugs || payload.branch_slugs),
+    batch_names: normalizeTextList(payload.batchNames || payload.batch_names),
+    belt_levels: normalizeTextList(payload.beltLevels || payload.belt_levels).map((belt) => normalizeBeltLevel(belt)),
+    is_featured: Boolean(payload.isFeatured),
+    is_published: payload.isPublished === undefined ? true : Boolean(payload.isPublished),
+    sort_order: Number(payload.sortOrder || 0),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function normalisePracticePhotoPayload(payload: PracticePhotoPayload) {
+  const title = String(payload.title || '').trim()
+  const storagePath = String(payload.storagePath || payload.storage_path || '').trim()
+  if (!title) throw new ApiError(400, 'Photo title is required.')
+  if (!storagePath) throw new ApiError(400, 'Photo storage path is required.')
+  return {
+    id: String(payload.id || `${slugify(title) || 'practice-photo'}-${randomUUID().slice(0, 8)}`).trim(),
+    folder_id: String(payload.folderId || payload.folder_id || '').trim() || null,
+    title,
+    description: String(payload.description || '').trim(),
+    storage_path: storagePath,
+    branch_slugs: normalizeTextList(payload.branchSlugs || payload.branch_slugs),
+    batch_names: normalizeTextList(payload.batchNames || payload.batch_names),
+    belt_levels: normalizeTextList(payload.beltLevels || payload.belt_levels).map((belt) => normalizeBeltLevel(belt)),
+    is_published: payload.isPublished === undefined ? true : Boolean(payload.isPublished),
     sort_order: Number(payload.sortOrder || 0),
     updated_at: new Date().toISOString(),
   }
@@ -295,18 +521,50 @@ async function resolveBranchSlugForName(branchName?: string | null) {
 function matchesAudienceFilter(values: string[], candidate: string) {
   if (!values.length) return true
   if (!candidate) return false
-  return values.includes(candidate.trim().toLowerCase())
+  // Branch and batch labels are human-entered strings and may legitimately
+  // contain spaces (for example, "Evening Batch"). Preserve that exact
+  // normalized text before applying belt aliases, otherwise batch matching
+  // turns spaces into hyphens and hides correctly assigned content.
+  const normalizedTextCandidate = String(candidate).trim().toLowerCase()
+  if (values.includes(normalizedTextCandidate)) return true
+
+  const normalizedBeltCandidate = normalizeBeltLevel(candidate)
+  if (values.includes(normalizedBeltCandidate)) return true
+
+  // Folders created before the detailed Kyu categories used broad Green/Brown
+  // values. Keep those historic rules working while all new folders use the
+  // exact Green I/II and Brown I/II/III categories.
+  return (
+    (values.includes('green') && ['green-i', 'green-ii'].includes(normalizedBeltCandidate)) ||
+    (values.includes('brown') && ['brown-i', 'brown-ii', 'brown-iii'].includes(normalizedBeltCandidate))
+  )
 }
 
-function matchesVideoAudience(
-  video: PortalVideoRecord,
-  context: { branchSlug: string; batch: string; belt: string }
+type PracticeAudience = {
+  branchSlugs: string[]
+  batchNames: string[]
+  beltLevels: string[]
+}
+
+type AthletePracticeAudience = { branchSlug: string; batch: string; belt: string }
+
+export function practiceAudienceMatches(
+  audience: PracticeAudience,
+  context: AthletePracticeAudience
 ) {
   return (
-    matchesAudienceFilter(video.branchSlugs, context.branchSlug) &&
-    matchesAudienceFilter(video.batchNames, context.batch) &&
-    matchesAudienceFilter(video.beltLevels, context.belt)
+    matchesAudienceFilter(audience.branchSlugs, context.branchSlug) &&
+    matchesAudienceFilter(audience.batchNames, context.batch) &&
+    matchesAudienceFilter(audience.beltLevels, context.belt)
   )
+}
+
+function matchesVideoAudience(video: PortalVideoRecord, context: AthletePracticeAudience) {
+  return practiceAudienceMatches(video, context)
+}
+
+function matchesFolderAudience(folder: PracticeFolderRecord, context: AthletePracticeAudience) {
+  return practiceAudienceMatches(folder, context)
 }
 
 function sortPortalVideos(videos: PortalVideoRecord[]) {
@@ -317,6 +575,16 @@ function sortPortalVideos(videos: PortalVideoRecord[]) {
     const orderDiff = Number(a.sortOrder || 0) - Number(b.sortOrder || 0)
     if (orderDiff !== 0) return orderDiff
 
+    return a.title.localeCompare(b.title)
+  })
+}
+
+function sortPracticeFolders(folders: PracticeFolderRecord[]) {
+  return [...folders].sort((a, b) => {
+    const featuredDiff = Number(b.isFeatured) - Number(a.isFeatured)
+    if (featuredDiff !== 0) return featuredDiff
+    const orderDiff = a.sortOrder - b.sortOrder
+    if (orderDiff !== 0) return orderDiff
     return a.title.localeCompare(b.title)
   })
 }
@@ -335,6 +603,40 @@ export async function getAllPortalVideosAdmin() {
     return (data || []).map(mapPortalVideoRow)
   } catch (error) {
     logger.warn('portal_content.videos_load_failed', { error })
+    return []
+  }
+}
+
+export async function getAllPracticeFoldersAdmin() {
+  if (!isSupabaseReady()) return []
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('portal_practice_folders')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('title', { ascending: true })
+
+    if (error) throw error
+    return (data || []).map(mapPracticeFolderRow)
+  } catch (error) {
+    logger.warn('portal_content.practice_folders_load_failed', { error })
+    return []
+  }
+}
+
+export async function getAllPracticePhotosAdmin() {
+  if (!isSupabaseReady()) return []
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('portal_practice_photos')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('title', { ascending: true })
+    if (error) throw error
+    return (data || []).map(mapPracticePhotoRow)
+  } catch (error) {
+    logger.warn('portal_content.practice_photos_load_failed', { error })
     return []
   }
 }
@@ -368,6 +670,102 @@ export async function getProtectedPortalVideosForAthlete(context: {
   belt?: string | null
 }) {
   return getPortalVideosForAthlete(context)
+}
+
+/**
+ * Folder visibility is an additional gate, not a replacement for a lesson's
+ * own audience. This means a lesson can be narrowed inside a broad folder but
+ * can never accidentally reach a belt, branch, or batch excluded by its folder.
+ */
+export async function getPracticeLibraryForAthlete(context: {
+  branchName?: string | null
+  batch?: string | null
+  belt?: string | null
+}): Promise<{ folders: Array<AthletePracticeFolderRecord & { photos: AthletePracticePhotoRecord[] }>; unfiledVideos: PortalVideoRecord[]; unfiledPhotos: AthletePracticePhotoRecord[] }> {
+  const [allFolders, allVideos, allPhotos] = await Promise.all([
+    getAllPracticeFoldersAdmin(),
+    getAllPortalVideosAdmin(),
+    getAllPracticePhotosAdmin(),
+  ])
+  const audience = {
+    branchSlug: await resolveBranchSlugForName(context.branchName),
+    batch: String(context.batch || '').trim().toLowerCase(),
+    belt: normalizeBeltLevel(context.belt),
+  }
+
+  const folderById = new Map(allFolders.map((folder) => [folder.id, folder]))
+  const folderAndAncestorMatchAudience = (folder: PracticeFolderRecord) => {
+    const visited = new Set<string>()
+    let current: PracticeFolderRecord | undefined = folder
+    while (current) {
+      if (visited.has(current.id) || !current.isPublished || !matchesFolderAudience(current, audience)) return false
+      visited.add(current.id)
+      current = current.parentFolderId ? folderById.get(current.parentFolderId) : undefined
+    }
+    return true
+  }
+
+  const visibleVideos = sortPortalVideos(allVideos.filter((video) => {
+    if (!video.isPublished || !matchesVideoAudience(video, audience)) return false
+    const folder = video.folderId ? folderById.get(video.folderId) : undefined
+    return !video.folderId || Boolean(folder && folderAndAncestorMatchAudience(folder))
+  }))
+  const visibleFolders = sortPracticeFolders(allFolders.filter(folderAndAncestorMatchAudience))
+  const visiblePhotos = allPhotos.filter((photo) => {
+    if (!photo.isPublished || !matchesPracticePhotoAudience(photo, audience)) return false
+    const folder = photo.folderId ? folderById.get(photo.folderId) : undefined
+    return !photo.folderId || Boolean(folder && folderAndAncestorMatchAudience(folder))
+  })
+  const signedPhotos = await Promise.all(visiblePhotos.map(async (photo) => {
+    const { data, error } = await supabaseAdmin.storage.from('portal-practice-images').createSignedUrl(photo.storagePath, 60 * 30)
+    if (error || !data?.signedUrl) {
+      logger.warn('portal_content.practice_photo_sign_failed', { photoId: photo.id, error })
+      return null
+    }
+    return { ...photo, imageUrl: data.signedUrl }
+  }))
+  const availablePhotos = signedPhotos.filter((photo): photo is AthletePracticePhotoRecord => Boolean(photo))
+
+  const foldersWithContents = visibleFolders
+    .map((folder) => ({
+      ...folder,
+      videos: visibleVideos.filter((video) => video.folderId === folder.id),
+      photos: availablePhotos.filter((photo) => photo.folderId === folder.id),
+    }))
+
+  // Keep empty parent folders when they organise visible child sections.
+  // This preserves a syllabus hierarchy such as Kumite > Techniques.
+  const includedFolderIds = new Set(foldersWithContents
+    .filter((folder) => folder.videos.length > 0 || folder.photos.length > 0)
+    .map((folder) => folder.id))
+  let hierarchyChanged = true
+  while (hierarchyChanged) {
+    hierarchyChanged = false
+    for (const folder of foldersWithContents) {
+      if (includedFolderIds.has(folder.id) && folder.parentFolderId && !includedFolderIds.has(folder.parentFolderId)) {
+        includedFolderIds.add(folder.parentFolderId)
+        hierarchyChanged = true
+      }
+    }
+  }
+  const folders = foldersWithContents.filter((folder) => includedFolderIds.has(folder.id))
+
+  return {
+    folders,
+    unfiledVideos: visibleVideos.filter((video) => !video.folderId),
+    unfiledPhotos: availablePhotos.filter((photo) => !photo.folderId),
+  }
+}
+
+/** Returns a single authorised lesson for a direct athlete-portal link. */
+export async function getPracticeLessonForAthlete(
+  videoId: string,
+  context: { branchName?: string | null; batch?: string | null; belt?: string | null }
+) {
+  const library = await getPracticeLibraryForAthlete(context)
+  const video = [...library.folders.flatMap((folder) => folder.videos), ...library.unfiledVideos]
+    .find((entry) => entry.id === videoId)
+  return video || null
 }
 
 export async function getTechniqueLibraryVideos(filters: {
@@ -409,6 +807,63 @@ export async function createPortalVideo(payload: PortalVideoPayload) {
   return mapPortalVideoRow(data)
 }
 
+export async function createPracticeFolder(payload: PracticeFolderPayload) {
+  ensureSupabaseForPortalContent()
+  const normalized = normalisePracticeFolderPayload(payload)
+  await assertValidPracticeFolderParent(normalized.id, String(normalized.parent_folder_id || ''))
+  const { data, error } = await supabaseAdmin
+    .from('portal_practice_folders')
+    .insert({ ...normalized, created_at: new Date().toISOString() })
+    .select('*')
+    .single()
+  if (error) handlePortalContentError(error, 'portal_practice_folders')
+  return mapPracticeFolderRow(data)
+}
+
+export async function updatePracticeFolder(id: string, payload: PracticeFolderPayload) {
+  ensureSupabaseForPortalContent()
+  const normalized = normalisePracticeFolderPayload({ ...payload, id })
+  await assertValidPracticeFolderParent(id, String(normalized.parent_folder_id || ''))
+  const { data, error } = await supabaseAdmin
+    .from('portal_practice_folders')
+    .update(normalized)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) handlePortalContentError(error, 'portal_practice_folders')
+  return mapPracticeFolderRow(data)
+}
+
+export async function deletePracticeFolder(id: string) {
+  ensureSupabaseForPortalContent()
+  const { error } = await supabaseAdmin.from('portal_practice_folders').delete().eq('id', id)
+  if (error) handlePortalContentError(error, 'portal_practice_folders')
+}
+
+function matchesPracticePhotoAudience(photo: PracticePhotoRecord, context: AthletePracticeAudience) {
+  return practiceAudienceMatches(photo, context)
+}
+
+export async function createPracticePhoto(payload: PracticePhotoPayload) {
+  ensureSupabaseForPortalContent()
+  const normalized = normalisePracticePhotoPayload(payload)
+  const { data, error } = await supabaseAdmin
+    .from('portal_practice_photos')
+    .insert({ ...normalized, created_at: new Date().toISOString() })
+    .select('*')
+    .single()
+  if (error) handlePortalContentError(error, 'portal_practice_photos')
+  return mapPracticePhotoRow(data)
+}
+
+export async function deletePracticePhoto(id: string) {
+  ensureSupabaseForPortalContent()
+  const { data, error } = await supabaseAdmin.from('portal_practice_photos').delete().eq('id', id).select('storage_path').single()
+  if (error) handlePortalContentError(error, 'portal_practice_photos')
+  const storagePath = String(data?.storage_path || '').trim()
+  if (storagePath) await supabaseAdmin.storage.from('portal-practice-images').remove([storagePath])
+}
+
 export async function updatePortalVideo(id: string, payload: PortalVideoPayload) {
   ensureSupabaseForPortalContent()
 
@@ -426,6 +881,22 @@ export async function updatePortalVideo(id: string, payload: PortalVideoPayload)
 
   if (error) handlePortalContentError(error, 'portal_videos')
   return mapPortalVideoRow(data)
+}
+
+async function assertValidPracticeFolderParent(folderId: string, parentFolderId: string) {
+  if (!parentFolderId) return
+  if (folderId === parentFolderId) throw new ApiError(400, 'A folder cannot be inside itself.')
+  const folders = await getAllPracticeFoldersAdmin()
+  const byId = new Map(folders.map((folder) => [folder.id, folder]))
+  let current = byId.get(parentFolderId)
+  if (!current) throw new ApiError(400, 'Choose an existing parent folder.')
+  const visited = new Set<string>()
+  while (current) {
+    if (current.id === folderId) throw new ApiError(400, 'A folder cannot be placed inside one of its own subfolders.')
+    if (visited.has(current.id)) throw new ApiError(400, 'The folder hierarchy contains a cycle and must be corrected.')
+    visited.add(current.id)
+    current = current.parentFolderId ? byId.get(current.parentFolderId) : undefined
+  }
 }
 
 export async function deletePortalVideo(id: string) {
@@ -525,4 +996,152 @@ export async function deleteBranchTimetable(id: string) {
   ensureSupabaseForPortalContent()
   const { error } = await supabaseAdmin.from('branch_timetables').delete().eq('id', id)
   if (error) handlePortalContentError(error, 'branch_timetables')
+}
+
+export type HomePracticeAnalytics = {
+  rangeDays: number
+  overview: {
+    watchedLessons: number
+    uniqueAthletes: number
+    completions: number
+    completionRate: number
+    averageProgress: number
+  }
+  videos: Array<{
+    videoId: string
+    title: string
+    folderId: string
+    contentFormat: 'landscape' | 'short'
+    watches: number
+    uniqueAthletes: number
+    completions: number
+    averageProgress: number
+    lastWatchedAt: string
+  }>
+  athletes: Array<{
+    skfId: string
+    athleteName: string
+    belt: string
+    branch: string
+    watchedLessons: number
+    completedLessons: number
+    averageProgress: number
+    lastWatchedAt: string
+  }>
+  belts: Array<{ belt: string; watchedLessons: number; uniqueAthletes: number; completions: number; averageProgress: number }>
+  recent: Array<{ skfId: string; athleteName: string; belt: string; videoTitle: string; progressPercent: number; completed: boolean; watchedAt: string }>
+}
+
+type VideoProgressAnalyticsRow = {
+  skf_id?: string | null
+  video_id?: string | null
+  watched_percent?: number | null
+  completed?: boolean | null
+  last_watched?: string | null
+}
+
+type AthleteAnalyticsRow = {
+  skf_id?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  current_belt?: string | null
+  branch_name?: string | null
+}
+
+/** Staff-only aggregate for FeeTrack's Website Analytics screen. */
+export async function getHomePracticeAnalytics(rangeDays = 90): Promise<HomePracticeAnalytics> {
+  ensureSupabaseForPortalContent()
+  const safeRangeDays = Math.max(1, Math.min(365, Math.round(Number(rangeDays) || 90)))
+  const since = new Date(Date.now() - safeRangeDays * 24 * 60 * 60 * 1000).toISOString()
+  const [{ data: progressRows, error: progressError }, videos] = await Promise.all([
+    supabaseAdmin
+      .from('video_progress')
+      .select('skf_id, video_id, watched_percent, completed, last_watched')
+      .gte('last_watched', since)
+      .order('last_watched', { ascending: false })
+      .limit(3000),
+    getAllPortalVideosAdmin(),
+  ])
+
+  if (progressError) handlePortalContentError(progressError, 'video_progress')
+  const progress = (progressRows || []) as VideoProgressAnalyticsRow[]
+  const skfIds = [...new Set(progress.map((row) => String(row.skf_id || '').trim()).filter(Boolean))]
+  const athleteRows: AthleteAnalyticsRow[] = []
+  for (let offset = 0; offset < skfIds.length; offset += 200) {
+    const { data, error } = await supabaseAdmin
+      .from('athletes')
+      .select('skf_id, first_name, last_name, current_belt, branch_name')
+      .in('skf_id', skfIds.slice(offset, offset + 200))
+    if (error) handlePortalContentError(error, 'athletes')
+    athleteRows.push(...((data || []) as AthleteAnalyticsRow[]))
+  }
+
+  const videoById = new Map(videos.map((video) => [video.id, video]))
+  const athleteBySkfId = new Map(athleteRows.map((athlete) => [String(athlete.skf_id || '').trim(), athlete]))
+  const videoStats = new Map<string, { values: number[]; athletes: Set<string>; completions: number; lastWatchedAt: string }>()
+  const athleteStats = new Map<string, { values: number[]; completions: number; lastWatchedAt: string }>()
+  const beltStats = new Map<string, { values: number[]; athletes: Set<string>; completions: number }>()
+
+  for (const entry of progress) {
+    const skfId = String(entry.skf_id || '').trim()
+    const videoId = String(entry.video_id || '').trim()
+    if (!skfId || !videoId) continue
+    const value = Math.max(0, Math.min(100, Number(entry.watched_percent || 0)))
+    const completed = Boolean(entry.completed) || value >= 100
+    const watchedAt = String(entry.last_watched || '')
+    const athlete = athleteBySkfId.get(skfId)
+    const belt = String(athlete?.current_belt || 'Unassigned').trim() || 'Unassigned'
+    const videoSummary = videoStats.get(videoId) || { values: [], athletes: new Set<string>(), completions: 0, lastWatchedAt: watchedAt }
+    videoSummary.values.push(value)
+    videoSummary.athletes.add(skfId)
+    if (completed) videoSummary.completions += 1
+    if (watchedAt > videoSummary.lastWatchedAt) videoSummary.lastWatchedAt = watchedAt
+    videoStats.set(videoId, videoSummary)
+
+    const athleteSummary = athleteStats.get(skfId) || { values: [], completions: 0, lastWatchedAt: watchedAt }
+    athleteSummary.values.push(value)
+    if (completed) athleteSummary.completions += 1
+    if (watchedAt > athleteSummary.lastWatchedAt) athleteSummary.lastWatchedAt = watchedAt
+    athleteStats.set(skfId, athleteSummary)
+
+    const beltSummary = beltStats.get(belt) || { values: [], athletes: new Set<string>(), completions: 0 }
+    beltSummary.values.push(value)
+    beltSummary.athletes.add(skfId)
+    if (completed) beltSummary.completions += 1
+    beltStats.set(belt, beltSummary)
+  }
+
+  const average = (values: number[]) => values.length ? Math.round(values.reduce((total, value) => total + value, 0) / values.length) : 0
+  const nameFor = (skfId: string) => {
+    const athlete = athleteBySkfId.get(skfId)
+    const name = [athlete?.first_name, athlete?.last_name].filter(Boolean).join(' ').trim()
+    return name || skfId
+  }
+
+  return {
+    rangeDays: safeRangeDays,
+    overview: {
+      watchedLessons: progress.length,
+      uniqueAthletes: athleteStats.size,
+      completions: progress.filter((entry) => Boolean(entry.completed) || Number(entry.watched_percent || 0) >= 100).length,
+      completionRate: progress.length ? Math.round((progress.filter((entry) => Boolean(entry.completed) || Number(entry.watched_percent || 0) >= 100).length / progress.length) * 100) : 0,
+      averageProgress: average(progress.map((entry) => Math.max(0, Math.min(100, Number(entry.watched_percent || 0))))),
+    },
+    videos: [...videoStats.entries()].map(([videoId, summary]) => {
+      const video = videoById.get(videoId)
+      return { videoId, title: video?.title || 'Deleted lesson', folderId: video?.folderId || '', contentFormat: video?.contentFormat || 'landscape', watches: summary.values.length, uniqueAthletes: summary.athletes.size, completions: summary.completions, averageProgress: average(summary.values), lastWatchedAt: summary.lastWatchedAt }
+    }).sort((left, right) => right.watches - left.watches || right.lastWatchedAt.localeCompare(left.lastWatchedAt)),
+    athletes: [...athleteStats.entries()].map(([skfId, summary]) => {
+      const athlete = athleteBySkfId.get(skfId)
+      return { skfId, athleteName: nameFor(skfId), belt: String(athlete?.current_belt || 'Unassigned').trim() || 'Unassigned', branch: String(athlete?.branch_name || '').trim(), watchedLessons: summary.values.length, completedLessons: summary.completions, averageProgress: average(summary.values), lastWatchedAt: summary.lastWatchedAt }
+    }).sort((left, right) => right.lastWatchedAt.localeCompare(left.lastWatchedAt)),
+    belts: [...beltStats.entries()].map(([belt, summary]) => ({ belt, watchedLessons: summary.values.length, uniqueAthletes: summary.athletes.size, completions: summary.completions, averageProgress: average(summary.values) })).sort((left, right) => right.watchedLessons - left.watchedLessons),
+    recent: progress.slice(0, 50).map((entry) => {
+      const skfId = String(entry.skf_id || '').trim()
+      const athlete = athleteBySkfId.get(skfId)
+      const video = videoById.get(String(entry.video_id || '').trim())
+      const progressPercent = Math.max(0, Math.min(100, Number(entry.watched_percent || 0)))
+      return { skfId, athleteName: nameFor(skfId), belt: String(athlete?.current_belt || 'Unassigned').trim() || 'Unassigned', videoTitle: video?.title || 'Deleted lesson', progressPercent, completed: Boolean(entry.completed) || progressPercent >= 100, watchedAt: String(entry.last_watched || '') }
+    }),
+  }
 }

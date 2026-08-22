@@ -15,6 +15,9 @@ export default async function JsonLdScript({ data }: JsonLdScriptProps) {
     <script
       nonce={nonce}
       type="application/ld+json"
+      // The CSP nonce is injected per-request by the proxy and only exists on
+      // the server, so the client tree legitimately renders an empty value.
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   )

@@ -14,11 +14,7 @@ export default function CookieConsent() {
   const suppressForVerification = pathname?.startsWith('/verify/c/')
 
   useEffect(() => {
-    if (suppressForVerification) {
-      setHasConsented(true)
-      setShowModal(false)
-      return
-    }
+    if (suppressForVerification) return
 
     const id = window.setTimeout(() => {
       const consent = getCookieConsent()

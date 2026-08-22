@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 
 type YouTubePlayerStateEvent = {
   data: number
@@ -59,9 +60,11 @@ type YouTubeNativePlayerProps = {
   onProgress?: (payload: { progressPercent: number }) => void
   onComplete?: () => void
   onEscape?: () => void
+  contentFormat?: 'landscape' | 'short'
 }
 
 let iframeApiPromise: Promise<void> | null = null
+const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5]
 
 function loadYouTubeIframeApi() {
   if (typeof window === 'undefined') {
@@ -112,6 +115,7 @@ export default function YouTubeNativePlayer({
   onProgress,
   onComplete,
   onEscape,
+  contentFormat = 'landscape',
 }: YouTubeNativePlayerProps) {
   const playerHostRef = useRef<HTMLDivElement | null>(null)
   const frameSlotRef = useRef<HTMLDivElement | null>(null)
@@ -131,6 +135,9 @@ export default function YouTubeNativePlayer({
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [controlsVisible, setControlsVisible] = useState(true)
+  const [isCompact, setIsCompact] = useState(false)
+  const [playbackRate, setPlaybackRate] = useState(1)
+  const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -138,6 +145,14 @@ export default function YouTubeNativePlayer({
     onProgressRef.current = onProgress
     onCompleteRef.current = onComplete
   }, [initialProgressPercent, onComplete, onProgress])
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 640px), (max-height: 600px)')
+    const sync = () => setIsCompact(query.matches)
+    sync()
+    query.addEventListener('change', sync)
+    return () => query.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -252,6 +267,10 @@ export default function YouTubeNativePlayer({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
+        if (isSpeedMenuOpen) {
+          setIsSpeedMenuOpen(false)
+          return
+        }
         onEscape?.()
       }
       if (event.key === ' ' && isReady) {
@@ -325,6 +344,12 @@ export default function YouTubeNativePlayer({
     }
   }
 
+  function selectPlaybackRate(rate: number) {
+    playerRef.current?.setPlaybackRate(rate)
+    setPlaybackRate(rate)
+    setIsSpeedMenuOpen(false)
+  }
+
   async function toggleFullscreen() {
     const host = playerHostRef.current
     if (!host) return
@@ -337,12 +362,14 @@ export default function YouTubeNativePlayer({
   }
 
   const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
+  const controlSize = isCompact ? 36 : 44
 
   return (
     <div
       ref={playerHostRef}
       role="application"
       aria-label={`${title} video player`}
+      data-content-format={contentFormat}
       onMouseMove={revealControls}
       onTouchStart={revealControls}
       onClick={togglePlayback}
@@ -350,7 +377,9 @@ export default function YouTubeNativePlayer({
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: '240px',
+        // The parent owns the video frame. Avoid a minimum height here: it would
+        // distort a portrait Short on compact phones or in landscape orientation.
+        minHeight: 0,
         background: '#000',
         overflow: 'hidden',
       }}
@@ -401,15 +430,15 @@ export default function YouTubeNativePlayer({
             position: 'absolute',
             left: '50%',
             top: '50%',
-            width: 78,
-            height: 78,
+            width: isCompact ? 56 : 78,
+            height: isCompact ? 56 : 78,
             transform: 'translate(-50%, -50%)',
             background: 'rgba(255,255,255,0.94)',
             color: '#050505',
             fontSize: '2rem',
           }}
         >
-          ▶
+          <Play size={isCompact ? 23 : 30} fill="currentColor" />
         </button>
       ) : null}
 
@@ -420,7 +449,9 @@ export default function YouTubeNativePlayer({
           left: 0,
           right: 0,
           bottom: 0,
-          padding: '4rem clamp(1rem, 3vw, 2rem) clamp(1rem, 2vw, 1.4rem)',
+          padding: isCompact
+            ? '2.25rem 0.75rem max(0.7rem, env(safe-area-inset-bottom))'
+            : '4rem clamp(1rem, 3vw, 2rem) clamp(1rem, 2vw, 1.4rem)',
           background: 'linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.45) 58%, transparent)',
           opacity: controlsVisible ? 1 : 0,
           transform: controlsVisible ? 'translateY(0)' : 'translateY(12px)',
@@ -440,63 +471,62 @@ export default function YouTubeNativePlayer({
             width: '100%',
             accentColor: '#d62828',
             cursor: 'pointer',
-            minHeight: 24,
+            minHeight: isCompact ? 18 : 24,
           }}
         />
 
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            width: '100%',
+            gridTemplateColumns: isCompact
+              ? `${controlSize}px ${controlSize}px minmax(0, 1fr) 58px ${controlSize}px`
+              : `${controlSize}px ${controlSize}px 96px minmax(92px, 1fr) 64px ${controlSize}px`,
             alignItems: 'center',
-            gap: '0.8rem',
-            flexWrap: 'wrap',
-            marginTop: '0.8rem',
+            gap: isCompact ? '0.45rem' : '0.8rem',
+            marginTop: isCompact ? '0.45rem' : '0.8rem',
             color: '#fff',
           }}
         >
-          <button type="button" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={togglePlayback} style={controlButtonStyle}>
-            {isPlaying ? '❚❚' : '▶'}
+          <button type="button" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={togglePlayback} style={{ ...controlButtonStyle, width: controlSize, height: controlSize }}>
+            {isPlaying ? <Pause size={isCompact ? 17 : 20} fill="currentColor" /> : <Play size={isCompact ? 17 : 20} fill="currentColor" />}
           </button>
 
-          <button type="button" aria-label={isMuted ? 'Unmute video' : 'Mute video'} onClick={toggleMute} style={controlButtonStyle}>
-            {isMuted || volume === 0 ? '🔇' : '🔊'}
+          <button type="button" aria-label={isMuted ? 'Unmute video' : 'Mute video'} onClick={toggleMute} style={{ ...controlButtonStyle, width: controlSize, height: controlSize }}>
+            {isMuted || volume === 0 ? <VolumeX size={isCompact ? 17 : 20} /> : <Volume2 size={isCompact ? 17 : 20} />}
           </button>
 
-          <input
+          {!isCompact ? <input
             aria-label="Volume"
             type="range"
             min={0}
             max={100}
             value={isMuted ? 0 : volume}
             onChange={(event) => updateVolume(Number(event.target.value))}
-            style={{ width: 96, minHeight: 24, accentColor: '#fff' }}
-          />
+            style={{ width: '100%', minHeight: 24, accentColor: '#fff' }}
+          /> : null}
 
-          <span style={{ minWidth: 92, fontSize: '0.88rem', color: 'rgba(255,255,255,0.78)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ minWidth: isCompact ? 70 : 92, fontSize: isCompact ? '0.72rem' : '0.88rem', color: 'rgba(255,255,255,0.78)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
 
-          <select
-            aria-label="Playback speed"
-            defaultValue="1"
-            onChange={(event) => playerRef.current?.setPlaybackRate(Number(event.target.value))}
-            style={{
-              minHeight: 44,
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.18)',
-              background: 'rgba(255,255,255,0.08)',
-              color: '#fff',
-              padding: '0 0.7rem',
-            }}
-          >
-            <option value="0.75">0.75x</option>
-            <option value="1">1x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-          </select>
+          <div style={{ position: 'relative', width: '100%' }}>
+            <button
+              type="button"
+              aria-label={`Playback speed ${playbackRate}x`}
+              aria-expanded={isSpeedMenuOpen}
+              onClick={() => setIsSpeedMenuOpen((open) => !open)}
+              style={{ minHeight: controlSize, width: '100%', borderRadius: isCompact ? 9 : 12, border: '1px solid rgba(255,255,255,0.18)', background: '#171717', color: '#fff', cursor: 'pointer', padding: isCompact ? '0 0.15rem' : '0 0.35rem', fontSize: isCompact ? '0.75rem' : undefined, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}
+            >
+              {playbackRate}x <ChevronDown size={isCompact ? 13 : 15} />
+            </button>
+            {isSpeedMenuOpen ? <div role="menu" aria-label="Playback speed choices" style={{ position: 'absolute', zIndex: 20, bottom: `calc(100% + ${isCompact ? 6 : 8}px)`, right: 0, minWidth: isCompact ? 76 : 92, overflow: 'hidden', borderRadius: 10, border: '1px solid rgba(255,255,255,0.16)', background: '#161616', boxShadow: '0 14px 35px rgba(0,0,0,0.48)', padding: 4 }}>
+              {PLAYBACK_RATES.map((rate) => <button key={rate} type="button" role="menuitem" onClick={() => selectPlaybackRate(rate)} style={{ width: '100%', border: 0, borderRadius: 7, background: rate === playbackRate ? 'rgba(255,255,255,0.16)' : 'transparent', color: '#fff', cursor: 'pointer', padding: isCompact ? '0.42rem 0.5rem' : '0.5rem 0.6rem', textAlign: 'left', fontSize: isCompact ? '0.72rem' : '0.82rem', fontWeight: rate === playbackRate ? 800 : 600 }}>{rate}x</button>)}
+            </div> : null}
+          </div>
 
-          <button type="button" aria-label="Toggle fullscreen" onClick={toggleFullscreen} style={{ ...controlButtonStyle, marginLeft: 'auto' }}>
-            ⛶
+          <button type="button" aria-label="Toggle fullscreen" onClick={toggleFullscreen} style={{ ...controlButtonStyle, width: controlSize, height: controlSize }}>
+            <Maximize2 size={isCompact ? 17 : 20} />
           </button>
         </div>
       </div>
@@ -527,6 +557,8 @@ const roundButtonStyle = {
 
 const controlButtonStyle = {
   ...roundButtonStyle,
+  minWidth: 0,
+  minHeight: 0,
   width: 44,
   height: 44,
   background: 'rgba(255,255,255,0.1)',

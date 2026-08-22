@@ -30,6 +30,10 @@ describe('athlete search linkage', () => {
     expect(normaliseSkfId('mp25 001')).toBe('SKF25MP001')
   })
 
+  it('preserves a reserved all-zero SKF test ID for portal authentication', () => {
+    expect(normaliseSkfId('SKF0000000')).toBe('SKF0000000')
+  })
+
   it('finds public athletes by SKF ID, not only by name', async () => {
     const results = await searchAthletesByNameLive('skf24rj042')
 

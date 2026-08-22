@@ -55,6 +55,8 @@ const requiredTables = [
   ['athletes', 'id'],
   ['site_analytics_events', 'id'],
   ['portal_videos', 'youtube_id'],
+  ['portal_practice_folders', 'id'],
+  ['portal_practice_photos', 'id'],
   ['branch_timetables', 'id'],
   ['video_progress', 'id'],
   ['enrollments', 'id'],
@@ -95,6 +97,21 @@ const requiredColumns = [
     'athletes',
     'skf_id',
     'Run database/migrations/011_rename_registration_number_to_skf_id.sql.',
+  ],
+  [
+    'portal_videos',
+    'content_format',
+    'Run database/migrations/044_portal_practice_video_formats.sql.',
+  ],
+  [
+    'portal_videos',
+    'lesson_note',
+    'Run database/migrations/045_portal_video_lesson_notes.sql.',
+  ],
+  [
+    'portal_practice_folders',
+    'parent_folder_id',
+    'Run database/migrations/047_practice_folder_hierarchy.sql.',
   ],
   [
     'staff_accounts',
@@ -359,6 +376,7 @@ for (const [table, column] of sensitiveAnonTables) {
 }
 
 await checkBucket('training-videos', false)
+await checkBucket('portal-practice-images', false)
 await checkBucket('admission-photos', false)
 await checkBucket('fee-payment-proofs', false)
 await checkBucket('athlete-profile-photos', true)

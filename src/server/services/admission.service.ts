@@ -76,6 +76,22 @@ const BRANCH_ADMISSION_DEFAULTS: Record<string, {
     batchOptions: ['6:00 AM - 7:00 AM'],
     notes: 'Admission payment is Rs. 2,000 and includes dress. Monthly fee is collected in FeeTrack.',
   },
+  'kunigal-main': {
+    monthlyFee: 0,
+    admissionFee: 0,
+    dressFee: 0,
+    dressCost: 0,
+    batchOptions: [],
+    notes: 'Student information is collected here. Fees are handled directly by the Kunigal branch.',
+  },
+}
+
+// Kunigal manages collections locally. Keep this rule in the service layer as
+// well as the public form so a crafted request can never create SKF fee data.
+const EXTERNALLY_MANAGED_FEE_BRANCHES = new Set(['kunigal-main'])
+
+function isFeeTrackingEnabled(branchSlug: string) {
+  return !EXTERNALLY_MANAGED_FEE_BRANCHES.has(cleanText(branchSlug).toLowerCase())
 }
 
 type AdmissionRow = Record<string, unknown>
@@ -184,6 +200,7 @@ function feeDefaultsForBranch(branchSlug: string, branchName?: string) {
     defaultDressFee: defaults?.dressFee || 0,
     defaultDressCost: defaults?.dressCost || 0,
     batchOptions: defaults?.batchOptions || [],
+    feeTrackingEnabled: isFeeTrackingEnabled(branchSlug),
     notes: defaults?.notes || '',
     updatedAt: '',
   }
@@ -216,6 +233,7 @@ function mapApplication(row: AdmissionRow) {
     id: cleanText(row.id),
     branchSlug: cleanText(row.branch_slug),
     branchName: cleanText(row.branch_name),
+    feeTrackingEnabled: isFeeTrackingEnabled(cleanText(row.branch_slug)),
     preferredBatch: cleanText(row.preferred_batch),
     expectedJoinDate: cleanText(row.expected_join_date),
     studentName: cleanText(row.student_name),
@@ -326,6 +344,7 @@ function mapBranchSettings(row: BranchSettingsRow) {
     defaultDressFee: normalizeAmount(row.default_dress_fee),
     defaultDressCost: normalizeAmount(row.default_dress_cost),
     batchOptions: parseJsonArray(row.batch_options),
+    feeTrackingEnabled: isFeeTrackingEnabled(cleanText(row.branch_slug)),
     notes: cleanText(row.notes),
     updatedAt: cleanText(row.updated_at),
   }
@@ -1197,6 +1216,7 @@ export class AdmissionService {
         ...settings,
         branchName: branch.name,
         batchOptions,
+        feeTrackingEnabled: isFeeTrackingEnabled(branch.slug),
       },
     }
   }
@@ -1208,12 +1228,15 @@ export class AdmissionService {
   }) {
     const branch = await resolveBranch(input.branchSlug)
     const settings = await getBranchSettings(branch.slug, branch.name)
-    const quote = await buildFeeQuote({
-      settings,
-      branchSlug: branch.slug,
-      promoCode: input.promoCode,
-      guardianPhone: normalizePhone(input.guardianPhone),
-    })
+    const feeTrackingEnabled = isFeeTrackingEnabled(branch.slug)
+    const quote = feeTrackingEnabled
+      ? await buildFeeQuote({
+        settings,
+        branchSlug: branch.slug,
+        promoCode: input.promoCode,
+        guardianPhone: normalizePhone(input.guardianPhone),
+      })
+      : { monthlyFee: 0, admissionFee: 0, dressFee: 0, joiningTotal: 0, promoSnapshot: {}, promoCodeId: null, promoCode: '' }
 
     return {
       branchSlug: branch.slug,
@@ -1225,6 +1248,7 @@ export class AdmissionService {
       promoCode: quote.promoCode,
       promoSnapshot: quote.promoSnapshot,
       notes: settings.notes,
+      feeTrackingEnabled,
     }
   }
 
@@ -1238,6 +1262,7 @@ export class AdmissionService {
     requireAdmissionDatabase()
     const branch = await resolveBranch(input.branchSlug)
     const settings = await getBranchSettings(branch.slug, branch.name)
+    const feeTrackingEnabled = isFeeTrackingEnabled(branch.slug)
     if (!settings.isEnabled) {
       throw new ValidationError({ branch: ['This branch admission form is currently closed.'] })
     }
@@ -1248,24 +1273,28 @@ export class AdmissionService {
       guardianPhone: input.guardianPhone,
       guardianEmail: input.guardianEmail,
     })
-    const quote = await buildFeeQuote({
-      settings,
-      branchSlug: branch.slug,
-      promoCode: input.promoCode,
-      guardianPhone: normalizePhone(input.guardianPhone),
-    })
+    const quote = feeTrackingEnabled
+      ? await buildFeeQuote({
+        settings,
+        branchSlug: branch.slug,
+        promoCode: input.promoCode,
+        guardianPhone: normalizePhone(input.guardianPhone),
+      })
+      : { monthlyFee: 0, admissionFee: 0, dressFee: 0, joiningTotal: 0, promoSnapshot: {}, promoCodeId: null, promoCode: '' }
 
     const photo = await readImageFile(files.studentPhoto, {
       field: 'studentPhoto',
       label: 'Student photo',
       required: true,
     })
-    const paymentProof = await readImageFile(files.paymentProof, {
-      field: 'paymentProof',
-      label: 'Payment screenshot',
-      maxBytes: MAX_ADMISSION_PAYMENT_PROOF_BYTES,
-      required: true,
-    })
+    const paymentProof = feeTrackingEnabled
+      ? await readImageFile(files.paymentProof, {
+        field: 'paymentProof',
+        label: 'Payment screenshot',
+        maxBytes: MAX_ADMISSION_PAYMENT_PROOF_BYTES,
+        required: true,
+      })
+      : null
     const applicationId = crypto.randomUUID()
     let admissionPhotoMeta: AdmissionUploadResult | null = null
     let paymentProofMeta: Record<string, unknown> | null = null
@@ -1419,6 +1448,18 @@ export class AdmissionService {
     if (application.status !== 'pending') {
       throw new ConflictError('Only pending admissions can be approved.')
     }
+    const feeTrackingEnabled = isFeeTrackingEnabled(application.branchSlug)
+    if (feeTrackingEnabled && !fields.paymentVerified) {
+      throw new ValidationError({ paymentVerified: ['Payment verification is required before approval.'] })
+    }
+    const trackedFees = feeTrackingEnabled
+      ? {
+        monthlyFee: fields.monthlyFee,
+        admissionFee: fields.admissionFee,
+        dressFee: fields.dressFee,
+        dressCost: fields.dressCost,
+      }
+      : { monthlyFee: 0, admissionFee: 0, dressFee: 0, dressCost: 0 }
 
     const warnings = await findDuplicateWarnings({
       studentName: application.studentName,
@@ -1435,14 +1476,14 @@ export class AdmissionService {
         dob: application.studentDob,
         gender: application.studentGender,
         branch: application.branchName,
-        batch: fields.batch || application.preferredBatch,
+        batch: feeTrackingEnabled ? fields.batch || application.preferredBatch : '',
         belt,
         enrolledDate: fields.billingStartDate,
         status: 'Active',
         parentName: application.guardianName,
         phone: application.guardianPhone,
         email: application.guardianEmail,
-        monthlyFee: fields.monthlyFee,
+        monthlyFee: trackedFees.monthlyFee,
         photoConsent: application.photoConsent,
         dataConsent: application.dataConsent,
         consentGivenAt: new Date().toISOString(),
@@ -1483,47 +1524,47 @@ export class AdmissionService {
       { onConflict: 'skf_id' }
     )
 
-    await supabaseAdmin.from('student_billing_profiles').upsert(
-      {
-        skf_id: skfId,
-        billing_status: 'active',
-        monthly_fee: fields.monthlyFee,
-        admission_fee: fields.admissionFee,
-        dress_fee: fields.dressFee,
-        dress_cost: fields.dressCost,
-        billing_start_date: fields.billingStartDate,
-        branch_snapshot: application.branchName,
-        notes: fields.reviewNote || null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'skf_id' }
-    )
+    if (feeTrackingEnabled) {
+      await supabaseAdmin.from('student_billing_profiles').upsert(
+        {
+          skf_id: skfId,
+          billing_status: 'active',
+          monthly_fee: trackedFees.monthlyFee,
+          admission_fee: trackedFees.admissionFee,
+          dress_fee: trackedFees.dressFee,
+          dress_cost: trackedFees.dressCost,
+          billing_start_date: fields.billingStartDate,
+          branch_snapshot: application.branchName,
+          notes: fields.reviewNote || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'skf_id' }
+      )
 
-    const billingStartYear = new Date(fields.billingStartDate).getFullYear()
-    try {
-      await FeeOperationsService.syncStudent(session, skfId, billingStartYear)
-      await recordApprovedJoiningFeesPaid(session, {
-        skfId,
-        billingStartDate: fields.billingStartDate,
-        admissionFee: fields.admissionFee,
-        dressFee: fields.dressFee,
-        applicationId: application.id,
-      })
-    } catch (error) {
-      logger.error('admission.fee_sync_failed', { skfId, error })
-      throw error
+      const billingStartYear = new Date(fields.billingStartDate).getFullYear()
+      try {
+        await FeeOperationsService.syncStudent(session, skfId, billingStartYear)
+        await recordApprovedJoiningFeesPaid(session, {
+          skfId,
+          billingStartDate: fields.billingStartDate,
+          admissionFee: trackedFees.admissionFee,
+          dressFee: trackedFees.dressFee,
+          applicationId: application.id,
+        })
+      } catch (error) {
+        logger.error('admission.fee_sync_failed', { skfId, error })
+        throw error
+      }
     }
 
     const feeSetup = {
-      monthlyFee: fields.monthlyFee,
-      admissionFee: fields.admissionFee,
-      dressFee: fields.dressFee,
-      dressCost: fields.dressCost,
+      ...trackedFees,
       billingStartDate: fields.billingStartDate,
-      batch: fields.batch || application.preferredBatch,
+      batch: feeTrackingEnabled ? fields.batch || application.preferredBatch : '',
       belt,
-      paymentVerified: fields.paymentVerified,
-      joiningPaymentRecorded: true,
+      feeTrackingEnabled,
+      paymentVerified: feeTrackingEnabled && fields.paymentVerified,
+      joiningPaymentRecorded: feeTrackingEnabled,
       photoAction: fields.photoAction,
       sourcePhotoDriveFileId: null,
       paymentProof: objectValue(application.feeSetup.paymentProof),
@@ -1549,13 +1590,15 @@ export class AdmissionService {
 
     if (error) throw error
 
-    const reviewedPaymentProof = await reviewAdmissionPaymentProof({
-      application,
-      status: 'approved',
-      reviewedBy: actorName(session),
-      reviewNote: fields.reviewNote || 'Admission payment verified during approval.',
-      skfId,
-    })
+    const reviewedPaymentProof = feeTrackingEnabled
+      ? await reviewAdmissionPaymentProof({
+        application,
+        status: 'approved',
+        reviewedBy: actorName(session),
+        reviewNote: fields.reviewNote || 'Admission payment verified during approval.',
+        skfId,
+      })
+      : null
     const finalFeeSetup = {
       ...feeSetup,
       paymentProof: reviewedPaymentProof,
