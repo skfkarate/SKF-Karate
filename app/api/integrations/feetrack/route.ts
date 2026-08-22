@@ -20,10 +20,17 @@ import {
   updateEventRecordLive,
 } from '@/lib/server/repositories/events-live'
 import {
+  createPracticeFolder,
   createPortalVideo,
+  deletePracticeFolder,
+  deletePracticePhoto,
   deletePortalVideo,
   getAllBranchTimetablesAdmin,
+  getAllPracticeFoldersAdmin,
+  getAllPracticePhotosAdmin,
   getAllPortalVideosAdmin,
+  getHomePracticeAnalytics,
+  updatePracticeFolder,
   updatePortalVideo,
 } from '@/lib/server/repositories/portal-content-live'
 import {
@@ -2817,7 +2824,47 @@ function assertPortalContentWrite(session: FeeTrackSession) {
 async function getPortalVideos(session: FeeTrackSession) {
   assertPortalContentWrite(session)
   const videos = await getAllPortalVideosAdmin()
-  return { success: true, data: { videos } }
+  const folders = await getAllPracticeFoldersAdmin()
+  const photos = await getAllPracticePhotosAdmin()
+  return { success: true, data: { videos, folders, photos } }
+}
+
+async function getHomePracticeAnalyticsForFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const rangeDays = Math.max(1, Math.min(365, Number(body.rangeDays || 90)))
+  const analytics = await getHomePracticeAnalytics(rangeDays)
+  return { success: true, data: analytics }
+}
+
+async function upsertPracticeFolder(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const source = (body.folder && typeof body.folder === 'object')
+    ? body.folder as Record<string, unknown>
+    : body
+  const id = String(body.folderId || source.id || '').trim()
+  const folder = id
+    ? await updatePracticeFolder(id, { ...source, id })
+    : await createPracticeFolder(source)
+  revalidatePortalSitePaths()
+  return { success: true, data: { folder } }
+}
+
+async function deletePracticeFolderFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const folderId = String(body.folderId || body.id || '').trim()
+  if (!folderId) throw new ValidationError({ folder: ['Folder ID is required.'] })
+  await deletePracticeFolder(folderId)
+  revalidatePortalSitePaths()
+  return { success: true, data: { folderId } }
+}
+
+async function deletePracticePhotoFromFeeTrack(session: FeeTrackSession, body: ActionBody) {
+  assertPortalContentWrite(session)
+  const photoId = String(body.photoId || body.id || '').trim()
+  if (!photoId) throw new ValidationError({ photo: ['Photo ID is required.'] })
+  await deletePracticePhoto(photoId)
+  revalidatePortalSitePaths()
+  return { success: true, data: { photoId } }
 }
 
 async function upsertPortalVideo(session: FeeTrackSession, body: ActionBody) {
@@ -3154,6 +3201,14 @@ async function handleAction(body: ActionBody) {
       return addEventDeposit(session, body)
     case 'get_portal_videos':
       return getPortalVideos(session)
+    case 'get_home_practice_analytics':
+      return getHomePracticeAnalyticsForFeeTrack(session, body)
+    case 'upsert_practice_folder':
+      return upsertPracticeFolder(session, body)
+    case 'delete_practice_folder':
+      return deletePracticeFolderFromFeeTrack(session, body)
+    case 'delete_practice_photo':
+      return deletePracticePhotoFromFeeTrack(session, body)
     case 'upsert_portal_video':
       return upsertPortalVideo(session, body)
     case 'delete_portal_video':

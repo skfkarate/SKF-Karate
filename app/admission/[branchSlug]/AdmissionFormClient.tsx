@@ -22,7 +22,7 @@ function CopyButton({ text }: { text: string }) {
 
 type AdmissionConfig = {
   branch: { slug: string; name: string; cityName: string; classTime: string; address: string; photos: string[] }
-  settings: { branchSlug: string; branchName: string; defaultMonthlyFee: number; defaultAdmissionFee: number; defaultDressFee: number; batchOptions: string[]; notes?: string }
+  settings: { branchSlug: string; branchName: string; defaultMonthlyFee: number; defaultAdmissionFee: number; defaultDressFee: number; batchOptions: string[]; notes?: string; feeTrackingEnabled?: boolean }
 }
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 type AdmissionResult = { applicationId: string; branchName: string; quotedMonthlyFee: number; quotedAdmissionFee: number; quotedDressFee: number; quotedJoiningTotal: number }
@@ -77,6 +77,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [result, setResult] = useState<AdmissionResult | null>(null)
+  const feeTrackingEnabled = config.settings.feeTrackingEnabled !== false
 
   useEffect(() => {
     // Removed auto transition based on user feedback. User must click "Begin Admission" or "ENTER".
@@ -126,6 +127,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     : 'Admission payment covers admission only. Dress is ordered separately through Shop.'
 
   useEffect(() => {
+    if (!feeTrackingEnabled) return
     const code = fd.promoCode.trim()
     if (!code) {
       return
@@ -177,7 +179,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       controller.abort()
       window.clearTimeout(timer)
     }
-  }, [baseFeeQuote, config.branch.slug, fd.guardianPhone, fd.promoCode])
+  }, [baseFeeQuote, config.branch.slug, fd.guardianPhone, fd.promoCode, feeTrackingEnabled])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -283,9 +285,9 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       if (fd.emergencyPhone.length !== 10) { setErrorMsg('Emergency phone must be 10 digits.'); return false }
     }
     if (s === 3 && fd.hasMedicalCondition && !fd.medicalDetails) { setErrorMsg('Medical details required.'); return false }
-    if (s === 4 && quoteState === 'loading') { setErrorMsg('Please wait while the promo code is checked.'); return false }
-    if (s === 4 && quoteError) { setErrorMsg(quoteError); return false }
-    if (s === 4 && !fd.paymentProofFile) { setErrorMsg('Upload the payment screenshot before continuing.'); return false }
+    if (feeTrackingEnabled && s === 4 && quoteState === 'loading') { setErrorMsg('Please wait while the promo code is checked.'); return false }
+    if (feeTrackingEnabled && s === 4 && quoteError) { setErrorMsg(quoteError); return false }
+    if (feeTrackingEnabled && s === 4 && !fd.paymentProofFile) { setErrorMsg('Upload the payment screenshot before continuing.'); return false }
     return true
   }
 
@@ -299,7 +301,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     // Validate DD/MM/YYYY dates
     const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!dobRegex.test(fd.studentDob)) { setErrorMsg('Date of Birth must be in DD/MM/YYYY format.'); return }
-    if (fd.expectedJoinDate && !dobRegex.test(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date must be in DD/MM/YYYY format.'); return }
+    if (feeTrackingEnabled && fd.expectedJoinDate && !dobRegex.test(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date must be in DD/MM/YYYY format.'); return }
 
     setSubmitState('submitting')
     try {
@@ -309,7 +311,11 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       }
 
       const pl = new FormData()
-      pl.set('branchSlug', config.branch.slug); pl.set('preferredBatch', fd.preferredBatch); pl.set('expectedJoinDate', convertDate(fd.expectedJoinDate))
+      pl.set('branchSlug', config.branch.slug)
+      if (feeTrackingEnabled) {
+        pl.set('preferredBatch', fd.preferredBatch)
+        pl.set('expectedJoinDate', convertDate(fd.expectedJoinDate))
+      }
       pl.set('studentName', fd.studentName); pl.set('studentDob', convertDate(fd.studentDob)); pl.set('studentGender', fd.studentGender); pl.set('schoolClass', fd.schoolClass)
       pl.set('guardianName', fd.guardianName); pl.set('guardianRelationship', fd.guardianRelationship); pl.set('guardianPhone', fd.guardianPhone)
       pl.set('guardianWhatsapp', fd.guardianWhatsapp); pl.set('guardianEmail', fd.guardianEmail)
@@ -318,10 +324,11 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       pl.set('hasPreviousTraining', String(fd.hasPreviousTraining)); pl.set('martialArtsStyle', fd.martialArtsStyle); pl.set('trainingDuration', fd.trainingDuration)
       pl.set('trainingDuration', fd.trainingDuration); pl.set('currentBelt', fd.currentBelt); pl.set('previousDojo', fd.previousDojo); pl.set('trainingNotes', fd.trainingNotes)
       if (fd.hasReferral) { pl.set('referralSource', fd.referralSource); pl.set('referrerName', fd.referrerName); pl.set('referrerContact', fd.referrerContact) }
-      pl.set('promoCode', fd.promoCode); pl.set('accuracyConsent', String(fd.accuracyConsent)); pl.set('participationConsent', String(fd.participationConsent))
+      if (feeTrackingEnabled) pl.set('promoCode', fd.promoCode)
+      pl.set('accuracyConsent', String(fd.accuracyConsent)); pl.set('participationConsent', String(fd.participationConsent))
       pl.set('dataConsent', String(fd.dataConsent)); pl.set('photoConsent', String(fd.photoConsent))
       if (fd.studentPhotoFile) pl.set('studentPhoto', fd.studentPhotoFile)
-      if (fd.paymentProofFile) pl.set('paymentProof', fd.paymentProofFile)
+      if (feeTrackingEnabled && fd.paymentProofFile) pl.set('paymentProof', fd.paymentProofFile)
       const res = await fetch('/api/admissions', { method: 'POST', body: pl })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.success) {
@@ -332,8 +339,8 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     } catch (err: unknown) { setSubmitState('error'); setErrorMsg(err instanceof Error ? err.message : 'Submission failed.') }
   }
 
-  const totalSteps = 5
-  const stepLabels = ['Student', 'Guardian', 'Health', 'Payment', 'Review']
+  const totalSteps = feeTrackingEnabled ? 5 : 4
+  const stepLabels = feeTrackingEnabled ? ['Student', 'Guardian', 'Health', 'Payment', 'Review'] : ['Student', 'Guardian', 'Health', 'Review']
 
   // ── SUCCESS ──
   if (submitState === 'success' && result) {
@@ -346,7 +353,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
           <p>Thank you for choosing SKF Karate! Your admission form for <strong>{result.branchName}</strong> has been successfully submitted and is currently under review by our team. We will contact you after verification.</p>
           <div className="adm-success__summary">
             <div><span>Reference</span><strong>{result.applicationId.slice(0, 8).toUpperCase()}</strong></div>
-            <div><span>Pay Now</span><strong>₹{result.quotedJoiningTotal.toLocaleString('en-IN')}</strong></div>
+            {feeTrackingEnabled ? <div><span>Pay Now</span><strong>₹{result.quotedJoiningTotal.toLocaleString('en-IN')}</strong></div> : <div><span>Status</span><strong>Received</strong></div>}
           </div>
           <Link href="/" className="btn btn-secondary">Return Home</Link>
         </div>
@@ -404,7 +411,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
           </div>
         </div>
 
-        <form onSubmit={step === 5 ? handleSubmit : (e) => { e.preventDefault(); next() }}>
+        <form onSubmit={step === totalSteps ? handleSubmit : (e) => { e.preventDefault(); next() }}>
 
           {/* STEP 1 — Student */}
           {step === 1 && (
@@ -460,12 +467,12 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                   <label className="adm-field__label" htmlFor="schoolClass">School *</label>
                   <input id="schoolClass" name="schoolClass" className="adm-field__input" type="text" required value={fd.schoolClass} onChange={handleChange} placeholder="Enter school name" />
                 </div>
-                <div className="adm-field">
+                {feeTrackingEnabled ? <div className="adm-field">
                   <label className="adm-field__label" htmlFor="expectedJoinDate">Expected Join Date (DD/MM/YYYY)</label>
                   <input id="expectedJoinDate" name="expectedJoinDate" className="adm-field__input" type="text" inputMode="numeric" placeholder="DD/MM/YYYY" value={fd.expectedJoinDate} onChange={handleChange} />
-                </div>
+                </div> : null}
               </div>
-              <div className="adm-field">
+              {feeTrackingEnabled ? <div className="adm-field">
                 <label className="adm-field__label" htmlFor="preferredBatch">Preferred Batch Timing</label>
                 {batchOptions.length <= 1 ? (
                   <>
@@ -478,7 +485,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                     {batchOptions.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 )}
-              </div>
+              </div> : null}
 
               <div className="adm-divider" style={{ margin: '2rem 0 1.5rem' }} />
               <div className={`adm-toggle-group ${fd.hasReferral ? 'adm-toggle-group--expanded' : ''}`}>
@@ -646,7 +653,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
           )}
 
           {/* STEP 4 — Payment */}
-          {step === 4 && (
+          {feeTrackingEnabled && step === 4 && (
             <div className="adm-step">
               <div className="adm-step__label">Step 04</div>
               <h2 className="adm-step__title">Joining Fee</h2>
@@ -756,9 +763,9 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
           )}
 
           {/* STEP 5 — Consent */}
-          {step === 5 && (
+          {step === totalSteps && (
             <div className="adm-step">
-              <div className="adm-step__label">Step 05</div>
+              <div className="adm-step__label">Step {String(totalSteps).padStart(2, '0')}</div>
               <h2 className="adm-step__title">Review & Consent</h2>
               <p className="adm-step__desc">Please review the terms and provide your consent to complete the application.</p>
 
@@ -777,7 +784,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
             <button type="button" className="adm-btn-back" onClick={prev} disabled={submitState === 'submitting'}>
               <ArrowLeft size={16} /> Back
             </button>
-            {step < 5 ? (
+            {step < totalSteps ? (
               <button type="submit" className="adm-btn-next">Continue <ArrowRight size={16} /></button>
             ) : (
               <button type="submit" className="adm-btn-next" disabled={submitState === 'submitting'}>

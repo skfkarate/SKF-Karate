@@ -18,7 +18,9 @@ export async function generateMetadata({
 
   return buildSeoMetadata(
     `/admission/${branchSlug}`,
-    `Apply for SKF Karate admission at ${branchName}. Submit student, guardian, branch, fee, and joining details securely for verification.`
+    config?.settings.feeTrackingEnabled === false
+      ? `Apply for SKF Karate admission at ${branchName}. Submit student and guardian details securely for branch verification.`
+      : `Apply for SKF Karate admission at ${branchName}. Submit student, guardian, branch, fee, and joining details securely for verification.`
   )
 }
 

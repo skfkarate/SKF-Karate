@@ -251,20 +251,16 @@ export async function proxy(request: NextRequest) {
     requestHeaders.set('x-skf-id', portalSession.skfId)
   }
 
-  const isPortalLoginPage = pathname === '/portal/login'
-  const isPortalRoute = pathname.startsWith('/portal')
-
-  if (isPortalRoute) {
-    if (!portalSession && !isPortalLoginPage) {
-      return attachSecurityHeaders(NextResponse.redirect(buildPortalLoginRedirectUrl(request)), csp, {
-        clearPortalCookie,
-      })
-    }
-
-    if (portalSession && isPortalLoginPage) {
-      const callbackUrl = sanitizePortalCallbackUrl(request.nextUrl.searchParams.get('callbackUrl'))
-      return attachSecurityHeaders(NextResponse.redirect(new URL(callbackUrl, request.url)), csp)
-    }
+  // Only gate unauthenticated access here. Authenticated users hitting
+  // /portal/login are redirected by the login PAGE itself, which performs the
+  // authoritative session check (JWT + athlete lookup + eligibility).
+  // Redirecting in both places caused an infinite login<->dashboard ping-pong
+  // whenever the two checks disagreed (e.g. stale token, slow/failed DB read),
+  // leaving the portal stuck "loading" forever.
+  if (pathname.startsWith('/portal') && !portalSession && pathname !== '/portal/login') {
+    return attachSecurityHeaders(NextResponse.redirect(buildPortalLoginRedirectUrl(request)), csp, {
+      clearPortalCookie,
+    })
   }
 
   const response = NextResponse.next({

@@ -415,6 +415,26 @@
   pointer-events: none;
 }
 
+/* Folder and player views provide their own contextual back action. */
+.portal-practice-detail .kuroobi-back {
+  display: none !important;
+}
+
+/* Playback is intentionally a focused experience: the lesson supplies its own
+   contextual return action, so no portal dock or floating menu competes with it. */
+.portal-practice-player .kuroobi-fab,
+.portal-practice-player .kuroobi-dock-desktop,
+.portal-practice-player .kuroobi-top-switcher {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  .practice-complete-label,
+  .practice-copy-label {
+    display: none;
+  }
+}
+
 .kuroobi-back-inner {
   display: flex;
   align-items: center;

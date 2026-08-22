@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Loader2, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
-import { isOfficialBlackBeltCandidateId } from '@/data/constants/blackbelt'
 
 /** Map icon names (from data) → Lucide components (JSX) */
 const ICON_COMPONENTS = { UserCircle, PlayCircle, Award, CreditCard, Calendar, Bell, TrendingUp, Flag, Trophy, Map } as const
@@ -177,12 +176,10 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   }, [])
 
 
-  const canSeeBlackBeltNav = isBlackBeltCandidate && isOfficialBlackBeltCandidateId(currentSession?.skfId)
-
-  // Filter links: only show Black Belt link to the assigned Black Belt candidates.
+  // Filter links: only show the Black Belt link to assigned Black Belt candidates.
   const visibleNavLinks = navLinks.filter(link => {
     if (link.href === '/portal/blackbelt') {
-      return canSeeBlackBeltNav
+      return isBlackBeltCandidate
     }
     return true
   })
@@ -269,6 +266,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
               alt="SKF"
               width={36}
               height={36}
+              priority
               className="kuroobi-dock__logo"
             />
           </div>

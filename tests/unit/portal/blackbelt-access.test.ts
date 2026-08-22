@@ -197,14 +197,37 @@ describe('black belt portal access', () => {
     await expect(isBBCandidate('SKF20HE001')).resolves.toBe(false)
   })
 
-  it('keeps the shared nav allowlist limited to the six assigned candidates', async () => {
-    const {
-      BLACK_BELT_2026_CANDIDATE_IDS,
-      isOfficialBlackBeltCandidateId,
-    } = await import('@/data/constants/blackbelt')
+  it('never serves program data to a non-candidate, even when an active program exists', async () => {
+    supabaseState.programs = [program({ status: 'active' })]
+    supabaseState.candidates = [candidate({ skf_id: 'SKF20HE001' })]
 
-    expect(BLACK_BELT_2026_CANDIDATE_IDS).toHaveLength(6)
-    expect(isOfficialBlackBeltCandidateId('skf20he001')).toBe(true)
-    expect(isOfficialBlackBeltCandidateId('SKF25MP001')).toBe(false)
+    const { getBBProgramForPortal } = await import('@/lib/server/repositories/blackbelt-live')
+
+    await expect(getBBProgramForPortal('SKF99XX999')).resolves.toBeNull()
+  })
+
+  it('only serves the program the candidate is enrolled in, never the active one', async () => {
+    supabaseState.programs = [
+      program({ id: 'program_enrolled', status: 'completed' }),
+      program({ id: 'program_active', status: 'active' }),
+    ]
+    supabaseState.candidates = [candidate({ program_id: 'program_enrolled', skf_id: 'SKF20HE001' })]
+
+    const { getBBProgramForPortal } = await import('@/lib/server/repositories/blackbelt-live')
+
+    const data = await getBBProgramForPortal('SKF20HE001')
+    expect(data?.program.id).toBe('program_enrolled')
+  })
+
+  it('shows the portal link for any newly assigned candidate without a hardcoded entry', async () => {
+    supabaseState.programs = [program({ status: 'active' })]
+    supabaseState.candidates = [candidate({ skf_id: 'SKF25MP001', display_name: 'New Candidate' })]
+
+    const { isBBCandidate, getBBCandidateBySkfIdAcrossPrograms } = await import('@/lib/server/repositories/blackbelt-live')
+
+    await expect(isBBCandidate('SKF25MP001')).resolves.toBe(true)
+
+    const record = await getBBCandidateBySkfIdAcrossPrograms('skf25mp001')
+    expect(record?.skf_id).toBe('SKF25MP001')
   })
 })
