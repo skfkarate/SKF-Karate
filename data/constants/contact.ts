@@ -30,7 +30,7 @@ export const SOCIAL_LINKS_LIST = Object.values(SOCIAL_LINKS)
 export const BRANCH_WHATSAPP_NUMBERS = Object.freeze({
   'mp-sports-club': '919019971726',
   'herohalli': '919019971726',
-  'kunigal-main': '919019971726',
+  'kunigal': '919019971726',
   'tumkur-main': '919019971726',
   'udupi-main': '919019971726',
   default: '919019971726',

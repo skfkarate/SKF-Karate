@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { UserCircle, PlayCircle, Award, CreditCard, LogOut, Calendar, Bell, TrendingUp, Flag, Trophy, Map, X, Menu, ChevronLeft, Loader2, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { PORTAL_NAV_ITEMS } from '@/data/constants/navigation'
+import { EXTERNALLY_MANAGED_PORTAL_HREFS, isExternallyManagedBranch } from '@/data/constants/branches'
 
 /** Map icon names (from data) → Lucide components (JSX) */
 const ICON_COMPONENTS = { UserCircle, PlayCircle, Award, CreditCard, Calendar, Bell, TrendingUp, Flag, Trophy, Map } as const
@@ -82,6 +83,7 @@ type PortalSessionView = {
 
 type PortalAthleteView = {
   photoUrl?: string | null
+  branchName?: string | null
 }
 
 type PortalSiblingView = {
@@ -176,8 +178,15 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   }, [])
 
 
-  // Filter links: only show the Black Belt link to assigned Black Belt candidates.
+  // Filter links: externally managed branches (e.g. Kunigal) never see
+  // branch-managed sections (fees/timetable/credits/black belt), and the
+  // Black Belt link is only shown to assigned candidates. The exclusion is
+  // checked first so it always wins.
+  const isExternallyManaged = isExternallyManagedBranch(currentAthlete?.branchName)
   const visibleNavLinks = navLinks.filter(link => {
+    if (isExternallyManaged && (EXTERNALLY_MANAGED_PORTAL_HREFS as readonly string[]).includes(link.href)) {
+      return false
+    }
     if (link.href === '/portal/blackbelt') {
       return isBlackBeltCandidate
     }
@@ -223,10 +232,17 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     }
   }
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   async function handleLogout() {
-    setMenuOpen(false)
-    await fetch('/api/auth/portal/logout', { method: 'POST' })
-    router.push('/portal/login')
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    try {
+      await fetch('/api/auth/portal/logout', { method: 'POST' })
+      setMenuOpen(false)
+      router.push('/portal/login')
+    } catch {
+      setIsLoggingOut(false)
+    }
   }
 
   function handleBack() {
@@ -234,19 +250,42 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
   }
 
   function handleNavClick(targetHref: string) {
-    if (pathname === targetHref) {
-      setMenuOpen(false)
-    }
+    setMenuOpen(false)
   }
 
-  // Lock body scroll when overlay is open
+  // Lock body scroll and handle focus trap / Escape key
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden'
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setMenuOpen(false)
+        if (e.key === 'Tab') {
+          const focusable = document.querySelectorAll('.kuroobi-overlay a[href], .kuroobi-overlay button:not([disabled])')
+          if (focusable.length) {
+            const first = focusable[0] as HTMLElement
+            const last = focusable[focusable.length - 1] as HTMLElement
+            if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault(); last.focus()
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault(); first.focus()
+            }
+          }
+        }
+      }
+      document.addEventListener('keydown', handleKeyDown)
+      // Focus first element initially
+      setTimeout(() => {
+        const first = document.querySelector('.kuroobi-overlay a[href], .kuroobi-overlay button:not([disabled])') as HTMLElement
+        if (first) first.focus()
+      }, 100)
+      
+      return () => { 
+        document.body.style.overflow = ''
+        document.removeEventListener('keydown', handleKeyDown)
+      }
     } else {
       document.body.style.overflow = ''
     }
-    return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
   return (
@@ -338,8 +377,8 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
 
           <div className="kuroobi-dock__footer">
 
-            <button onClick={handleLogout} className="kuroobi-dock__logout" title="Sign Out">
-              <LogOut size={18} strokeWidth={1.5} />
+            <button onClick={handleLogout} disabled={isLoggingOut} className="kuroobi-dock__logout" title="Sign Out">
+              {isLoggingOut ? <Loader2 size={18} className="spinner" /> : <LogOut size={18} strokeWidth={1.5} />}
               <AnimatePresence>
                 {isHovered && (
                   <motion.span 
@@ -347,7 +386,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                   >
-                    Sign Out
+                    {isLoggingOut ? 'Signing out...' : 'Sign Out'}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -635,12 +674,13 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
             <motion.button
               className="kuroobi-overlay__signout"
               onClick={handleLogout}
+              disabled={isLoggingOut}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <LogOut size={18} strokeWidth={1.5} />
-              Sign Out
+              {isLoggingOut ? <Loader2 size={18} className="spinner" /> : <LogOut size={18} strokeWidth={1.5} />}
+              {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
             </motion.button>
           </motion.div>
         )}

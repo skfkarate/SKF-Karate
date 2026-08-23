@@ -91,7 +91,7 @@ export const cities: City[] = [
         photo: '/gallery/Kungal belt examination.jpeg',
         branches: [
             {
-                slug: 'kunigal-main',
+                slug: 'kunigal',
                 name: 'Kunigal',
                 city: 'kunigal',
                 address: 'Kunigal, Karnataka',
@@ -169,7 +169,8 @@ export function generateCalendar(year: number, month: number, classDays: number[
     const weeks: { date: number; isClassDay: boolean; isCurrentMonth: boolean; isToday: boolean }[][] = []
     let currentWeek: typeof weeks[0] = []
 
-    const today = new Date()
+    const istString = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    const today = new Date(istString)
     const isCurrentMonthYear = today.getFullYear() === year && today.getMonth() === month
 
     // Leading empty cells

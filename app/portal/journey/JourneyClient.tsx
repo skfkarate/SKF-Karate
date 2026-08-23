@@ -164,6 +164,14 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                 <div 
                   className="timeline-node-icon"
                   onClick={() => setSelectedNode(node)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedNode(node)
+                    }
+                  }}
                   style={{
                     background: isUpcoming ? '#111' : 'linear-gradient(135deg, #222, #111)',
                     border: isUpcoming ? `3px dashed rgba(255,255,255,0.4)` : `4px solid ${nodeColor}`,
@@ -183,6 +191,14 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                 <div 
                   className="timeline-node-card"
                   onClick={() => setSelectedNode(node)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedNode(node)
+                    }
+                  }}
                   style={{
                     background: isBelt ? `linear-gradient(135deg, ${nodeColor}15, rgba(255,255,255,0.02))` : isCurrent ? 'linear-gradient(135deg, rgba(255,183,3,0.15), rgba(255,183,3,0.02))' : isUpcoming ? 'rgba(255,255,255,0.01)' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
                     border: isBelt ? `1px solid ${nodeColor}30` : isUpcoming ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.1)',
@@ -203,7 +219,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                      {new Date(node.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      {new Date(node.date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', month: 'short', year: 'numeric' })}
                     </span>
                     {isCurrent && (
                       <span className="node-badge" style={{ background: 'var(--gold, #ffb703)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', boxShadow: '0 0 10px rgba(255,183,3,0.5)' }}>Current</span>
@@ -292,7 +308,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                     </div>
                     <div>
                       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
-                        {new Date(selectedNode.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                        {new Date(selectedNode.date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                       </div>
                       <h2 className="journey-modal-title" style={{ margin: 0, color: '#fff', fontFamily: 'var(--font-heading, "Outfit")', fontWeight: 900, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                         {selectedNode.title}

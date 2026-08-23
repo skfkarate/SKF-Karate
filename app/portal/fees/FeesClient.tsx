@@ -11,12 +11,16 @@ import PaymentCopyButton from '@/components/payment/PaymentCopyButton'
 import { PAYMENT_DETAILS } from '@/data/constants/payment'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import type { PortalCreditEntry } from '@/src/server/services/fee-ledger.service'
-import { submitManualFeePayment, applyPortalCredit } from './actions'
-import { getBlackBeltOverride } from '@/lib/server/temporary-black-belt-override'
+import { applyPortalCredit, submitManualFeePayment } from './actions'
 import './fees.css'
 
 const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 const ALLOWED_SCREENSHOT_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+
+type EnrichedFeeEntry = FeeLedgerEntry & {
+  _serverOverrideAmount?: number
+  _serverOverrideLabel?: string
+}
 
 function feeTypeLabel(feeType: string) {
   return String(feeType || 'monthly')
@@ -37,13 +41,7 @@ function beltTransitionLabel(meta: Record<string, unknown> | undefined) {
   return null
 }
 
-function canApplyBlackBeltMonthlyOverride(fee: FeeLedgerEntry) {
-  const status = String(fee.status || '')
-  const eligibleStatus = status === 'due' || status === 'overdue' || status === 'rejected' || status === 'pending_verification'
-  return fee.feeType === 'monthly' && eligibleStatus && !String(fee.sourceKey || '').trim()
-}
-
-function feeDisplayLabel(fee: FeeLedgerEntry) {
+function feeDisplayLabel(fee: EnrichedFeeEntry) {
   if (fee.feeType === 'belt_exam') {
     const eventName = typeof fee.metadata?.eventName === 'string' ? fee.metadata.eventName : 'Belt Examination'
     const beltLabel = beltTransitionLabel(fee.metadata)
@@ -51,23 +49,21 @@ function feeDisplayLabel(fee: FeeLedgerEntry) {
   }
   if (fee.sourceLabel) return fee.sourceLabel
   if (fee.feeType === 'monthly') {
-    const override = canApplyBlackBeltMonthlyOverride(fee) ? getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year) : null
-    if (override) return override.label
+    if (fee._serverOverrideLabel) return fee._serverOverrideLabel
     return `${fee.month} ${fee.year}`
   }
   return `${feeTypeLabel(fee.feeType)} ${fee.year}`
 }
 
-function feeCategoryLabel(fee: FeeLedgerEntry) {
+function feeCategoryLabel(fee: EnrichedFeeEntry) {
   if (fee.sourceType === 'shop_order') return 'Shop'
   if (fee.feeType === 'belt_exam') return 'Grading'
   return feeTypeLabel(fee.feeType)
 }
 
-function canDownloadReceipt(fee: FeeLedgerEntry) {
+function canDownloadReceipt(fee: EnrichedFeeEntry) {
   if (fee.feeType !== 'monthly' || !fee.receiptId) return false
-  const override = canApplyBlackBeltMonthlyOverride(fee) ? getBlackBeltOverride(fee.skfId, fee.monthIndex, fee.year) : null
-  if (override) return false
+  if (fee._serverOverrideAmount) return false
   return true
 }
 
@@ -102,7 +98,7 @@ interface CreditsData {
   totalUsed: number
 }
 
-export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeRecords: FeeLedgerEntry[]; credits: CreditsData; athleteSkfId?: string }) {
+export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeRecords: EnrichedFeeEntry[]; credits: CreditsData; athleteSkfId?: string }) {
   usePortalAuth()
   const router = useRouter()
 
@@ -146,9 +142,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
 
   const effectiveFeeRecords = feeRecords.map((fee) => {
     const base = locallySubmittedFeeKeys.has(fee.key) ? { ...fee, status: 'pending_verification' as const } : fee
-    if (!canApplyBlackBeltMonthlyOverride(base)) return base
-    const override = athleteSkfId ? getBlackBeltOverride(athleteSkfId, base.monthIndex, base.year) : null
-    if (override) return { ...base, amount: override.amount }
+    if (base._serverOverrideAmount) return { ...base, amount: base._serverOverrideAmount }
     return base
   })
   const visibleFeeRecords = effectiveFeeRecords
@@ -415,7 +409,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                 background: 'linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%)',
                 WebkitBackgroundClip: 'text', backgroundClip: 'text'
               }}>
-                <span className="fees-currency" style={{ fontSize: '2rem', verticalAlign: 'top', opacity: 0.5, color: '#fff' }}>₹</span>{totalDue.toLocaleString()}
+                <span className="fees-currency" style={{ fontSize: '2rem', verticalAlign: 'top', opacity: 0.5, color: '#fff' }}>₹</span>{totalDue.toLocaleString('en-IN')}
               </div>
             </div>
             <CreditCard size={36} color="rgba(255,255,255,0.1)" />
@@ -460,7 +454,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                   color: '#a855f7',
                   letterSpacing: '-0.02em',
                 }}>
-                  <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>₹</span>{credits.totalAvailable.toLocaleString()}
+                  <span style={{ fontSize: '0.9rem', opacity: 0.6 }}>₹</span>{credits.totalAvailable.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -670,7 +664,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                                       </span>
                                     )}
                                   </span>
-                                  <strong style={{ color: 'var(--gold, #ffb703)' }}>₹{Number(fee.amount || 0).toLocaleString()}</strong>
+                                  <strong style={{ color: 'var(--gold, #ffb703)' }}>₹{Number(fee.amount || 0).toLocaleString('en-IN')}</strong>
                                 </label>
                               )
                             })}
@@ -688,7 +682,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                     fontSize: selectedTotalDue > 2000 ? '1rem' : '0.8rem',
                     fontWeight: selectedTotalDue > 2000 ? 700 : 600,
                   }}>
-                    Selected amount: ₹{selectedTotalDue.toLocaleString()}
+                    Selected amount: ₹{selectedTotalDue.toLocaleString('en-IN')}
                   </p>
                 </div>
 
@@ -718,15 +712,15 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                       <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(168, 85, 247, 0.15)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
                           <span style={{ color: 'rgba(255,255,255,0.5)' }}>Fee Amount</span>
-                          <span style={{ color: '#fff' }}>₹{selectedTotalDue.toLocaleString()}</span>
+                          <span style={{ color: '#fff' }}>₹{selectedTotalDue.toLocaleString('en-IN')}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
                           <span style={{ color: '#a855f7' }}>Credit Applied</span>
-                          <span style={{ color: '#a855f7', fontWeight: 700 }}>- ₹{creditDiscount.toLocaleString()}</span>
+                          <span style={{ color: '#a855f7', fontWeight: 700 }}>- ₹{creditDiscount.toLocaleString('en-IN')}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 800, paddingTop: '0.35rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                           <span style={{ color: 'rgba(255,255,255,0.7)' }}>Remaining</span>
-                          <span style={{ color: amountAfterCredits === 0 ? '#2dd4bf' : '#fff' }}>₹{amountAfterCredits.toLocaleString()}</span>
+                          <span style={{ color: amountAfterCredits === 0 ? '#2dd4bf' : '#fff' }}>₹{amountAfterCredits.toLocaleString('en-IN')}</span>
                         </div>
                         {amountAfterCredits === 0 && (
                           <button
@@ -900,8 +894,8 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
                         </span>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500, display: 'flex', gap: '0.5rem' }}>
-                        {isPaid && tx.paidDate ? new Date(tx.paidDate).toLocaleDateString('en-GB') : ''}
-                        {tx.dueDate && <span>Due {new Date(`${tx.dueDate}T00:00:00`).toLocaleDateString('en-GB')}</span>}
+                        {isPaid && tx.paidDate ? new Date(tx.paidDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }) : ''}
+                        {tx.dueDate && <span>Due {new Date(`${tx.dueDate}T00:00:00`).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' })}</span>}
                         {tx.feeType !== 'monthly' && <span style={{ color: 'var(--gold, #ffb703)' }}>{feeCategoryLabel(tx).toUpperCase()}</span>}
                       </div>
                     </div>
@@ -909,7 +903,7 @@ export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeR
 
                   <div className="fees-ledger-amount" style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                     <div style={{ fontFamily: 'var(--font-heading, "Outfit")', fontSize: '1.35rem', fontWeight: 800, color: '#fff' }}>
-                      ₹{Number(tx.amount || 0).toLocaleString()}
+                      ₹{Number(tx.amount || 0).toLocaleString('en-IN')}
                     </div>
                     {isPaid && canDownloadReceipt(tx) ? (
                       <button

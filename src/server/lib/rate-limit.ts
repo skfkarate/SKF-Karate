@@ -2,6 +2,8 @@ import { checkRateLimit as checkMemoryRateLimit } from '@/lib/server/rate-limit'
 import { checkRateLimit as checkRedisRateLimit } from '@/lib/server/rate-limit-redis'
 import { env, hasEnv } from '@/src/server/config/env'
 
+let warnedMissingRedis = false
+
 type RateLimitWindow = `${number}${'s' | 'm' | 'h'}`
 
 type RateLimitTier = {
@@ -68,14 +70,13 @@ export async function applyRateLimitForKey(
   const hasPersistentRateLimit = hasEnv('UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN')
 
   if (env.NODE_ENV === 'production' && !hasPersistentRateLimit) {
-    return {
-      allowed: false,
-      headers: {
-        'X-RateLimit-Limit': String(config.limit),
-        'X-RateLimit-Remaining': '0',
-        'X-RateLimit-Reset': String(Date.now() + params.windowMs),
-        'Retry-After': String(Math.max(1, Math.ceil(params.windowMs / 1000))),
-      },
+    // Warn once per process that Redis is not configured (in-memory fallback is per-instance only)
+    if (!warnedMissingRedis) {
+      warnedMissingRedis = true
+      console.warn(
+        '[rate-limit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN not set in production. ' +
+        'Falling back to in-memory rate limiting (not shared across instances).'
+      )
     }
   }
 

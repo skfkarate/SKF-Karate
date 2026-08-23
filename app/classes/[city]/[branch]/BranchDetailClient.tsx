@@ -27,7 +27,8 @@ interface BranchDetailClientProps {
 }
 
 export default function BranchDetailClient({ branch, cityName, citySlug, topPerformers = [], isDirectSkipBranch = false, admissionFormHref = null }: BranchDetailClientProps) {
-    const now = new Date()
+    const istString = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    const now = new Date(istString)
     const [calYear] = useState(now.getFullYear())
     const [calMonth] = useState(now.getMonth())
 

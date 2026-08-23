@@ -488,7 +488,7 @@ export function buildHomeJsonLd() {
         name: 'SKF Karate — Kunigal Headquarters',
         description:
           "Headquarters of SKF Sports Karate Do Fitness and Self-Defense Association in Kunigal, Karnataka. Premier martial arts and karate training center serving Tumkur district.",
-        url: absoluteSiteUrl('/classes/kunigal/kunigal-main'),
+        url: absoluteSiteUrl('/classes/kunigal/kunigal'),
         telephone: CONTACT.PHONE,
         address: {
           '@type': 'PostalAddress',

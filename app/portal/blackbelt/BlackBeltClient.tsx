@@ -11,19 +11,6 @@ import './blackbelt.css'
 const FIRST_AID_LINK = 'https://alison.com/course/first-aid-for-martial-arts'
 const KUMITE_PDF = 'https://www.wkf.net/files/pdf/documents/WKF%202026%20Kumite%20Competition%20Rules%20MASTER%20COPY_V11.pdf'
 const KATA_PDF = 'https://www.wkf.net/files/pdf/documents/WKF%20Kata%20Competition%20Rules%202026%20MASTER%20COPY_V2.pdf'
-const DRIVE_MAP: Record<string, string> = {
-  'SKF13BL000': 'https://drive.google.com/drive/folders/1GGfoE3SOgFsD6wICnp2ztnKHUlEgzjmo?usp=sharing', // SHRIROSHAN P
-  'SKF20HE001': 'https://drive.google.com/drive/folders/1txctxGMEgZxv7zQejhW6s-xN9LpwW1Wz?usp=sharing', // SANJANA S
-  'SKF20HE002': 'https://drive.google.com/drive/folders/1M9zhju2AwPaLbxzhhXB3beSRwFkyzxiB?usp=sharing', // TEJASHREE S
-  'SKF20HE003': 'https://drive.google.com/drive/folders/1aDsAd4ULgD4DLA5NhlqndLstdumseaDv?usp=sharing', // AYUSH KASHYAP G
-  'SKF21HE001': 'https://drive.google.com/drive/folders/1FyLxjvGtJ8JKTxIl57vnjHTKifriRda1?usp=sharing', // ISHAAN GOWDA B S
-  'SKF21HE003': 'https://drive.google.com/drive/folders/1kHHbgIDixJfbHbPHAJJVUQV1zuzuKN0G?usp=sharing', // SHASHANK
-}
-
-function getDriveLink(skfId: string | undefined): string {
-  if (!skfId) return 'https://drive.google.com'
-  return DRIVE_MAP[normaliseSkfId(skfId)] || 'https://drive.google.com'
-}
 
 type Mentee = { name: string; phone: string }
 
@@ -272,8 +259,8 @@ const MONTHS: { num: number; monthName: string; theme: string; desc: string; tas
   },
 ]
 
-const CONTINUOUS_GOALS: (c: BBCandidate) => Task[] = (c) => [
-  { key: 'cg_vid', label: `Training Videos: ${c.video_count}/${c.video_target}`, hint: 'Submit to Google Drive continuously', link: getDriveLink(c.skf_id), linkLabel: 'Upload', status: c.video_count >= c.video_target ? 'done' : c.video_count > 0 ? 'wip' : 'todo' },
+const CONTINUOUS_GOALS: (c: BBCandidate, driveLink: string) => Task[] = (c, driveLink) => [
+  { key: 'cg_vid', label: `Training Videos: ${c.video_count}/${c.video_target}`, hint: 'Submit to Google Drive continuously', link: driveLink, linkLabel: 'Upload', status: c.video_count >= c.video_target ? 'done' : c.video_count > 0 ? 'wip' : 'todo' },
   { key: 'cg_mkt', label: 'Enroll 1 New Student', hint: c.enrolled_student_name || 'Guide a prospective student', status: c.marketing_status === 'enrolled' ? 'done' : 'wip' },
   { key: 'cg_kg', label: 'Kata Gold Medal 🏆', hint: c.tournament_kata_event || 'Achieve gold in Kata', status: c.tournament_kata_status === 'won' ? 'done' : 'todo' },
   { key: 'cg_kug', label: 'Kumite Gold Medal 🏆', hint: c.tournament_kumite_event || 'Achieve gold in Kumite', status: c.tournament_kumite_status === 'won' ? 'done' : 'todo' },
@@ -367,9 +354,9 @@ function ReminderList({ title, tasks, icon: Icon }: { title: string, tasks: Task
 }
 
 /* ═══ MAIN ═══ */
-interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string; renderedAt: string }
+interface Props { program: BBProgram | null; candidates: BBCandidate[]; progressMap: Record<string, BBProgressEntry[]>; currentSkfId: string; renderedAt: string; myDriveLink: string; }
 
-export default function BlackBeltClient({ program, candidates, currentSkfId, renderedAt }: Props) {
+export default function BlackBeltClient({ program, candidates, currentSkfId, renderedAt, myDriveLink }: Props) {
   const referenceDate = useMemo(() => new Date(renderedAt), [renderedAt])
   const curMonth = useMemo(
     () => program ? getCurrentMonth(program.program_start ?? null, referenceDate) : 1,
@@ -426,7 +413,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
 
   const md = MONTHS[activeMonth - 1]
   const tasks = md.tasks(me)
-  const contTasks = CONTINUOUS_GOALS(me)
+  const contTasks = CONTINUOUS_GOALS(me, myDriveLink)
   const mentees = getMentees(me.skf_id, menteeCard.assignments)
 
   const allTasksCount = MONTHS.reduce((s, m) => s + m.tasks(me).length, 0) + contTasks.length
@@ -495,10 +482,12 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
             </div>
 
         {/* TABS NAVIGATION */}
-        <div className="bb-tabs">
+        <div className="bb-tabs" role="tablist">
           <button 
             className={`bb-tab ${activeTab === 'journey' ? 'bb-tab--active' : ''}`}
             onClick={() => setActiveTab('journey')}
+            role="tab"
+            aria-selected={activeTab === 'journey'}
           >
             <Map size={16} className="bb-tab__icon" />
             <span className="bb-tab__label">Journey</span>
@@ -506,6 +495,8 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
           <button 
             className={`bb-tab ${activeTab === 'requirements' ? 'bb-tab--active' : ''}`}
             onClick={() => setActiveTab('requirements')}
+            role="tab"
+            aria-selected={activeTab === 'requirements'}
           >
             <Shield size={16} className="bb-tab__icon" />
             <span className="bb-tab__label">Requirements</span>
@@ -513,6 +504,8 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
           <button 
             className={`bb-tab ${activeTab === 'examination' ? 'bb-tab--active' : ''}`}
             onClick={() => setActiveTab('examination')}
+            role="tab"
+            aria-selected={activeTab === 'examination'}
           >
             <GraduationCap size={16} className="bb-tab__icon" />
             <span className="bb-tab__label">Examination</span>
@@ -523,7 +516,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
       <div className="bb-content-area">
         {/* TAB 1: JOURNEY */}
         {activeTab === 'journey' && (
-          <div className="bb-tab-content bb-in" key="journey">
+          <div className="bb-tab-content bb-in" key="journey" role="tabpanel">
             {/* MONTH SELECTOR */}
             <div className="bb-nav">
               {MONTHS.map(m => {
@@ -639,7 +632,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
 
         {/* TAB 2: REQUIREMENTS */}
         {activeTab === 'requirements' && (
-          <div className="bb-tab-content bb-in" key="requirements">
+          <div className="bb-tab-content bb-in" key="requirements" role="tabpanel">
             <div className="bb-grid bb-grid--equal">
               <div className="bb-col">
                 <div className="bb-section-header">
@@ -679,7 +672,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
                   </div>
                   <div className="bb-vid__bar"><div className="bb-vid__fill" style={{ width: `${Math.min(100, me.video_count / me.video_target * 100)}%` }} /></div>
                   <p className="bb-vid__desc">Record your solo training and submit to Google Drive for review.</p>
-                  <a href={getDriveLink(me?.skf_id)} target="_blank" rel="noopener noreferrer" className="bb-vid__upload">
+                  <a href={myDriveLink} target="_blank" rel="noopener noreferrer" className="bb-vid__upload">
                     <Upload size={16} /> Open Drive Folder <ArrowRight size={14} />
                   </a>
                 </div>
@@ -707,7 +700,7 @@ export default function BlackBeltClient({ program, candidates, currentSkfId, ren
 
         {/* TAB 3: EXAMINATION */}
         {activeTab === 'examination' && (
-          <div className="bb-tab-content bb-in" key="examination">
+          <div className="bb-tab-content bb-in" key="examination" role="tabpanel">
             <div className="bb-grid bb-grid--equal">
               <div className="bb-col">
                 <div className="bb-section-header">

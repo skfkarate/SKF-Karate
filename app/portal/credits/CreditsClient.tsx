@@ -83,7 +83,7 @@ export default function CreditsClient() {
               </div>
               <div>
                 <div className="credits-summary-label">Available Balance</div>
-                <div className="credits-summary-value">₹{data.totalAvailable.toLocaleString()}</div>
+                <div className="credits-summary-value">₹{data.totalAvailable.toLocaleString('en-IN')}</div>
               </div>
             </div>
 
@@ -93,7 +93,7 @@ export default function CreditsClient() {
               </div>
               <div>
                 <div className="credits-summary-label">Lifetime Redeemed</div>
-                <div className="credits-summary-value">₹{data.totalUsed.toLocaleString()}</div>
+                <div className="credits-summary-value">₹{data.totalUsed.toLocaleString('en-IN')}</div>
               </div>
             </div>
           </section>
@@ -145,7 +145,7 @@ export default function CreditsClient() {
                           </span>
                         </div>
                         <div className="credit-entry__meta">
-                          Earned: {new Date(credit.earnedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          Earned: {new Date(credit.earnedAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}
                           {credit.status === 'used' && credit.usedMonth && credit.usedYear && (
                             <span className="credit-entry__used-info">
                               • Applied to {MONTHS[Number(credit.usedMonth)]} {credit.usedYear}
