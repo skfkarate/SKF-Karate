@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 import { sanitizePortalCallbackUrl } from '@/lib/server/auth/portal-callback'
+import { isExternallyManagedBranch, isExternallyManagedPortalPath } from '@/data/constants/branches'
 
 const PORTAL_COOKIE_NAME = 'skf_portal_token'
 const FEETRACK_HOST = 'fees.skfkarate.org'
@@ -10,6 +11,7 @@ const DEFAULT_CANONICAL_HOST = 'www.skfkarate.org'
 type PortalJwtPayload = {
   skfId?: string
   role?: string
+  branch?: string | null
   exp?: number
 }
 
@@ -261,6 +263,21 @@ export async function proxy(request: NextRequest) {
     return attachSecurityHeaders(NextResponse.redirect(buildPortalLoginRedirectUrl(request)), csp, {
       clearPortalCookie,
     })
+  }
+
+  // Externally managed branches (e.g. Kunigal) never see branch-managed portal
+  // sections. Enforced here so athletes get a real HTTP redirect instead of a
+  // streamed client-side one; the page components keep the same check as a
+  // backstop in case a token lacks the branch claim.
+  if (
+    portalSession &&
+    isExternallyManagedBranch(portalSession.branch) &&
+    isExternallyManagedPortalPath(pathname)
+  ) {
+    return attachSecurityHeaders(
+      NextResponse.redirect(new URL('/portal/dashboard', request.url)),
+      csp
+    )
   }
 
   const response = NextResponse.next({

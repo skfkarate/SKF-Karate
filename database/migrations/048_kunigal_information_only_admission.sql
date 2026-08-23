@@ -15,7 +15,7 @@ INSERT INTO admission_branch_settings (
   updated_at
 )
 VALUES (
-  'kunigal-main',
+  'kunigal',
   'Kunigal',
   true,
   true,

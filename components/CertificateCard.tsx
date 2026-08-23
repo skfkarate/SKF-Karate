@@ -69,7 +69,7 @@ export function CertificateCard({ cert }: { cert: CertificateConfig }) {
           </div>
         )}
 
-        <h3 style={{ margin: '0 0 0.5rem 0', color: isLocked ? '#666' : '#f39c12', fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: isLocked ? '#999' : '#f39c12', fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
           {cert.programName}
         </h3>
 
@@ -86,10 +86,10 @@ export function CertificateCard({ cert }: { cert: CertificateConfig }) {
         )}
 
         <div style={{ marginTop: 'auto', marginBottom: isLocked ? '0' : '1.5rem' }}>
-          <p style={{ margin: '0 0 0.25rem 0', color: isLocked ? '#444' : '#fff', fontSize: '0.9rem' }}>
-            Completed: <strong style={{ fontWeight: 600 }}>{new Date(cert.completionDate || '').toLocaleDateString('en-GB') || 'Pending'}</strong>
+          <p style={{ margin: '0 0 0.25rem 0', color: isLocked ? '#888' : '#fff', fontSize: '0.9rem' }}>
+            Completed: <strong style={{ fontWeight: 600 }}>{cert.completionDate ? new Date(cert.completionDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }) : 'Pending'}</strong>
           </p>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.8rem' }}>
+          <p style={{ margin: 0, color: isLocked ? '#999' : '#666', fontSize: '0.8rem' }}>
             Issued by: {cert.issuerName || 'SKF Administration'}
           </p>
         </div>

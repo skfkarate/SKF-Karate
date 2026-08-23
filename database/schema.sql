@@ -809,6 +809,38 @@ DROP POLICY IF EXISTS "service_role_full_portal_practice_photos" ON portal_pract
 CREATE POLICY "service_role_full_portal_practice_photos" ON portal_practice_photos
   FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
+-- Family Groups — explicit multi-child family relationships
+-- Lets parents switch between sibling profiles in the athlete portal.
+
+CREATE TABLE IF NOT EXISTS family_groups (
+  id TEXT PRIMARY KEY,
+  created_by TEXT NOT NULL DEFAULT 'system',
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE family_groups ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_family_groups" ON family_groups
+  FOR ALL USING (auth.role() = 'service_role');
+
+CREATE TABLE IF NOT EXISTS family_group_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id TEXT NOT NULL REFERENCES family_groups(id) ON DELETE CASCADE,
+  skf_id TEXT NOT NULL,
+  guardian_phone TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(group_id, skf_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fgm_skf_id ON family_group_members(skf_id);
+CREATE INDEX IF NOT EXISTS idx_fgm_guardian_phone ON family_group_members(guardian_phone);
+
+ALTER TABLE family_group_members ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_family_group_members" ON family_group_members
+  FOR ALL USING (auth.role() = 'service_role');
+
 INSERT INTO storage.buckets (id, name, public, allowed_mime_types)
 VALUES ('portal-practice-images', 'portal-practice-images', false, ARRAY['image/jpeg', 'image/png', 'image/webp'])
 ON CONFLICT (id) DO UPDATE SET public = false, allowed_mime_types = EXCLUDED.allowed_mime_types;
@@ -1426,7 +1458,7 @@ VALUES
     'Admission payment is Rs. 2,000 and includes dress. Monthly fee is collected in FeeTrack.'
   ),
   (
-    'kunigal-main',
+    'kunigal',
     'Kunigal',
     true,
     true,

@@ -103,6 +103,18 @@ const nextConfig = {
 
     return [
       ...productionRedirects,
+      // Kunigal branch slug renamed from 'kunigal-main' to 'kunigal'.
+      // Config-level redirects guarantee a real HTTP 308 before rendering.
+      {
+        source: '/admission/kunigal-main',
+        destination: '/admission/kunigal',
+        permanent: true,
+      },
+      {
+        source: '/classes/kunigal/kunigal-main',
+        destination: '/classes/kunigal/kunigal',
+        permanent: true,
+      },
       {
         source: '/senseis',
         destination: '/about',

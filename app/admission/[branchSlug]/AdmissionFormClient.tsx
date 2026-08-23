@@ -8,10 +8,14 @@ import { PAYMENT_DETAILS } from '@/data/constants/payment'
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy', err)
+    }
   }
   return (
     <button type="button" onClick={handleCopy} className="adm-btn-copy" title="Copy to clipboard">
@@ -80,7 +84,10 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const feeTrackingEnabled = config.settings.feeTrackingEnabled !== false
 
   useEffect(() => {
-    // Removed auto transition based on user feedback. User must click "Begin Admission" or "ENTER".
+    // Avoid SSR hydration mismatch by setting the expected date on the client only
+    if (!fd.expectedJoinDate) {
+      setFd(p => ({ ...p, expectedJoinDate: todayStr() }))
+    }
   }, [])
 
   const batchOptions = useMemo(() => {
@@ -104,7 +111,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const [quoteError, setQuoteError] = useState('')
 
   const [fd, setFd] = useState({
-    studentName: '', studentDob: '', studentGender: 'male', schoolClass: '', expectedJoinDate: todayStr(), preferredBatch: batchOptions[0] || '',
+    studentName: '', studentDob: '', studentGender: 'male', schoolClass: '', expectedJoinDate: '', preferredBatch: batchOptions[0] || '',
     guardianName: '', guardianRelationship: '', guardianPhone: '', guardianWhatsapp: '', guardianEmail: '',
     emergencyName: '', emergencyRelationship: '', emergencyPhone: '',
     hasMedicalCondition: false, medicalDetails: '', medications: '', specialRequirements: '',
@@ -182,6 +189,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   }, [baseFeeQuote, config.branch.slug, fd.guardianPhone, fd.promoCode, feeTrackingEnabled])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setErrorMsg('')
     const { name, value, type } = e.target
     if (type === 'checkbox') { setFd(p => ({ ...p, [name]: (e.target as HTMLInputElement).checked })) }
     else if (name === 'guardianPhone') { const v = formatPhone(value); setFd(p => { const n = { ...p, guardianPhone: v }; if (syncWhatsapp) n.guardianWhatsapp = v; if (syncEmergency) n.emergencyPhone = v; return n }) }
@@ -238,15 +246,17 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const handleStudentPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Photo must be a JPG, PNG, or WebP image.'); return }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Photo must be a JPG, PNG, or WebP image.'); e.target.value = ''; return }
       try {
         const compressed = await compressImage(file, 800, 0.85)
-        if (compressed.size > 4.5 * 1024 * 1024) { setErrorMsg('Photo is still too large after compression. Please use a smaller image.'); return }
+        if (compressed.size > 5 * 1024 * 1024) { setErrorMsg('Photo is still too large after compression. Please use a smaller image.'); e.target.value = ''; return }
         const reader = new FileReader()
         reader.onloadend = () => { setFd(p => ({ ...p, studentPhotoBase64: reader.result as string, studentPhotoName: compressed.name, studentPhotoFile: compressed })) }
+        reader.onerror = () => { setErrorMsg('Failed to read the file.'); e.target.value = ''; }
         reader.readAsDataURL(compressed)
       } catch {
         setErrorMsg('Failed to process the photo. Please try another one.')
+        e.target.value = ''
       }
     }
   }
@@ -254,10 +264,10 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const handlePaymentProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Payment screenshot must be a JPG, PNG, or WebP image.'); return }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setErrorMsg('Payment screenshot must be a JPG, PNG, or WebP image.'); e.target.value = ''; return }
       try {
         const compressed = await compressImage(file, 1000, 0.85)
-        if (compressed.size > 4.5 * 1024 * 1024) { setErrorMsg('Payment screenshot is still too large after compression. Please use a smaller image.'); return }
+        if (compressed.size > 5 * 1024 * 1024) { setErrorMsg('Payment screenshot is still too large after compression. Please use a smaller image.'); e.target.value = ''; return }
         const reader = new FileReader()
         reader.onloadend = () => {
           setFd(p => ({
@@ -267,9 +277,11 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
             paymentProofFile: compressed,
           }))
         }
+        reader.onerror = () => { setErrorMsg('Failed to read the file.'); e.target.value = ''; }
         reader.readAsDataURL(compressed)
       } catch {
         setErrorMsg('Failed to process the payment screenshot. Please try another one.')
+        e.target.value = ''
       }
     }
   }
@@ -778,7 +790,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
             </div>
           )}
 
-          {errorMsg && <div className="adm-error">{errorMsg}</div>}
+          {errorMsg && <div className="adm-error" role="alert" aria-live="assertive">{errorMsg}</div>}
 
           <div className="adm-controls">
             <button type="button" className="adm-btn-back" onClick={prev} disabled={submitState === 'submitting'}>

@@ -63,10 +63,37 @@ export default function Navbar() {
         }
     }, [])
 
-    // Lock body scroll when drawer is open
+    // Lock body scroll and handle focus trap / Escape key
     useEffect(() => {
-        document.body.style.overflow = drawerOpen ? 'hidden' : ''
-        return () => { document.body.style.overflow = '' }
+        if (drawerOpen) {
+            document.body.style.overflow = 'hidden'
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') setDrawerOpen(false)
+                if (e.key === 'Tab') {
+                    const focusable = document.querySelectorAll('#public-site-menu a[href], #public-site-menu button:not([disabled])')
+                    if (focusable.length) {
+                        const first = focusable[0] as HTMLElement
+                        const last = focusable[focusable.length - 1] as HTMLElement
+                        if (e.shiftKey && document.activeElement === first) {
+                            e.preventDefault(); last.focus()
+                        } else if (!e.shiftKey && document.activeElement === last) {
+                            e.preventDefault(); first.focus()
+                        }
+                    }
+                }
+            }
+            document.addEventListener('keydown', handleKeyDown)
+            setTimeout(() => {
+                const first = document.querySelector('#public-site-menu a[href], #public-site-menu button:not([disabled])') as HTMLElement
+                if (first) first.focus()
+            }, 100)
+            return () => {
+                document.body.style.overflow = ''
+                document.removeEventListener('keydown', handleKeyDown)
+            }
+        } else {
+            document.body.style.overflow = ''
+        }
     }, [drawerOpen])
 
     const toggleSubmenu = (label: string) => {

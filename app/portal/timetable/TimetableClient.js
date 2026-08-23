@@ -14,6 +14,7 @@ export default function TimetableClient({ branchName, timetableData }) {
   const notes = timetableData?.notes || ''
 
   const [isZoomed, setIsZoomed] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   return (
     <SecureContentWrapper>
@@ -136,15 +137,25 @@ export default function TimetableClient({ branchName, timetableData }) {
                 {/* eslint-disable-next-line @next/next/no-img-element -- Timetable URLs can be branch-configured external assets. */}
 	                <img
 	                  src={imageUrl}
-	                  alt="Timetable Schedule"
+	                  alt={`Timetable Schedule for ${branchName}`}
 	                  loading="lazy"
 	                  decoding="async"
+                    onError={() => setImgError(true)}
+                    width={800}
+                    height={1131}
 	                  style={{ 
-                    width: '100%', height: 'auto', display: 'block', 
-                    background: 'rgba(5,5,5,0.5)', pointerEvents: 'none' 
-                  }}
-                  draggable={false}
-                />
+                      width: '100%', height: 'auto', display: imgError ? 'none' : 'block', 
+                      background: 'rgba(5,5,5,0.5)', pointerEvents: 'none' 
+                    }}
+                    draggable={false}
+                  />
+                  {imgError && (
+                    <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#fff' }}>
+                      <AlertCircle size={32} color="#ff6b6b" style={{ margin: '0 auto 1rem', display: 'block' }} />
+                      <p style={{ margin: '0 0 1rem 0' }}>Failed to load the timetable image. The link might be broken or inaccessible.</p>
+                      <a href={imageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', textDecoration: 'underline', fontSize: '0.9rem' }}>Open link directly</a>
+                    </div>
+                  )}
               </div>
 
             </div>

@@ -35,7 +35,7 @@ export type CertificateType =
   | 'achievement'
 export type UserRole = 'student' | 'sensei' | 'branch_admin' | 'super_admin'
 export type Belt = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black'
-export type Branch = 'mp-sports-club' | 'herohalli' | 'kunigal-main' | 'tumkur-main' | 'udupi-main' | string
+export type Branch = 'mp-sports-club' | 'herohalli' | 'kunigal' | 'tumkur-main' | 'udupi-main' | string
 export type SponsorTier = 'Gold' | 'Silver' | 'Bronze'
 export type MedalType = 'gold' | 'silver' | 'bronze'
 export type TournamentLevel = 'inter-dojo' | 'district' | 'state' | 'national' | 'international'

@@ -61,7 +61,7 @@ export class PortalAuthService {
       throw new AuthenticationError('Invalid SKF ID or date of birth.')
     }
 
-    if (athlete.dateOfBirth !== normalizedDob) {
+    if (String(athlete.dateOfBirth ?? '').slice(0, 10) !== normalizedDob) {
       await recordSiteAnalyticsEvent({
         eventType: 'portal_login_failed',
         path: '/portal/login',
@@ -127,37 +127,41 @@ export class PortalAuthService {
     if (!currentAthlete) return []
 
     // 1. Check explicit family groups first (most reliable)
-    const { data: groupMembers } = await supabaseAdmin
-      .from('family_group_members')
-      .select('group_id')
-      .eq('skf_id', currentNormalized)
-      .maybeSingle()
-
-    if (groupMembers?.group_id) {
-      const { data: memberRows } = await supabaseAdmin
+    try {
+      const { data: groupMembers } = await supabaseAdmin
         .from('family_group_members')
-        .select('skf_id')
-        .eq('group_id', groupMembers.group_id)
-        .neq('skf_id', currentNormalized)
+        .select('group_id')
+        .eq('skf_id', currentNormalized)
+        .maybeSingle()
 
-      // Group is authoritative — do NOT fall through to phone matching
-      if (!memberRows || memberRows.length === 0) return []
+      if (groupMembers?.group_id) {
+        const { data: memberRows } = await supabaseAdmin
+          .from('family_group_members')
+          .select('skf_id')
+          .eq('group_id', groupMembers.group_id)
+          .neq('skf_id', currentNormalized)
 
-      const results = await Promise.all(
-        memberRows.map(m => getAthleteBySkfIdLive(m.skf_id))
-      )
-      return results
-        .filter((a): a is NonNullable<typeof a> => a !== null && isEligiblePortalAthlete(a))
-        .sort((a, b) => athleteDisplayName(a).localeCompare(athleteDisplayName(b)))
-        .map((athlete) => ({
-          skfId: athlete.skfId,
-          name: athleteDisplayName(athlete),
-          firstName: athlete.firstName,
-          lastName: athlete.lastName,
-          currentBelt: athlete.currentBelt,
-          photoUrl: resolveServerAthleteProfilePhoto(athlete),
-          branchName: athlete.branchName,
-        }))
+        // Group is authoritative — do NOT fall through to phone matching
+        if (!memberRows || memberRows.length === 0) return []
+
+        const results = await Promise.all(
+          memberRows.map(m => getAthleteBySkfIdLive(m.skf_id))
+        )
+        return results
+          .filter((a): a is NonNullable<typeof a> => a !== null && isEligiblePortalAthlete(a))
+          .sort((a, b) => athleteDisplayName(a).localeCompare(athleteDisplayName(b)))
+          .map((athlete) => ({
+            skfId: athlete.skfId,
+            name: athleteDisplayName(athlete),
+            firstName: athlete.firstName,
+            lastName: athlete.lastName,
+            currentBelt: athlete.currentBelt,
+            photoUrl: resolveServerAthleteProfilePhoto(athlete),
+            branchName: athlete.branchName,
+          }))
+      }
+    } catch {
+      // family_group_members table may not exist yet — fall through to phone-based discovery
     }
 
     // 2. Fall back to implicit phone-based discovery

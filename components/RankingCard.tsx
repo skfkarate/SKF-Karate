@@ -124,7 +124,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
           <p
             style={{
               fontSize: '1.8rem',
-              color: 'rgba(255,255,255,0.7)',
+              color: 'rgba(255,255,255,0.85)',
               margin: '0 0 30px 0',
               fontWeight: 700,
               letterSpacing: '2px',
@@ -167,7 +167,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               />
               <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff' }}>
                 {goldStats}{' '}
-                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>
+                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>
                   GOLD
                 </span>
               </span>
@@ -185,7 +185,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               />
               <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff' }}>
                 {silverStats}{' '}
-                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>
+                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>
                   SILVER
                 </span>
               </span>
@@ -203,7 +203,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               />
               <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff' }}>
                 {bronzeStats}{' '}
-                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>
+                <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>
                   BRONZE
                 </span>
               </span>
@@ -220,7 +220,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
           >
             <span style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>
               #{overallRank} OVERALL{' '}
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>
+              <span style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 400 }}>
                 — SKF RANKINGS 2026
               </span>
             </span>
@@ -236,7 +236,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             textAlign: 'center',
             fontSize: '1.5rem',
             fontWeight: 800,
-            color: 'rgba(255,255,255,0.4)',
+            color: 'rgba(255,255,255,0.75)',
             letterSpacing: '4px',
           }}
         >
@@ -303,7 +303,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             <h2 style={{ fontFamily: 'var(--font-heading), sans-serif', color: '#ffb703', fontSize: '24px', textTransform: 'uppercase', letterSpacing: '4px', margin: 0 }}>
               SKF Karate
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', margin: '6px 0 0 0', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 700 }}>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', margin: '6px 0 0 0', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 700 }}>
               Official Athlete Profile
             </p>
           </div>
@@ -384,10 +384,10 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
           >
             <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '150px', height: '150px', background: 'rgba(255,183,3,0.15)', filter: 'blur(50px)' }} />
             
-            <p style={{ margin: '0 0 15px 0', color: 'rgba(255,183,3,0.8)', fontSize: '18px', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800 }}>
+            <p style={{ margin: '0 0 15px 0', color: '#ffb703', fontSize: '18px', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800 }}>
               SKF Ranking
             </p>
-            <p style={{ margin: '0 0 10px 0', color: 'rgba(255,255,255,0.6)', fontSize: '24px', fontWeight: 600, letterSpacing: '1px' }}>
+            <p style={{ margin: '0 0 10px 0', color: 'rgba(255,255,255,0.85)', fontSize: '24px', fontWeight: 600, letterSpacing: '1px' }}>
               {primary?.name}
             </p>
             <h3 style={{ margin: 0, fontSize: '110px', color: '#ffb703', fontFamily: 'var(--font-heading), sans-serif', lineHeight: 1, textShadow: '0 10px 30px rgba(255,183,3,0.2)' }}>
@@ -395,7 +395,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
             </h3>
             <div style={{ marginTop: 'auto', paddingTop: '25px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               <span style={{ color: '#fff', fontSize: '32px', fontWeight: 800 }}>{primary?.points != null ? Number(primary.points).toLocaleString('en-IN') : '0'}</span>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '16px', marginLeft: '10px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Points</span>
+              <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '16px', marginLeft: '10px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Points</span>
             </div>
           </div>
 
@@ -410,7 +410,7 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               flexDirection: 'column',
             }}
           >
-            <p style={{ margin: '0 0 35px 0', color: 'rgba(255,255,255,0.5)', fontSize: '18px', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800 }}>
+            <p style={{ margin: '0 0 35px 0', color: 'rgba(255,255,255,0.85)', fontSize: '18px', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800 }}>
               Career Honors
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', flex: 1 }}>
@@ -428,13 +428,13 @@ export const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>((props, 
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '28px', fontWeight: 900 }}>{totalMedals}</div>
-                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '22px', fontWeight: 700 }}>Total</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '22px', fontWeight: 700 }}>Total</span>
               </div>
             </div>
             
             <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: '20px' }}>
               <div style={{ display: 'inline-block', borderBottom: '2px solid rgba(255,183,3,0.5)', paddingBottom: '5px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '4px' }}>SKFKARATE.ORG</span>
+                <span style={{ fontSize: '18px', fontWeight: 800, color: 'rgba(255,255,255,0.75)', letterSpacing: '4px' }}>SKFKARATE.ORG</span>
               </div>
             </div>
           </div>
