@@ -4,7 +4,26 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
-import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, Folder, FolderOpen, Image as ImageIcon, Lock, Play, PlayCircle, Search } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Copy,
+  Folder,
+  FolderOpen,
+  History,
+  Image as ImageIcon,
+  Layers,
+  Lock,
+  Maximize2,
+  Play,
+  PlayCircle,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react'
 
 import SecureContentWrapper from '@/app/_components/portal/SecureContentWrapper'
 import YouTubeNativePlayer from '@/components/video/YouTubeNativePlayer'
@@ -14,137 +33,297 @@ import { useNonce } from '@/components/NonceProvider'
 import { redirectToCurrentPortalLogin } from '@/app/_components/portal/portalClientRedirect'
 
 /**
- * Responsive + alignment layer for the Home Practice Library.
- * Kept beside the component because every rule here exists to make the
- * library behave like a streaming shelf (uniform tiles, snap rails,
- * viewport-fit player) across phones, tablets, and desktops.
+ * Home Practice Library — "Dojo Stream" shell.
+ * Every rule below exists to keep the library reading like a premium
+ * streaming surface (uniform tiles, snap rails, viewport-fit player)
+ * while matching the Kuroobi portal theme: pure-black base, amber
+ * ambient signature, glass shelves, Outfit headings.
  */
 const PRACTICE_LIBRARY_CSS = `
-.pv-main { display: grid; gap: 3rem; max-width: 1400px; margin: 0 auto; }
-.pv-h2 {
-  padding: 0 max(4%, 1rem); margin: 0 0 1rem; color: #f1f5f9;
-  font-size: clamp(1.15rem, 1rem + 0.9vw, 1.3rem); font-weight: 850;
-  display: flex; align-items: center; gap: 0.65rem;
+.pv-root{
+  --pv-gold:#ffb703;
+  --pv-crimson:#d62828;
+  --pv-jade:#2dd4bf;
+  --pv-surface:rgba(255,255,255,.04);
+  --pv-surface-2:rgba(255,255,255,.07);
+  --pv-edge:rgba(255,255,255,.08);
+  --pv-edge-2:rgba(255,255,255,.16);
+  --pv-dim:rgba(255,255,255,.55);
+  --pv-dimmer:rgba(255,255,255,.35);
+  --pv-heading:var(--font-heading,'Outfit');
+  --pv-pad-x:max(4%,1rem);
+  position:relative; min-height:100dvh; width:100%;
+  overflow-x:hidden; background:#000; color:#fff;
+  padding-bottom:calc(6rem + env(safe-area-inset-bottom));
 }
 
-/* Grids */
-.pv-grid { display: grid; gap: 1.15rem; padding: 0 max(4%, 1rem) 1rem; align-items: start; }
-.pv-grid-folders { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; padding-bottom: 0.5rem; }
-.pv-grid-videos { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-.pv-grid-photos { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+/* ── Ambient page signature (amber variant of the portal aura) ── */
+.pv-aura{position:absolute;top:-12%;left:50%;transform:translateX(-50%);width:86%;max-width:1150px;height:560px;
+  background:radial-gradient(ellipse at top,rgba(255,183,3,.13) 0%,transparent 68%);pointer-events:none;z-index:0}
+.pv-aura-side{position:absolute;top:26%;left:-9%;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,40,40,.055) 0%,transparent 70%);pointer-events:none;z-index:0}
+.pv-aura-deep{position:absolute;bottom:6%;right:-10%;width:480px;height:480px;border-radius:50%;
+  background:radial-gradient(circle,rgba(45,212,191,.035) 0%,transparent 70%);pointer-events:none;z-index:0}
 
-/* Folder view keeps one vertical rhythm between its stacked shelves */
-.pv-folder-view > * + * { margin-top: 1.75rem; }
+/* ── Hero ── */
+.pv-hero{position:relative;max-width:1440px;margin:0 auto;padding:clamp(2.5rem,7vw,4.25rem) var(--pv-pad-x) .25rem}
+.pv-hero-kanji{position:absolute;top:44%;right:max(1%,0);transform:translateY(-50%);
+  font-size:clamp(11rem,26vw,19rem);line-height:1;font-weight:900;color:#fff;opacity:.03;
+  user-select:none;pointer-events:none;font-family:var(--pv-heading)}
+.pv-tag{display:inline-flex;align-items:center;gap:.5rem;padding:.42rem .95rem;border-radius:999px;
+  background:rgba(255,183,3,.09);border:1px solid rgba(255,183,3,.24);color:var(--pv-gold);
+  font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:1.15rem}
+.pv-hero-title{margin:0;font-family:var(--pv-heading);font-size:clamp(2.35rem,6vw,4.3rem);font-weight:900;
+  letter-spacing:-.03em;line-height:1.05;
+  background:linear-gradient(180deg,#fff 20%,rgba(255,255,255,.55) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pv-hero-title b{background:linear-gradient(180deg,#ffd34d 10%,#ffb703 90%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pv-hero-copy{margin:1.05rem 0 0;max-width:620px;color:var(--pv-dim);line-height:1.65;font-size:clamp(.95rem,1.6vw,1.06rem)}
+
+.pv-stats{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.9rem}
+.pv-stat{display:flex;align-items:center;gap:.8rem;padding:.85rem 1.15rem;border-radius:18px;
+  border:1px solid var(--pv-edge);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.008));
+  backdrop-filter:blur(10px)}
+.pv-stat-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;border:1px solid}
+.pv-stat-ic--gold{background:rgba(255,183,3,.1);border-color:rgba(255,183,3,.24);color:var(--pv-gold)}
+.pv-stat-ic--red{background:rgba(214,40,40,.1);border-color:rgba(214,40,40,.26);color:#ff7b7b}
+.pv-stat-ic--jade{background:rgba(45,212,191,.1);border-color:rgba(45,212,191,.26);color:var(--pv-jade)}
+.pv-stat-ic--neutral{background:rgba(255,255,255,.06);border-color:var(--pv-edge-2);color:#fff}
+.pv-stat-val{display:block;font-family:var(--pv-heading);font-size:1.32rem;font-weight:850;line-height:1;color:#fff}
+.pv-stat-lbl{display:block;margin-top:.3rem;font-size:.62rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--pv-dimmer)}
+
+.pv-searchwrap{position:relative;max-width:540px;margin-top:1.7rem}
+.pv-searchicon{position:absolute;left:1.05rem;top:50%;transform:translateY(-50%);color:var(--pv-dimmer);pointer-events:none}
+.pv-search{width:100%;min-height:54px;box-sizing:border-box;border-radius:18px;border:1px solid var(--pv-edge);
+  background:rgba(255,255,255,.045);color:#fff;padding:.8rem 3.4rem .8rem 3rem;font-size:.95rem;outline:none;
+  backdrop-filter:blur(12px);transition:border-color .25s ease,background .25s ease,box-shadow .25s ease}
+.pv-search::placeholder{color:rgba(255,255,255,.32)}
+.pv-search:focus{border-color:rgba(255,183,3,.5);background:rgba(255,183,3,.05);box-shadow:0 0 0 4px rgba(255,183,3,.09)}
+@media (max-width:640px){.pv-search{font-size:16px}}
+.pv-clear{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);padding:.45rem .75rem;border:0;
+  border-radius:10px;background:rgba(255,255,255,.07);color:var(--pv-dim);cursor:pointer;font-weight:800;
+  font-size:.76rem;transition:background .2s,color .2s}
+.pv-clear:hover{color:#fff;background:rgba(255,255,255,.14)}
+
+/* ── Shelves ── */
+.pv-shell{position:relative;z-index:1;display:grid;gap:2.75rem;max-width:1440px;margin:0 auto;padding-bottom:1.5rem}
+.pv-shelfhead{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:0 var(--pv-pad-x);margin-bottom:1.05rem}
+.pv-shelftitle{display:flex;align-items:center;gap:.7rem;margin:0;font-family:var(--pv-heading);
+  font-size:clamp(1.12rem,1rem+.8vw,1.3rem);font-weight:800;letter-spacing:-.01em}
+.pv-shelfic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;
+  background:rgba(255,183,3,.09);border:1px solid rgba(255,183,3,.22);color:var(--pv-gold)}
+.pv-pill{font-size:.7rem;font-weight:800;letter-spacing:.08em;color:var(--pv-gold);
+  background:rgba(255,183,3,.08);border:1px solid rgba(255,183,3,.18);padding:.3rem .75rem;border-radius:999px;white-space:nowrap}
+
+.pv-grid{display:grid;gap:1.15rem;padding:0 var(--pv-pad-x);align-items:start}
+.pv-grid-folders{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.pv-grid-videos{grid-template-columns:repeat(auto-fill,minmax(255px,1fr))}
+.pv-grid-photos{grid-template-columns:repeat(auto-fill,minmax(205px,1fr))}
 
 /* Netflix-style rail */
-.pv-rail-wrap { position: relative; }
-.pv-rail {
-  display: flex; gap: 0.85rem; overflow-x: auto; align-items: stretch;
-  padding: 0 max(4%, 1rem) 1rem;
-  scroll-snap-type: x proximity; scroll-padding-left: max(4%, 1rem);
-  -webkit-overflow-scrolling: touch;
-}
-.kuroobi-scrollbar-hide::-webkit-scrollbar { display: none; }
-.kuroobi-scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.pv-rail-arrow {
-  position: absolute; top: 50%; transform: translateY(calc(-50% - 0.5rem));
-  width: 42px; height: 42px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.18); background: rgba(10,10,12,0.85);
-  color: #fff; display: none; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 2; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.2s ease;
-}
-.pv-rail-arrow--left { left: 0.6rem; }
-.pv-rail-arrow--right { right: 0.6rem; }
-@media (hover: hover) and (min-width: 900px) {
-  .pv-rail-arrow { display: flex; pointer-events: auto; }
-  .pv-rail-wrap:hover .pv-rail-arrow, .pv-rail-arrow:focus-visible { opacity: 1; }
+.pv-railwrap{position:relative}
+.pv-rail{display:flex;gap:1rem;overflow-x:auto;align-items:stretch;padding:0 var(--pv-pad-x) 1rem;
+  scroll-snap-type:x proximity;scroll-padding-left:var(--pv-pad-x);-webkit-overflow-scrolling:touch}
+.kuroobi-scrollbar-hide::-webkit-scrollbar{display:none}
+.kuroobi-scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
+.pv-arrow{position:absolute;top:calc(50% - .5rem);transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--pv-edge-2);background:rgba(8,8,10,.85);color:#fff;display:none;place-items:center;
+  cursor:pointer;z-index:2;box-shadow:0 10px 26px rgba(0,0,0,.6);backdrop-filter:blur(10px);opacity:0;
+  transition:opacity .25s ease,border-color .25s ease,color .25s ease}
+.pv-arrow--l{left:.7rem}.pv-arrow--r{right:.7rem}
+.pv-arrow:hover{border-color:rgba(255,183,3,.55);color:var(--pv-gold)}
+@media (hover:hover) and (min-width:900px){
+  .pv-arrow{display:grid;pointer-events:auto}
+  .pv-railwrap:hover .pv-arrow,.pv-arrow:focus-visible{opacity:1}
 }
 
-/* Interaction polish */
-.pv-tap { -webkit-tap-highlight-color: transparent; }
-.pv-focus:focus-visible { outline: 2px solid #ffb703; outline-offset: 2px; }
-.pv-crumb {
-  border: 0; background: transparent; cursor: pointer; padding: 0.35rem 0;
-  font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px;
-}
+/* ── Folder card ── */
+.pv-fcard{position:relative;overflow:hidden;display:flex;flex-direction:column;width:100%;text-align:left;
+  cursor:pointer;color:#fff;padding:1.2rem 1.2rem 1.15rem;border-radius:20px;border:1px solid var(--pv-edge);
+  background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.01));-webkit-tap-highlight-color:transparent;
+  transition:border-color .25s ease,box-shadow .35s ease}
+.pv-fcard::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(130% 100% at 100% 0%,rgba(255,183,3,.09),transparent 55%);
+  opacity:0;transition:opacity .3s ease;pointer-events:none}
+.pv-fcard:hover{border-color:rgba(255,183,3,.32);box-shadow:0 20px 44px rgba(0,0,0,.55)}
+.pv-fcard:hover::before{opacity:1}
+.pv-fcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.05rem}
+.pv-fcard-ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+  background:rgba(255,183,3,.1);border:1px solid rgba(255,183,3,.24);color:var(--pv-gold);
+  box-shadow:0 6px 18px rgba(255,183,3,.08)}
+.pv-fcard-go{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid var(--pv-edge);background:rgba(255,255,255,.04);color:var(--pv-dimmer);
+  transition:background .25s,border-color .25s,color .25s,transform .3s cubic-bezier(.16,1,.3,1)}
+.pv-fcard:hover .pv-fcard-go{background:var(--pv-gold);border-color:var(--pv-gold);color:#000;transform:translateX(3px)}
+.pv-fcard-name{font-family:var(--pv-heading);font-size:1.08rem;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-fcard-meta{margin-top:.35rem;font-size:.8rem;color:var(--pv-dim);line-height:1.4}
+.pv-fprog{margin-top:1.05rem}
+.pv-fprog-track{height:5px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.pv-fprog-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#ffb703,#ffc93d);
+  box-shadow:0 0 10px rgba(255,183,3,.45);transition:width .7s cubic-bezier(.16,1,.3,1)}
+.pv-fprog-fill--full{background:linear-gradient(90deg,#1fa88f,var(--pv-jade));box-shadow:0 0 10px rgba(45,212,191,.4)}
+.pv-fprog-lbl{display:flex;justify-content:space-between;margin-top:.5rem;font-size:.7rem;font-weight:750;color:var(--pv-dimmer)}
+.pv-fprog-lbl b{color:var(--pv-dim);font-weight:800}
 
-/* Video tile text */
-.pv-video-overlay { position: absolute; left: 0.85rem; right: 0.85rem; bottom: 0.75rem; }
-.pv-video-title {
-  font-weight: 800; line-height: 1.25; font-size: 0.95rem;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.pv-video-title--sm { font-size: 0.8rem; }
-.pv-video-meta { margin-top: 0.3rem; color: rgba(255,255,255,0.65); font-size: 0.75rem; display: flex; align-items: center; gap: 0.35rem; }
+/* ── Video tile ── */
+.pv-tap{-webkit-tap-highlight-color:transparent}
+.pv-focus:focus-visible{outline:2px solid var(--pv-gold);outline-offset:2px}
+.pv-tile{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);background:#0b0b0e;color:#fff;cursor:pointer;text-align:left;
+  box-shadow:0 12px 30px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent;
+  transition:border-color .25s ease,box-shadow .35s ease}
+.pv-tile:hover{border-color:rgba(255,255,255,.22);box-shadow:0 22px 48px rgba(0,0,0,.6)}
+.pv-tile--locked{cursor:not-allowed}
+.pv-tile--done{border-color:rgba(45,212,191,.28)}
+.pv-tile-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.28) 46%,transparent 68%),
+             linear-gradient(to bottom,rgba(0,0,0,.42),transparent 30%)}
+.pv-chipdur{position:absolute;top:.75rem;right:.75rem;display:inline-flex;align-items:center;gap:.32rem;
+  padding:.32rem .65rem;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(8px);font-size:.7rem;font-weight:750}
+.pv-badgedone{position:absolute;top:.7rem;left:.7rem;width:30px;height:30px;border-radius:50%;display:grid;
+  place-items:center;background:rgba(45,212,191,.16);border:1px solid rgba(45,212,191,.45);color:var(--pv-jade);
+  backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.pv-playbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(10,10,12,.5);border:1px solid rgba(255,255,255,.28);
+  backdrop-filter:blur(10px);color:#fff;pointer-events:none;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .25s ease,color .25s ease,border-color .25s ease}
+.pv-tile:hover .pv-playbtn{transform:translate(-50%,-50%) scale(1.1);background:var(--pv-gold);border-color:var(--pv-gold);color:#000}
+@media (hover:none){.pv-playbtn{width:44px;height:44px;background:rgba(0,0,0,.4)}}
+.pv-lockov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);color:rgba(255,255,255,.75)}
+.pv-tileinfo{position:absolute;left:1rem;right:1rem;bottom:.95rem;pointer-events:none}
+.pv-tiletitle{font-weight:800;line-height:1.28;font-size:.95rem;text-shadow:0 2px 10px rgba(0,0,0,.85);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pv-rail .pv-tiletitle{font-size:.82rem}
+.pv-tilemeta{display:flex;align-items:center;gap:.4rem;margin-top:.32rem;font-size:.73rem;color:rgba(255,255,255,.6)}
+.pv-tilebar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.15)}
+.pv-tilebar i{display:block;height:100%;background:linear-gradient(90deg,var(--pv-gold),var(--pv-crimson));
+  box-shadow:0 0 12px rgba(255,183,3,.55)}
 
-/* Search — 16px stops iOS Safari zoom-on-focus */
-.practice-search:focus { border-color: rgba(255,183,3,0.55); background: rgba(255,255,255,0.08); }
-.practice-search::placeholder { color: rgba(255,255,255,0.35); }
-@media (max-width: 640px) { .practice-search { font-size: 16px; } }
-.pv-clear { padding: 0.55rem 0.4rem; margin-right: 2px; }
+/* ── Photo guide card ── */
+.pv-ph{display:block;color:#fff;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.pv-ph-frame{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;border:1px solid var(--pv-edge);
+  background:#0b0b0e;transition:border-color .25s ease,box-shadow .35s ease,transform .35s cubic-bezier(.16,1,.3,1)}
+.pv-ph:hover .pv-ph-frame{border-color:rgba(255,183,3,.35);transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,0,0,.5)}
+.pv-ph-img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.pv-ph:hover .pv-ph-img{transform:scale(1.06)}
+.pv-ph-zoom{position:absolute;right:.6rem;bottom:.6rem;width:30px;height:30px;border-radius:9px;display:grid;
+  place-items:center;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);
+  color:#fff;opacity:0;transition:opacity .25s ease;pointer-events:none}
+.pv-ph:hover .pv-ph-zoom{opacity:1}
+.pv-ph-cap{margin-top:.6rem;font-weight:800;font-size:.92rem;line-height:1.35}
+.pv-ph-desc{margin-top:.15rem;font-size:.78rem;color:var(--pv-dim)}
 
-/* Player — box always fits the viewport height (no giant scroll for shorts) */
-.pv-player-bar {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-  padding: max(0.75rem, env(safe-area-inset-top)) clamp(1rem, 4vw, 2rem) 1rem;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
-  pointer-events: none; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-}
-.pv-viewer {
-  --pv-chrome: 11.5rem;
-  flex: 1; width: 100%; min-height: 0;
-  display: flex; align-items: flex-start; justify-content: center;
-  overflow-y: auto; overscroll-behavior: contain;
-  padding: max(4.5rem, calc(env(safe-area-inset-top) + 4rem)) max(4%, 1rem) max(2rem, env(safe-area-inset-bottom));
-}
-.pv-player-col { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; margin: 0 auto; }
-.pv-player-col--wide {
-  max-width: min(1280px, calc((100vh - var(--pv-chrome)) * 16 / 9));
-  max-width: min(1280px, calc((100dvh - var(--pv-chrome)) * 16 / 9));
-}
-.pv-player-col--short {
-  max-width: min(440px, calc((100vh - var(--pv-chrome)) * 9 / 16));
-  max-width: min(440px, calc((100dvh - var(--pv-chrome)) * 9 / 16));
-}
-.pv-player-title { margin: 0; color: #fff; font-size: clamp(1.05rem, 1rem + 1vw, 1.8rem); line-height: 1.25; font-weight: 850; }
-.pv-player-box {
-  position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
-  border-radius: clamp(12px, 2vw, 24px); border: 1px solid rgba(255,255,255,0.12);
-  background: #000; box-shadow: 0 25px 70px rgba(0,0,0,0.85);
-}
-.pv-player-box--short { aspect-ratio: 9 / 16; }
-.pv-note {
-  margin-top: 0.25rem; border-radius: 20px; border: 1px solid rgba(255,183,3,0.2);
-  background: linear-gradient(145deg, rgba(25,25,28,0.85), rgba(14,14,16,0.95));
-  padding: 1.25rem 1.5rem; color: #fff; box-shadow: 0 12px 36px rgba(0,0,0,0.4);
-  backdrop-filter: blur(12px);
-}
+/* ── Folder view ── */
+.pv-folderview>*+*{margin-top:2.4rem}
+.pv-fhead{padding:max(1.4rem,env(safe-area-inset-top)) var(--pv-pad-x) 0}
+.pv-crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem}
+.pv-crumb{display:inline-flex;align-items:center;gap:.35rem;padding:.44rem .9rem;border-radius:999px;
+  border:1px solid var(--pv-edge);background:var(--pv-surface);color:var(--pv-dim);font-size:.78rem;font-weight:750;
+  cursor:pointer;transition:color .2s,border-color .2s,background .2s;-webkit-tap-highlight-color:transparent}
+.pv-crumb:hover{color:#fff;border-color:var(--pv-edge-2);background:var(--pv-surface-2)}
+.pv-crumb--home{color:var(--pv-gold);border-color:rgba(255,183,3,.28);background:rgba(255,183,3,.07)}
+.pv-crumb--home:hover{color:#ffd34d;border-color:rgba(255,183,3,.5);background:rgba(255,183,3,.12)}
+.pv-crumb-here{padding:.44rem .2rem;color:#fff;font-weight:850;font-size:.86rem}
+.pv-crumb-sep{color:rgba(255,255,255,.22);font-size:.8rem}
+.pv-fhead-title{margin:.2rem 0 0;font-family:var(--pv-heading);font-size:clamp(1.9rem,5.4vw,2.9rem);font-weight:900;
+  letter-spacing:-.025em;line-height:1.08;
+  background:linear-gradient(180deg,#fff 30%,rgba(255,255,255,.6) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pv-fhead-desc{margin:.7rem 0 0;max-width:760px;color:var(--pv-dim);line-height:1.65}
+.pv-fchips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.15rem}
+.pv-fchip{display:inline-flex;align-items:center;gap:.42rem;padding:.42rem .85rem;border-radius:999px;
+  border:1px solid var(--pv-edge);background:var(--pv-surface);font-size:.76rem;font-weight:750;color:var(--pv-dim)}
+.pv-fchip svg{color:var(--pv-gold)}
+.pv-fchip--jade svg{color:var(--pv-jade)}
+
+/* ── States ── */
+.pv-alertwrap{max-width:1440px;margin:0 auto;padding:1.5rem var(--pv-pad-x) 0}
+.pv-alertbox{padding:1.4rem 1.5rem;border-radius:18px;background:rgba(214,40,40,.08);
+  border:1px solid rgba(214,40,40,.3);color:#ffb4b4;font-weight:750}
+.pv-empty{position:relative;z-index:1;min-height:55vh;display:grid;place-items:center;padding:2rem var(--pv-pad-x)}
+.pv-empty-panel{position:relative;overflow:hidden;text-align:center;max-width:460px;padding:3rem 2.25rem;
+  border-radius:26px;border:1px solid var(--pv-edge);
+  background:linear-gradient(170deg,rgba(255,255,255,.045),rgba(255,255,255,.008))}
+.pv-empty-panel::before{content:'稽古';position:absolute;top:-1.5rem;right:-1rem;font-family:var(--pv-heading);
+  font-size:9rem;font-weight:900;color:#fff;opacity:.02;line-height:1;user-select:none;pointer-events:none}
+.pv-empty-ic{width:84px;height:84px;margin:0 auto 1.4rem;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.04);border:1px solid var(--pv-edge);color:var(--pv-dimmer)}
+.pv-empty-title{margin:0;font-family:var(--pv-heading);font-size:1.6rem;font-weight:850;color:#fff}
+.pv-empty-text{margin:.7rem auto 0;color:var(--pv-dim);line-height:1.6;max-width:360px}
+.pv-nomatch{padding:.5rem var(--pv-pad-x) 0;margin:0;color:var(--pv-dim);text-align:center}
+.pv-nomatch button{border:0;background:none;color:var(--pv-gold);font-weight:800;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;font-size:inherit;padding:.2rem}
+
+/* ── Player overlay ── */
+.pv-player{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column}
+.pv-pbar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+  gap:.75rem;padding:max(.8rem,env(safe-area-inset-top)) clamp(1rem,3.5vw,2rem) .9rem;
+  background:linear-gradient(to bottom,rgba(0,0,0,.92),rgba(0,0,0,0));pointer-events:none}
+.pv-chipbtn{pointer-events:auto;display:inline-flex;align-items:center;gap:.45rem;min-height:42px;padding:.4rem 1rem;
+  border-radius:999px;border:1px solid var(--pv-edge-2);background:rgba(255,255,255,.07);color:#fff;cursor:pointer;
+  font-weight:800;font-size:.86rem;backdrop-filter:blur(12px);
+  transition:background .2s ease,border-color .2s ease}
+.pv-chipbtn:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.3)}
+.pv-chipbtn--on{background:rgba(45,212,191,.16);border-color:rgba(45,212,191,.5)}
+.pv-viewer{--pv-chrome:11.5rem;flex:1;width:100%;min-height:0;display:flex;align-items:flex-start;justify-content:center;
+  overflow-y:auto;overscroll-behavior:contain;
+  padding:max(4.5rem,calc(env(safe-area-inset-top) + 4rem)) var(--pv-pad-x) max(2rem,env(safe-area-inset-bottom))}
+.pv-pcol{width:100%;display:flex;flex-direction:column;gap:1.25rem;margin:0 auto}
+.pv-pcol--wide{max-width:min(1280px,calc((100vh - var(--pv-chrome)) * 16 / 9));
+  max-width:min(1280px,calc((100dvh - var(--pv-chrome)) * 16 / 9))}
+.pv-pcol--short{max-width:min(440px,calc((100vh - var(--pv-chrome)) * 9 / 16));
+  max-width:min(440px,calc((100dvh - var(--pv-chrome)) * 9 / 16))}
+.pv-ptitle{margin:0;color:#fff;font-family:var(--pv-heading);font-size:clamp(1.15rem,1rem+1vw,1.9rem);font-weight:850;
+  line-height:1.22;letter-spacing:-.01em}
+.pv-pmeta{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.65rem}
+.pv-pbox{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:clamp(12px,2vw,24px);
+  border:1px solid rgba(255,255,255,.12);background:#000;box-shadow:0 25px 70px rgba(0,0,0,.85)}
+.pv-pbox--short{aspect-ratio:9/16}
+.pv-note{margin-top:.25rem;position:relative;border-radius:20px;border:1px solid rgba(255,183,3,.2);
+  background:linear-gradient(160deg,rgba(255,183,3,.06),rgba(20,20,23,.92) 45%);padding:1.25rem 1.5rem;color:#fff;
+  backdrop-filter:blur(12px)}
+.pv-note-tag{display:flex;align-items:center;gap:.5rem;color:var(--pv-gold);font-size:.72rem;font-weight:850;
+  letter-spacing:.14em;text-transform:uppercase}
+.pv-note-dot{width:7px;height:7px;border-radius:50%;background:var(--pv-gold);box-shadow:0 0 12px var(--pv-gold)}
+.pv-note p{margin:.65rem 0 0;color:rgba(255,255,255,.85);line-height:1.65;white-space:pre-wrap;font-size:.95rem}
+
+/* ── Entrance motion ── */
+@keyframes pv-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.pv-rise{opacity:0;animation:pv-rise .65s cubic-bezier(.16,1,.3,1) forwards}
 
 /* ---------- Breakpoints ---------- */
-@media (max-width: 640px) {
-  .pv-main { gap: 2.25rem; }
-  .pv-grid { gap: 0.75rem; }
-  .pv-grid-videos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pv-grid-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pv-grid-folders { grid-template-columns: 1fr; }
-  .pv-video-overlay { left: 0.6rem; right: 0.6rem; bottom: 0.55rem; }
-  .pv-video-title { font-size: 0.8rem; }
-  .pv-video-title--sm { font-size: 0.74rem; }
-  .pv-note { padding: 1rem 1.1rem; border-radius: 16px; }
+@media (max-width:640px){
+  .pv-hero{padding-top:clamp(2rem,6vw,2.75rem)}
+  .pv-hero-kanji{top:auto;bottom:-2.5rem;transform:none;opacity:.025}
+  .pv-shell{gap:2.4rem}
+  .pv-grid{gap:1rem}
+  /* Inside folders every video owns the full viewport width */
+  .pv-grid-videos{grid-template-columns:1fr;gap:1.35rem}
+  .pv-grid-folders{grid-template-columns:1fr}
+  .pv-grid-photos{grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+  .pv-tile{border-radius:16px}
+  .pv-grid-videos .pv-tileinfo{left:1.1rem;right:1.1rem;bottom:1.05rem}
+  .pv-grid-videos .pv-tiletitle{font-size:1.05rem}
+  .pv-grid-videos .pv-playbtn{width:52px;height:52px}
+  .pv-note{padding:1rem 1.1rem;border-radius:16px}
+  .pv-folderview>*+*{margin-top:2rem}
 }
-@media (max-width: 380px) {
-  .pv-grid { gap: 0.6rem; }
-  .pv-video-title { font-size: 0.76rem; }
+@media (max-width:380px){
+  .pv-grid{gap:.8rem}
+  .pv-grid-videos .pv-tiletitle{font-size:.98rem}
 }
-@media (orientation: landscape) and (max-height: 500px) {
-  .pv-viewer { --pv-chrome: 8rem; padding-top: 4.25rem; }
-  .pv-player-title { font-size: 1rem; }
-  .pv-player-col { gap: 0.75rem; }
+@media (orientation:landscape) and (max-height:500px){
+  .pv-viewer{--pv-chrome:8rem;padding-top:4.25rem}
+  .pv-ptitle{font-size:1rem}
+  .pv-pcol{gap:.75rem}
 }
-@media (prefers-reduced-motion: reduce) {
-  .pv-photo-img { transition: none !important; transform: none !important; }
+@media (prefers-reduced-motion:reduce){
+  .pv-rise{animation:none;opacity:1}
+  .pv-tile,.pv-fcard,.pv-ph-frame,.pv-ph-img,.pv-playbtn,.pv-fprog-fill{transition:none !important}
 }
 `
 
@@ -183,6 +362,8 @@ function normaliseLibraryPayload(payload) {
     recentCutoff: String(payload?.recentlyAddedCutoff || ''),
   }
 }
+
+const SHELF_EASE = [0.16, 1, 0.3, 1]
 
 export default function VideosClient({ initialPayload = null }) {
   const nonce = useNonce()
@@ -295,6 +476,17 @@ export default function VideosClient({ initialPayload = null }) {
       .slice(0, 12)
   }, [recentCutoff, videos])
 
+  const libraryStats = useMemo(() => {
+    let completed = 0
+    let inProgress = 0
+    videos.forEach((video) => {
+      const percent = Number(progressByVideoId.get(video.id)?.progressPercent || 0)
+      if (percent >= 100) completed += 1
+      else if (percent > 0) inProgress += 1
+    })
+    return { folders: folders.length, videos: videos.length, completed, inProgress }
+  }, [folders.length, progressByVideoId, videos])
+
   const searchedLibrary = useMemo(() => {
     const query = libraryQuery.trim().toLowerCase()
     if (!query) return { folders, unfiledVideos, unfiledPhotos }
@@ -376,54 +568,84 @@ export default function VideosClient({ initialPayload = null }) {
     ? folders.filter((folder) => folder.parentFolderId === activeFolder.id)
     : [], [activeFolder, folders])
 
+  const activeFolderCompleted = activeFolder
+    ? activeFolder.videos.filter((video) => Number(progressByVideoId.get(video.id)?.progressPercent || 0) >= 100).length
+    : 0
+
   return (
     <SecureContentWrapper>
       <MotionConfig reducedMotion="user">
       {isLoading ? (
         <VideosPageSkeleton />
       ) : (
-      <div style={{ background: '#030712', color: '#fff', minHeight: '100dvh', width: '100%', overflowX: 'hidden', paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
+      <div className="pv-root">
         <style nonce={nonce} dangerouslySetInnerHTML={{ __html: PRACTICE_LIBRARY_CSS }} />
+
+        {/* Amber ambient signature — the practice-library variant of the portal aura */}
+        <div className="pv-aura" aria-hidden="true" />
+        <div className="pv-aura-side" aria-hidden="true" />
+        <div className="pv-aura-deep" aria-hidden="true" />
+
         {!activeFolder ? (
-          <header style={{ padding: 'clamp(2.5rem, 6vw, 4.5rem) max(4%, 1rem) 2rem', maxWidth: 1400, margin: '0 auto' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,183,3,0.08)', border: '1px solid rgba(255,183,3,0.2)', padding: '0.4rem 0.85rem', borderRadius: 99, color: '#ffb703', fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>
+          <header className="pv-hero">
+            <span className="pv-hero-kanji" aria-hidden="true">稽古</span>
+            <div className="pv-tag pv-rise" style={{ animationDelay: '0.05s' }}>
               <PlayCircle size={14} /> SKF Practice Portal
             </div>
-            <h1 style={{ margin: 0, color: '#fff', fontFamily: 'var(--font-heading, "Outfit")', fontSize: 'clamp(2.2rem, 5.5vw, 4.2rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              Home Practice Library
+            <h1 className="pv-hero-title pv-rise" style={{ animationDelay: '0.12s' }}>
+              Home <b>Practice</b> Library
             </h1>
-            <p style={{ margin: '0.75rem 0 0', color: 'rgba(255,255,255,0.6)', maxWidth: 640, lineHeight: 1.6, fontSize: 'clamp(0.95rem, 2vw, 1.1rem)' }}>
+            <p className="pv-hero-copy pv-rise" style={{ animationDelay: '0.2s' }}>
               Explore personally assigned karate drills, syllabus videos, and technique photo guides to refine your martial arts practice.
             </p>
-            <div style={{ position: 'relative', maxWidth: 480, marginTop: '1.5rem' }}>
-              <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
-              <input 
-                value={libraryQuery} 
-                onChange={(event) => setLibraryQuery(event.target.value)} 
-                placeholder="Search techniques, drills, or folders..." 
-                aria-label="Search practice library" 
-                className="practice-search"
-                style={{ 
-                  width: '100%', 
-                  minHeight: 48, 
-                  boxSizing: 'border-box', 
-                  borderRadius: 14, 
-                  border: '1px solid rgba(255,255,255,0.12)', 
-                  background: 'rgba(255,255,255,0.05)', 
-                  color: '#fff', 
-                  padding: '0.75rem 1rem 0.75rem 2.8rem', 
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
-                }} 
+
+            {!error && hasContent ? (
+              <div className="pv-stats pv-rise" style={{ animationDelay: '0.28s' }}>
+                <div className="pv-stat">
+                  <span className="pv-stat-ic pv-stat-ic--gold"><Layers size={19} /></span>
+                  <span>
+                    <span className="pv-stat-val">{libraryStats.folders}</span>
+                    <span className="pv-stat-lbl">Practice Folders</span>
+                  </span>
+                </div>
+                <div className="pv-stat">
+                  <span className="pv-stat-ic pv-stat-ic--neutral"><PlayCircle size={19} /></span>
+                  <span>
+                    <span className="pv-stat-val">{libraryStats.videos}</span>
+                    <span className="pv-stat-lbl">Training Videos</span>
+                  </span>
+                </div>
+                <div className="pv-stat">
+                  <span className="pv-stat-ic pv-stat-ic--red"><TrendingUp size={19} /></span>
+                  <span>
+                    <span className="pv-stat-val">{libraryStats.inProgress}</span>
+                    <span className="pv-stat-lbl">In Progress</span>
+                  </span>
+                </div>
+                <div className="pv-stat">
+                  <span className="pv-stat-ic pv-stat-ic--jade"><CheckCircle2 size={19} /></span>
+                  <span>
+                    <span className="pv-stat-val">{libraryStats.completed}</span>
+                    <span className="pv-stat-lbl">Completed</span>
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="pv-searchwrap pv-rise" style={{ animationDelay: '0.36s' }}>
+              <Search size={18} className="pv-searchicon" />
+              <input
+                value={libraryQuery}
+                onChange={(event) => setLibraryQuery(event.target.value)}
+                placeholder="Search techniques, drills, or folders..."
+                aria-label="Search practice library"
+                className="pv-search"
               />
               {libraryQuery ? (
                 <button
                   type="button"
                   onClick={() => setLibraryQuery('')}
                   className="pv-clear pv-tap pv-focus"
-                  style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 0, borderRadius: 8, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
                 >
                   Clear
                 </button>
@@ -433,76 +655,91 @@ export default function VideosClient({ initialPayload = null }) {
         ) : null}
 
         {error ? (
-          <div style={{ padding: '2rem max(4%, 1rem)' }}>
-            <div role="alert" style={{ maxWidth: 1400, margin: '0 auto', padding: '1.5rem', borderRadius: 18, background: 'rgba(214,40,40,0.12)', border: '1px solid rgba(214,40,40,0.3)', color: '#ffb4b4', fontWeight: 700 }}>
+          <div className="pv-alertwrap">
+            <div role="alert" className="pv-alertbox">
               {error}
             </div>
           </div>
         ) : !hasContent ? (
-          <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', textAlign: 'center', padding: '2rem' }}>
-            <div style={{ padding: '1.5rem', borderRadius: '50%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Lock size={48} color="rgba(255,255,255,0.3)" />
+          <div className="pv-empty">
+            <div className="pv-empty-panel">
+              <div className="pv-empty-ic"><Lock size={36} /></div>
+              <h2 className="pv-empty-title">No Practice Videos Found</h2>
+              <p className="pv-empty-text">Your branch practice library is empty or content is currently hidden.</p>
             </div>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', color: '#fff', margin: 0, fontWeight: 800 }}>No Practice Videos Found</h2>
-            <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, maxWidth: 420, lineHeight: 1.5 }}>Your branch practice library is empty or content is currently hidden.</p>
           </div>
         ) : (
-          <main className="pv-main">
+          <main className="pv-shell">
             {activeFolder ? (
-              <section className="pv-folder-view">
-                <div style={{ padding: 'max(1.25rem, env(safe-area-inset-top)) max(4%, 1rem) 0' }}>
+              <section className="pv-folderview">
+                <div className="pv-fhead">
                   {/* Breadcrumbs */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                  <nav className="pv-crumbs" aria-label="Folder path">
                     <button
                       type="button"
                       onClick={() => setActiveFolder(null)}
-                      className="pv-crumb pv-tap pv-focus"
-                      style={{ color: '#ffb703', fontWeight: 700 }}
+                      className="pv-crumb pv-crumb--home pv-tap pv-focus"
                     >
-                      <ChevronLeft size={16} /> Home Practice
+                      <ChevronLeft size={14} /> Home Practice
                     </button>
                     {folderBreadcrumbs.map((crumb, idx) => (
                       <React.Fragment key={crumb.id}>
-                        <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>/</span>
+                        <span className="pv-crumb-sep" aria-hidden="true">/</span>
                         {idx === folderBreadcrumbs.length - 1 ? (
-                          <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.9rem', padding: '0.35rem 0' }}>{crumb.title}</span>
+                          <span className="pv-crumb-here">{crumb.title}</span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => setActiveFolder(crumb)}
                             className="pv-crumb pv-tap pv-focus"
-                            style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}
                           >
                             {crumb.title}
                           </button>
                         )}
                       </React.Fragment>
                     ))}
+                  </nav>
+                  <h2 className="pv-fhead-title">{activeFolder.title}</h2>
+                  {activeFolder.description ? <p className="pv-fhead-desc">{activeFolder.description}</p> : null}
+                  <div className="pv-fchips">
+                    {activeFolder.videos.length ? (
+                      <span className="pv-fchip"><PlayCircle size={14} /> {activeFolder.videos.length} {activeFolder.videos.length === 1 ? 'Video' : 'Videos'}</span>
+                    ) : null}
+                    {activeFolder.photos?.length ? (
+                      <span className="pv-fchip"><ImageIcon size={14} /> {activeFolder.photos.length} {activeFolder.photos.length === 1 ? 'Photo Guide' : 'Photo Guides'}</span>
+                    ) : null}
+                    {activeFolder.videos.length ? (
+                      <span className={`pv-fchip ${activeFolderCompleted >= activeFolder.videos.length ? 'pv-fchip--jade' : ''}`}>
+                        <CheckCircle2 size={14} /> {activeFolderCompleted}/{activeFolder.videos.length} Complete
+                      </span>
+                    ) : null}
                   </div>
-                  <h2 style={{ margin: 0, fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', lineHeight: 1.15, fontWeight: 900, letterSpacing: '-0.02em' }}>{activeFolder.title}</h2>
-                  {activeFolder.description ? <p style={{ color: 'rgba(255,255,255,0.6)', margin: '0.6rem 0 0', maxWidth: 720, lineHeight: 1.6 }}>{activeFolder.description}</p> : null}
                 </div>
 
                 <FolderRail title="Subfolders" folders={childFolders} allFolders={folders} progressByVideoId={progressByVideoId} onOpen={setActiveFolder} />
-                <VideoRow title="Videos" videos={activeFolder.videos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} />
+                <VideoRow title="Videos" icon={<PlayCircle size={17} />} videos={activeFolder.videos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} />
                 <PhotoRow title="Photo Guides" photos={activeFolder.photos || []} />
               </section>
             ) : (
               <>
                 <VideoRow
-                  title="Continue Watching"
+                  title="Continue Training"
+                  icon={<History size={17} />}
                   videos={libraryQuery ? continueTraining.filter((video) => String(video.title).toLowerCase().includes(libraryQuery.trim().toLowerCase())) : continueTraining}
                   progressByVideoId={progressByVideoId}
                   onPlay={setPlayingVideo}
                   compact
                 />
-                {!libraryQuery ? <VideoRow title="Recently Added" videos={recentVideos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} compact /> : null}
+                {!libraryQuery ? <VideoRow title="Recently Added" icon={<Sparkles size={17} />} videos={recentVideos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} compact /> : null}
                 <FolderRail folders={rootFolders} allFolders={searchedLibrary.folders} progressByVideoId={progressByVideoId} onOpen={setActiveFolder} />
 
-                <VideoRow title="General Videos" videos={searchedLibrary.unfiledVideos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} />
+                <VideoRow title="General Videos" icon={<PlayCircle size={17} />} videos={searchedLibrary.unfiledVideos} progressByVideoId={progressByVideoId} onPlay={setPlayingVideo} />
                 <PhotoRow title="Photo Guides" photos={searchedLibrary.unfiledPhotos} />
                 {libraryQuery && !searchedLibrary.folders.length && !searchedLibrary.unfiledVideos.length && !searchedLibrary.unfiledPhotos.length ? (
-                  <p style={{ padding: '0 max(4%, 1rem)', margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>No practice content matches “{libraryQuery}”.</p>
+                  <p className="pv-nomatch">
+                    No practice content matches “{libraryQuery}”.{' '}
+                    <button type="button" className="pv-tap pv-focus" onClick={() => setLibraryQuery('')}>Clear search</button>
+                  </p>
                 ) : null}
               </>
             )}
@@ -516,28 +753,40 @@ export default function VideosClient({ initialPayload = null }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column' }}
+                className="pv-player"
               >
                 {/* Header bar */}
-                <div className="pv-player-bar">
-                  <button type="button" onClick={closePlayerToLibrary} className="pv-tap pv-focus" style={{ minHeight: 42, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.85rem', fontWeight: 700, fontSize: '0.9rem', pointerEvents: 'auto', backdropFilter: 'blur(10px)' }}>
+                <div className="pv-pbar">
+                  <button type="button" onClick={closePlayerToLibrary} className="pv-chipbtn pv-tap pv-focus">
                     <ChevronLeft size={20} /> Back
                   </button>
                   <div style={{ display: 'flex', gap: '0.5rem', pointerEvents: 'auto' }}>
-                    <button type="button" onClick={() => toggleCompletion(playingVideo)} className="pv-tap pv-focus" style={{ minHeight: 42, background: Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? 'rgba(28,154,97,0.3)' : 'rgba(255,255,255,0.08)', border: Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? '1px solid #1c9a61' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.4rem 0.85rem', fontWeight: 700, fontSize: '0.88rem', backdropFilter: 'blur(10px)' }}>
-                      <CheckCircle2 size={16} color={Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? '#2ecc71' : '#fff'} />
+                    <button
+                      type="button"
+                      onClick={() => toggleCompletion(playingVideo)}
+                      className={`pv-chipbtn pv-tap pv-focus ${Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? 'pv-chipbtn--on' : ''}`}
+                    >
+                      <CheckCircle2 size={16} color={Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? '#2dd4bf' : '#fff'} />
                       <span className="practice-complete-label">{Number(progressByVideoId.get(playingVideo.id)?.progressPercent || 0) >= 100 ? 'Completed' : 'Complete'}</span>
                     </button>
-                    <button type="button" onClick={() => copyLessonLink(playingVideo)} className="pv-tap pv-focus" style={{ minHeight: 42, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.4rem 0.85rem', fontWeight: 700, fontSize: '0.88rem', backdropFilter: 'blur(10px)' }}>
+                    <button type="button" onClick={() => copyLessonLink(playingVideo)} className="pv-chipbtn pv-tap pv-focus">
                       <Copy size={16} /> <span className="practice-copy-label">Share</span>
                     </button>
                   </div>
                 </div>
 
                 <div ref={viewerScrollRef} className="pv-viewer">
-                  <div className={`pv-player-col ${playingVideo.contentFormat === 'short' ? 'pv-player-col--short' : 'pv-player-col--wide'}`}>
-                    <h1 className="pv-player-title">{playingVideo.title}</h1>
-                    <div className={`pv-player-box ${playingVideo.contentFormat === 'short' ? 'pv-player-box--short' : ''}`}>
+                  <div className={`pv-pcol ${playingVideo.contentFormat === 'short' ? 'pv-pcol--short' : 'pv-pcol--wide'}`}>
+                    <div>
+                      <h1 className="pv-ptitle">{playingVideo.title}</h1>
+                      {playingVideo.category || playingVideo.duration ? (
+                        <div className="pv-pmeta">
+                          {playingVideo.category ? <span className="pv-fchip">{formatCategoryLabel(playingVideo.category)}</span> : null}
+                          {playingVideo.duration ? <span className="pv-fchip"><Clock size={13} /> {playingVideo.duration}</span> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className={`pv-pbox ${playingVideo.contentFormat === 'short' ? 'pv-pbox--short' : ''}`}>
                       <YouTubeNativePlayer
                         youtubeId={playingVideo.youtubeId}
                         title={playingVideo.title}
@@ -550,10 +799,10 @@ export default function VideosClient({ initialPayload = null }) {
                     </div>
                     {playingVideo.lessonNote ? (
                       <aside className="pv-note">
-                        <div style={{ color: '#ffb703', fontSize: '0.75rem', fontWeight: 850, letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ffb703', boxShadow: '0 0 10px #ffb703' }} /> Instructor Note
+                        <div className="pv-note-tag">
+                          <span className="pv-note-dot" /> Instructor Note
                         </div>
-                        <p style={{ margin: '0.65rem 0 0', color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>{playingVideo.lessonNote}</p>
+                        <p>{playingVideo.lessonNote}</p>
                       </aside>
                     ) : null}
                   </div>
@@ -570,84 +819,110 @@ export default function VideosClient({ initialPayload = null }) {
   )
 }
 
-function FolderRail({ folders, allFolders, progressByVideoId, onOpen, title = 'Your Practice Library' }) {
+/**
+ * Scroll-reveal wrapper that gives every shelf the same cinematic entrance
+ * without re-triggering while the athlete filters via search.
+ */
+function Shelf({ children, ...restProps }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 26 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-48px' }}
+      transition={{ duration: 0.55, ease: SHELF_EASE }}
+      {...restProps}
+    >
+      {children}
+    </motion.section>
+  )
+}
+
+function SectionHead({ icon, title, count }) {
+  return (
+    <div className="pv-shelfhead">
+      <h2 className="pv-shelftitle">
+        <span className="pv-shelfic">{icon}</span>
+        {title}
+      </h2>
+      {typeof count === 'number' && count > 0 ? <span className="pv-pill">{count}</span> : null}
+    </div>
+  )
+}
+
+function FolderRail({ folders, allFolders, progressByVideoId, onOpen, title = 'Practice Folders' }) {
   if (!folders.length) return null
   return (
-    <section>
-      <h2 className="pv-h2">
-        <FolderOpen size={20} color="#ffb703" /> {title}
-      </h2>
+    <Shelf>
+      <SectionHead icon={<FolderOpen size={17} />} title={title} count={folders.length} />
       <div className="pv-grid pv-grid-folders">
         {folders.map((folder) => {
           const subfolderCount = (allFolders || []).filter((candidate) => candidate.parentFolderId === folder.id).length
           const totalItems = folder.videos.length + (folder.photos?.length || 0)
           const completedCount = folder.videos.filter((video) => Number(progressByVideoId.get(video.id)?.progressPercent || 0) >= 100).length
-          
+          const percent = folder.videos.length ? Math.round((completedCount / folder.videos.length) * 100) : 0
+
           return (
-            <motion.button 
-              key={folder.id} 
-              type="button" 
-              onClick={() => onOpen(folder)} 
-              className="pv-tap pv-focus"
-              whileHover={{ y: -3, borderColor: 'rgba(255,183,3,0.4)', backgroundColor: 'rgba(30,30,35,0.9)' }}
-              whileTap={{ scale: 0.98 }}
-              style={{ 
-                overflow: 'hidden', 
-                borderRadius: 16, 
-                border: '1px solid rgba(255,183,3,0.15)', 
-                background: 'linear-gradient(145deg, rgba(24,24,27,0.8), rgba(12,12,14,0.9))', 
-                padding: '1.15rem 1.25rem', 
-                textAlign: 'left', 
-                color: '#fff', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '1.1rem', 
-                boxShadow: '0 8px 24px rgba(0,0,0,0.3)', 
-                transition: 'border-color 0.2s ease, background-color 0.2s ease',
-                backdropFilter: 'blur(10px)'
-              }} 
+            <motion.button
+              key={folder.id}
+              type="button"
+              onClick={() => onOpen(folder)}
+              aria-label={`Open folder ${folder.title}`}
+              className="pv-fcard pv-tap pv-focus"
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.985 }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,183,3,0.12)', border: '1px solid rgba(255,183,3,0.25)', borderRadius: 14, padding: '0.8rem', flexShrink: 0 }}>
-                <Folder size={26} strokeWidth={2} color="#ffb703" />
+              <div className="pv-fcard-top">
+                <span className="pv-fcard-ic"><Folder size={23} strokeWidth={2} /></span>
+                <span className="pv-fcard-go"><ArrowRight size={16} /></span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0, justifyContent: 'center' }}>
-                <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{folder.title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem', lineHeight: 1.3 }}>
-                  {subfolderCount ? `${subfolderCount} subfolders · ` : ''}{totalItems} items {folder.videos.length > 0 ? `· ${completedCount}/${folder.videos.length} done` : ''}
+              <div className="pv-fcard-name">{folder.title}</div>
+              <div className="pv-fcard-meta">
+                {[subfolderCount ? `${subfolderCount} subfolder${subfolderCount === 1 ? '' : 's'}` : '', `${totalItems} item${totalItems === 1 ? '' : 's'}`].filter(Boolean).join(' · ')}
+              </div>
+              {folder.videos.length ? (
+                <div className="pv-fprog">
+                  <div className="pv-fprog-track">
+                    <div
+                      className={`pv-fprog-fill ${percent >= 100 ? 'pv-fprog-fill--full' : ''}`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <div className="pv-fprog-lbl">
+                    <span><b>{completedCount}/{folder.videos.length}</b> complete</span>
+                    <span>{percent}%</span>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </motion.button>
           )
         })}
       </div>
-    </section>
+    </Shelf>
   )
 }
 
 function PhotoRow({ title, photos }) {
   if (!photos.length) return null
   return (
-    <section>
-      <h2 className="pv-h2">
-        <ImageIcon size={20} color="#ffb703" /> {title}
-      </h2>
+    <Shelf>
+      <SectionHead icon={<ImageIcon size={17} />} title={title} count={photos.length} />
       <div className="pv-grid pv-grid-photos">
         {photos.map((photo) => (
-            <a key={photo.id} href={photo.imageUrl} target="_blank" rel="noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>
-              <div style={{ aspectRatio: '4 / 3', overflow: 'hidden', borderRadius: 14, background: '#171717', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <img className="pv-photo-img" src={photo.imageUrl} alt={photo.title} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'} />
+          <a key={photo.id} href={photo.imageUrl} target="_blank" rel="noreferrer" className="pv-ph pv-tap">
+            <div className="pv-ph-frame">
+              <img className="pv-ph-img" src={photo.imageUrl} alt={photo.title} loading="lazy" decoding="async" />
+              <span className="pv-ph-zoom"><Maximize2 size={14} /></span>
             </div>
-            <div style={{ fontWeight: 750, marginTop: 8, fontSize: '0.95rem' }}>{photo.title}</div>
-            {photo.description ? <div style={{ color: 'rgba(255,255,255,0.5)', marginTop: 2, fontSize: '0.82rem' }}>{photo.description}</div> : null}
+            <div className="pv-ph-cap">{photo.title}</div>
+            {photo.description ? <div className="pv-ph-desc">{photo.description}</div> : null}
           </a>
         ))}
       </div>
-    </section>
+    </Shelf>
   )
 }
 
-function VideoRow({ title, videos, progressByVideoId, onPlay, compact = false }) {
+function VideoRow({ title, icon, videos, progressByVideoId, onPlay, compact = false }) {
   const railRef = useRef(null)
 
   if (!videos.length) return null
@@ -660,13 +935,10 @@ function VideoRow({ title, videos, progressByVideoId, onPlay, compact = false })
   }
 
   return (
-    <section>
-      <h2 className="pv-h2">
-        <PlayCircle size={20} color="#ffb703" />
-        {title}
-      </h2>
+    <Shelf>
+      <SectionHead icon={icon} title={title} count={videos.length} />
       {compact ? (
-        <div className="pv-rail-wrap">
+        <div className="pv-railwrap">
           <div ref={railRef} className="pv-rail kuroobi-scrollbar-hide">
             {videos.map((video) => (
               <VideoTile
@@ -675,14 +947,14 @@ function VideoRow({ title, videos, progressByVideoId, onPlay, compact = false })
                 progressByVideoId={progressByVideoId}
                 onPlay={onPlay}
                 variant="rail"
-                sizes="(max-width: 640px) 62vw, 320px"
+                sizes="(max-width: 640px) 66vw, 320px"
               />
             ))}
           </div>
-          <button type="button" aria-label={`Scroll ${title} backwards`} className="pv-rail-arrow pv-rail-arrow--left pv-tap pv-focus" onClick={() => pageRail(-1)}>
+          <button type="button" aria-label={`Scroll ${title} backwards`} className="pv-arrow pv-arrow--l pv-tap pv-focus" onClick={() => pageRail(-1)}>
             <ChevronLeft size={22} />
           </button>
-          <button type="button" aria-label={`Scroll ${title} forwards`} className="pv-rail-arrow pv-rail-arrow--right pv-tap pv-focus" onClick={() => pageRail(1)}>
+          <button type="button" aria-label={`Scroll ${title} forwards`} className="pv-arrow pv-arrow--r pv-tap pv-focus" onClick={() => pageRail(1)}>
             <ChevronRight size={22} />
           </button>
         </div>
@@ -695,12 +967,12 @@ function VideoRow({ title, videos, progressByVideoId, onPlay, compact = false })
               progressByVideoId={progressByVideoId}
               onPlay={onPlay}
               variant="grid"
-              sizes="(max-width: 640px) 46vw, 380px"
+              sizes="(max-width: 640px) 100vw, 400px"
             />
           ))}
         </div>
       )}
-    </section>
+    </Shelf>
   )
 }
 
@@ -713,65 +985,59 @@ function VideoRow({ title, videos, progressByVideoId, onPlay, compact = false })
 function VideoTile({ video, progressByVideoId, onPlay, variant, sizes }) {
   const compact = variant === 'rail'
   const progress = Number(progressByVideoId.get(video.id)?.progressPercent || 0)
+  const isDone = progress >= 100
 
   return (
     <motion.button
       type="button"
       onClick={() => !video.locked && onPlay(video)}
-      className="pv-tap pv-focus"
+      className={`pv-tap pv-focus pv-tile${isDone ? ' pv-tile--done' : ''}${video.locked ? ' pv-tile--locked' : ''}`}
       whileHover={!video.locked ? { y: -4, scale: 1.01 } : undefined}
       whileTap={!video.locked ? { scale: 0.97 } : undefined}
       style={{
-        position: 'relative',
-        flex: compact ? '0 0 clamp(230px, 62vw, 320px)' : undefined,
+        flex: compact ? '0 0 clamp(230px, 64vw, 330px)' : undefined,
         minWidth: 0,
-        width: '100%',
         scrollSnapAlign: compact ? 'start' : undefined,
-        aspectRatio: '16 / 9',
-        border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: 14,
-        overflow: 'hidden',
-        background: '#0d0d0f',
-        color: '#fff',
-        cursor: video.locked ? 'not-allowed' : 'pointer',
-        padding: 0,
-        textAlign: 'left',
-        boxShadow: '0 8px 20px rgba(0,0,0,0.35)',
       }}
+      aria-label={video.locked ? `${video.title} (locked)` : `Play ${video.title}`}
     >
       <YouTubeThumbnail youtubeId={video.youtubeId} alt={video.title} fill sizes={sizes} style={{ objectFit: 'cover', filter: video.locked ? 'grayscale(100%) brightness(0.35)' : 'none' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }} />
+      <span className="pv-tile-scrim" />
 
-      {progress > 0 && progress < 100 ? (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, background: 'rgba(255,255,255,0.2)' }}>
-          <div style={{ width: `${progress}%`, height: '100%', background: '#d62828' }} />
-        </div>
-      ) : null}
-
-      {progress >= 100 ? (
-        <span title="Completed" aria-label="Completed" style={{ position: 'absolute', top: '0.65rem', left: '0.65rem', width: 28, height: 28, borderRadius: '50%', background: '#1c9a61', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-          <CheckCircle2 size={17} />
+      {video.duration ? (
+        <span className="pv-chipdur">
+          <Clock size={11} /> {video.duration}
         </span>
       ) : null}
 
-      <div className="pv-video-overlay">
-        <div className={compact ? 'pv-video-title pv-video-title--sm' : 'pv-video-title'}>{video.title}</div>
-        {video.duration || video.category ? (
-          <div className="pv-video-meta">
-            {video.duration ? <><Clock size={12} /> {video.duration}</> : formatCategoryLabel(video.category)}
-          </div>
-        ) : null}
-      </div>
+      {isDone ? (
+        <span title="Completed" aria-label="Completed" className="pv-badgedone">
+          <CheckCircle2 size={16} />
+        </span>
+      ) : null}
 
       {!video.locked ? (
-        <span style={{ position: 'absolute', top: '0.65rem', right: '0.65rem', width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-          <Play size={14} fill="#000" style={{ marginLeft: 2 }} />
+        <span className="pv-playbtn">
+          <Play size={20} fill="currentColor" style={{ marginLeft: 2 }} />
         </span>
       ) : (
-        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Lock size={28} color="rgba(255,255,255,0.7)" />
+        <span className="pv-lockov">
+          <Lock size={26} />
         </span>
       )}
+
+      <span className="pv-tileinfo">
+        <span className="pv-tiletitle">{video.title}</span>
+        {video.category ? (
+          <span className="pv-tilemeta">{formatCategoryLabel(video.category)}</span>
+        ) : null}
+      </span>
+
+      {progress > 0 && progress < 100 ? (
+        <span className="pv-tilebar">
+          <i style={{ width: `${progress}%` }} />
+        </span>
+      ) : null}
     </motion.button>
   )
 }
