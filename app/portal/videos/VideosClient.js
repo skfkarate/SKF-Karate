@@ -52,7 +52,7 @@ const PRACTICE_LIBRARY_CSS = `
   --pv-dimmer:rgba(255,255,255,.35);
   --pv-heading:var(--font-heading,'Outfit');
   --pv-pad-x:max(4%,1rem);
-  position:relative; min-height:100dvh; width:100%;
+  position:relative; min-height:100vh; min-height:100dvh; width:100%;
   overflow-x:hidden; background:#000; color:#fff;
   padding-bottom:calc(6rem + env(safe-area-inset-bottom));
 }
@@ -66,25 +66,26 @@ const PRACTICE_LIBRARY_CSS = `
   background:radial-gradient(circle,rgba(45,212,191,.035) 0%,transparent 70%);pointer-events:none;z-index:0}
 
 /* ── Hero ── */
-.pv-hero{position:relative;max-width:1440px;margin:0 auto;padding:clamp(2.5rem,7vw,4.25rem) var(--pv-pad-x) .25rem}
+.pv-hero{position:relative;max-width:1440px;margin:0 auto;padding:clamp(2.5rem,7vw,4.25rem) var(--pv-pad-x) clamp(2.25rem,4.5vw,3.25rem)}
 .pv-hero-kanji{position:absolute;top:44%;right:max(1%,0);transform:translateY(-50%);
   font-size:clamp(11rem,26vw,19rem);line-height:1;font-weight:900;color:#fff;opacity:.03;
   user-select:none;pointer-events:none;font-family:var(--pv-heading)}
-.pv-tag{display:inline-flex;align-items:center;gap:.5rem;padding:.42rem .95rem;border-radius:999px;
-  background:rgba(255,183,3,.09);border:1px solid rgba(255,183,3,.24);color:var(--pv-gold);
-  font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:1.15rem}
-.pv-hero-title{margin:0;font-family:var(--pv-heading);font-size:clamp(2.35rem,6vw,4.3rem);font-weight:900;
-  letter-spacing:-.03em;line-height:1.05;
-  background:linear-gradient(180deg,#fff 20%,rgba(255,255,255,.55) 100%);
+/* Section-style heading — matches .pv-fhead-title so the hero and folder
+   views read as one consistent system */
+.pv-hero-title{margin:0;font-family:var(--pv-heading);font-size:clamp(1.9rem,5.4vw,2.9rem);font-weight:900;
+  letter-spacing:-.025em;line-height:1.08;
+  background:linear-gradient(180deg,#fff 30%,rgba(255,255,255,.6) 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .pv-hero-title b{background:linear-gradient(180deg,#ffd34d 10%,#ffb703 90%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.pv-hero-copy{margin:1.05rem 0 0;max-width:620px;color:var(--pv-dim);line-height:1.65;font-size:clamp(.95rem,1.6vw,1.06rem)}
+.pv-hero-copy{margin:.7rem 0 0;max-width:560px;color:var(--pv-dim);line-height:1.55;font-size:.88rem}
 
-.pv-stats{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.9rem}
+/* Even grid — stat cards always line up in clean rows (2×2 on compact, 4-across on desktop) */
+.pv-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin-top:1.9rem}
+@media (min-width:900px){.pv-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .pv-stat{display:flex;align-items:center;gap:.8rem;padding:.85rem 1.15rem;border-radius:18px;
   border:1px solid var(--pv-edge);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.008));
-  backdrop-filter:blur(10px)}
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .pv-stat-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;border:1px solid}
 .pv-stat-ic--gold{background:rgba(255,183,3,.1);border-color:rgba(255,183,3,.24);color:var(--pv-gold)}
 .pv-stat-ic--red{background:rgba(214,40,40,.1);border-color:rgba(214,40,40,.26);color:#ff7b7b}
@@ -97,7 +98,7 @@ const PRACTICE_LIBRARY_CSS = `
 .pv-searchicon{position:absolute;left:1.05rem;top:50%;transform:translateY(-50%);color:var(--pv-dimmer);pointer-events:none}
 .pv-search{width:100%;min-height:54px;box-sizing:border-box;border-radius:18px;border:1px solid var(--pv-edge);
   background:rgba(255,255,255,.045);color:#fff;padding:.8rem 3.4rem .8rem 3rem;font-size:.95rem;outline:none;
-  backdrop-filter:blur(12px);transition:border-color .25s ease,background .25s ease,box-shadow .25s ease}
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:border-color .25s ease,background .25s ease,box-shadow .25s ease}
 .pv-search::placeholder{color:rgba(255,255,255,.32)}
 .pv-search:focus{border-color:rgba(255,183,3,.5);background:rgba(255,183,3,.05);box-shadow:0 0 0 4px rgba(255,183,3,.09)}
 @media (max-width:640px){.pv-search{font-size:16px}}
@@ -108,14 +109,14 @@ const PRACTICE_LIBRARY_CSS = `
 
 /* ── Shelves ── */
 .pv-shell{position:relative;z-index:1;display:grid;gap:2.75rem;max-width:1440px;margin:0 auto;padding-bottom:1.5rem}
-.pv-shelfhead{display:flex;align-items:center;justify-content:space-between;gap:1rem;
-  padding:0 var(--pv-pad-x);margin-bottom:1.05rem}
-.pv-shelftitle{display:flex;align-items:center;gap:.7rem;margin:0;font-family:var(--pv-heading);
-  font-size:clamp(1.12rem,1rem+.8vw,1.3rem);font-weight:800;letter-spacing:-.01em}
-.pv-shelfic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;
-  background:rgba(255,183,3,.09);border:1px solid rgba(255,183,3,.22);color:var(--pv-gold)}
-.pv-pill{font-size:.7rem;font-weight:800;letter-spacing:.08em;color:var(--pv-gold);
-  background:rgba(255,183,3,.08);border:1px solid rgba(255,183,3,.18);padding:.3rem .75rem;border-radius:999px;white-space:nowrap}
+.pv-shelfhead{display:flex;align-items:center;gap:.9rem;
+  padding:0 var(--pv-pad-x);margin-bottom:1.15rem}
+.pv-shelfhead::after{content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,.13),transparent 82%)}
+.pv-shelftitle{display:flex;align-items:center;gap:.55rem;margin:0;font-family:var(--pv-heading);
+  font-size:clamp(1.05rem,.96rem+.5vw,1.2rem);font-weight:800;letter-spacing:-.01em}
+.pv-shelfic{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;
+  background:rgba(255,183,3,.08);color:var(--pv-gold)}
 
 .pv-grid{display:grid;gap:1.15rem;padding:0 var(--pv-pad-x);align-items:start}
 .pv-grid-folders{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
@@ -130,7 +131,7 @@ const PRACTICE_LIBRARY_CSS = `
 .kuroobi-scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
 .pv-arrow{position:absolute;top:calc(50% - .5rem);transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
   border:1px solid var(--pv-edge-2);background:rgba(8,8,10,.85);color:#fff;display:none;place-items:center;
-  cursor:pointer;z-index:2;box-shadow:0 10px 26px rgba(0,0,0,.6);backdrop-filter:blur(10px);opacity:0;
+  cursor:pointer;z-index:2;box-shadow:0 10px 26px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;
   transition:opacity .25s ease,border-color .25s ease,color .25s ease}
 .pv-arrow--l{left:.7rem}.pv-arrow--r{right:.7rem}
 .pv-arrow:hover{border-color:rgba(255,183,3,.55);color:var(--pv-gold)}
@@ -144,7 +145,7 @@ const PRACTICE_LIBRARY_CSS = `
   cursor:pointer;color:#fff;padding:1.2rem 1.2rem 1.15rem;border-radius:20px;border:1px solid var(--pv-edge);
   background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.01));-webkit-tap-highlight-color:transparent;
   transition:border-color .25s ease,box-shadow .35s ease}
-.pv-fcard::before{content:'';position:absolute;inset:0;
+.pv-fcard::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;
   background:radial-gradient(130% 100% at 100% 0%,rgba(255,183,3,.09),transparent 55%);
   opacity:0;transition:opacity .3s ease;pointer-events:none}
 .pv-fcard:hover{border-color:rgba(255,183,3,.32);box-shadow:0 20px 44px rgba(0,0,0,.55)}
@@ -178,22 +179,22 @@ const PRACTICE_LIBRARY_CSS = `
 .pv-tile:hover{border-color:rgba(255,255,255,.22);box-shadow:0 22px 48px rgba(0,0,0,.6)}
 .pv-tile--locked{cursor:not-allowed}
 .pv-tile--done{border-color:rgba(45,212,191,.28)}
-.pv-tile-scrim{position:absolute;inset:0;pointer-events:none;
+.pv-tile-scrim{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;
   background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.28) 46%,transparent 68%),
              linear-gradient(to bottom,rgba(0,0,0,.42),transparent 30%)}
 .pv-chipdur{position:absolute;top:.75rem;right:.75rem;display:inline-flex;align-items:center;gap:.32rem;
   padding:.32rem .65rem;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.16);
-  backdrop-filter:blur(8px);font-size:.7rem;font-weight:750}
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:.7rem;font-weight:750}
 .pv-badgedone{position:absolute;top:.7rem;left:.7rem;width:30px;height:30px;border-radius:50%;display:grid;
   place-items:center;background:rgba(45,212,191,.16);border:1px solid rgba(45,212,191,.45);color:var(--pv-jade);
-  backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .pv-playbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;
   display:grid;place-items:center;background:rgba(10,10,12,.5);border:1px solid rgba(255,255,255,.28);
-  backdrop-filter:blur(10px);color:#fff;pointer-events:none;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;pointer-events:none;
   transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .25s ease,color .25s ease,border-color .25s ease}
 .pv-tile:hover .pv-playbtn{transform:translate(-50%,-50%) scale(1.1);background:var(--pv-gold);border-color:var(--pv-gold);color:#000}
 @media (hover:none){.pv-playbtn{width:44px;height:44px;background:rgba(0,0,0,.4)}}
-.pv-lockov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);color:rgba(255,255,255,.75)}
+.pv-lockov{position:absolute;top:0;right:0;bottom:0;left:0;display:grid;place-items:center;background:rgba(0,0,0,.25);color:rgba(255,255,255,.75)}
 .pv-tileinfo{position:absolute;left:1rem;right:1rem;bottom:.95rem;pointer-events:none}
 .pv-tiletitle{font-weight:800;line-height:1.28;font-size:.95rem;text-shadow:0 2px 10px rgba(0,0,0,.85);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -211,7 +212,7 @@ const PRACTICE_LIBRARY_CSS = `
 .pv-ph-img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .pv-ph:hover .pv-ph-img{transform:scale(1.06)}
 .pv-ph-zoom{position:absolute;right:.6rem;bottom:.6rem;width:30px;height:30px;border-radius:9px;display:grid;
-  place-items:center;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);
+  place-items:center;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   color:#fff;opacity:0;transition:opacity .25s ease;pointer-events:none}
 .pv-ph:hover .pv-ph-zoom{opacity:1}
 .pv-ph-cap{margin-top:.6rem;font-weight:800;font-size:.92rem;line-height:1.35}
@@ -259,33 +260,37 @@ const PRACTICE_LIBRARY_CSS = `
   text-decoration:underline;text-underline-offset:3px;font-size:inherit;padding:.2rem}
 
 /* ── Player overlay ── */
-.pv-player{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column}
-.pv-pbar{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
-  gap:.75rem;padding:max(.8rem,env(safe-area-inset-top)) clamp(1rem,3.5vw,2rem) .9rem;
-  background:linear-gradient(to bottom,rgba(0,0,0,.92),rgba(0,0,0,0));pointer-events:none}
-.pv-chipbtn{pointer-events:auto;display:inline-flex;align-items:center;gap:.45rem;min-height:42px;padding:.4rem 1rem;
+.pv-player{position:fixed;top:0;right:0;bottom:0;left:0;z-index:99999;background:#000;display:flex;flex-direction:column}
+/* Static header row: the lesson title lives in the bar itself so it can
+   never be scrolled or pushed out of view on any screen or orientation. */
+.pv-pbar{position:relative;z-index:10;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  gap:.6rem;padding:max(.65rem,env(safe-area-inset-top)) clamp(.9rem,2.5vw,1.5rem) .65rem;
+  background:#000;border-bottom:1px solid rgba(255,255,255,.07)}
+.pv-chipbtn{display:inline-flex;align-items:center;gap:.45rem;min-height:40px;padding:.4rem .9rem;
   border-radius:999px;border:1px solid var(--pv-edge-2);background:rgba(255,255,255,.07);color:#fff;cursor:pointer;
-  font-weight:800;font-size:.86rem;backdrop-filter:blur(12px);
+  font-weight:800;font-size:.86rem;white-space:nowrap;
   transition:background .2s ease,border-color .2s ease}
 .pv-chipbtn:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.3)}
 .pv-chipbtn--on{background:rgba(45,212,191,.16);border-color:rgba(45,212,191,.5)}
-.pv-viewer{--pv-chrome:11.5rem;flex:1;width:100%;min-height:0;display:flex;align-items:flex-start;justify-content:center;
+.pv-ptitlewrap{flex:1;min-width:0;text-align:center}
+.pv-ptitle{margin:0;color:#fff;font-family:var(--pv-heading);
+  font-size:clamp(.92rem,.88rem+.35vw,1.15rem);font-weight:800;line-height:1.28;letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pv-viewer{--pv-chrome:8.5rem;flex:1;width:100%;min-height:0;display:flex;justify-content:center;
   overflow-y:auto;overscroll-behavior:contain;
-  padding:max(4.5rem,calc(env(safe-area-inset-top) + 4rem)) var(--pv-pad-x) max(2rem,env(safe-area-inset-bottom))}
-.pv-pcol{width:100%;display:flex;flex-direction:column;gap:1.25rem;margin:0 auto}
+  padding:1.25rem var(--pv-pad-x) max(1.25rem,env(safe-area-inset-bottom))}
+.pv-pcol{width:100%;display:flex;flex-direction:column;gap:1.1rem;margin-top:auto;margin-bottom:auto}
 .pv-pcol--wide{max-width:min(1280px,calc((100vh - var(--pv-chrome)) * 16 / 9));
   max-width:min(1280px,calc((100dvh - var(--pv-chrome)) * 16 / 9))}
 .pv-pcol--short{max-width:min(440px,calc((100vh - var(--pv-chrome)) * 9 / 16));
   max-width:min(440px,calc((100dvh - var(--pv-chrome)) * 9 / 16))}
-.pv-ptitle{margin:0;color:#fff;font-family:var(--pv-heading);font-size:clamp(1.15rem,1rem+1vw,1.9rem);font-weight:850;
-  line-height:1.22;letter-spacing:-.01em}
-.pv-pmeta{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.65rem}
+.pv-pmeta{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
 .pv-pbox{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:clamp(12px,2vw,24px);
   border:1px solid rgba(255,255,255,.12);background:#000;box-shadow:0 25px 70px rgba(0,0,0,.85)}
 .pv-pbox--short{aspect-ratio:9/16}
-.pv-note{margin-top:.25rem;position:relative;border-radius:20px;border:1px solid rgba(255,183,3,.2);
+.pv-note{position:relative;border-radius:20px;border:1px solid rgba(255,183,3,.2);
   background:linear-gradient(160deg,rgba(255,183,3,.06),rgba(20,20,23,.92) 45%);padding:1.25rem 1.5rem;color:#fff;
-  backdrop-filter:blur(12px)}
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .pv-note-tag{display:flex;align-items:center;gap:.5rem;color:var(--pv-gold);font-size:.72rem;font-weight:850;
   letter-spacing:.14em;text-transform:uppercase}
 .pv-note-dot{width:7px;height:7px;border-radius:50%;background:var(--pv-gold);box-shadow:0 0 12px var(--pv-gold)}
@@ -317,8 +322,10 @@ const PRACTICE_LIBRARY_CSS = `
   .pv-grid-videos .pv-tiletitle{font-size:.98rem}
 }
 @media (orientation:landscape) and (max-height:500px){
-  .pv-viewer{--pv-chrome:8rem;padding-top:4.25rem}
-  .pv-ptitle{font-size:1rem}
+  .pv-pbar{padding-top:.4rem;padding-bottom:.4rem;gap:.5rem}
+  .pv-chipbtn{min-height:34px;padding:.3rem .75rem;font-size:.78rem}
+  .pv-ptitle{-webkit-line-clamp:1;font-size:.85rem}
+  .pv-viewer{--pv-chrome:5.5rem;padding-top:.75rem;padding-bottom:.75rem}
   .pv-pcol{gap:.75rem}
 }
 @media (prefers-reduced-motion:reduce){
@@ -589,18 +596,15 @@ export default function VideosClient({ initialPayload = null }) {
         {!activeFolder ? (
           <header className="pv-hero">
             <span className="pv-hero-kanji" aria-hidden="true">稽古</span>
-            <div className="pv-tag pv-rise" style={{ animationDelay: '0.05s' }}>
-              <PlayCircle size={14} /> SKF Practice Portal
-            </div>
-            <h1 className="pv-hero-title pv-rise" style={{ animationDelay: '0.12s' }}>
+            <h1 className="pv-hero-title pv-rise" style={{ animationDelay: '0.05s' }}>
               Home <b>Practice</b> Library
             </h1>
-            <p className="pv-hero-copy pv-rise" style={{ animationDelay: '0.2s' }}>
+            <p className="pv-hero-copy pv-rise" style={{ animationDelay: '0.12s' }}>
               Explore personally assigned karate drills, syllabus videos, and technique photo guides to refine your martial arts practice.
             </p>
 
             {!error && hasContent ? (
-              <div className="pv-stats pv-rise" style={{ animationDelay: '0.28s' }}>
+              <div className="pv-stats pv-rise" style={{ animationDelay: '0.2s' }}>
                 <div className="pv-stat">
                   <span className="pv-stat-ic pv-stat-ic--gold"><Layers size={19} /></span>
                   <span>
@@ -632,7 +636,7 @@ export default function VideosClient({ initialPayload = null }) {
               </div>
             ) : null}
 
-            <div className="pv-searchwrap pv-rise" style={{ animationDelay: '0.36s' }}>
+            <div className="pv-searchwrap pv-rise" style={{ animationDelay: '0.28s' }}>
               <Search size={18} className="pv-searchicon" />
               <input
                 value={libraryQuery}
@@ -755,12 +759,15 @@ export default function VideosClient({ initialPayload = null }) {
                 exit={{ opacity: 0 }}
                 className="pv-player"
               >
-                {/* Header bar */}
-                <div className="pv-pbar">
+                {/* Fixed header — the lesson title always stays visible here */}
+                <header className="pv-pbar">
                   <button type="button" onClick={closePlayerToLibrary} className="pv-chipbtn pv-tap pv-focus">
                     <ChevronLeft size={20} /> Back
                   </button>
-                  <div style={{ display: 'flex', gap: '0.5rem', pointerEvents: 'auto' }}>
+                  <div className="pv-ptitlewrap">
+                    <h1 className="pv-ptitle">{playingVideo.title}</h1>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
                       type="button"
                       onClick={() => toggleCompletion(playingVideo)}
@@ -773,19 +780,10 @@ export default function VideosClient({ initialPayload = null }) {
                       <Copy size={16} /> <span className="practice-copy-label">Share</span>
                     </button>
                   </div>
-                </div>
+                </header>
 
                 <div ref={viewerScrollRef} className="pv-viewer">
                   <div className={`pv-pcol ${playingVideo.contentFormat === 'short' ? 'pv-pcol--short' : 'pv-pcol--wide'}`}>
-                    <div>
-                      <h1 className="pv-ptitle">{playingVideo.title}</h1>
-                      {playingVideo.category || playingVideo.duration ? (
-                        <div className="pv-pmeta">
-                          {playingVideo.category ? <span className="pv-fchip">{formatCategoryLabel(playingVideo.category)}</span> : null}
-                          {playingVideo.duration ? <span className="pv-fchip"><Clock size={13} /> {playingVideo.duration}</span> : null}
-                        </div>
-                      ) : null}
-                    </div>
                     <div className={`pv-pbox ${playingVideo.contentFormat === 'short' ? 'pv-pbox--short' : ''}`}>
                       <YouTubeNativePlayer
                         youtubeId={playingVideo.youtubeId}
@@ -797,6 +795,12 @@ export default function VideosClient({ initialPayload = null }) {
                         onEscape={closePlayerToLibrary}
                       />
                     </div>
+                    {playingVideo.category || playingVideo.duration ? (
+                      <div className="pv-pmeta">
+                        {playingVideo.category ? <span className="pv-fchip">{formatCategoryLabel(playingVideo.category)}</span> : null}
+                        {playingVideo.duration ? <span className="pv-fchip"><Clock size={13} /> {playingVideo.duration}</span> : null}
+                      </div>
+                    ) : null}
                     {playingVideo.lessonNote ? (
                       <aside className="pv-note">
                         <div className="pv-note-tag">
@@ -837,14 +841,13 @@ function Shelf({ children, ...restProps }) {
   )
 }
 
-function SectionHead({ icon, title, count }) {
+function SectionHead({ icon, title }) {
   return (
     <div className="pv-shelfhead">
       <h2 className="pv-shelftitle">
         <span className="pv-shelfic">{icon}</span>
         {title}
       </h2>
-      {typeof count === 'number' && count > 0 ? <span className="pv-pill">{count}</span> : null}
     </div>
   )
 }
@@ -853,7 +856,7 @@ function FolderRail({ folders, allFolders, progressByVideoId, onOpen, title = 'P
   if (!folders.length) return null
   return (
     <Shelf>
-      <SectionHead icon={<FolderOpen size={17} />} title={title} count={folders.length} />
+      <SectionHead icon={<FolderOpen size={17} />} title={title} />
       <div className="pv-grid pv-grid-folders">
         {folders.map((folder) => {
           const subfolderCount = (allFolders || []).filter((candidate) => candidate.parentFolderId === folder.id).length
@@ -905,7 +908,7 @@ function PhotoRow({ title, photos }) {
   if (!photos.length) return null
   return (
     <Shelf>
-      <SectionHead icon={<ImageIcon size={17} />} title={title} count={photos.length} />
+      <SectionHead icon={<ImageIcon size={17} />} title={title} />
       <div className="pv-grid pv-grid-photos">
         {photos.map((photo) => (
           <a key={photo.id} href={photo.imageUrl} target="_blank" rel="noreferrer" className="pv-ph pv-tap">
@@ -936,7 +939,7 @@ function VideoRow({ title, icon, videos, progressByVideoId, onPlay, compact = fa
 
   return (
     <Shelf>
-      <SectionHead icon={icon} title={title} count={videos.length} />
+      <SectionHead icon={icon} title={title} />
       {compact ? (
         <div className="pv-railwrap">
           <div ref={railRef} className="pv-rail kuroobi-scrollbar-hide">
