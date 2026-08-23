@@ -66,7 +66,7 @@ function DojoLoginInner({ fallbackCallbackUrl }) {
       const data = await res.json().catch(() => null)
 
       if (res.ok) {
-        router.push(callbackUrl)
+        window.location.href = callbackUrl
       } else {
         setError(getPortalLoginErrorMessage(data))
         setLoading(false)

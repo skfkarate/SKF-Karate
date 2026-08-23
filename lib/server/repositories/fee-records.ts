@@ -128,7 +128,7 @@ export async function getFeesBySkfIdLive(skfId: string, year?: number): Promise<
   let query = supabaseAdmin
     .from('fee_records')
     .select('id, skf_id, fee_type, month, year, amount, status, paid_date, receipt_id, payment_method, verified_by, verified_at, rejected_reason, notes, metadata, source_key, source_type, source_id, source_label, due_date, branch_snapshot')
-    .eq('skf_id', normalizedSkfId)
+    .ilike('skf_id', normalizedSkfId)
 
   if (year) {
     query = query.eq('year', year)

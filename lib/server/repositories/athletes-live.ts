@@ -440,15 +440,12 @@ export async function getAllAthletesLive() {
 
 async function findAthleteByColumn(column: string, lookupCandidates: string[]) {
   for (const lookup of lookupCandidates) {
-    const { data, error } = await supabaseAdmin
-      .from('athletes')
-      .select('*')
-      .eq(column, lookup)
-      .single()
+    const query = supabaseAdmin.from('athletes').select('*')
+    const { data, error } = await (column === 'id' ? query.eq(column, lookup) : query.ilike(column, lookup)).maybeSingle()
 
     if (error) {
       if (error.code !== 'PGRST116') throw error
-    } else {
+    } else if (data) {
       return mapAthleteRowToRecord(data)
     }
   }
