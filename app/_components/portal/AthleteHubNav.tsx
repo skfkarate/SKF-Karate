@@ -223,7 +223,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
         body: JSON.stringify({ targetSkfId: skfId })
       })
       if (res.ok) {
-        window.location.reload()
+        window.location.href = '/portal/dashboard'
       } else {
         setIsSwitching(null)
       }
@@ -239,7 +239,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     try {
       await fetch('/api/auth/portal/logout', { method: 'POST' })
       setMenuOpen(false)
-      router.push('/portal/login')
+      window.location.href = '/portal/login'
     } catch {
       setIsLoggingOut(false)
     }

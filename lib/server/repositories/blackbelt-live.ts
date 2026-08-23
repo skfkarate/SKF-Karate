@@ -259,7 +259,7 @@ export async function getBBCandidateBySkfIdAcrossPrograms(
   const { data, error } = await supabaseAdmin
     .from('bb_candidates')
     .select('*')
-    .eq('skf_id', normalizedAthleteId)
+    .ilike('skf_id', normalizedAthleteId)
     .order('created_at', { ascending: false })
     .limit(1)
 
@@ -343,14 +343,27 @@ export async function getBBProgramForPortal(skfId?: string | null) {
   if (!program) return null
 
   const candidates = await getAllBBCandidates(program.id)
+  const candidateIds = candidates.map((c) => c.id)
 
-  // Fetch public progress for all candidates in parallel
+  // Single-query batch fetch for all candidate progress entries to eliminate N+1 roundtrips
+  const { data: progressData } = candidateIds.length
+    ? await supabaseAdmin
+        .from('bb_progress_entries')
+        .select('*')
+        .in('candidate_id', candidateIds)
+        .eq('is_private', false)
+        .order('entry_date', { ascending: false })
+    : { data: [] }
+
   const progressMap: Record<string, BBProgressEntry[]> = {}
-  await Promise.all(
-    candidates.map(async (c) => {
-      progressMap[c.id] = await getBBCandidateProgress(c.id, false)
-    })
-  )
+  for (const c of candidates) {
+    progressMap[c.id] = []
+  }
+  for (const entry of (progressData || [])) {
+    if (progressMap[entry.candidate_id]) {
+      progressMap[entry.candidate_id].push(entry as BBProgressEntry)
+    }
+  }
 
   return {
     program,
