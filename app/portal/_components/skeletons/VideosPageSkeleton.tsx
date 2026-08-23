@@ -4,19 +4,50 @@ import React from 'react'
 
 import { SkeletonBlock, SkeletonLine } from './SkeletonPrimitives'
 
-/** Matches the compact library screen so navigation never opens onto a blank hero. */
+/**
+ * Mirror of the Dojo Stream library shell so the swap from loading to
+ * loaded is a seamless morph: hero (tag → title → stats → search),
+ * then a rail shelf and the folder grid, all on pure black.
+ */
 export const VideosPageSkeleton = () => (
-  <div style={{ minHeight: '100dvh', width: '100%', background: '#000', padding: '5rem 4% 6rem' }} aria-label="Loading Home Practice" aria-busy="true">
-    <SkeletonLine width="min(420px, 82%)" height={46} style={{ borderRadius: 10 }} />
-    <SkeletonLine width="min(560px, 96%)" height={16} style={{ marginTop: '1rem', borderRadius: 6 }} />
-    <SkeletonBlock width="min(440px, 100%)" height={44} radius={12} style={{ marginTop: '1.25rem' }} />
-    {[0, 1].map((row) => (
-      <section key={row} style={{ marginTop: row ? '2.5rem' : '3rem' }}>
-        <SkeletonLine width={row ? '210px' : '180px'} height={22} style={{ borderRadius: 6, marginBottom: '1rem' }} />
-        <div style={{ display: 'flex', gap: '0.8rem', overflow: 'hidden' }}>
-          {[0, 1, 2, 3].map((card) => <SkeletonBlock key={card} width={row ? 'clamp(190px, 22vw, 280px)' : 'clamp(170px, 18vw, 240px)'} height="auto" radius={12} style={{ flex: '0 0 auto', aspectRatio: row ? '1.35 / 1' : '16 / 9' }} />)}
-        </div>
-      </section>
-    ))}
+  <div
+    style={{ minHeight: '100dvh', width: '100%', background: '#000', padding: 'clamp(2.5rem, 7vw, 4.25rem) max(4%, 1rem) 6rem' }}
+    aria-label="Loading Home Practice"
+    aria-busy="true"
+  >
+    {/* Hero */}
+    <SkeletonBlock width={168} height={30} radius={999} />
+    <SkeletonLine width="min(620px, 94%)" height={52} style={{ borderRadius: 12, marginTop: '1.15rem' }} />
+    <SkeletonLine width="min(430px, 78%)" height={16} style={{ borderRadius: 6, marginTop: '0.95rem' }} />
+
+    {/* Stats strip */}
+    <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap', marginTop: '1.9rem' }}>
+      {[0, 1, 2, 3].map((stat) => (
+        <SkeletonBlock key={stat} width={172} height={76} radius={18} />
+      ))}
+    </div>
+
+    {/* Search */}
+    <SkeletonBlock width="min(540px, 100%)" height={54} radius={18} style={{ marginTop: '1.7rem' }} />
+
+    {/* Rail shelf */}
+    <section style={{ marginTop: '3rem' }}>
+      <SkeletonLine width={200} height={24} style={{ borderRadius: 8 }} />
+      <div style={{ display: 'flex', gap: '1rem', overflow: 'hidden', marginTop: '1.05rem' }}>
+        {[0, 1, 2, 3].map((card) => (
+          <SkeletonBlock key={card} width="clamp(230px, 24vw, 330px)" height="auto" radius={18} style={{ flex: '0 0 auto', aspectRatio: '16 / 9' }} />
+        ))}
+      </div>
+    </section>
+
+    {/* Folder grid shelf */}
+    <section style={{ marginTop: '2.75rem' }}>
+      <SkeletonLine width={176} height={24} style={{ borderRadius: 8 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '1.15rem', marginTop: '1.05rem' }}>
+        {[0, 1, 2].map((card) => (
+          <SkeletonBlock key={card} height={196} radius={20} />
+        ))}
+      </div>
+    </section>
   </div>
 )
