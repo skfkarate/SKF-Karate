@@ -160,8 +160,8 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                                         fill
                                         sizes="(max-width: 768px) 100vw, 400px"
                                     />
-                                    <div style={{ 
-                                        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    <div style={{
+                                        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         background: 'rgba(0,0,0,0.3)'
                                     }}>
                                         <div style={{ 
@@ -214,7 +214,7 @@ export default function TechniquesClient({ videos, hideBeltFilter }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     style={{
-                        position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)',
+                        position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
                     }}
                     onClick={() => setActiveVideo(null)}

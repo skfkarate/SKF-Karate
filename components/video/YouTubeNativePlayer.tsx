@@ -388,7 +388,10 @@ export default function YouTubeNativePlayer({
         <div
           style={{
             position: 'absolute',
-            inset: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
             backgroundImage: `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.7)), url(${posterUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -400,7 +403,10 @@ export default function YouTubeNativePlayer({
         ref={frameSlotRef}
         style={{
           position: 'absolute',
-          inset: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           pointerEvents: 'none',
         }}
       />
@@ -536,7 +542,10 @@ export default function YouTubeNativePlayer({
 
 const centerOverlayStyle = {
   position: 'absolute',
-  inset: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

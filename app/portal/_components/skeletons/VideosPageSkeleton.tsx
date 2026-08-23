@@ -6,7 +6,7 @@ import { SkeletonBlock, SkeletonLine } from './SkeletonPrimitives'
 
 /**
  * Mirror of the Dojo Stream library shell so the swap from loading to
- * loaded is a seamless morph: hero (tag → title → stats → search),
+ * loaded is a seamless morph: hero (title → description → stats → search),
  * then a rail shelf and the folder grid, all on pure black.
  */
 export const VideosPageSkeleton = () => (
@@ -16,9 +16,8 @@ export const VideosPageSkeleton = () => (
     aria-busy="true"
   >
     {/* Hero */}
-    <SkeletonBlock width={168} height={30} radius={999} />
-    <SkeletonLine width="min(620px, 94%)" height={52} style={{ borderRadius: 12, marginTop: '1.15rem' }} />
-    <SkeletonLine width="min(430px, 78%)" height={16} style={{ borderRadius: 6, marginTop: '0.95rem' }} />
+    <SkeletonLine width="min(430px, 82%)" height={40} style={{ borderRadius: 12 }} />
+    <SkeletonLine width="min(560px, 88%)" height={14} style={{ borderRadius: 6, marginTop: '0.7rem' }} />
 
     {/* Stats strip */}
     <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap', marginTop: '1.9rem' }}>
