@@ -2,6 +2,7 @@ import type { Session } from 'next-auth'
 import sharp from 'sharp'
 
 import { buildAthletePayloadFromForm } from '@/lib/athletes/athlete-records'
+import { isExternallyManagedBranch } from '@/data/constants/branches'
 import { getAllCitiesLive } from '@/lib/server/repositories/classes-live'
 import {
   createAthleteLive,
@@ -88,10 +89,10 @@ const BRANCH_ADMISSION_DEFAULTS: Record<string, {
 
 // Kunigal manages collections locally. Keep this rule in the service layer as
 // well as the public form so a crafted request can never create SKF fee data.
-const EXTERNALLY_MANAGED_FEE_BRANCHES = new Set(['kunigal-main'])
-
+// Uses the shared externally-managed branch check so every slug variant
+// ('kunigal', 'kunigal-main', …) stays covered.
 function isFeeTrackingEnabled(branchSlug: string) {
-  return !EXTERNALLY_MANAGED_FEE_BRANCHES.has(cleanText(branchSlug).toLowerCase())
+  return !isExternallyManagedBranch(branchSlug)
 }
 
 type AdmissionRow = Record<string, unknown>
