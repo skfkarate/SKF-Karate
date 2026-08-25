@@ -313,7 +313,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     // Validate DD/MM/YYYY dates
     const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!dobRegex.test(fd.studentDob)) { setErrorMsg('Date of Birth must be in DD/MM/YYYY format.'); return }
-    if (feeTrackingEnabled && fd.expectedJoinDate && !dobRegex.test(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date must be in DD/MM/YYYY format.'); return }
+    if (fd.expectedJoinDate && !dobRegex.test(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date must be in DD/MM/YYYY format.'); return }
 
     setSubmitState('submitting')
     try {
@@ -324,9 +324,9 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
 
       const pl = new FormData()
       pl.set('branchSlug', config.branch.slug)
+      pl.set('expectedJoinDate', convertDate(fd.expectedJoinDate))
       if (feeTrackingEnabled) {
         pl.set('preferredBatch', fd.preferredBatch)
-        pl.set('expectedJoinDate', convertDate(fd.expectedJoinDate))
       }
       pl.set('studentName', fd.studentName); pl.set('studentDob', convertDate(fd.studentDob)); pl.set('studentGender', fd.studentGender); pl.set('schoolClass', fd.schoolClass)
       pl.set('guardianName', fd.guardianName); pl.set('guardianRelationship', fd.guardianRelationship); pl.set('guardianPhone', fd.guardianPhone)
@@ -479,10 +479,10 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
                   <label className="adm-field__label" htmlFor="schoolClass">School *</label>
                   <input id="schoolClass" name="schoolClass" className="adm-field__input" type="text" required value={fd.schoolClass} onChange={handleChange} placeholder="Enter school name" />
                 </div>
-                {feeTrackingEnabled ? <div className="adm-field">
+                <div className="adm-field">
                   <label className="adm-field__label" htmlFor="expectedJoinDate">Expected Join Date (DD/MM/YYYY)</label>
                   <input id="expectedJoinDate" name="expectedJoinDate" className="adm-field__input" type="text" inputMode="numeric" placeholder="DD/MM/YYYY" value={fd.expectedJoinDate} onChange={handleChange} />
-                </div> : null}
+                </div>
               </div>
               {feeTrackingEnabled ? <div className="adm-field">
                 <label className="adm-field__label" htmlFor="preferredBatch">Preferred Batch Timing</label>
