@@ -57,9 +57,6 @@ const nextConfig = {
   turbopack: {
     root: projectRoot,
   },
-  outputFileTracingIncludes: {
-    '/api/profile-photos/[skfId]': ['./SKF Photos/**/*'],
-  },
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2678400,

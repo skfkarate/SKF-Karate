@@ -52,8 +52,18 @@ cookies.txt
 *_dump.txt
 contents.txt
 scratch/
+scratch*.ts
+scratch*.tsx
+test-pdf*
+test-render*
 test_sheets_fetch.ts
 get_ids.js
+scripts/scratch/
+files/certificate-qrs/
+
+# Student PII (photos, QR codes) — never commit
+SKF Photos/
+SKF-kunigal-photos/
 
 # Auto-generated sitemaps (generated at build time)
 public/sitemap*.xml

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle } from 'lucide-react'
@@ -23,7 +23,6 @@ function getPortalLoginErrorMessage(payload) {
 }
 
 function DojoLoginInner({ fallbackCallbackUrl }) {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = sanitizePortalCallbackUrl(searchParams.get('callbackUrl') || fallbackCallbackUrl)
   const [skfId, setSkfId] = useState('')

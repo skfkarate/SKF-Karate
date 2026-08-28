@@ -1,5 +1,4 @@
 import React from 'react'
-import { renderToStream } from '@react-pdf/renderer'
 
 import { ReceiptDocument } from '@/lib/receipts/ReceiptDocument'
 import { NotFoundError, RateLimitError, ValidationError } from '@/src/server/lib/errors'
@@ -53,9 +52,11 @@ export const GET = withRoute(
         dojoAddress: data.dojoAddress,
         verifiedBy: data.verifiedBy,
         verifiedAt: data.verifiedAt,
-        issuedAt: data.issuedAt,
-      }) as unknown as Parameters<typeof renderToStream>[0]
-    const stream = await renderToStream(receiptDocument)
+      issuedAt: data.issuedAt,
+    })
+    const { renderToStream } = await import('@react-pdf/renderer')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stream = await renderToStream(receiptDocument as any)
 
     const fileId = formatFilename(`${data.athleteName}_${data.month}_${data.year}_${data.receiptId}`)
     const disposition = mode === 'download' ? 'attachment' : 'inline'

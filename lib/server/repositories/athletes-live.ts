@@ -9,13 +9,12 @@ import { ApiError } from '../api'
 import type { Athlete } from '@/data/types'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
 import {
-  createAthlete,
   getAllAthletes,
   getAthleteById,
   getAthleteBySkfId,
   getAthleteRank,
-  updateAthlete,
 } from './athletes'
 
 type AthleteAchievement = Record<string, unknown> & {
@@ -113,12 +112,10 @@ function cloneAthleteData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
-function canUseLocalAthleteFallback() {
-  return process.env.NODE_ENV !== 'production'
-}
+const PGRST303_RETRY_MS = 1000
 
-function unavailableAthleteDatabaseError() {
-  return new ApiError(503, 'Athlete database is not available.')
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
 function normalizedText(value: unknown, fallback = '') {
@@ -278,10 +275,10 @@ function normaliseAthletePayload(
     phone: input.phone || existing?.phone || '',
     email: input.email || existing?.email || '',
     batch: input.batch || existing?.batch || '',
-    monthlyFee: typeof input.monthlyFee === 'number' && Number.isFinite(input.monthlyFee) && input.monthlyFee !== 0
+    monthlyFee: typeof input.monthlyFee === 'number' && Number.isFinite(input.monthlyFee)
       ? input.monthlyFee
-      : (existing?.monthlyFee || 0) !== 0
-        ? existing!.monthlyFee
+      : existing?.monthlyFee != null
+        ? existing.monthlyFee
         : (branchName.toLowerCase() === 'herohalli' ? 500 : 0),
     photoConsent:
       typeof input.photoConsent === 'boolean'
@@ -324,8 +321,6 @@ export async function getAthletesByPhonesLive(phones: string[]): Promise<Athlete
   if (normalizedPhones.length === 0) return []
 
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
-
     const all = await getAthleteDataset()
     return all.filter(a => {
       const digits = String(a.phone || '').replace(/\D/g, '').slice(-10)
@@ -342,7 +337,6 @@ export async function getAthletesByPhonesLive(phones: string[]): Promise<Athlete
 
   if (error) {
     logger.warn('athletes_live.phone_query_failed', { error, filters })
-    if (!canUseLocalAthleteFallback()) throw error
 
     const all = await getAthleteDataset()
     return all.filter(a => {
@@ -355,29 +349,46 @@ export async function getAthletesByPhonesLive(phones: string[]): Promise<Athlete
 }
 
 async function readAllAthletesFromDatabase(): Promise<AthleteRecord[]> {
-  const { data, error } = await supabaseAdmin
-    .from('athletes')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const allData: Record<string, unknown>[] = []
+  let offset = 0
+  const pageSize = 1000
 
-  if (error) {
-    throw error
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from('athletes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1)
+
+    if (error) throw error
+    if (!data || data.length === 0) break
+    allData.push(...data)
+    if (data.length < pageSize) break
+    offset += pageSize
   }
 
-  return (data || []).map(mapAthleteRowToRecord)
+  return allData.map(mapAthleteRowToRecord)
 }
 
 const getAthleteDataset = cache(async function getAthleteDataset(): Promise<AthleteRecord[]> {
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 
   try {
     return await readAllAthletesFromDatabase()
   } catch (error) {
-    logger.warn('athletes_live.local_fallback', { error })
-    if (!canUseLocalAthleteFallback()) throw error
+    if (isPgrst303(error)) {
+      logger.warn('athletes_live.pgrst303_retry', { error })
+      await sleep(PGRST303_RETRY_MS)
+      try {
+        return await readAllAthletesFromDatabase()
+      } catch (retryError) {
+        logger.warn('athletes_live.local_fallback_retry_failed', { error: retryError })
+      }
+    } else {
+      logger.warn('athletes_live.local_fallback', { error })
+    }
     return cloneAthleteData(getAllAthletes() as unknown as AthleteRecord[])
   }
 })
@@ -455,7 +466,6 @@ async function findAthleteByColumn(column: string, lookupCandidates: string[]) {
 
 export async function getAthleteBySkfIdLive(skfId: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 
@@ -484,14 +494,12 @@ export async function getAthleteBySkfIdLive(skfId: string): Promise<AthleteRecor
     return null
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_skf_id_fallback', { skfId, error })
-    if (!canUseLocalAthleteFallback()) throw error
     return cloneAthleteData(getAthleteBySkfId(skfId) as unknown as AthleteRecord | null)
   }
 }
 
 export async function getAthleteByIdLive(id: string): Promise<AthleteRecord | null> {
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
     return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 
@@ -510,7 +518,6 @@ export async function getAthleteByIdLive(id: string): Promise<AthleteRecord | nu
     return mapAthleteRowToRecord(data)
   } catch (error) {
     logger.warn('athletes_live.local_lookup_by_id_fallback', { id, error })
-    if (!canUseLocalAthleteFallback()) throw error
     return cloneAthleteData(getAthleteById(id) as unknown as AthleteRecord | null)
   }
 }
@@ -656,8 +663,7 @@ export async function getAthleteRankLive(athleteId: string) {
 
 export async function createAthleteLive(input: AthleteInput) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
-    return cloneAthleteData(createAthlete(input))
+    throw new ApiError(503, 'Athlete database is not available.')
   }
 
   const joinDate = input.joinDate || new Date().toISOString().split('T')[0]
@@ -703,8 +709,7 @@ export async function createAthleteLive(input: AthleteInput) {
 
 export async function updateAthleteLive(id: string, input: AthleteInput) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalAthleteFallback()) throw unavailableAthleteDatabaseError()
-    return cloneAthleteData(updateAthlete(id, input))
+    throw new ApiError(503, 'Athlete database is not available.')
   }
 
   const existingAthlete = await getAthleteByIdLive(id)

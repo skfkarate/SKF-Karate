@@ -29,10 +29,9 @@ function twoDigit(value: number) {
 }
 
 export function CertificatePublishingCountdown({ targetIso }: { targetIso: string }) {
-  const [remaining, setRemaining] = useState<TimeRemaining | null>(null)
+  const [remaining, setRemaining] = useState<TimeRemaining | null>(() => calculateRemaining(targetIso))
 
   useEffect(() => {
-    setRemaining(calculateRemaining(targetIso))
     const interval = window.setInterval(() => {
       setRemaining(calculateRemaining(targetIso))
     }, 1000)

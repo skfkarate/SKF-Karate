@@ -32,8 +32,22 @@ const BLACK_BELT_CANDIDATES = [
   ['SKF21HE003', 'Shashank R'],
 ] as const
 
-function applyFilters(rows: Row[], filters: { column: string; value: unknown }[]) {
-  return rows.filter(row => filters.every(filter => row[filter.column] === filter.value))
+function applyFilters(rows: Row[], filters: { column: string; value: unknown; operator?: string }[]) {
+  return rows.filter(row => {
+    for (const filter of filters) {
+      if (filter.operator === 'in') {
+        const values = filter.value as unknown[]
+        if (!values.includes(row[filter.column])) return false
+      } else if (filter.operator === 'like') {
+        const pattern = String(filter.value)
+        const patternRegExp = new RegExp(`^${pattern.replace(/%/g, '.*').replace(/_/g, '.')}$`, 'i')
+        if (!patternRegExp.test(String(row[filter.column] ?? ''))) return false
+      } else if (row[filter.column] !== filter.value) {
+        return false
+      }
+    }
+    return true
+  })
 }
 
 function sortRows(rows: Row[], orderBy: { column: string; ascending: boolean } | null) {
@@ -49,7 +63,7 @@ function sortRows(rows: Row[], orderBy: { column: string; ascending: boolean } |
 }
 
 function createSelectQuery(rows: Row[]) {
-  const filters: { column: string; value: unknown }[] = []
+  const filters: { column: string; value: unknown; operator?: string }[] = []
   let orderBy: { column: string; ascending: boolean } | null = null
   let rowLimit: number | null = null
 
@@ -62,6 +76,14 @@ function createSelectQuery(rows: Row[]) {
     select: () => query,
     eq: (column: string, value: unknown) => {
       filters.push({ column, value })
+      return query
+    },
+    ilike: (column: string, value: unknown) => {
+      filters.push({ column, value })
+      return query
+    },
+    in: (column: string, values: unknown[]) => {
+      filters.push({ column, value: values, operator: 'in' })
       return query
     },
     order: (column: string, options?: { ascending?: boolean }) => {

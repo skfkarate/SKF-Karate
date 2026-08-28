@@ -26,7 +26,7 @@ function CopyButton({ text }: { text: string }) {
 
 type AdmissionConfig = {
   branch: { slug: string; name: string; cityName: string; classTime: string; address: string; photos: string[] }
-  settings: { branchSlug: string; branchName: string; defaultMonthlyFee: number; defaultAdmissionFee: number; defaultDressFee: number; batchOptions: string[]; notes?: string; feeTrackingEnabled?: boolean }
+  settings: { branchSlug: string; branchName: string; isEnabled?: boolean; showPublicCta?: boolean; defaultMonthlyFee: number; defaultAdmissionFee: number; defaultDressFee: number; defaultDressCost?: number; batchOptions: string[]; notes?: string; feeTrackingEnabled?: boolean; updatedAt?: string }
 }
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 type AdmissionResult = { applicationId: string; branchName: string; quotedMonthlyFee: number; quotedAdmissionFee: number; quotedDressFee: number; quotedJoiningTotal: number }
@@ -83,13 +83,6 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const [result, setResult] = useState<AdmissionResult | null>(null)
   const feeTrackingEnabled = config.settings.feeTrackingEnabled !== false
 
-  useEffect(() => {
-    // Avoid SSR hydration mismatch by setting the expected date on the client only
-    if (!fd.expectedJoinDate) {
-      setFd(p => ({ ...p, expectedJoinDate: todayStr() }))
-    }
-  }, [])
-
   const batchOptions = useMemo(() => {
     const opts = config.settings.batchOptions?.length ? config.settings.batchOptions : [config.branch.classTime].filter(Boolean)
     return Array.from(new Set(opts))
@@ -110,8 +103,8 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
   const [quoteState, setQuoteState] = useState<'idle' | 'loading' | 'error'>('idle')
   const [quoteError, setQuoteError] = useState('')
 
-  const [fd, setFd] = useState({
-    studentName: '', studentDob: '', studentGender: 'male', schoolClass: '', expectedJoinDate: '', preferredBatch: batchOptions[0] || '',
+  const [fd, setFd] = useState(() => ({
+    studentName: '', studentDob: '', studentGender: 'male', schoolClass: '', expectedJoinDate: todayStr(), preferredBatch: batchOptions[0] || '',
     guardianName: '', guardianRelationship: '', guardianPhone: '', guardianWhatsapp: '', guardianEmail: '',
     emergencyName: '', emergencyRelationship: '', emergencyPhone: '',
     hasMedicalCondition: false, medicalDetails: '', medications: '', specialRequirements: '',
@@ -121,7 +114,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     paymentProofBase64: '', paymentProofName: '', paymentProofFile: null as File | null,
     hasReferral: false, referralSource: '', referrerName: '', referrerContact: '',
     accuracyConsent: false, participationConsent: false, dataConsent: false, photoConsent: false,
-  })
+  }))
   const isHerohalli = config.branch.slug === 'herohalli'
   const baseAdmissionFee = baseFeeQuote.quotedAdmissionFee
   const baseDressFee = baseFeeQuote.quotedDressFee
@@ -157,11 +150,8 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
         })
         const data = await response.json().catch(() => null)
         if (!response.ok || !data?.success) {
-          const details = data?.error?.details
-          const firstDetail = details && typeof details === 'object'
-            ? Object.values(details).flat().filter(Boolean)[0]
-            : ''
-          throw new Error(String(firstDetail || data?.error?.message || 'Promo code could not be applied.'))
+          const msg = data?.error?.message || 'Promo code could not be applied.'
+          throw new Error(msg)
         }
 
         setFeeQuote({
@@ -233,13 +223,6 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
         emergencyName: p.guardianName,
         emergencyRelationship: p.guardianRelationship 
       })) 
-    } else {
-      setFd(p => ({
-        ...p,
-        emergencyPhone: '',
-        emergencyName: '',
-        emergencyRelationship: ''
-      }))
     }
   }
 
@@ -315,6 +298,15 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
     if (!dobRegex.test(fd.studentDob)) { setErrorMsg('Date of Birth must be in DD/MM/YYYY format.'); return }
     if (fd.expectedJoinDate && !dobRegex.test(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date must be in DD/MM/YYYY format.'); return }
 
+    // Validate calendar dates
+    const isValidCalendarDate = (dateStr: string) => {
+      const [day, month, year] = dateStr.split('/').map(Number)
+      const d = new Date(year, month - 1, day)
+      return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day
+    }
+    if (!isValidCalendarDate(fd.studentDob)) { setErrorMsg('Date of Birth is not a valid calendar date.'); return }
+    if (fd.expectedJoinDate && !isValidCalendarDate(fd.expectedJoinDate)) { setErrorMsg('Expected Join Date is not a valid calendar date.'); return }
+
     setSubmitState('submitting')
     try {
       const convertDate = (d: string) => {
@@ -334,7 +326,7 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       pl.set('emergencyName', fd.emergencyName); pl.set('emergencyRelationship', fd.emergencyRelationship); pl.set('emergencyPhone', fd.emergencyPhone)
       pl.set('hasMedicalCondition', String(fd.hasMedicalCondition)); pl.set('medicalDetails', fd.medicalDetails); pl.set('medications', fd.medications); pl.set('specialRequirements', fd.specialRequirements)
       pl.set('hasPreviousTraining', String(fd.hasPreviousTraining)); pl.set('martialArtsStyle', fd.martialArtsStyle); pl.set('trainingDuration', fd.trainingDuration)
-      pl.set('trainingDuration', fd.trainingDuration); pl.set('currentBelt', fd.currentBelt); pl.set('previousDojo', fd.previousDojo); pl.set('trainingNotes', fd.trainingNotes)
+      pl.set('currentBelt', fd.currentBelt); pl.set('previousDojo', fd.previousDojo); pl.set('trainingNotes', fd.trainingNotes)
       if (fd.hasReferral) { pl.set('referralSource', fd.referralSource); pl.set('referrerName', fd.referrerName); pl.set('referrerContact', fd.referrerContact) }
       if (feeTrackingEnabled) pl.set('promoCode', fd.promoCode)
       pl.set('accuracyConsent', String(fd.accuracyConsent)); pl.set('participationConsent', String(fd.participationConsent))
@@ -344,8 +336,8 @@ export default function AdmissionFormClient({ config }: { config: AdmissionConfi
       const res = await fetch('/api/admissions', { method: 'POST', body: pl })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.success) {
-        const d = data?.error?.details; const first = d && typeof d === 'object' ? Object.values(d).flat().filter(Boolean)[0] : ''
-        throw new Error(String(first || data?.error?.message || 'Failed.'))
+        const msg = data?.error?.message || 'Failed to submit admission. Please try again.'
+        throw new Error(msg)
       }
       setResult(data.data); setSubmitState('success'); window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) { setSubmitState('error'); setErrorMsg(err instanceof Error ? err.message : 'Submission failed.') }

@@ -4,14 +4,18 @@ import { cache } from 'react'
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
 import {
-  createTournament,
-  deleteTournament,
   getAllTournamentsAdmin,
   type TournamentRecord,
   type TournamentWinner,
-  updateTournament,
 } from './tournaments'
+
+const PGRST303_RETRY_MS = 1000
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
 
 type TournamentDatabaseRow = {
   id?: string
@@ -49,14 +53,6 @@ type DatabaseWriteError = {
 
 function cloneTournamentData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
-}
-
-function canUseLocalTournamentFallback() {
-  return process.env.NODE_ENV !== 'production'
-}
-
-function unavailableTournamentDatabaseError() {
-  return new ApiError(503, 'Tournament database is not available.')
 }
 
 function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
@@ -201,15 +197,23 @@ async function readAllTournamentsFromDatabase(): Promise<TournamentRecord[]> {
 
 const getTournamentDataset = cache(async function getTournamentDataset(): Promise<TournamentRecord[]> {
   if (!isSupabaseReady()) {
-    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
     return cloneTournamentData(getAllTournamentsAdmin())
   }
 
   try {
     return await readAllTournamentsFromDatabase()
   } catch (error) {
-    logger.warn('tournaments_live.local_fallback', { error })
-    if (!canUseLocalTournamentFallback()) throw error
+    if (isPgrst303(error)) {
+      logger.warn('tournaments_live.pgrst303_retry', { error })
+      await sleep(PGRST303_RETRY_MS)
+      try {
+        return await readAllTournamentsFromDatabase()
+      } catch (retryError) {
+        logger.warn('tournaments_live.local_fallback_retry_failed', { error: retryError })
+      }
+    } else {
+      logger.warn('tournaments_live.local_fallback', { error })
+    }
     return cloneTournamentData(getAllTournamentsAdmin())
   }
 })
@@ -322,8 +326,7 @@ export async function searchTournamentsLive(query: string) {
 
 export async function createTournamentLive(input: Partial<TournamentRecord>) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
-    return cloneTournamentData(createTournament(input))
+    throw new ApiError(503, 'Tournament database is not available.')
   }
 
   const tournament = normaliseTournamentPayload(input)
@@ -347,8 +350,7 @@ export async function createTournamentLive(input: Partial<TournamentRecord>) {
 
 export async function updateTournamentLive(id: string, input: Partial<TournamentRecord>) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
-    return cloneTournamentData(updateTournament(id, input))
+    throw new ApiError(503, 'Tournament database is not available.')
   }
 
   const existing = await getTournamentByIdLive(id)
@@ -376,8 +378,7 @@ export async function updateTournamentLive(id: string, input: Partial<Tournament
 
 export async function deleteTournamentLive(id: string) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalTournamentFallback()) throw unavailableTournamentDatabaseError()
-    return deleteTournament(id)
+    throw new ApiError(503, 'Tournament database is not available.')
   }
 
   const { error } = await supabaseAdmin.from('tournaments').delete().eq('id', id)

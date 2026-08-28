@@ -6,6 +6,13 @@ import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { buildStaticSenseiDataset } from './senseis-live'
 import { logger } from '@/src/server/lib/logger'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
+
+const PGRST303_RETRY_MS = 1000
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
 
 type SchoolRecord = School & { id: string; sortOrder?: number }
 
@@ -356,8 +363,19 @@ export const getAllCitiesLive = cache(async function getAllCitiesLive() {
     try {
       cities = cloneData(await readAllCitiesFromDatabase())
     } catch (error) {
-      logger.warn('classes_live.static_fallback', { error })
-      cities = getStaticCityDataset()
+      if (isPgrst303(error)) {
+        logger.warn('classes_live.pgrst303_retry', { error })
+        await sleep(PGRST303_RETRY_MS)
+        try {
+          cities = cloneData(await readAllCitiesFromDatabase())
+        } catch (retryError) {
+          logger.warn('classes_live.static_fallback_retry_failed', { error: retryError })
+          cities = getStaticCityDataset()
+        }
+      } else {
+        logger.warn('classes_live.static_fallback', { error })
+        cities = getStaticCityDataset()
+      }
     }
   }
 

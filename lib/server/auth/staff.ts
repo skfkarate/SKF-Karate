@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
+import { timingSafeStringEqual } from '@/src/server/lib/security'
 
 export interface AuthUser {
   id: string
@@ -66,8 +67,8 @@ export async function authorizeStaffCredentials(
   }
 
   if (
-    username === process.env.ADMIN_USERNAME &&
-    password === process.env.ADMIN_PASSWORD
+    timingSafeStringEqual(username, process.env.ADMIN_USERNAME || '') &&
+    timingSafeStringEqual(password, process.env.ADMIN_PASSWORD || '')
   ) {
     return buildUser({
       id: 'admin-1',
@@ -78,8 +79,8 @@ export async function authorizeStaffCredentials(
   }
 
   if (
-    username === process.env.INSTRUCTOR_USERNAME &&
-    password === process.env.INSTRUCTOR_PASSWORD
+    timingSafeStringEqual(username, process.env.INSTRUCTOR_USERNAME || '') &&
+    timingSafeStringEqual(password, process.env.INSTRUCTOR_PASSWORD || '')
   ) {
     return buildUser({
       id: 'instructor-1',

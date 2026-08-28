@@ -24,7 +24,6 @@ export const GET = withRoute(
             user: {
                 skfId: session.skfId,
                 name: athlete.firstName + (athlete.lastName ? ` ${athlete.lastName}` : ''),
-                phone: athlete.phone || '+91',
                 branch: athlete.branchName || 'SKF HQ',
                 belt: athlete.currentBelt || 'White'
             }

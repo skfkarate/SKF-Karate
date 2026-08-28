@@ -14,8 +14,13 @@ export function resolveDataFile(filename: string): string {
 export function readJsonArray<T = unknown>(filePath: string): T[] | null {
   if (!fs.existsSync(filePath)) return null
 
-  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-  return Array.isArray(parsed) ? parsed : null
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    logger.warn('data_store.read_json_parse_failed', { filePath })
+    return null
+  }
 }
 
 // ⚠️ DEPRECATED: Vercel filesystem is read-only at runtime.

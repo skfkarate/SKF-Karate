@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react'
 import { AlertCircle, RefreshCw, Home } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
+import { reportClientError } from '@/app/_components/ClientErrorReporter'
 
 export default function PortalError({
   error,
@@ -11,7 +13,14 @@ export default function PortalError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('[Portal Error]', error)
+    Sentry.captureException(error)
+    reportClientError({
+      source: 'error_boundary',
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+    })
   }, [error])
 
   return (

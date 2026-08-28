@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { renderToStream } from '@react-pdf/renderer'
 import { CertificatePDF } from '@/lib/certificates/CertificatePDF'
 import { CertificateRenderer } from '@/lib/certificates/CertificateRenderer'
 import { getPortalSession } from '@/lib/server/auth/portal'
@@ -7,6 +6,7 @@ import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-fl
 import React from 'react'
 import { certificateDataQuerySchema } from '@/src/server/api/validators/certificates.validator'
 import { withRoute } from '@/src/server/lib/route'
+import { logger } from '@/src/server/lib/logger'
 
 export const GET = withRoute(
   {
@@ -28,6 +28,7 @@ export const GET = withRoute(
     const renderer = new CertificateRenderer()
     const data = await renderer.getData(params.enrollmentId, portalSession.skfId, false)
 
+    const { renderToStream } = await import('@react-pdf/renderer')
     const stream = await renderToStream(<CertificatePDF data={data} />)
     
     return new Response(stream as unknown as BodyInit, {
@@ -38,8 +39,11 @@ export const GET = withRoute(
     })
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Internal Server Error'
+      if (message !== 'FORBIDDEN' && message !== 'ENROLLMENT_NOT_FOUND') {
+        logger.warn('certificate_pdf.unhandled_error', { error })
+      }
       const status = message === 'FORBIDDEN' ? 403 : message === 'ENROLLMENT_NOT_FOUND' ? 404 : 500
-      return new Response(message, { status })
+      return new Response(status === 403 ? 'Forbidden' : status === 404 ? 'Not found' : 'Unable to generate certificate', { status })
     }
   }
 )
