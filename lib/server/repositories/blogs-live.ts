@@ -5,6 +5,13 @@ import { SEEDED_BLOG_POSTS } from '@/data/blogPosts'
 import { ApiError } from '@/lib/server/api'
 import { isSupabaseReady, supabaseAdmin } from '@/lib/server/supabase'
 import { logger } from '@/src/server/lib/logger'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
+
+const PGRST303_RETRY_MS = 1000
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
 
 export type BlogPostStatus = 'draft' | 'published'
 
@@ -246,7 +253,17 @@ const getBlogDataset = cache(async function getBlogDataset(): Promise<BlogPost[]
 
     return await seedBlogPostsInDatabase()
   } catch (error) {
-    if (!isMissingBlogTableError(error)) {
+    if (isPgrst303(error)) {
+      logger.warn('blogs_live.pgrst303_retry', { error })
+      await sleep(PGRST303_RETRY_MS)
+      try {
+        const posts = await readAllBlogPostsFromDatabase()
+        if (posts.length > 0) return posts
+        return await seedBlogPostsInDatabase()
+      } catch (retryError) {
+        logger.warn('blogs_live.seeded_fallback_retry_failed', { error: retryError })
+      }
+    } else if (!isMissingBlogTableError(error)) {
       logger.warn('blogs_live.seeded_fallback', { error })
     }
 

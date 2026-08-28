@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
+  try {
   const lines = rawData.trim().split('\n')
   const results = []
 
@@ -237,4 +238,8 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true, count: groups.size, results })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Import failed'
+    return NextResponse.json({ success: false, error: message }, { status: 500 })
+  }
 }

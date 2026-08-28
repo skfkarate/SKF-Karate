@@ -1,6 +1,5 @@
 import React from 'react'
 import type { Session } from 'next-auth'
-import { renderToStream } from '@react-pdf/renderer'
 
 import { ReceiptDocument } from '@/lib/receipts/ReceiptDocument'
 import type { AuthUser } from '@/lib/server/auth/staff'
@@ -101,6 +100,7 @@ export async function GET(
     const data = await FeeOperationsService.getReceiptDataForAdmin(sessionFromStaff(staff), receiptId)
     if (!data) throw new NotFoundError('Receipt')
 
+    const { renderToStream } = await import('@react-pdf/renderer')
     const receiptDocument = React.createElement(ReceiptDocument, {
       receiptId: data.receiptId,
       studentName: data.athleteName,
@@ -117,8 +117,9 @@ export async function GET(
       verifiedAt: data.verifiedAt,
       issuedAt: data.issuedAt,
       themeId: (data.themeId === 'skf_minimal' || data.themeId === 'skf_classic' || data.themeId === 'skf_iconic') ? data.themeId : 'skf_iconic',
-    }) as unknown as Parameters<typeof renderToStream>[0]
-    const stream = await renderToStream(receiptDocument)
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stream = await renderToStream(receiptDocument as any)
     const fileId = formatFilename(`${data.athleteName}_${data.month}_${data.year}_${data.receiptId}`)
 
     return new Response(stream as unknown as BodyInit, {

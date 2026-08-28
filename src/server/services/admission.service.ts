@@ -1513,6 +1513,77 @@ export class AdmissionService {
       if (updated) athlete = updated
     }
 
+    // Auto-create or extend family group based on guardian phone
+    try {
+      const normalizedPhone = application.guardianPhone?.replace(/\D/g, '').slice(-10) || ''
+      if (normalizedPhone.length === 10) {
+        // Find athletes with matching phone (excluding the one we just created)
+        const { data: samePhoneAthletes } = await supabaseAdmin
+          .from('athletes')
+          .select('skf_id, phone')
+          .neq('skf_id', normaliseSkfId(athlete.skfId))
+          .or(`phone.ilike.%${normalizedPhone}`)
+          .eq('status', 'Active')
+
+        if (samePhoneAthletes && samePhoneAthletes.length > 0) {
+          // Check if any of these athletes are already in a family group
+          const existingSkfIds = samePhoneAthletes.map(a => a.skf_id)
+          const { data: existingGroupMembers } = await supabaseAdmin
+            .from('family_group_members')
+            .select('group_id, skf_id')
+            .in('skf_id', existingSkfIds)
+            .limit(1)
+
+          if (existingGroupMembers && existingGroupMembers.length > 0) {
+            // Add to existing group
+            const groupId = existingGroupMembers[0].group_id
+            await supabaseAdmin.from('family_group_members').insert({
+              group_id: groupId,
+              skf_id: normaliseSkfId(athlete.skfId),
+              guardian_phone: application.guardianPhone || '',
+            })
+          } else {
+            // Create new family group with all matching athletes
+            const groupId = `fam_${normalizedPhone}_${Date.now()}`
+            await supabaseAdmin.from('family_groups').insert({
+              id: groupId,
+              created_by: 'system',
+              notes: 'Auto-created on admission',
+            })
+
+            const members = [
+              ...existingSkfIds.map(skfId => ({
+                group_id: groupId,
+                skf_id: skfId,
+                guardian_phone: application.guardianPhone || '',
+              })),
+              {
+                group_id: groupId,
+                skf_id: normaliseSkfId(athlete.skfId),
+                guardian_phone: application.guardianPhone || '',
+              },
+            ]
+            await supabaseAdmin.from('family_group_members').insert(members)
+          }
+        } else {
+          // No matching athletes found — create a solo group (ready for future siblings)
+          const groupId = `fam_${normalizedPhone}_${Date.now()}`
+          await supabaseAdmin.from('family_groups').insert({
+            id: groupId,
+            created_by: 'system',
+            notes: 'Solo group, created on admission',
+          })
+          await supabaseAdmin.from('family_group_members').insert({
+            group_id: groupId,
+            skf_id: normaliseSkfId(athlete.skfId),
+            guardian_phone: application.guardianPhone || '',
+          })
+        }
+      }
+    } catch {
+      // Non-critical: family group creation failure should not block admission
+    }
+
     const skfId = normaliseSkfId(athlete.skfId)
     await supabaseAdmin.from('auth_sessions').upsert(
       {

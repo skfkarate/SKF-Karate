@@ -267,7 +267,7 @@ export const getStudentBySkfId = cacheRead(async (skfId: string): Promise<Studen
         phone: localAthlete.phone || '9999999999',
         status: localAthlete.status === 'active' ? 'Active' : 'Inactive',
         enrolledDate: localAthlete.joinDate || '2022-01-01',
-        monthlyFee: localAthlete.monthlyFee ? Number(localAthlete.monthlyFee) : 1500,
+        monthlyFee: localAthlete.monthlyFee != null ? Number(localAthlete.monthlyFee) : 0,
         photoConsent: localAthlete.photoConsent !== false,
         dob: localAthlete.dateOfBirth
       } as Student
@@ -629,11 +629,8 @@ export const getEnrollmentsBySkfId = cacheRead(async (skfId: string): Promise<En
       title: 'Summer Camp 2026',
       date: String(row[2] || new Date().toISOString())
     }))
-    // Return mock cert if empty
-    return mapped.length > 0 ? mapped : [
-      { id: '1', type: 'certificate', title: 'Yellow Belt Certification', date: '2025-10-15' },
-      { id: '2', type: 'certificate', title: 'Elite Kumite Workshop', date: '2025-12-05' }
-    ]
+    // Return empty array if no real data found
+    return mapped.length > 0 ? mapped : []
   } catch (error) {
     logger.error('sheets.get_enrollments_by_skf_id_failed', { skfId, error })
     return []

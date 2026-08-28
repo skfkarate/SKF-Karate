@@ -1,7 +1,7 @@
 # SKF Karate — Data Layer
 
 > Single source of truth for all application data, types, schemas, constants, and relationship mappings.
-> Covers three storage layers: **Supabase** (Postgres), **Local JSON** (.data/*.json), and **Google Sheets** (via API).
+> Covers three storage layers: **Supabase** (Postgres), **Local JSON seed** (data/seed/*.json), and **Google Sheets** (via API).
 
 ## Architecture Overview
 
@@ -9,8 +9,8 @@
 ┌──────────────────────────────────────────────────────────────────┐
 │                    THREE STORAGE LAYERS                          │
 ├──────────────────┬──────────────────┬────────────────────────────┤
-│ SUPABASE (Postgres)│ LOCAL JSON        │ GOOGLE SHEETS           │
-│                  │ (.data/*.json)     │ (via googleapis)         │
+│ SUPABASE (Postgres)│ LOCAL SEED JSON  │ GOOGLE SHEETS           │
+│                  │ (data/seed/*.json)│ (via googleapis)         │
 ├──────────────────┼──────────────────┼────────────────────────────┤
 │ auth_sessions    │ athletes         │ Students (identity/auth)   │
 │ programs         │ events           │ Fees (monthly tracking)    │
@@ -29,7 +29,7 @@
 │ point_           │                  │                            │
 │   transactions*  │                  │                            │
 ├──────────────────┴──────────────────┴────────────────────────────┤
-│ * = MIGRATION NEEDED — used in code but not in SUPABASE_SCHEMA   │
+│ * = MIGRATION NEEDED — used in code but not in database/migrations   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -90,7 +90,7 @@ data/
 
  ┌──────────────┐           skfId                  ┌───────────────┐
  │   ATHLETE    │◄────────── SAME PERSON ─────────►│   STUDENT     │
- │ (.data/json) │                                  │ (Sheets)      │
+ │ (seed/json) │                                  │ (Sheets)      │
  └──────┬───────┘                                  └───────┬───────┘
         │ branchName                                       │ phone
         ▼                                                  ▼
@@ -126,7 +126,7 @@ data/
 
  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
  │  TOURNAMENT  │   │   PRODUCT    │   │    ORDER     │
- │ (.data/json) │   │  (seed/json) │   │  (Sheets)    │
+ │ (seed/json) │   │  (seed/json) │   │  (Sheets)    │
  └──────────────┘   └──────────────┘   └──────────────┘
 
  Standalone: GALLERY, KYU_BELT, DAN_GRADE, BELT_EXAM,
@@ -206,8 +206,8 @@ Full column mappings in `/data/schema/sheetsSync.ts`.
 
 | Table | Used By | Status |
 |-------|---------|--------|
-| `student_points` | `lib/points/pointsService.ts` | ❌ Not in SUPABASE_SCHEMA.sql |
-| `point_transactions` | `lib/points/pointsService.ts` | ❌ Not in SUPABASE_SCHEMA.sql |
+| `student_points` | `lib/points/pointsService.ts` | ❌ Not in database/migrations |
+| `point_transactions` | `lib/points/pointsService.ts` | ❌ Not in database/migrations |
 
 ## Usage
 

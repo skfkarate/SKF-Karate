@@ -1,6 +1,5 @@
 import React from 'react'
 import { z } from 'zod'
-import { renderToStream } from '@react-pdf/renderer'
 
 import { disabledResponse, isCertificatesEnabled } from '@/lib/server/feature-flags'
 import { CertificatePDF } from '@/lib/certificates/CertificatePDF'
@@ -28,6 +27,7 @@ export const GET = withRoute(
     const { code } = certificateVerifyParamsSchema.parse(params)
     const renderer = new CertificateRenderer()
     const data = await renderer.getDataByVerificationCode(code)
+    const { renderToStream } = await import('@react-pdf/renderer')
     const stream = await renderToStream(<CertificatePDF data={data} />)
 
     return new Response(stream as unknown as BodyInit, {

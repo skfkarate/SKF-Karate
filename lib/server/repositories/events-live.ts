@@ -4,12 +4,10 @@ import { cache } from 'react'
 import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
 import {
   buildUnifiedTournamentEvent,
-  createEventRecord,
-  deleteEventRecord,
   getAllEventsAdmin,
-  updateEventRecord,
 } from './events'
 import {
   createTournamentLive,
@@ -101,12 +99,10 @@ function cloneEventData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
-function canUseLocalEventFallback() {
-  return process.env.NODE_ENV !== 'production'
-}
+const PGRST303_RETRY_MS = 1000
 
-function unavailableEventDatabaseError() {
-  return new ApiError(503, 'Event database is not available.')
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
 function sortByDateDesc<T extends { date: string }>(items: T[]): T[] {
@@ -248,7 +244,6 @@ async function readAllStandaloneEventsFromDatabase(): Promise<EventRecord[]> {
 
 const getStandaloneEventDataset = cache(async function getStandaloneEventDataset(): Promise<EventRecord[]> {
   if (!isSupabaseReady()) {
-    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
@@ -257,8 +252,17 @@ const getStandaloneEventDataset = cache(async function getStandaloneEventDataset
   try {
     return await readAllStandaloneEventsFromDatabase()
   } catch (error) {
-    logger.warn('events_live.local_fallback', { error })
-    if (!canUseLocalEventFallback()) throw error
+    if (isPgrst303(error)) {
+      logger.warn('events_live.pgrst303_retry', { error })
+      await sleep(PGRST303_RETRY_MS)
+      try {
+        return await readAllStandaloneEventsFromDatabase()
+      } catch (retryError) {
+        logger.warn('events_live.local_fallback_retry_failed', { error: retryError })
+      }
+    } else {
+      logger.warn('events_live.local_fallback', { error })
+    }
     return cloneEventData(
       (getAllEventsAdmin() as LegacyEventRecord[]).filter((event) => event.sourceKind !== 'tournament')
     ) as EventRecord[]
@@ -354,8 +358,7 @@ export async function getEventBySlugLive(slug: string) {
 
 async function createStandaloneEventLive(input: Partial<EventRecord>) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
-    return cloneEventData(createEventRecord(input))
+    throw new ApiError(503, 'Event database is not available.')
   }
 
   const event = normaliseEventPayload(input)
@@ -383,8 +386,7 @@ async function createStandaloneEventLive(input: Partial<EventRecord>) {
 
 async function updateStandaloneEventLive(id: string, input: Partial<EventRecord>) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
-    return cloneEventData(updateEventRecord(id, input))
+    throw new ApiError(503, 'Event database is not available.')
   }
 
   const existingEvents = await getStandaloneEventDataset()
@@ -418,8 +420,7 @@ async function updateStandaloneEventLive(id: string, input: Partial<EventRecord>
 
 async function deleteStandaloneEventLive(id: string) {
   if (!isSupabaseReady()) {
-    if (!canUseLocalEventFallback()) throw unavailableEventDatabaseError()
-    return deleteEventRecord(id)
+    throw new ApiError(503, 'Event database is not available.')
   }
 
   const { error } = await supabaseAdmin.from('events').delete().eq('id', id)

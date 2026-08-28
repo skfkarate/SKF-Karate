@@ -17,11 +17,11 @@ const STATIC_PREFIXES = [
   '/logo/',
   '/icons/',
   '/Shop/',
-  '/affliciation/',
+  '/affiliation/',
   '/fonts/',
   '/no-profile/',
   '/timetables/',
-  '/Summer camp/',
+  '/summer-camp/',
 ]
 const PRIVATE_PREFIXES = ['/admin', '/portal', '/fee', '/admission', '/api']
 

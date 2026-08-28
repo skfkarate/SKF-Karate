@@ -59,7 +59,7 @@ export const cities: City[] = [
                 classDays: [2, 3, 5],
                 classTime: '5:00 PM - 6:30 PM',
                 mapUrl: 'https://maps.app.goo.gl/ZsgVX25nyK27oCZ17',
-                photos: ['/mp /mpsportsclub2.webp', '/mp /mpsportsclub.webp'],
+                photos: ['/mp-sports/mpsportsclub2.webp', '/mp-sports/mpsportsclub.webp'],
                 description: 'The headquarters of SKF Karate. World-class WKF-approved tatami mats, elite conditioning equipment, and an atmosphere of pure discipline.',
             },
             {

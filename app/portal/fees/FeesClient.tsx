@@ -98,7 +98,7 @@ interface CreditsData {
   totalUsed: number
 }
 
-export default function FeesClient({ feeRecords, credits, athleteSkfId }: { feeRecords: EnrichedFeeEntry[]; credits: CreditsData; athleteSkfId?: string }) {
+export default function FeesClient({ feeRecords, credits }: { feeRecords: EnrichedFeeEntry[]; credits: CreditsData; athleteSkfId?: string }) {
   usePortalAuth()
   const router = useRouter()
 

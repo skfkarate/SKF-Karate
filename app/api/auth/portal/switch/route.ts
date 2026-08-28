@@ -1,9 +1,17 @@
 import { getPortalSession } from '@/lib/server/auth/portal'
 import { PortalAuthService } from '@/src/server/services/portal-auth.service'
 import { extractClientIp } from '@/lib/server/site-analytics'
+import { applyRateLimit } from '@/src/server/lib/rate-limit'
+import { RateLimitError } from '@/src/server/lib/errors'
+import { logger } from '@/src/server/lib/logger'
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await applyRateLimit(request, 'authed')
+    if (!rateLimitResult.allowed) {
+      throw new RateLimitError(rateLimitResult.headers)
+    }
+
     const session = getPortalSession(request)
     if (!session || !session.skfId) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -39,7 +47,10 @@ export async function POST(request: Request) {
     response.headers.set('Set-Cookie', result.cookie)
     return response
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to switch profile'
-    return Response.json({ success: false, error: message }, { status: 400 })
+    if (error instanceof RateLimitError) {
+      return Response.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 })
+    }
+    logger.warn('portal_switch.unhandled_error', { error })
+    return Response.json({ success: false, error: 'Failed to switch profile' }, { status: 500 })
   }
 }

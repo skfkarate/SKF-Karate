@@ -14,6 +14,13 @@ import { ApiError } from '../api'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
 import { cache } from 'react'
+import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
+
+const PGRST303_RETRY_MS = 1000
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
 
 type SenseiRow = {
   id: string
@@ -392,7 +399,17 @@ export const getAllSenseisLive = cache(async function getAllSenseisLive() {
   try {
     return cloneData(await readAllSenseisFromDatabase())
   } catch (error) {
-    logger.warn('senseis_live.static_fallback', { error })
+    if (isPgrst303(error)) {
+      logger.warn('senseis_live.pgrst303_retry', { error })
+      await sleep(PGRST303_RETRY_MS)
+      try {
+        return cloneData(await readAllSenseisFromDatabase())
+      } catch (retryError) {
+        logger.warn('senseis_live.static_fallback_retry_failed', { error: retryError })
+      }
+    } else {
+      logger.warn('senseis_live.static_fallback', { error })
+    }
     return getStaticSenseiDataset()
   }
 })

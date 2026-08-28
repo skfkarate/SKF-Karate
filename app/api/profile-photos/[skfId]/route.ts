@@ -5,6 +5,13 @@ import { NextResponse } from 'next/server'
 
 import { getLocalProfilePhotoFile } from '@/lib/server/profile-photos'
 import { getAthleteFallbackProfilePhoto } from '@/lib/profile-photos'
+import { checkRateLimit } from '@/lib/server/rate-limit'
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  return 'unknown'
+}
 
 export async function GET(
   request: Request,
@@ -12,6 +19,17 @@ export async function GET(
 ) {
   try {
     const { skfId } = await params
+
+    if (/[\\/]/.test(skfId)) {
+      return new NextResponse(null, { status: 400 })
+    }
+
+    const ip = getClientIp(request)
+    const rateLimitResult = checkRateLimit('profile-photos', ip, { limit: 60, windowMs: 60_000 })
+    if (!rateLimitResult.allowed) {
+      return new NextResponse(null, { status: 429 })
+    }
+
     const photoFile = getLocalProfilePhotoFile(skfId)
 
     if (!photoFile) {

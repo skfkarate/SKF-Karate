@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -213,7 +213,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     return () => controller.abort()
   }, [currentSession?.skfId, isLoginPage])
 
-  async function handleSwitchProfile(skfId: string) {
+  const handleSwitchProfile = useCallback(async (skfId: string) => {
     if (isSwitching) return
     setIsSwitching(skfId)
     try {
@@ -230,7 +230,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     } catch {
       setIsSwitching(null)
     }
-  }
+  }, [isSwitching])
 
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   async function handleLogout() {
@@ -249,7 +249,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     router.push('/')
   }
 
-  function handleNavClick(targetHref: string) {
+  function handleNavClick() {
     setMenuOpen(false)
   }
 
@@ -286,6 +286,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     } else {
       document.body.style.overflow = ''
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuOpen])
 
   return (
@@ -603,7 +604,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
                     <Link
                       href={link.href}
                       className={`kuroobi-overlay__link ${isActive ? 'kuroobi-overlay__link--active' : ''}`}
-                      onClick={() => handleNavClick(link.href)}
+                      onClick={handleNavClick}
                     >
                       <div className="kuroobi-overlay__link-icon">
                         <Icon size={18} strokeWidth={isActive ? 2.5 : 1.5} />

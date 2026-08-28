@@ -1,6 +1,6 @@
 export const PAYMENT_DETAILS = {
-  accountHolder: 'Krishna C',
-  phoneNumber: '9611990869',
+  accountHolder: process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_HOLDER || '',
+  phoneNumber: process.env.NEXT_PUBLIC_PAYMENT_PHONE || '',
   scannerPath: '/ScanToPay.jpeg',
-  upiId: 'skfk@ptyes',
+  upiId: process.env.NEXT_PUBLIC_PAYMENT_UPI_ID || '',
 } as const

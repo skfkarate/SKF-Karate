@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
+import { isSupabaseReady } from '@/lib/server/supabase'
 import { withRoute } from '@/src/server/lib/route'
 
 /**
@@ -10,6 +11,6 @@ export const GET = withRoute(
   { rateLimit: { tier: 'public' }, cacheControl: 'public, max-age=300' },
   async () => {
     const events = await getAllEventsLive()
-    return NextResponse.json({ events })
+    return NextResponse.json({ events, isLiveData: isSupabaseReady() })
   }
 )

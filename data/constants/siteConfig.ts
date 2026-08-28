@@ -76,9 +76,9 @@ export const LEGACY_HIGHLIGHTS = Object.freeze([
 
 /** Affiliation logos */
 export const AFFILIATIONS = Object.freeze([
-  { src: '/affliciation/wkf.png', alt: 'WKF Logo', width: 120, height: 120 },
-  { src: '/affliciation/akska.png', alt: 'AKSKA Logo', width: 110, height: 110 },
-  { src: '/affliciation/kio.png', alt: 'KIO Logo', width: 120, height: 120 },
+  { src: '/affiliation/wkf.png', alt: 'WKF Logo', width: 120, height: 120 },
+  { src: '/affiliation/akska.png', alt: 'AKSKA Logo', width: 110, height: 110 },
+  { src: '/affiliation/kio.png', alt: 'KIO Logo', width: 120, height: 120 },
 ])
 
 /** JSON-LD structured data factory */
