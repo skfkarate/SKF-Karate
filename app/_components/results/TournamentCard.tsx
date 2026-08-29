@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { FaArrowRight } from 'react-icons/fa'
 import { TOURNAMENT_LEVEL_LABELS } from '../../../lib/types/tournament'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 type TournamentCardTournament = {
   slug: string
@@ -17,10 +18,10 @@ type TournamentCardTournament = {
 
 export default function TournamentCard({ tournament }: { tournament: TournamentCardTournament }) {
   const t = tournament
-  const year = new Date(t.date).getFullYear()
+  const year = formatLocaleDate(t.date, 'en-IN', { year: 'numeric' })
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-IN', {
+    return formatLocaleDate(dateStr, 'en-IN', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

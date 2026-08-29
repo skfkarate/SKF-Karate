@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { FaCamera, FaStar, FaTh } from 'react-icons/fa'
 import ScrollReveal from '@/app/_components/ScrollReveal'
 import GalleryLightbox from '@/app/_components/gallery/GalleryLightbox'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import './gallery.css'
 
 type GalleryPhoto = {
@@ -144,7 +145,7 @@ export default function GalleryPageClient({
                                 // Extract event name from the first photo's title (e.g. "Event Name - Photo")
                                 const eventName = eventPhotos[0]?.title.split(' - ')[0] || 'Special Event'
                                 const eventDate = eventPhotos[0]?.eventDate 
-                                    ? new Date(eventPhotos[0].eventDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+                                    ? formatLocaleDate(eventPhotos[0].eventDate, "en-IN", { day: "numeric", month: "long", year: "numeric" })
                                     : ''
                                 
                                 return (

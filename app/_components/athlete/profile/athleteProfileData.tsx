@@ -10,6 +10,7 @@ import {
 } from '@/lib/types/tournament'
 import { calculateResultPoints } from '@/lib/utils/points'
 import { normaliseSkfId } from '@/lib/utils/registration'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import {
   getAssignedPortalEvents,
   getPortalEventHref,
@@ -174,7 +175,7 @@ function formatTitleCase(value: string) {
 
 function formatLongDate(value: string) {
   if (!value) return ''
-  return new Date(value).toLocaleDateString('en-IN', {
+  return formatLocaleDate(value, 'en-IN', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -183,7 +184,7 @@ function formatLongDate(value: string) {
 
 function formatShortDate(value: string) {
   if (!value) return ''
-  return new Date(value).toISOString().split('T')[0]
+  return formatLocaleDate(value, 'en-CA', undefined).replace(/\//g, '-') || ''
 }
 
 function formatDateRange(startDate: string, endDate?: string) {
@@ -192,8 +193,10 @@ function formatDateRange(startDate: string, endDate?: string) {
   const start = new Date(startDate)
   const end = endDate ? new Date(endDate) : null
 
+  if (Number.isNaN(start.getTime())) return ''
+
   if (!end || Number.isNaN(end.getTime()) || startDate === endDate) {
-    return start.toLocaleDateString('en-IN', {
+    return formatLocaleDate(startDate, 'en-IN', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -201,10 +204,10 @@ function formatDateRange(startDate: string, endDate?: string) {
   }
 
   if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()} - ${end.getDate()} ${start.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}`
+    return `${start.getDate()} - ${end.getDate()} ${formatLocaleDate(startDate, 'en-IN', { month: 'long', year: 'numeric' })}`
   }
 
-  return `${start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  return `${formatLocaleDate(startDate, 'en-IN', { day: 'numeric', month: 'short' })} - ${formatLocaleDate(endDate, 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
 }
 
 function calculateAge(dateOfBirth: string) {

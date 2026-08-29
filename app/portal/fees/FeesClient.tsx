@@ -9,6 +9,7 @@ import { Wallet, CreditCard, ShieldCheck, CheckCircle2, History, AlertCircle, Qr
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
 import PaymentCopyButton from '@/components/payment/PaymentCopyButton'
 import { PAYMENT_DETAILS } from '@/data/constants/payment'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import type { FeeLedgerEntry } from '@/src/server/services/fee-ledger.service'
 import type { PortalCreditEntry } from '@/src/server/services/fee-ledger.service'
 import { applyPortalCredit, submitManualFeePayment } from './actions'
@@ -894,8 +895,8 @@ export default function FeesClient({ feeRecords, credits }: { feeRecords: Enrich
                         </span>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500, display: 'flex', gap: '0.5rem' }}>
-                        {isPaid && tx.paidDate ? new Date(tx.paidDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }) : ''}
-                        {tx.dueDate && <span>Due {new Date(`${tx.dueDate}T00:00:00`).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' })}</span>}
+                        {isPaid && tx.paidDate ? formatLocaleDate(tx.paidDate, 'en-GB', { timeZone: 'Asia/Kolkata' }) : ''}
+                        {tx.dueDate && <span>Due {formatLocaleDate(`${tx.dueDate}T00:00:00`, 'en-GB', { timeZone: 'Asia/Kolkata' })}</span>}
                         {tx.feeType !== 'monthly' && <span style={{ color: 'var(--gold, #ffb703)' }}>{feeCategoryLabel(tx).toUpperCase()}</span>}
                       </div>
                     </div>

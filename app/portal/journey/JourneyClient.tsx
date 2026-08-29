@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Medal, Award, Star, X, Info } from 'lucide-react'
 import { usePortalAuth } from '@/app/_components/portal/usePortalAuth'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 // Local helper to map the belt colour strings to actual hexes
 const getHexColor = (beltStr: string | undefined) => {
@@ -219,7 +220,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                      {new Date(node.date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', month: 'short', year: 'numeric' })}
+                      {formatLocaleDate(node.date, 'en-US', { timeZone: 'Asia/Kolkata', month: 'short', year: 'numeric' })}
                     </span>
                     {isCurrent && (
                       <span className="node-badge" style={{ background: 'var(--gold, #ffb703)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', boxShadow: '0 0 10px rgba(255,183,3,0.5)' }}>Current</span>
@@ -308,7 +309,7 @@ export default function JourneyClient({ timelineNodes }: { timelineNodes: Timeli
                     </div>
                     <div>
                       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
-                        {new Date(selectedNode.date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                        {formatLocaleDate(selectedNode.date, 'en-US', { timeZone: 'Asia/Kolkata', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                       </div>
                       <h2 className="journey-modal-title" style={{ margin: 0, color: '#fff', fontFamily: 'var(--font-heading, "Outfit")', fontWeight: 900, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                         {selectedNode.title}

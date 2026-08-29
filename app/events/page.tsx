@@ -4,9 +4,10 @@ import './events.css'
 import { getEventLabel } from '@/data/constants/categories'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata, buildSportsEventJsonLd } from '@/data/constants/seo'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 function formatDisplayDate(date: string) {
-    return new Date(date).toLocaleDateString('en-US', {
+    return formatLocaleDate(date, 'en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { IconType } from 'react-icons'
 import { FaGraduationCap, FaVideo, FaBirthdayCake, FaCoins, FaShoppingBag, FaTrophy, FaHandshake, FaMedal } from 'react-icons/fa'
 import { Activity, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 type PointsTransaction = {
     id: string
@@ -120,7 +121,7 @@ export default function PointsHistory() {
                                         {tx.reason.replace(/_/g, ' ')}
                                     </h4>
                                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 500 }}>
-                                        {new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        {formatLocaleDate(tx.created_at, 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </span>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>

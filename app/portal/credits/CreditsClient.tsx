@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Award, Gift, Clock, ShieldCheck } from 'lucide-react'
 import { CreditsPageSkeleton } from '../_components/skeletons/CreditsPageSkeleton'
 import { redirectToCurrentPortalLogin } from '@/app/_components/portal/portalClientRedirect'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import './credits.css'
 
 type CreditEntry = {
@@ -145,7 +146,7 @@ export default function CreditsClient() {
                           </span>
                         </div>
                         <div className="credit-entry__meta">
-                          Earned: {new Date(credit.earnedAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}
+                          Earned: {formatLocaleDate(credit.earnedAt, 'en-GB', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}
                           {credit.status === 'used' && credit.usedMonth && credit.usedYear && (
                             <span className="credit-entry__used-info">
                               • Applied to {MONTHS[Number(credit.usedMonth)]} {credit.usedYear}

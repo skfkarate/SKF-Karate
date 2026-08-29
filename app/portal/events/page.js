@@ -9,10 +9,11 @@ import {
   getPortalEventHref,
   isUpcomingPortalEvent,
 } from '@/lib/utils/portal-events'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-IN', {
+  return formatLocaleDate(dateStr, 'en-IN', {
     timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',

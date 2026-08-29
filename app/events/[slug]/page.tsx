@@ -17,6 +17,7 @@ import Image from "next/image"
 import JsonLdScript from "@/components/JsonLdScript"
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from "@/data/constants/seo"
 import { getBelt, getBeltOrder } from "@/data/constants/belts"
+import { formatLocaleDate } from "@/lib/utils/format-date"
 import "./event-detail.css"
 
 type EventParticipant = {
@@ -68,7 +69,7 @@ type EventPageProps = {
 
 function formatDate(date: string) {
   if (!date) return null
-  return new Date(date).toLocaleDateString("en-IN", {
+  return formatLocaleDate(date, "en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",

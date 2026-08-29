@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { FaArrowLeft, FaCheck, FaShareAlt } from 'react-icons/fa'
 import { TOURNAMENT_LEVEL_LABELS } from '@/lib/types/tournament'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 function AnimatedCounter({ target, duration = 1400, suffix = '' }: { target: number; duration?: number; suffix?: string }) {
   const [count, setCount] = useState(0)
@@ -36,7 +37,7 @@ function AnimatedCounter({ target, duration = 1400, suffix = '' }: { target: num
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-IN', {
+  return formatLocaleDate(dateStr, 'en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

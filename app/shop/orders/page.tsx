@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { COOKIE_NAME, verifyStudentJWT } from '@/lib/server/auth/student'
 import { buildPortalLoginUrl } from '@/lib/portal/portal-callback'
 import { getShopOrdersBySkfId } from '@/lib/server/repositories/shop'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import '../shop.css'
 
 export default async function ShopOrdersPage(props: { searchParams: Promise<{ success?: string }> }) {
@@ -52,7 +53,7 @@ export default async function ShopOrdersPage(props: { searchParams: Promise<{ su
                                     <summary style={{ padding: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', listStyle: 'none', background: 'rgba(255,255,255,0.01)' }}>
                                         <div>
                                             <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>
-                                                Initiated {new Date(order.createdAt).toLocaleDateString()}
+                                                Initiated {formatLocaleDate(order.createdAt)}
                                             </div>
                                             <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '1px' }}>
                                                 {order.orderId}

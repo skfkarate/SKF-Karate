@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
 import { PUBLIC_CERTIFICATE_STATUSES } from '@/lib/certificates/registration'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 
 function getProgramRelation<T extends { name?: string }>(programs: T | T[] | null | undefined) {
   return Array.isArray(programs) ? programs[0] : programs
@@ -114,7 +115,7 @@ export default async function VerifyCertificatePage({ params }: { params: { skfI
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completion Date</span>
-                <div style={{ color: '#fff' }}>{new Date(cert.completion_date).toLocaleDateString('en-GB')}</div>
+                <div style={{ color: '#fff' }}>{formatLocaleDate(cert.completion_date, 'en-GB')}</div>
               </div>
             </div>
 

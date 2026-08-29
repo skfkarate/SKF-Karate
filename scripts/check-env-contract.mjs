@@ -1,9 +1,10 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const root = process.cwd()
 const envSchemaPath = resolve(root, 'src/server/config/env.ts')
 const envExamplePath = resolve(root, '.env.example')
+const envLocalPath = resolve(root, '.env')
 
 const envSchemaSource = readFileSync(envSchemaPath, 'utf8')
 const envExampleSource = readFileSync(envExamplePath, 'utf8')
@@ -36,6 +37,44 @@ if (missingFromExample.length || extraInExample.length) {
   }
 
   process.exit(1)
+}
+
+let envLocalKeys = []
+if (existsSync(envLocalPath)) {
+  envLocalKeys = [...readFileSync(envLocalPath, 'utf8').matchAll(/^([A-Z0-9_]+)=/gm)]
+    .map((match) => match[1])
+    .filter((key) => key !== 'NODE_ENV')
+
+  const missingFromEnv = exampleKeys.filter((key) => !envLocalKeys.includes(key))
+  const skipOptional = new Set([
+    'SENTRY_DSN',
+    'SENTRY_AUTH_TOKEN',
+    'NEXT_PUBLIC_MEDIA_CDN_ORIGIN',
+    'RESEND_API_KEY',
+    'TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_CHAT_ID',
+    'ADMISSION_DRIVE_ROOT_FOLDER_ID',
+    'ADMISSION_PHOTO_DRIVE_FOLDER_ID',
+    'GOOGLE_SHEET_ID_SUMMER_CAMP',
+    'GOOGLE_SHEET_ID_SHOP',
+    'FEETRACK_GOOGLE_SHEET_ID',
+    'FEETRACK_MIGRATION_YEAR',
+    'GOOGLE_SITE_VERIFICATION',
+    'NEXT_PUBLIC_GA_ID',
+    'SENTRY_ORG',
+    'SENTRY_PROJECT',
+    'SENTRY_ENVIRONMENT',
+    'SKF_DATA_DIR',
+  ])
+
+  const genuinelyMissing = missingFromEnv.filter((key) => !skipOptional.has(key))
+  if (genuinelyMissing.length) {
+    console.error(
+      `Local .env is missing documented variables: ${genuinelyMissing.join(', ')}`
+    )
+    console.error('Copy them from .env.example or restore the previous .env file.')
+    process.exit(1)
+  }
 }
 
 const shouldCheckProduction =
@@ -130,3 +169,7 @@ console.log(
     ? `Environment contract OK (${exampleKeys.length} documented variables). Production required env OK.`
     : `Environment contract OK (${exampleKeys.length} documented variables).`
 )
+
+if (envLocalKeys.length) {
+  console.log(`Local .env OK (${envLocalKeys.length} variables, ${new Set(envLocalKeys).size} unique keys).`)
+}

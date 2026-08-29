@@ -2,8 +2,9 @@
  * Detect PostgREST error codes.
  *
  * PGRST303 — "JWT issued at future"
- *   Caused by clock skew between the Supabase service-role key's `iat`
- *   claim and the PostgREST server clock. Transient and self-healing.
+ *   Caused by clock skew between the Supabase gateway that mints the
+ *   service-role JWT at request time and the PostgREST server clock.
+ *   Transient and self-healing; retry with backoff resolves the window.
  */
 
 interface PgrstError {

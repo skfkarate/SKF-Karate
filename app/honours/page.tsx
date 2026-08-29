@@ -9,6 +9,7 @@ import {
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './honours.css'
@@ -381,7 +382,7 @@ export default async function HonoursPage() {
             <p className="hon-section__sub">
               Gold medalists from the latest published tournament result set
               {latestSpotlight.date
-                ? ` — ${new Date(latestSpotlight.date).toLocaleDateString('en-IN', {
+                ? ` — ${formatLocaleDate(latestSpotlight.date, 'en-IN', {
                     month: 'long',
                     year: 'numeric',
                   })}`

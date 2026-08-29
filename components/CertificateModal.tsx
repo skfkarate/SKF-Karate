@@ -105,7 +105,12 @@ export function CertificateModal({ isOpen, onClose, enrollmentId, skfId }: Certi
 
   const downloadPDF = () => {
     logEvent('downloaded_pdf')
-    window.location.href = `/api/certificates/${enrollmentId}/pdf?skfId=${skfId}`
+    const link = document.createElement('a')
+    link.href = `/api/certificates/${enrollmentId}/pdf?skfId=${skfId}`
+    link.rel = 'noopener'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
   }
 
   const downloadPNG = () => {

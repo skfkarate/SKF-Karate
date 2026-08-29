@@ -201,7 +201,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
-          setSiblings(data.data)
+          setSiblings(Array.isArray(data.data) ? data.data : [])
         }
       })
       .catch(error => {
@@ -223,14 +223,14 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
         body: JSON.stringify({ targetSkfId: skfId })
       })
       if (res.ok) {
-        window.location.href = '/portal/dashboard'
+        router.replace('/portal/dashboard')
       } else {
         setIsSwitching(null)
       }
     } catch {
       setIsSwitching(null)
     }
-  }, [isSwitching])
+  }, [router, isSwitching])
 
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   async function handleLogout() {
@@ -239,7 +239,7 @@ export default function AthleteHubNav({ isBlackBeltCandidate = false, currentSes
     try {
       await fetch('/api/auth/portal/logout', { method: 'POST' })
       setMenuOpen(false)
-      window.location.href = '/portal/login'
+      router.replace('/portal/login')
     } catch {
       setIsLoggingOut(false)
     }

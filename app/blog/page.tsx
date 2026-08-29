@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowUpRight, BookOpen, Clock, Layers3, Search } from 'lucide-react'
 
 import { getPublishedBlogPostsLive } from '@/lib/server/repositories/blogs-live'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import './blog.css'
@@ -14,7 +15,7 @@ export const metadata = buildSeoMetadata(
 function formatDate(value: string | null) {
   if (!value) return 'SKF Guide'
 
-  return new Date(value).toLocaleDateString('en-IN', {
+  return formatLocaleDate(value, 'en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

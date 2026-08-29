@@ -7,6 +7,7 @@ import {
   getPublishedBlogPostsLive,
 } from '@/lib/server/repositories/blogs-live'
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
+import { formatLocaleDate } from '@/lib/utils/format-date'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import BlogReadingClient from './BlogReadingClient'
@@ -26,7 +27,7 @@ function paragraphs(content: string) {
 function formatDate(value: string | null) {
   if (!value) return 'SKF Guide'
 
-  return new Date(value).toLocaleDateString('en-IN', {
+  return formatLocaleDate(value, 'en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
