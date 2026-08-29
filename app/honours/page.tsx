@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { connection } from 'next/server'
 
 import AthleteCard from '@/app/_components/athlete/AthleteCard'
 import DanCarousel from '@/app/_components/athlete/DanCarousel'
@@ -159,6 +160,7 @@ function getLatestSpotlight(achievements: TournamentAchievement[]) {
 }
 
 export default async function HonoursPage() {
+  await connection()
   const [athletes, snapshots, senseis] = await Promise.all([
     getAllAthletesLive(),
     getRankSnapshotsLive(),

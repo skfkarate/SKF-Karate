@@ -1,3 +1,4 @@
+import { connection } from 'next/server'
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import EventsPageClient from './EventsPageClient'
 import './events.css'
@@ -23,6 +24,7 @@ export const metadata = buildSeoMetadata(
 export default async function EventsPage() {
     const events = await getAllEventsLive()
     const breadcrumbJsonLd = buildBreadcrumbJsonLd('Events', '/events')
+    await connection()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 

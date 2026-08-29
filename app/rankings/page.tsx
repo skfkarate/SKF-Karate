@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { connection } from 'next/server'
 import {
   getAllAthletesLive,
   getRankSnapshotsLive,
@@ -22,6 +23,7 @@ function beltLabel(v: string) {
 
 export default async function RankingsPage() {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd('Rankings', '/rankings')
+  await connection()
   const [athletes, allSnapshots] = await Promise.all([
     getAllAthletesLive(),
     getRankSnapshotsLive(),
