@@ -28,7 +28,9 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-test('parent can complete MP admission with promo, photo, payment proof, and consents', { skip: skipAdmissionWithoutSupabase }, async ({ page }) => {
+test.skip(skipAdmissionWithoutSupabase, 'requires Supabase env for server-side branch resolution')
+
+test('parent can complete MP admission with promo, photo, payment proof, and consents', async ({ page }) => {
   await page.route('**/api/admissions/quote?**', async (route) => {
     await route.fulfill({
       status: 200,
