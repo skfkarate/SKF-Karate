@@ -1,5 +1,6 @@
 import './portal.css'
 import AthleteHubNav from '@/app/_components/portal/AthleteHubNav'
+import PortalNoticePopup from '@/app/_components/portal/PortalNoticePopup'
 import { buildNoIndexMetadata } from '@/data/constants/seo'
 
 import { getPortalAthleteFromCookies } from '@/lib/server/auth/require-portal-athlete'
@@ -28,6 +29,7 @@ export default async function PortalLayout({ children }) {
         currentSession={portal?.session}
         currentAthlete={portal?.athlete}
       />
+      {portal ? <PortalNoticePopup /> : null}
       <main className="hub-main">
         {children}
       </main>

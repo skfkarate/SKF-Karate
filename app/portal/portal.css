@@ -812,3 +812,47 @@
     right: 1.25rem;
   }
 }
+
+/* ── Portal notice popup (practice video message) ── */
+.pnp-backdrop{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;
+  justify-content:center;overflow-y:auto;padding:1.25rem;
+  padding-left:max(1.25rem,env(safe-area-inset-left));
+  padding-right:max(1.25rem,env(safe-area-inset-right));
+  padding-top:max(1.25rem,env(safe-area-inset-top));
+  padding-bottom:max(1.25rem,env(safe-area-inset-bottom));
+  background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pnp-modal{position:relative;margin:auto;width:100%;max-width:540px;max-height:100%;
+  overflow-y:auto;overscroll-behavior:contain;border-radius:22px;
+  border:1px solid rgba(255,183,3,.22);color:#fff;
+  background:linear-gradient(165deg,#14100a 0%,#0b0a08 100%);
+  padding:1.9rem 1.75rem 1.6rem;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.pnp-modal:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,rgba(255,183,3,.6),transparent)}
+.pnp-kanji{position:absolute;top:0;right:.25rem;font-size:9rem;font-weight:900;
+  color:#fff;opacity:.04;pointer-events:none;user-select:none;line-height:1;font-family:var(--font-heading,'Outfit')}
+.pnp-badge{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(255,183,3,.95);border:1px solid rgba(255,183,3,.32);
+  border-radius:999px;padding:.28rem .7rem;background:rgba(255,183,3,.08)}
+.pnp-title{margin:.9rem 0 0;font-size:1.35rem;font-weight:850;letter-spacing:-.01em;
+  font-family:var(--font-heading,'Outfit')}
+.pnp-text{margin:.9rem 0 0;font-size:.92rem;line-height:1.7;color:rgba(255,255,255,.78)}
+.pnp-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.6rem}
+.pnp-btn{flex:1;min-width:0;border:none;cursor:pointer;border-radius:12px;
+  font-size:.86rem;font-weight:700;padding:.78rem 1rem;transition:transform .12s ease,filter .12s ease;
+  font-family:var(--font-heading,'Outfit')}
+.pnp-btn:active{transform:translateY(1px) scale(.99)}
+.pnp-btn--primary{color:#1a1204;background:linear-gradient(180deg,#ffd34d,#ffb703)}
+.pnp-btn--primary:hover{filter:brightness(1.06)}
+
+@media (max-width:420px){
+  .pnp-modal{padding:1.5rem 1.25rem 1.35rem}
+  .pnp-title{font-size:1.2rem}
+  .pnp-text{font-size:.88rem}
+  .pnp-kanji{font-size:7rem;top:0;right:.25rem}
+}
+
+@media (max-height:520px){
+  .pnp-modal{padding-top:1.25rem;padding-bottom:1.15rem}
+  .pnp-text{line-height:1.55}
+  .pnp-actions{margin-top:1.1rem}
+}
