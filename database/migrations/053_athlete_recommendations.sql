@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS athlete_recommendations (
 ALTER TABLE athlete_recommendations ENABLE ROW LEVEL SECURITY;
 
 -- Only service_role can access (bypasses RLS)
+DROP POLICY IF EXISTS "service_role_full_athlete_recommendations" ON athlete_recommendations;
 CREATE POLICY "service_role_full_athlete_recommendations" ON athlete_recommendations
   FOR ALL USING (auth.role() = 'service_role');

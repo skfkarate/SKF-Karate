@@ -90,6 +90,7 @@ const requiredTables = [
   ['admission_promo_codes', 'id'],
   ['admission_applications', 'id'],
   ['admission_promo_redemptions', 'id'],
+  ['athlete_recommendations', 'skf_id'],
 ]
 
 const requiredColumns = [
@@ -112,6 +113,31 @@ const requiredColumns = [
     'portal_practice_folders',
     'parent_folder_id',
     'Run database/migrations/047_practice_folder_hierarchy.sql.',
+  ],
+  [
+    'portal_practice_photos',
+    'storage_path',
+    'Run database/migrations/043_portal_practice_folders.sql.',
+  ],
+  [
+    'video_progress',
+    'watched_seconds',
+    'Run database/migrations/054_video_progress_drill.sql.',
+  ],
+  [
+    'video_progress',
+    'practiced_count',
+    'Run database/migrations/054_video_progress_drill.sql.',
+  ],
+  [
+    'video_progress',
+    'last_practiced_at',
+    'Run database/migrations/054_video_progress_drill.sql.',
+  ],
+  [
+    'video_progress',
+    'updated_at',
+    'Run database/migrations/054_video_progress_drill.sql (heals the updated_at trigger that broke progress saves).',
   ],
   [
     'staff_accounts',
@@ -267,6 +293,7 @@ const sensitiveAnonTables = [
   ['admission_applications', 'id'],
   ['admission_promo_codes', 'id'],
   ['admission_promo_redemptions', 'id'],
+  ['athlete_recommendations', 'skf_id'],
 ]
 
 let failures = 0

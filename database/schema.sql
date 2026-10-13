@@ -576,7 +576,11 @@ CREATE TABLE IF NOT EXISTS video_progress (
   video_id TEXT NOT NULL,
   watched_percent INTEGER DEFAULT 0 CHECK (watched_percent BETWEEN 0 AND 100),
   completed BOOLEAN DEFAULT false,
+  watched_seconds INTEGER NOT NULL DEFAULT 0,
+  practiced_count INTEGER NOT NULL DEFAULT 0,
+  last_practiced_at TIMESTAMPTZ,
   last_watched TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(skf_id, video_id)
 );
 
@@ -585,6 +589,20 @@ CREATE INDEX IF NOT EXISTS idx_video_progress_last_watched ON video_progress (la
 
 ALTER TABLE video_progress ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_full_video_progress" ON video_progress
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- Per-athlete hero-lesson memory for the Home Practice library.
+CREATE TABLE IF NOT EXISTS athlete_recommendations (
+  skf_id TEXT PRIMARY KEY,
+  video_id TEXT NOT NULL,
+  reason_key TEXT NOT NULL DEFAULT 'default',
+  reason_label TEXT NOT NULL DEFAULT 'Recommended for you',
+  visit_count INTEGER NOT NULL DEFAULT 0,
+  last_shown_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE athlete_recommendations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_full_athlete_recommendations" ON athlete_recommendations
   FOR ALL USING (auth.role() = 'service_role');
 
 CREATE TABLE IF NOT EXISTS fee_records (
