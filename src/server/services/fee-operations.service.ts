@@ -260,11 +260,17 @@ function expenseMatchesLocation(scope: unknown, city?: string | null, branch?: s
 
   if (!targetCity) return true
 
-  if (targetCity.slug === 'bangalore' && BANGALORE_SHARED_EXPENSE_SCOPES.has(normalizeLocationKey(scopeText))) {
-    return true
+  const scopeKey = normalizeLocationKey(scopeText)
+  const scopeCity = cityForBranch(scopeText)?.slug || resolveCity(scopeText)?.slug || null
+
+  if (targetCity.slug === 'bangalore') {
+    // Bangalore is the master ledger. Shared labels and free-text scopes such as
+    // "Mobile Recharge" belong to it unless they explicitly resolve to another city.
+    if (!scopeCity) return true
+    return BANGALORE_SHARED_EXPENSE_SCOPES.has(scopeKey) || scopeCity === 'bangalore'
   }
 
-  return cityForBranch(scopeText)?.slug === targetCity.slug || resolveCity(scopeText)?.slug === targetCity.slug
+  return scopeCity === targetCity.slug
 }
 
 function requireFeeDatabase() {
@@ -4531,7 +4537,8 @@ export class FeeOperationsService {
 
     const createdAt = new Date(String(existing.created_at || ''))
     const ageMs = Date.now() - createdAt.getTime()
-    if (!Number.isFinite(ageMs) || ageMs > 24 * 60 * 60 * 1000) {
+    const isAdmin = actorRole(session) === 'admin'
+    if (!isAdmin && (!Number.isFinite(ageMs) || ageMs > 24 * 60 * 60 * 1000)) {
       throw new ValidationError({
         removalId: ['Removals can only be deleted within 24 hours of creation.'],
       })
@@ -4559,6 +4566,145 @@ export class FeeOperationsService {
       `*Deleted By:* ${actorName(session)}`
     ]).catch(err => logger.warn('fee.notify_treasury_action_failed', { err }))
     return { success: true, removal: data }
+  }
+
+  static async getCustomOperations(session: Session, query: { year?: number } = {}) {
+    if (!FEE_ACCESS_ROLES.includes(actorRole(session))) {
+      throw new AuthorizationError('Insufficient permissions.')
+    }
+    requireFeeDatabase()
+
+    const year = Number(query.year || currentPeriod().year)
+    const sessionBranch = String(branchScope(session) || '').trim()
+    const sharedScopes = BANGALORE_SHARED_EXPENSE_SCOPES
+    const matchesSessionBranch = (value?: string | null) => {
+      const normalized = normalizeLocationKey(value)
+      if (!sessionBranch || normalizeLocationKey(sessionBranch) === 'all') return true
+      if (!normalized || sharedScopes.has(normalized)) return true
+      const scopeKey = normalizeLocationKey(sessionBranch)
+      if (normalized === scopeKey) return true
+      const mpscKeys = new Set(['mpsc', 'mp', 'mp sports club', 'm p sports club'])
+      if (mpscKeys.has(scopeKey) && mpscKeys.has(normalized)) return true
+      const heroKeys = new Set(['herohalli', 'hero'])
+      if (heroKeys.has(scopeKey) && heroKeys.has(normalized)) return true
+      return false
+    }
+
+    const [ledger, finance, removalResult] = await Promise.all([
+      this.getLedger(session, {
+        year,
+        city: 'bangalore',
+        feeType: 'all',
+      }),
+      this.getFinance(session, {
+        year,
+        city: 'bangalore',
+      }),
+      supabaseAdmin
+        .from('fee_removals')
+        .select('*')
+        .eq('year', year)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false }),
+    ])
+
+    if (removalResult.error && !isOptionalWorkflowSchemaError(removalResult.error)) {
+      throwFeeDatabaseError(removalResult.error)
+    }
+
+    const dues = (ledger.entries || [])
+      .filter((entry) => entry.sourceType === 'manual_student_fee')
+      .filter((entry) => matchesSessionBranch(entry.branch))
+      .map((entry) => ({
+        id: entry.id,
+        skfId: entry.skfId,
+        studentName: entry.athleteName,
+        title: entry.sourceLabel || entry.notes || 'Custom due',
+        description: entry.notes || '',
+        branch: entry.branch,
+        month: entry.monthIndex,
+        monthName: entry.month,
+        year: entry.year,
+        amount: normalizeAmount(entry.amount),
+        status: entry.status,
+        dueDate: entry.dueDate || null,
+        paidDate: entry.paidDate || null,
+      }))
+      .sort((a, b) => (b.month - a.month) || a.studentName.localeCompare(b.studentName))
+
+    const removals = (removalResult.data || [])
+      .filter((removal) => expenseMatchesLocation(removal.scope, 'bangalore'))
+      .filter((removal) => matchesSessionBranch(String(removal.scope || '')))
+      .sort((a, b) => {
+        const monthDelta = monthIndex(String(b.month || '')) - monthIndex(String(a.month || ''))
+        if (monthDelta !== 0) return monthDelta
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''))
+      })
+
+    const pendingStatuses = new Set(['due', 'overdue', 'rejected', 'pending_verification'])
+    const paidDues = dues
+      .filter((due) => due.status === 'paid')
+      .reduce((sum, due) => sum + due.amount, 0)
+    const pendingDues = dues
+      .filter((due) => pendingStatuses.has(due.status))
+      .reduce((sum, due) => sum + due.amount, 0)
+    const moneyOut = removals.reduce((sum, removal) => sum + normalizeAmount(removal.amount), 0)
+    const bankPosition = finance.bankPosition as Record<string, unknown> | null
+    const rawBalance = Number(bankPosition?.actualBankBalance)
+    const restricted = Boolean(finance.restricted)
+    const reserveAmount = Number(bankPosition?.reserveAmount || 0)
+    const monthlyRows = Array.isArray(finance.monthlyBreakdown)
+      ? finance.monthlyBreakdown as Record<string, unknown>[]
+      : []
+    const monthly = restricted ? [] : monthlyRows
+      .map((row) => {
+        const income = Number(row.grossIncome)
+        const moneyOutThisMonth = Number(row.customRemovals)
+        const developmentExpenses = Number(row.developmentExpenses)
+        const eventExpenses = Number(row.eventExpenses)
+        const net = Number(row.bankMovement)
+        const cumulativeBank = Number(row.cumulativeBank)
+        return {
+          month: monthIndex(String(row.month || '')),
+          income: Number.isFinite(income) ? income : 0,
+          moneyOut: Number.isFinite(moneyOutThisMonth) ? moneyOutThisMonth : 0,
+          expenses:
+            (Number.isFinite(developmentExpenses) ? developmentExpenses : 0) +
+            (Number.isFinite(eventExpenses) ? eventExpenses : 0) +
+            (Number.isFinite(moneyOutThisMonth) ? moneyOutThisMonth : 0),
+          net: Number.isFinite(net) ? net : 0,
+          balance: (Number.isFinite(cumulativeBank) ? cumulativeBank : 0) + reserveAmount,
+        }
+      })
+      .filter((row) => row.month >= 0)
+
+    return {
+      year,
+      balance: {
+        availableBalance: restricted || !Number.isFinite(rawBalance) ? null : rawBalance,
+        reserveAmount,
+        restricted,
+        restrictedReason: restricted ? String(finance.restrictedReason || '') : '',
+        formula: String(bankPosition?.formula || ''),
+      },
+      monthly,
+      removals,
+      dues,
+      totals: {
+        moneyOut,
+        removalCount: removals.length,
+        pendingDues,
+        pendingDueCount: dues.filter((due) => pendingStatuses.has(due.status)).length,
+        paidDues,
+        paidDueCount: dues.filter((due) => due.status === 'paid').length,
+        dueCount: dues.length,
+      },
+      permissions: {
+        canWrite: WRITE_ROLES.has(actorRole(session)),
+        canDeleteAnyRemoval: actorRole(session) === 'admin',
+        deleteWindowHours: 24,
+      },
+    }
   }
 
   static async getExamMonths(session: Session) {

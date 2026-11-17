@@ -1270,6 +1270,23 @@ async function deleteRemoval(session: FeeTrackSession, body: ActionBody) {
   return { success: true, data: result }
 }
 
+async function getCustomOperations(session: FeeTrackSession, body: ActionBody) {
+  const result = await FeeOperationsService.getCustomOperations(session, {
+    year: targetYear(body.year),
+  })
+  return {
+    success: true,
+    data: {
+      ...result,
+      removals: (result.removals as Record<string, unknown>[]).map(mapRemoval),
+      dues: (result.dues as Record<string, unknown>[]).map((due) => ({
+        ...due,
+        branch: feeTrackScope(due.branch),
+      })),
+    },
+  }
+}
+
 function mapExtraIncome(row: Record<string, unknown>) {
   return {
     id: String(row.id || row.income_code || ''),
@@ -3160,6 +3177,8 @@ async function handleAction(body: ActionBody) {
       return addRemoval(session, body)
     case 'delete_removal':
       return deleteRemoval(session, body)
+    case 'get_custom_operations':
+      return getCustomOperations(session, body)
     case 'get_finance_command_center':
       return getFinanceCommandCenter(session, body)
     case 'get_financial_summary':
