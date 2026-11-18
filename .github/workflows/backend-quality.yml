@@ -62,7 +62,7 @@ jobs:
         run: npm run test:unit
 
       - name: Security audit
-        run: npm audit --omit=dev --audit-level=high
+        run: npm run audit:production
 
       - name: Static asset audit
         run: npm run audit:assets:ci
