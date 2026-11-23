@@ -30,7 +30,7 @@ export const athleteSchema: EntitySchema = {
     branchName:         { type: 'string',  required: true,  description: 'Branch name string (e.g. Sunkadakatte) — maps to dojo' },
     currentBelt:        { type: 'string',  required: true,  description: 'e.g. white, yellow, black-2nd-dan' },
     joinDate:           { type: 'date',    required: true },
-    status:             { type: 'enum',    required: true,  enumValues: ['active', 'inactive'] },
+    status:             { type: 'enum',    required: true,  enumValues: ['active', 'inactive'], description: 'Portal-access flag: only active athletes can log in. Inactive (discontinued) athletes keep their public profile.' },
     pointsBalance:      { type: 'number',  required: true,  default: 0 },
     pointsLifetime:     { type: 'number',  required: true,  default: 0 },
     isPublic:           { type: 'boolean', required: true,  default: true },

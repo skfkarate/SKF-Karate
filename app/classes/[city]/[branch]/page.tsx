@@ -7,6 +7,7 @@ import {
   getBranchBySlugsLive,
   getCityBySlugLive,
 } from '@/lib/server/repositories/classes-live'
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility'
 import JsonLdScript from '@/components/JsonLdScript'
 import { buildBreadcrumbJsonLd, buildSeoMetadata } from '@/data/constants/seo'
 import { AdmissionService } from '@/src/server/services/admission.service'
@@ -53,7 +54,7 @@ export default async function BranchPage({ params }: { params: Promise<{ city: s
     // Match them to athletes to extract categories and medals
     const topPerformers = branchTopSnapshots.map(snapshot => {
         const athlete = athletes.find(a => a.id === snapshot.athleteId)
-        if (!athlete) return null
+        if (!isPubliclyVisibleAthlete(athlete)) return null
         
         const medals = (athlete.achievements || []).filter(a => 
             a.type != null && ['tournament-gold', 'tournament-silver', 'tournament-bronze'].includes(a.type)

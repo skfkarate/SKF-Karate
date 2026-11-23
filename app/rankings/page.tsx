@@ -5,6 +5,7 @@ import {
   getRankSnapshotsLive,
 } from '@/lib/server/repositories/athletes-live'
 import { hydrateRankingMovementsLive } from '@/lib/server/repositories/ranking-snapshots'
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility'
 import { buildRankingBoards } from '@/app/_components/athlete/rankingBoardUtils'
 import RankingDashboard from '@/app/_components/athlete/RankingDashboard'
 import JsonLdScript from '@/components/JsonLdScript'
@@ -28,13 +29,13 @@ export default async function RankingsPage() {
     getAllAthletesLive(),
     getRankSnapshotsLive(),
   ])
-  const publicActiveAthleteIds = new Set(
+  const publicAthleteIds = new Set(
     athletes
-      .filter((athlete) => athlete.isPublic && athlete.status === 'active')
+      .filter(isPubliclyVisibleAthlete)
       .map((athlete) => String(athlete.id))
   )
   const visibleSnapshots = allSnapshots.filter((entry) =>
-    publicActiveAthleteIds.has(String(entry.athleteId))
+    publicAthleteIds.has(String(entry.athleteId))
   )
   const snapshots = await hydrateRankingMovementsLive(visibleSnapshots)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
