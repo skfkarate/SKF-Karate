@@ -9,13 +9,15 @@ import {
 import { getAllEventsLive } from '@/lib/server/repositories/events-live'
 import { getBranchCoachNameMapLive } from '@/lib/server/repositories/senseis-live'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility'
 import { absoluteMediaUrl, absoluteSiteUrl } from '@/data/constants/siteConfig'
 
 export async function generateMetadata({ params }: { params: Promise<{ skfId: string }> }) {
   const { skfId } = await params
   const athlete = await getAthleteBySkfIdLive(skfId)
 
-  if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
+  // Discontinued students cannot log in, but their public profile stays live.
+  if (!isPubliclyVisibleAthlete(athlete)) {
     return {
       title: 'SKF Karate',
     }
@@ -51,7 +53,8 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
   const { skfId } = await params
   const athlete = await getAthleteBySkfIdLive(skfId)
 
-  if (!athlete || !athlete.isPublic || athlete.status !== 'active') {
+  // Discontinued students cannot log in, but their public profile stays live.
+  if (!isPubliclyVisibleAthlete(athlete)) {
     notFound()
   }
 

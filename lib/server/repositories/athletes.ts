@@ -7,6 +7,7 @@ import { resolveDataFile, readJsonArray, writeJsonAtomically } from '../data-sto
 import { ApiError } from '../api';
 import type { Athlete } from '@/data/types';
 import { logger } from '@/src/server/lib/logger';
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility';
 
 const ATHLETES_DATA_FILE = resolveDataFile('athletes.json');
 
@@ -533,7 +534,7 @@ export function getFeaturedAthletes() {
   ensureAthletesLoaded();
   return cloneAthleteData(
     mockAthletes
-      .filter(s => s.isFeatured && s.isPublic && s.status === 'active')
+      .filter(s => s.isFeatured && isPubliclyVisibleAthlete(s))
       .map(withInitialWhiteBeltAchievement)
   );
 }
@@ -567,7 +568,7 @@ export function searchAthletesByName(query: string) {
   const lowerQuery = query.toLowerCase();
   return mockAthletes
     .filter(s =>
-      s.isPublic &&
+      isPubliclyVisibleAthlete(s) &&
       (s.firstName.toLowerCase().includes(lowerQuery) ||
         s.lastName.toLowerCase().includes(lowerQuery) ||
         s.skfId.toLowerCase().includes(lowerQuery))

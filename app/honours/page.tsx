@@ -8,6 +8,7 @@ import {
   getRankSnapshotsLive,
 } from '@/lib/server/repositories/athletes-live'
 import { resolveServerAthleteProfilePhoto } from '@/lib/server/profile-photos'
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility'
 import { getPublicSenseisLive } from '@/lib/server/repositories/senseis-live'
 import { normaliseEventTier, normaliseResult } from '@/lib/utils/points'
 import { formatLocaleDate } from '@/lib/utils/format-date'
@@ -166,7 +167,7 @@ export default async function HonoursPage() {
     getRankSnapshotsLive(),
     getPublicSenseisLive(),
   ])
-  const publicAthletes = (athletes as PublicAthlete[]).filter((athlete) => athlete.isPublic)
+  const publicAthletes = (athletes as PublicAthlete[]).filter(isPubliclyVisibleAthlete)
   const publicAthleteMap = new Map(publicAthletes.map((athlete) => [String(athlete.id), athlete]))
   const filteredSnapshots = (snapshots as RankingSnapshot[]).filter(
     (entry) => publicAthleteMap.has(String(entry.athleteId)) && Number(entry.totalPoints || 0) > 0

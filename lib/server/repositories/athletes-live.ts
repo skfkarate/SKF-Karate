@@ -10,6 +10,7 @@ import type { Athlete } from '@/data/types'
 import { isSupabaseReady, supabaseAdmin } from '../supabase'
 import { logger } from '@/src/server/lib/logger'
 import { isPgrst303 } from '@/src/server/lib/pgrst-errors'
+import { isPubliclyVisibleAthlete } from '@/lib/athletes/public-visibility'
 import {
   getAllAthletes,
   getAthleteById,
@@ -635,7 +636,7 @@ export async function getFeaturedAthletesLive() {
 
   return cloneAthleteData(
     athletes.filter(
-      (athlete) => athlete.isFeatured && athlete.isPublic && athlete.status === 'active'
+      (athlete) => athlete.isFeatured && isPubliclyVisibleAthlete(athlete)
     )
   )
 }
@@ -674,7 +675,7 @@ export async function searchAthletesByNameLive(query: string) {
 
   return athletes
     .filter((athlete) => {
-      if (!athlete.isPublic || athlete.status !== 'active') return false
+      if (!isPubliclyVisibleAthlete(athlete)) return false
 
       const fields = getSearchFields(athlete)
       return (
@@ -732,7 +733,7 @@ export async function getFeaturedAthleteSearchResultsLive(limit = 6) {
   const rankMap = new Map(rankSnapshots.map((entry) => [String(entry.athleteId), entry]))
 
   const featured = athletes
-    .filter((athlete) => athlete.isPublic && athlete.status === 'active')
+    .filter(isPubliclyVisibleAthlete)
     .sort((a, b) => {
       const aRank = rankMap.get(String(a.id))
       const bRank = rankMap.get(String(b.id))
@@ -891,6 +892,9 @@ export async function getAthleteRankOrFallback(athleteId: string) {
  * Flip an athlete's portal eligibility (athletes.status). The athlete portal
  * only lets students log in when status is 'active', so this is what removes
  * (or restores) portal access when billing is discontinued / resumed.
+ *
+ * This does NOT hide the public profile: published profiles stay visible to
+ * everyone regardless of membership status (see public-visibility.ts).
  */
 export async function setAthletePortalStatus(skfId: string, status: 'active' | 'inactive') {
   if (!isSupabaseReady()) return

@@ -190,11 +190,11 @@ export function getRankedAthletes(
   options: RankingOptions = {}
 ) {
   const currentDate = options.currentDate || new Date()
-  const activeAthletes = athletes.filter(
-    (athlete) => athlete.status === "active" && !isWhiteBeltOnly(athlete)
-  )
+  // Portal status (active/inactive) only controls login. A discontinued
+  // student's results remain part of the public ranking history.
+  const rankedAthletes = athletes.filter((athlete) => !isWhiteBeltOnly(athlete))
 
-  const ranked = activeAthletes.map((athlete: Athlete) => {
+  const ranked = rankedAthletes.map((athlete: Athlete) => {
     const results = getAthleteCompetitionResults(athlete, allResults, currentDate)
     const totalPoints = calculatePoints(athlete.id, results, currentDate)
     const rankingCategory = getAthleteRankingCategory(athlete, allResults, currentDate)
