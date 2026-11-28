@@ -14,6 +14,7 @@ import { hasTelegramChannel, sendTelegramMessage, sendTelegramPhoto } from '@/sr
 import { FeeReceiptsService } from '@/src/server/services/fee-receipts.service'
 import type {
   DevelopmentFundExpenseInput,
+  EditMonthlyFeeInput,
   FeeRemovalInput,
   FeeConsoleBulkActionInput,
   FeeConsoleLedgerActionInput,
@@ -466,11 +467,16 @@ function temporaryMonthlyFeeOverride(
   feeType: FeeType,
   month: string,
   year: number,
-  options?: { status?: FeeStatus | null; sourceKey?: string | null }
+  options?: {
+    status?: FeeStatus | null
+    sourceKey?: string | null
+    metadata?: Record<string, unknown> | null
+  }
 ) {
   if (feeType !== 'monthly') return null
   if (options?.status === 'paid') return null
   if (String(options?.sourceKey || '').trim()) return null
+  if (options?.metadata?.manualFeeEdit) return null
 
   const installment = getBlackBeltOverride(skfId, monthIndex(month), year)
   if (installment) {
@@ -487,6 +493,7 @@ function effectiveFeeRecordAmount(row: FeeRecord) {
   return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
     status: row.status,
     sourceKey: row.source_key,
+    metadata: row.metadata,
   })?.amount ?? normalizeAmount(row.amount)
 }
 
@@ -494,6 +501,7 @@ function effectiveFeeRecordSourceLabel(row: FeeRecord) {
   return temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
     status: row.status,
     sourceKey: row.source_key,
+    metadata: row.metadata,
   })?.label || row.source_label
 }
 
@@ -503,6 +511,7 @@ async function alignFeeRecordAmountWithTemporaryOverride(row: FeeRecord): Promis
   const override = temporaryMonthlyFeeOverride(row.skf_id, row.fee_type, row.month, row.year, {
     status: row.status,
     sourceKey: row.source_key,
+    metadata: row.metadata,
   })
   if (!override) return row
 
@@ -685,7 +694,18 @@ function buildReceiptId(skfId: string, feeType: FeeType, month: string, year: nu
   return `SKF-FEE-${year}-${receiptMonthNumber(month)}-${receiptTypeCode(feeType)}-${normaliseSkfId(skfId)}${receiptSourceToken(sourceKey, rowId)}`
 }
 
-function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?: string, month?: string, year?: number) {
+function shouldIssueReceiptForFeeType(
+  feeType: FeeType,
+  amount?: number,
+  skfId?: string,
+  month?: string,
+  year?: number,
+  options?: {
+    status?: FeeStatus | null
+    sourceKey?: string | null
+    metadata?: Record<string, unknown> | null
+  }
+) {
   if (feeType === 'credit_adjustment' || feeType === 'belt_exam') return false
   if (
     feeType === 'monthly' &&
@@ -693,7 +713,11 @@ function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?:
     month &&
     year &&
     (() => {
-      const override = temporaryMonthlyFeeOverride(skfId, feeType, month, year)
+      const override = temporaryMonthlyFeeOverride(skfId, feeType, month, year, {
+        status: options?.status,
+        sourceKey: options?.sourceKey,
+        metadata: options?.metadata,
+      })
       return override && normalizeAmount(amount) === override.amount
     })()
   ) {
@@ -703,7 +727,11 @@ function shouldIssueReceiptForFeeType(feeType: FeeType, amount?: number, skfId?:
 }
 
 function receiptIdForPaidFee(row: FeeRecord, skfId = row.skf_id, feeType: FeeType = row.fee_type, month = row.month, year = row.year) {
-  if (!shouldIssueReceiptForFeeType(feeType, normalizeAmount(row.amount), skfId, month, year)) return null
+  if (!shouldIssueReceiptForFeeType(feeType, normalizeAmount(row.amount), skfId, month, year, {
+    status: row.status,
+    sourceKey: row.source_key,
+    metadata: row.metadata,
+  })) return null
   return row.receipt_id || buildReceiptId(skfId, feeType, month, year, row.source_key, row.id)
 }
 
@@ -714,7 +742,11 @@ async function ensureReceiptForPaidRow(input: {
 }) {
   if (
     input.row.status !== 'paid' ||
-    !shouldIssueReceiptForFeeType(input.row.fee_type, input.row.amount, input.row.skf_id, input.row.month, input.row.year)
+    !shouldIssueReceiptForFeeType(input.row.fee_type, input.row.amount, input.row.skf_id, input.row.month, input.row.year, {
+      status: input.row.status,
+      sourceKey: input.row.source_key,
+      metadata: input.row.metadata,
+    })
   ) {
     return null
   }
@@ -1674,6 +1706,115 @@ export class FeeOperationsService {
     return { success: true, entry: rowToEntry(after, athlete) }
   }
 
+  /** Edit the base monthly fee for one student/month/year from FeeTrack. */
+  static async editMonthlyFee(session: Session, input: EditMonthlyFeeInput) {
+    assertWrite(session)
+    requireFeeDatabase()
+
+    const skfId = normaliseSkfId(input.skfId)
+    const month = normalizeMonth(input.month)
+    const year = Number(input.year || currentPeriod().year)
+    const amount = normalizeAmount(input.amount)
+    const reason = String(input.reason || '').trim()
+
+    if (!skfId) throw new ValidationError({ skfId: ['SKF ID is required.'] })
+    if (!month) throw new ValidationError({ month: ['Month is required.'] })
+    if (!Number.isFinite(year)) throw new ValidationError({ year: ['Year is required.'] })
+    if (amount <= 0) throw new ValidationError({ amount: ['Amount must be greater than zero.'] })
+
+    await assertCanAccessSkfId(session, skfId)
+    const athlete = await getAthleteBySkfIdLive(skfId)
+    if (!athlete) throw new NotFoundError('Student')
+
+    const rows = await getFeeRows({ skfId, feeType: 'monthly', month, year })
+    const existing = rows.find((row) => !String(row.source_key || '').trim())
+    if (existing && ['paid', 'pending_verification'].includes(existing.status)) {
+      throw new ValidationError({
+        amount: ['This month is already paid or awaiting verification. Edit the fee before payment is submitted.'],
+      })
+    }
+    const wasCreated = !existing
+    const before = existing ?? await ensureFeeRecord({
+      skfId,
+      feeType: 'monthly',
+      month,
+      year,
+      amount,
+      dueDate: periodStartDate(year, month),
+      branchSnapshot: String(athlete.branchName || '').trim() || undefined,
+    })
+
+    const amountToMatch = normalizeAmount(before.amount)
+    const previousAmount = wasCreated ? null : amountToMatch
+    const now = new Date().toISOString()
+    const metadata: Record<string, unknown> = { ...(before.metadata || {}) }
+    delete metadata.temporaryOverride
+    delete metadata.baseMonthlyFee
+    delete metadata.baseAmountBeforeOverride
+    metadata.manualFeeEdit = {
+      previousAmount,
+      amount,
+      editedBy: actorName(session),
+      editedAt: now,
+      reason: reason || null,
+    }
+    const editNote = wasCreated
+      ? (reason
+          ? `Monthly fee set to ${amount}: ${reason}`
+          : `Monthly fee set to ${amount} from FeeTrack.`)
+      : (reason
+          ? `Monthly fee edited from ${previousAmount} to ${amount}: ${reason}`
+          : `Monthly fee edited from ${previousAmount} to ${amount} from FeeTrack.`)
+    const notes = [before.notes, editNote].filter(Boolean).join(' • ')
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_records')
+      .update({
+        amount,
+        metadata,
+        notes,
+        source_label: null,
+        updated_at: now,
+      })
+      .eq('id', before.id)
+      .eq('status', before.status)
+      .eq('amount', amountToMatch)
+      .select('*')
+      .single()
+    if (error) {
+      const code = error && typeof error === 'object'
+        ? String((error as unknown as Record<string, unknown>).code || '').toLowerCase()
+        : ''
+      if (code === 'pgrst116') {
+        throw new ValidationError({
+          amount: ['This fee changed before the edit could be saved. Reload the fee list and try again.'],
+        })
+      }
+      throwFeeDatabaseError(error)
+    }
+
+    const after = normalizeFeeRecord(data)
+    await logAudit(session, {
+      action: wasCreated ? 'monthly_fee_set' : 'monthly_fee_edited',
+      skfId,
+      feeRecordId: after.id,
+      before,
+      after,
+      metadata: { month, year, previousAmount, amount, reason: reason || null },
+    })
+
+    return {
+      success: true,
+      skfId,
+      month,
+      year,
+      amount,
+      previousAmount,
+      feeRecordId: after.id,
+      entry: rowToEntry(after, athlete),
+    }
+  }
+
   static async getStudents(session: Session, query: FeeConsoleQueryInput) {
     const period = currentPeriod()
     const targetMonth = query.month ? normalizeMonth(query.month) : period.month
@@ -1787,7 +1928,7 @@ export class FeeOperationsService {
 
         const mIndex = MONTHS.indexOf(targetMonth)
         const monthlyOverride = temporaryMonthlyFeeOverride(skfId, 'monthly', targetMonth, targetYear, row
-          ? { status: row.status, sourceKey: row.source_key }
+          ? { status: row.status, sourceKey: row.source_key, metadata: row.metadata }
           : undefined)
         if (monthlyOverride) {
           baseAmount = monthlyOverride.amount
@@ -1822,6 +1963,7 @@ export class FeeOperationsService {
           originalAmount: baseAmount,
           creditApplied: nonBillableStatus(status) ? 0 : creditApplied,
           status,
+          metadata: (row?.metadata as Record<string, unknown> | null) || {},
           feeRecordId: row?.id || null,
           paidDate: row?.paid_date || null,
           receiptId: row?.receipt_id || null,
@@ -2836,18 +2978,23 @@ export class FeeOperationsService {
       )
 
       for (const row of rowsToResume) {
+        const manualEdit = row.metadata?.manualFeeEdit as Record<string, unknown> | undefined
+        const resumedAmount = manualEdit ? normalizeAmount(manualEdit.amount ?? row.amount) : monthlyFee
+        const resumedNotes = manualEdit && String(row.notes || '').trim()
+          ? `${String(row.notes).trim()} • ${reason}`
+          : reason
         const { error } = await supabaseAdmin
           .from('fee_records')
           .update({
             status: 'due',
-            amount: monthlyFee,
+            amount: resumedAmount,
             paid_date: null,
             receipt_id: null,
             payment_method: null,
             verified_by: null,
             verified_at: null,
             rejected_reason: null,
-            notes: reason,
+            notes: resumedNotes,
             updated_at: new Date().toISOString(),
           })
           .eq('id', row.id)
@@ -3226,6 +3373,7 @@ export class FeeOperationsService {
       ])
     )
     const targets = monthlyRows
+      .filter((row) => !row.metadata?.manualFeeEdit)
       .filter((row) => row.status === 'due' || row.status === 'overdue')
       .map((row) => {
         const athlete = athleteBySkfId.get(row.skf_id)
@@ -3629,6 +3777,7 @@ export class FeeOperationsService {
     const paymentAmount = temporaryMonthlyFeeOverride(normalizedSkfId, feeType, month, input.year, {
       status: row.status,
       sourceKey: row.source_key,
+      metadata: row.metadata,
     })
       ? effectiveFeeRecordAmount(row)
       : normalizeAmount(input.amount)

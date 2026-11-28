@@ -3,6 +3,20 @@ import { z } from 'zod'
 const yearSchema = z.coerce.number().int().min(2020).max(2100)
 const skfIdSchema = z.string().trim().min(1).max(64)
 const monthSchema = z.string().trim().min(3).max(20)
+const monthNameSchema = z.enum([
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+])
 export const feeTypeSchema = z.enum([
   'monthly',
   'admission',
@@ -254,6 +268,14 @@ export const manualStudentFeeSchema = z.object({
   dueDate: z.string().trim().max(40).optional(),
 })
 
+export const editMonthlyFeeSchema = z.object({
+  skfId: skfIdSchema,
+  month: monthNameSchema,
+  year: yearSchema,
+  amount: z.coerce.number().min(1).max(1000000),
+  reason: z.string().trim().max(300).optional(),
+})
+
 const eventFeeCategorySchema = z.enum(['belt_exam', 'tournament', 'event', 'other'])
 const eventFeeTargetingModeSchema = z.enum(['branch_and_eligibility', 'participants_only', 'manual_selection'])
 const eventFeePricingModeSchema = z.enum(['fixed', 'branch', 'belt', 'branch_belt', 'student'])
@@ -360,6 +382,7 @@ export type DevelopmentFundExpenseInput = z.infer<typeof developmentFundExpenseS
 export type FeeExtraIncomeInput = z.infer<typeof feeExtraIncomeSchema>
 export type FeeRemovalInput = z.infer<typeof feeRemovalSchema>
 export type ManualStudentFeeInput = z.infer<typeof manualStudentFeeSchema>
+export type EditMonthlyFeeInput = z.infer<typeof editMonthlyFeeSchema>
 export type EventFeeConfigInput = z.infer<typeof eventFeeConfigSchema>
 export type EventFeePreviewInput = z.infer<typeof eventFeePreviewSchema>
 export type EventFeeGenerateInput = z.infer<typeof eventFeeGenerateSchema>

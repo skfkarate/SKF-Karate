@@ -88,6 +88,7 @@ import {
   eventFeeDepositSchema,
   eventFeeExpenseSchema,
   eventFeeGenerateSchema,
+  editMonthlyFeeSchema,
   eventFeePreviewSchema,
   feeReminderSendSchema,
   feeTypeSchema,
@@ -541,6 +542,24 @@ function monthName(input: unknown) {
   return match || MONTHS[new Date().getMonth()]
 }
 
+function requireMonthName(input: unknown) {
+  const raw = String(input || '').trim()
+  if (/^\d+$/.test(raw)) {
+    const index = Number(raw)
+    if (index >= 0 && index < MONTHS.length) return MONTHS[index]
+    throw new ValidationError({ month: ['Choose a valid month.'] })
+  }
+
+  const key = raw.toLowerCase()
+  if (key.length < 3) throw new ValidationError({ month: ['Choose a valid month.'] })
+  const match = MONTHS.find((month) => {
+    const lower = month.toLowerCase()
+    return lower === key || lower.slice(0, 3) === key.slice(0, 3)
+  })
+  if (!match) throw new ValidationError({ month: ['Choose a valid month.'] })
+  return match
+}
+
 function monthNameFromDateValue(input: unknown) {
   const raw = String(input || '').trim()
   if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
@@ -724,6 +743,7 @@ function mapStudent(
         ? 'Break'
         : 'Active',
     fee: readAmount(row.amount),
+    feeEdited: Boolean((row.metadata as Record<string, unknown> | undefined)?.manualFeeEdit),
     phone: row.phone || '',
     whatsapp: row.phone || '',
     dateOfBirth: row.dateOfBirth || '',
@@ -976,6 +996,19 @@ async function createManualStudentFee(session: FeeTrackSession, body: ActionBody
   })
 
   const result = await FeeOperationsService.createManualStudentFee(session, input)
+  return { success: true, data: result }
+}
+
+async function editMonthlyFee(session: FeeTrackSession, body: ActionBody) {
+  const input = editMonthlyFeeSchema.parse({
+    skfId: String(body.id || body.skfId || ''),
+    month: requireMonthName(body.month),
+    year: targetYear(body.year),
+    amount: body.amount,
+    reason: body.reason,
+  })
+
+  const result = await FeeOperationsService.editMonthlyFee(session, input)
   return { success: true, data: result }
 }
 
@@ -3120,6 +3153,8 @@ async function handleAction(body: ActionBody) {
       return allocateExamFee(session, body)
     case 'create_manual_student_fee':
       return createManualStudentFee(session, body)
+    case 'edit_monthly_fee':
+      return editMonthlyFee(session, body)
     case 'get_exam_months':
       return { success: true, data: await FeeOperationsService.getExamMonths(session) }
     case 'set_exam_month':
