@@ -196,14 +196,14 @@ export async function ensureFeeRowsForStudent(
   const startMonth = startMonthForYear(options.enrolledDate, year)
   const { data: existingRows, error: existingError } = await supabaseAdmin
     .from('fee_records')
-    .select('month, amount, status, source_key')
+    .select('month, amount, status, source_key, metadata')
     .eq('skf_id', normalizedSkfId)
     .eq('fee_type', 'monthly')
     .eq('year', year)
 
   if (existingError) throwFeeRepositoryError(existingError)
 
-  const existingByMonth = new Map<string, { amount: number; status: string }>(
+  const existingByMonth = new Map<string, { amount: number; status: string; manualFeeEdit: boolean }>(
     (existingRows || [])
       .filter((row) => !String(row.source_key || '').trim())
       .map((row) => [
@@ -211,6 +211,7 @@ export async function ensureFeeRowsForStudent(
         {
           amount: Number(row.amount || 0),
           status: String(row.status || 'due'),
+          manualFeeEdit: Boolean((row.metadata as Record<string, unknown> | null)?.manualFeeEdit),
         },
       ])
   )
@@ -252,6 +253,8 @@ export async function ensureFeeRowsForStudent(
       continue
     }
 
+    if (existing.manualFeeEdit) continue
+
     if (options.overwriteAmount && existing.amount !== targetAmount) {
       rowsToUpdate.push({
         month,
@@ -288,6 +291,7 @@ export async function ensureFeeRowsForStudent(
       .eq('month', row.month)
       .eq('year', year)
       .eq('source_key', '')
+      .is('metadata->manualFeeEdit', null)
       .in('status', billableStatuses)
 
     if (error) throwFeeRepositoryError(error)
